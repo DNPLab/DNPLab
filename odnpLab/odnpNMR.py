@@ -18,21 +18,15 @@ _defaultWindowParameters = {
         'axes' : 't',
         }
 
-def detDataType(allData):
+_defaultIntegrateParameters = {
+        'axes' : 't',
+        'integrateCenter' : 0,
+        'integrateWidth' : 100,
+        }
+
+def returnData(allData):
     '''
     Determine what the data type is for processing
-    '''
-
-    dataType = 'dataDict'
-
-
-def fourierTransform(allData, procParameters):
-    '''
-    Perform Fourier Transform down given dimension
-    assumes dt = t[1] - t[0]
-
-    Example:
-    data.ft('t')
     '''
 
     isDict = False
@@ -46,18 +40,41 @@ def fourierTransform(allData, procParameters):
             data = allData['raw'].copy()
     else:
         print('Type not supported')
-        return
+        raise ValueError()
 
-    # Ensure Data is not overwritten
-#    data = data.copy()
+
+    dataType = 'dataDict'
+    return data, isDict
+
+def updateParameters(procParameters, requiredList, defaultParameters):
+    '''
+    For all parameters without default parameters, assign parameter value to default
+
+    '''
+    updatedProcParameters = procParameters
+    for requiredParameter in requiredList:
+        if not requiredParameter in updatedProcParameters:
+            updatedProcParameters[requiredParameter] = defaultParameters[requiredParameter]
+            print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
+            print(defaultParameters[requiredParameter])
+
+    return updatedProcParameters
+
+def fourierTransform(allData, procParameters):
+    '''
+    Perform Fourier Transform down given dimension
+    assumes dt = t[1] - t[0]
+
+    Example:
+    data.ft('t')
+    '''
+
+    # Determine if data is dictionary or odnpData object
+    data, isDict = returnData(allData)
 
     requiredList = ['axes','zeroFillFactor','shift','convert2ppm']
 
-    for requiredParameter in requiredList:
-        if not requiredParameter in procParameters:
-            procParameters[requiredParameter] = _defaultFourierTransformParameters[requiredParameter]
-            print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
-            print(_defaultFourierTransformParameters[requiredParameter])
+    procParameters = updateParameters(procParameters,requiredList,_defaultFourierTransformParameters)
 
     axesLabel = procParameters['axes']
     zeroFillFactor = procParameters['zeroFillFactor']
@@ -111,26 +128,11 @@ def window(allData,procParameters):
     data.window('t',linewidth = 20)
     '''
 
-    isDict = False
-    if isinstance(allData,_odnpData):
-        data = allData.copy()
-    elif isinstance(allData,dict):
-        isDict = True
-        if 'proc' in allData:
-            data = allData['proc'].copy()
-        elif 'raw' in allData:
-            data = allData['raw'].copy()
-    else:
-        print('Type not supported')
-        return
+    data, isDict = returnData(allData)
 
     requiredList = ['axes','linewidth']
 
-    for requiredParameter in requiredList:
-        if not requiredParameter in procParameters:
-            procParameters[requiredParameter] = _defaultWindowParameters[requiredParameter]
-            print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
-            print(_defaultWindowParameters[requiredParameter])
+    procParameters = updateParameters(procParameters,requiredList,_defaultWindowParameters)
 
     axesLabel = procParameters['axes']
     linewidth = procParameters['linewidth']
@@ -161,23 +163,53 @@ def window(allData,procParameters):
     else:
         return data
 
+def integrate(allData,procParameters):
+    '''
+    Integrate data down given dimension
+    
+    Parameters:
+
+    axes_label: str
+        dimension to integrate
+    integrateCenter:
+        center for width of integration
+    integrateWidth: 
+        width of integration window
+
+    Exampe:
+    data.integrate(dataDict,procParameters)
+    '''
+
+    data, isDict = returnData(allData)
+
+    requiredList = ['axes','integrateCenter','integrateWidth']
+
+    procParameters = updateParameters(procParameters,requiredList,_defaultIntegrateParameters)
+
+    axes = procParameters['axes']
+    integrateCenter = procParameters['integrateCenter']
+    integrateWidth = procParameters['integrateWidth']
+
+    integrateMin = integrateCenter - _np.abs(integrateWidth)/2.
+    integrateMax = integrateCenter + _np.abs(integrateWidth)/2.
+
+    data = data.range(axes,integrateMin,integrateMax)
+
+    data.sum(axes)
+
+    if isDict:
+        allData['proc'] = data
+        return allData
+    else:
+        return data
+
+
 def align(allData,procParameters):
     '''
     Alignment of NMR spectra down given axes dimension
     '''
 
-    isDict = False
-    if isinstance(allData,_odnpData.odnpData):
-        data = allData.copy()
-    elif isinstance(allData,dict):
-        isDict = True
-        if 'proc' in allData:
-            data = allData['proc'].copy()
-        elif 'raw' in allData:
-            data = allData['raw'].copy()
-    else:
-        print('Type not supported')
-        return
+    data, isDict = returnData(allData)
 
     if len(_np.shape(data.data)) != 2:
         print('Only 2-dimensional data supported')
@@ -185,11 +217,7 @@ def align(allData,procParameters):
 
     requiredList = ['axes']
 
-    for requiredParameter in requiredList:
-        if not requiredParameter in procParameters:
-            procParameters[requiredParameter] = _defaultAlignParameters[requiredParameter]
-            print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
-            print(_defaultAlignParameters[requiredParameter])
+    procParameters = updateParameters(procParameters,requiredList,_defaultAlignParameters)
 
     alignAxesLabel = procParameters['axes']
     originalAxesOrder = data.axesLabels
