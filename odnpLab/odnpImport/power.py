@@ -2,7 +2,12 @@ import numpy as _np
 
 from scipy.io import loadmat as _loadmat
 
+from .. import odnpData as _odnpData
+
 def importPower(path,filename = ''):
+    '''
+    import powers file
+    '''
     fullPath = path + filename
 
     if fullPath[-4:] == '.mat':
@@ -60,6 +65,28 @@ def chopPower(t,p,threshold = 0.1):
     averagePowerArray = np.array(averagePowerList)
     averageTimeArray = np.array(averageTimeList)
     return averageTimeArray, averagePowerArray
+
+def assignPower(dataDict,expNumList,powersList):
+    '''
+    Given a dictionary of odnpData objects with key being folder string,
+    return the data with power values assigned to a new axis dimension
+    '''
+
+
+    doInitialize = True
+    for ix,expNum in enumerate(expNumList):
+        if str(expNum) in dataDict:
+            if doInitialize:
+                data = dataDict[str(expNum)]
+                data.add_axes('power',powersList[ix])
+                doInitialize = False
+            else:
+                tempData = dataDict[str(expNum)]
+                tempData.add_axes('power',powersList[ix])
+                data.concatenate_along(tempData,'power')
+
+
+    return data
 
 if __name__ == '__main__':
     from matplotlib.pylab import *
