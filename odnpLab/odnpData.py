@@ -19,7 +19,6 @@ class odnpData:
         self.axes = axes
         self.axesLabels = axesLabels
         self.params = params
-        self.procList = procList
 
     def __add__(self,data):
         new_data = deepcopy(self)
@@ -131,14 +130,47 @@ class odnpData:
     def __str__(self):
         string = 'Data Shape:' + repr(np.shape(self.data)) + '\n'
         string += 'Data Axes:' + repr(self.axesLabels) + '\n'
-        string += 'Parameters:' + repr(self.params)
+        string += 'Parameters:\n'# + repr(self.params)
+        for key in self.params:
+            if key != '*proc*':
+                string += str(key) + ': ' + str(self.params[key]) + '\n'
+
+        if '*proc*' in self.params:
+            string += '*PROCESSING*\n'
+            ix = 1
+            for procStep in self.params['*proc*']:
+                procStep = procStep.split(':')
+                string += '%i.) '%ix + procStep[0] + ':\n'
+                line = procStep[1].strip('\n').split('\n')
+                for info in line:
+                    param_value = info.split(',')
+                    param = param_value[0]
+                    value = param_value[1]
+                    string += param + ', ' + value + '\n'
+                ix += 1
         return string
 
     def __repr__(self):
-        string = 'B12T odnp data object, version %s\n'%version
-        string += 'Data Shape:' + repr(np.shape(self.data)) + '\n'
+        string = 'Data Shape:' + repr(np.shape(self.data)) + '\n'
         string += 'Data Axes:' + repr(self.axesLabels) + '\n'
-        string += 'Parameters:' + repr(self.params)
+        string += 'Parameters:\n'# + repr(self.params)
+        for key in self.params:
+            if key != '*proc*':
+                string += str(key) + ': ' + str(self.params[key]) + '\n'
+
+        if '*proc*' in self.params:
+            string += '*PROCESSING*\n'
+            ix = 1
+            for procStep in self.params['*proc*']:
+                procStep = procStep.split(':')
+                string += '%i.) '%ix + procStep[0] + ':\n'
+                line = procStep[1].strip('\n').split('\n')
+                for info in line:
+                    param_value = info.split(',')
+                    param = param_value[0]
+                    value = param_value[1]
+                    string += param + ', ' + value + '\n'
+                ix += 1
         return string
 
     def sort(self):

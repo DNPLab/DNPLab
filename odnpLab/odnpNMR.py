@@ -41,8 +41,6 @@ def returnData(allData):
     else:
         print('Type not supported')
         raise ValueError()
-
-
     dataType = 'dataDict'
     return data, isDict
 
@@ -59,6 +57,24 @@ def updateParameters(procParameters, requiredList, defaultParameters):
             print(defaultParameters[requiredParameter])
 
     return updatedProcParameters
+
+def procString(name,procParameters,requiredList):
+    '''
+    '''
+    procStepString = name
+    for requiredParameter in requiredList:
+        procStepString += requiredParameter + ',' + str(procParameters[requiredParameter]) + '\n'
+
+    return procStepString
+
+def stampProcStep(data,procStepString):
+    '''
+    '''
+    if '*proc*' in data.params:
+        data.params['*proc*'].append(procStepString)
+    else:
+        data.params['*proc*'] = [procStepString]
+    return data
 
 def fourierTransform(allData, procParameters):
     '''
@@ -97,10 +113,9 @@ def fourierTransform(allData, procParameters):
         data.data = _np.fft.fftshift(data.data,axes=index)
     data.axes[index] = f
 
-    procStepString = 'ft:'
-    for requiredParameter in requiredList:
-        procStepString += requiredParameter + ',' + str(procParameters[requiredParameter]) + '\n'
-    data.procList.append(procStepString)
+    procStepName = 'Fourier Transform:'
+    procStepString = procString(procStepName,procParameters,requiredList)
+    data = stampProcStep(data,procStepString)
 
     if isDict:
         allData['proc'] = data
@@ -142,20 +157,14 @@ def window(allData,procParameters):
     reshape_size = [1 for k in data.axesLabels]
     reshape_size[index] = len(data.axes[index])
 
-#    if window_type == 'exp':
     window_array = _np.exp(-1.*data.axes[index]*linewidth).reshape(reshape_size)
-        #NOTE Verify that this produces the correct linewidth, likely missing a factor of 2
-#    else:
-#        print('\'%s\' window type is not defined')
-#        return
     window_array = _np.ones_like(data.data) * window_array
     data.data *= window_array
 
-    procStepString = 'window:'
-    for requiredParameter in requiredList:
-        procStepString += requiredParameter + ',' + str(procParameters[requiredParameter]) + '\n'
-    data.procList.append(procStepString)
+    procStepName = 'window:'
+    procStepString = procString(procStepName,procParameters,requiredList)
 
+    data = stampProcStep(data,procStepString)
 
     if isDict:
         allData['proc'] = data
@@ -197,6 +206,10 @@ def integrate(allData,procParameters):
 
     data.sum(axes)
 
+    procStepName = 'Integrate:'
+    procStepString = procString(procStepName,procParameters,requiredList)
+    data = stampProcStep(data,procStepString)
+
     if isDict:
         allData['proc'] = data
         return allData
@@ -234,10 +247,9 @@ def align(allData,procParameters):
         data.data[:,ix] = shiftData
     data.reorder(originalAxesOrder)
 
-    procStepString = 'align:'
-    for requiredParameter in requiredList:
-        procStepString += requiredParameter + ',' + str(procParameters[requiredParameter]) + '\n'
-    data.procList.append(procStepString)
+    procStepName = 'Align:'
+    procStepString = procString(procStepName,procParameters,requiredList)
+    data = stampProcStep(data,procStepString)
 
     if isDict:
         allData['proc'] = data
@@ -251,31 +263,26 @@ def steps(allData):
     print processing steps
     '''
 
-    if isinstance(allData,_odnpData):
-        data = allData.copy()
-    elif isinstance(allData,dict):
-        isDict = True
-        if 'proc' in allData:
-            data = allData['proc'].copy()
-        elif 'raw' in allData:
-            data = allData['raw'].copy()
-    else:
-        print('Type not supported')
-        return
-    print('----------------')
-    print('PROCESSING STEPS:')
+    string = ''
+    data,isDict = returnData(allData)
+    string += '----------------\n'
+    string += 'PROCESSING STEPS:\n'
     ix = 1
-    for procStep in data.procList:
-#        print('%i.)'%ix)
-        procStep = procStep.split(':')
-        print('----------------')
-        print('%i.) '%ix + procStep[0] + ':')
-        line = procStep[1].strip('\n').split('\n')
-        for info in line:
-            param_value = info.split(',')
-            param = param_value[0]
-            value = param_value[1]
-            print(param + ', ' + value)
-        ix += 1
+    if '*proc*' in data.params:
+        for procStep in data.params['*proc*']:
+#            string += '%i.)'%ix + '\n'
+            procStep = procStep.split(':')
+            string += '----------------\n'
+            string += '%i.) '%ix + procStep[0] + ':\n'
+            line = procStep[1].strip('\n').split('\n')
+            for info in line:
+                param_value = info.split(',')
+                param = param_value[0]
+                value = param_value[1]
+                string += param + ', ' + value + '\n'
+            ix += 1
+        return string
+    else:
+        return 'No Processing Steps Found'
 
 
