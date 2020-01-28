@@ -104,6 +104,25 @@ class odnpData:
         out.data = np.abs(out.data)
         return out
 
+    def real(self):
+        out = deepcopy(self)
+        out.data = np.real(out.data)
+        return out
+
+    def imag(self):
+        out = deepcopy(self)
+        out.data = np.imag(out.data)
+        return out
+
+    def abs(self):
+        out = deepcopy(self)
+        out.data = np.abs(out.data)
+        return out
+    def max(self):
+        out = deepcopy(self)
+        maxValue = np.max(out.data)
+        return maxValue
+
     def __getitem__(self,index):
 #        return self.data[index]
 #        print index
