@@ -22,7 +22,7 @@ class odnpData:
 
     def __add__(self,data):
         new_data = deepcopy(self)
-        if isinstance(data,int) or isinstance(data,float):
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
             new_data.data += data
         elif isinstance(data,np.ndarray):
             new_data.data = new_data.data + data
@@ -35,24 +35,70 @@ class odnpData:
         return new_data
 
     def __radd__(self,data):
+        return self.__add__(data)
+
+    def __sub__(self,data):
         new_data = deepcopy(self)
-        if isinstance(data,int) or isinstance(data,float):
-            new_data.data += data
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            new_data.data -= data
         elif isinstance(data,np.ndarray):
-            new_data.data = new_data.data + data
-        elif isinstance(data,odnp_data):
-            new_data.data = new_data.data + data.data
+            new_data.data = new_data.data - data
+        elif isinstance(data,odnpData):
+            new_data.data = new_data.data - data.data
         else:
             print('Cannot add, type not supported:')
             print(type(data))
             return
         return new_data
 
-    def __sub__(self,data):
+    def __rsub__(self,data):
         new_data = deepcopy(self)
-        new_data.data = new_data.data - data.data
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            new_data.data = data - new_data.data
+        elif isinstance(data,np.ndarray):
+            new_data.data = data - new_data.data
+        elif isinstance(data,odnpData):
+            new_data.data = data.data - new_data.data
+        else:
+            print('Cannot add, type not supported:')
+            print(type(data))
+            return
         return new_data
 
+
+    def __mul__(self,data):
+        new_data = deepcopy(self)
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            new_data.data *= data
+        elif isinstance(data,np.ndarray):
+            new_data.data = new_data.data * data
+        elif isinstance(data,odnpData):
+            new_data.data = new_data.data * data.data
+        else:
+            print('Cannot add, type not supported:')
+            print(type(data))
+            return
+
+        return new_data
+
+    def __rmul__(self,data):
+        return self.__mul__(data)
+
+    def __pow__(self,data):
+        new_data = deepcopy(self)
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            new_data.data = new_data.data**data
+        elif isinstance(data,np.ndarray):
+            new_data.data = new_data.data**data
+        elif isinstance(data,odnpData):
+            new_data.data = new_data.data**data.data
+        else:
+            print('Cannot add, type not supported:')
+            print(type(data))
+            return
+        return new_data
+        
+    
     def __abs__(self):
         out = deepcopy(self)
         out.data = np.abs(out.data)
