@@ -24,6 +24,11 @@ _defaultIntegrateParameters = {
         'integrateWidth' : 100,
         }
 
+_defaultRemoveOffsetParameters = {
+        'axes' : 't',
+        'offsetPoints' : 10,
+        }
+
 def returnData(allData):
     '''
     Determine what the data type is for processing
@@ -75,6 +80,36 @@ def stampProcStep(data,procStepString):
     else:
         data.params['*proc*'] = [procStepString]
     return data
+
+def removeOffset(allData,procParameters):
+    '''
+    Remove DC offset from FID by averaging the last few data points
+    and subtracting
+    '''
+    # Determine if data is dictionary or odnpData object
+    data, isDict = returnData(allData)
+
+    requiredList = ['axes','offsetPoints']
+    procParameters = updateParameters(procParameters,requiredList,_defaultRemoveOffsetParameters)
+    axes = procParameters['axes']
+    offsetPoints = int(procParameters['offsetPoints'])
+
+    offsetData = data['t',-1*offsetPoints:].data
+    offsetData = offsetData.reshape(-1)
+    offset = _np.mean(offsetData)
+
+    data -= offset
+
+    procStepName = 'Remove Offset'
+    procStepString = procString(procStepName,procParameters,requiredList)
+    data = stampProcStep(data,procStepString)
+
+    if isDict:
+        allData['proc'] = data
+        return allData
+    else:
+        return data
+
 
 def fourierTransform(allData, procParameters):
     '''
