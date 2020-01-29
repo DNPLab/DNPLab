@@ -296,11 +296,14 @@ class odnpData:
     def add_axes(self,axes_label,axes_value):
         if axes_label in self.axesLabels:
             index = self.axesLabels.index(axes_label)
-        elif type(axes_label) == int:
+            print('Axes %s already exists'%(str(axes_label)))
+        elif type(axes_label) != str:
             index = axes_label
-        self.axesLabels.append(axes_label)
-        self.axes.append(np.r_[axes_value])
-        self.data = self.data[:,np.newaxis]
+            print('Axes label must be a string')
+        else:
+            self.axesLabels.append(axes_label)
+            self.axes.append(np.r_[axes_value])
+            self.data = np.expand_dims(self.data,-1)
 
     def get_axes(self,axes_label):
         '''
