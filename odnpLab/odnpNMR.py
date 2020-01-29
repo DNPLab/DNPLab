@@ -100,7 +100,7 @@ def removeOffset(allData,procParameters):
 
     data -= offset
 
-    procStepName = 'Remove Offset'
+    procStepName = 'Remove Offset:'
     procStepString = procString(procStepName,procParameters,requiredList)
     data = stampProcStep(data,procStepString)
 
