@@ -22,6 +22,9 @@ class TestHydration(unittest.TestCase):
         T10 = t1p_fun(0)
         self.assertAlmostEqual(T10, 1.33)
 
+        mis_matched_T1p = np.array([range(len(self.T1_powers)-1)])
+        self.assertRaises(AssertionError, getT1p, mis_matched_T1p, self.T1_powers)
+
     def test_getT1CorrectedEnhancement(self):
         # TODO: implement this
         t1p_fun = getT1p(self.T1p, self.T1_powers)

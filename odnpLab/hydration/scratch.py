@@ -3,6 +3,7 @@
 
 import numpy as np
 from scipy import interpolate
+from scipy import optimize
 
 
 def getT1p(T1: np.array, power: np.array):
@@ -16,30 +17,19 @@ def getT1p(T1: np.array, power: np.array):
         points inside the data range will be linearly interpolated
         points outside the data range will be extrapolated
     """
+    assert len(T1) == len(power)
     return interpolate.interp1d(power, T1,
                                 kind='linear',
                                 fill_value='extrapolate')
 
 
-def getT1CorrectedEnhancement(E: np.array, power: np.array, t1p_fun: callable):
-    """
-    returns T1 corrected enhancements
-
-    :param E: np.array of enhancements
-    :param power: np.array of power in Watt unit, same length as E
-    :param t1p_fun: callable function that returns T1 at any power
-    :return: Ecorr, np.array of corrected enhancements with the same length as E
-    """
-    # TODO: Implement this
-    raise NotImplementedError
-
-
-def getKsigma(E: np.array, power: np.array):
+def getKsigma(E: np.array, power: np.array, t1p_fun: callable):
     """
     returns k_sigma
 
     :param E: np.array of enhancements
     :param power: np.array of power in Watt unit, same length as E
+    :param t1p_fun: callable function that returns T1 at any power
     :return:
         float k_sigma
     """
@@ -47,24 +37,29 @@ def getKsigma(E: np.array, power: np.array):
     raise NotImplementedError
 
 
-def getTcorr(eps: float):
+def getTcorr(ksi: float):
     """
     returns correlation time tcorr
 
-    :param eps: float of epsilon
+    :param ksi: float of epsilon
     :return:
         float tcorr
     """
-    # TODO: Implement this
-    raise NotImplementedError
+    def get_ksi(tcorr:float):
+        """
+        returns ksi for any given tcorr
+        :param tcorr: float
+        :return:
+            float ksi
+        """
+        # TODO: Implement this
+        raise NotImplementedError
 
-
-def wip_getJH(ksi: float):
-    """
-    returns JH ksi_fit=((6*0.0063)-0.0063)/((6*0.0063)+(3*JH)+0.0063);
-    :param ksi:
-    :return:
-    """
-    # TODO: clean up
-    raise NotImplementedError
-
+    # root finding
+    # see https://docs.scipy.org/doc/scipy/reference/optimize.html
+    results = optimize.root_scalar(
+        lambda tcorr: sum((get_ksi(tcorr) - ksi) ** 2),
+        method='newton',
+        x0=0)
+    assert results.converged
+    return results.root
