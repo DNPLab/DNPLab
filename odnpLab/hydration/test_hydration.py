@@ -25,16 +25,9 @@ class TestHydration(unittest.TestCase):
         mis_matched_T1p = np.array([range(len(self.T1_powers)-1)])
         self.assertRaises(AssertionError, getT1p, mis_matched_T1p, self.T1_powers)
 
-    def test_getT1CorrectedEnhancement(self):
-        # TODO: implement this
-        t1p_fun = getT1p(self.T1p, self.T1_powers)
-        e_corr = getT1CorrectedEnhancement(self.Ep, self.E_powers, t1p_fun)
-        pass
-
     def test_getKsigma(self):
         t1p_fun = getT1p(self.T1p, self.T1_powers)
-        e_corr = getT1CorrectedEnhancement(self.Ep, self.E_powers, t1p_fun)
-        ksigma = getKsigma(e_corr, self.E_powers)
+        ksigma = getKsigma(self.Ep, self.E_powers, t1p_fun)
 
         T10 = t1p_fun(0)
         k_rho = ((1 / T10) - (1 / self.T100)) / self.conc
@@ -42,9 +35,9 @@ class TestHydration(unittest.TestCase):
 
         self.assertAlmostEqual(ksi, 0.0326)
 
-        JH = wip_getJH(ksi)
-        self.assertAlmostEqual(JH, 0.94)
-
+    def test_getTcorr(self):
+        # TODO: implement this
+        pass
 
 
 if __name__ == '__main__':
