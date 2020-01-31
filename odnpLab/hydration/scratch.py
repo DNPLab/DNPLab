@@ -5,6 +5,8 @@ import numpy as np
 from scipy import interpolate
 from scipy import optimize
 
+# Define constants
+
 
 def getT1p(T1: np.array, power: np.array):
     """
@@ -23,15 +25,20 @@ def getT1p(T1: np.array, power: np.array):
                                 fill_value='extrapolate')
 
 
-def calcODNP(Ep: np.array, T1p: callable):
+def calcODNP(Ep: np.array, T1p: np.array):
     """
     returns all calculated values
 
-    :param E: np.array of enhancements
-    :param power: np.array of power in Watt unit, same length as E
-    :param t1p_fun: callable function that returns T1 at any power
+    :param Ep: np.array of enhancements
+    :param T1p: np.array of T1, should be same length as Ep
     :return:
-        float k_sigma
+        dictionary of the following parameters:
+            'k_sigma': k_sigma,
+            'k_rho'  : k_rho,
+            'ksi'    : ksi,
+            'tcorr'  : tcorr,
+            'dLocal' : dLocal,
+            'k_low'  : k_low
     """
     # Following: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     # equations are labeled (#) for where they appear in the paper, sections are specified in some cases
@@ -117,38 +124,51 @@ def calcODNP(Ep: np.array, T1p: callable):
     # near the spin label, sometimes called "bound" water
     ############################################################################
 
-    klow_bulk = 366  # unit is s^-1 M^-1
+    k_low_bulk = 366  # unit is s^-1 M^-1
     # The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
     # Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
     # 2015, 137, 12013−12023. Figure 3 caption
 
-    # these quantities are often used
-    print 'k_sigma = ', k_sigma
-    print '[k_sig/k_sig,bulk]^-1 = ', 1/(k_sigma/ksig_bulk)
-    print 'k_low = ', k_low
-    print 'k_low/klow_bulk = ', k_low/klow_bulk
-    print 'tcorr = ', tcorr
-    print 'tcorr retardation = ', tcorr/tcorr_bulk
-    print 'coupling factor = ', ksi
-    print 'Diffusivity = ', dLocal
+    # # these quantities are often used
+    # print 'k_sigma = ', k_sigma
+    # print '[k_sig/k_sig,bulk]^-1 = ', 1/(k_sigma/ksig_bulk)
+    # print 'k_low = ', k_low
+    # print 'k_low/klow_bulk = ', k_low/k_low_bulk
+    # print 'tcorr = ', tcorr
+    # print 'tcorr retardation = ', tcorr/tcorr_bulk
+    # print 'coupling factor = ', ksi
+    # print 'Diffusivity = ', dLocal
     
-    
-    return k_sigma k_rho ksi tcorr dLocal k_low
+    return {
+        'k_sigma': k_sigma,
+        'k_rho'  : k_rho,
+        'ksi'    : ksi,
+        'tcorr'  : tcorr,
+        'dLocal' : dLocal,
+        'k_low'  : k_low,
+        'k_low/k_low_bulk': k_low / k_low_bulk,
+        'tcorr_retardation': tcorr / tcorr_bulk
+    }
 
 
-def getTcorr(ksi: float):
+def getTcorr(ksi: float, omega_e: float, omega_H: float):
     """
     returns correlation time tcorr
 
     :param ksi: float of epsilon
+    :param omega_e: float
+    :param omega_H: float
     :return:
         float tcorr
     """
 
-    def get_ksi(tcorr: float):
+    def get_ksi(tcorr: float, omega_e: float, omega_H: float):
         """
         returns ksi for any given tcorr
+
         :param tcorr: float
+        :param omega_e: float
+        :param omega_H: float
         :return:
             float ksi
         """
@@ -173,8 +193,9 @@ def getTcorr(ksi: float):
     # root finding
     # see https://docs.scipy.org/doc/scipy/reference/optimize.html
     results = optimize.root_scalar(
-        lambda tcorr: ((get_ksi(tcorr) - ksi) ** 2),
+        lambda tcorr: ((get_ksi(tcorr, omega_e=omega_e, omega_H=omega_H) - ksi) ** 2),
         method='newton',
         x0=500)
+
     assert results.converged
     return results.root
