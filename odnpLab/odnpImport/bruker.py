@@ -248,7 +248,8 @@ def brukervdList(path,expNum):
     with open(fullPath,'r') as f:
         raw = f.read()
 
-    lines = raw.strip('\n').split('\n')
+#    lines = raw.strip('\n').split('\n')
+    lines = raw.rstrip().rsplit()
 
     unitDict = {
             'n' : 1.e-9,

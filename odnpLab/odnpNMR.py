@@ -18,21 +18,20 @@ _defaultWindowParameters = {
         'axes' : 't',
         }
 
-def detDataType(allData):
+_defaultIntegrateParameters = {
+        'axes' : 't',
+        'integrateCenter' : 0,
+        'integrateWidth' : 100,
+        }
+
+_defaultRemoveOffsetParameters = {
+        'axes' : 't',
+        'offsetPoints' : 10,
+        }
+
+def returnData(allData):
     '''
     Determine what the data type is for processing
-    '''
-
-    dataType = 'dataDict'
-
-
-def fourierTransform(allData, procParameters):
-    '''
-    Perform Fourier Transform down given dimension
-    assumes dt = t[1] - t[0]
-
-    Example:
-    data.ft('t')
     '''
 
     isDict = False
@@ -46,18 +45,87 @@ def fourierTransform(allData, procParameters):
             data = allData['raw'].copy()
     else:
         print('Type not supported')
-        return
+        raise ValueError()
+    dataType = 'dataDict'
+    return data, isDict
 
-    # Ensure Data is not overwritten
-#    data = data.copy()
+def updateParameters(procParameters, requiredList, defaultParameters):
+    '''
+    For all parameters without default parameters, assign parameter value to default
+
+    '''
+    updatedProcParameters = procParameters
+    for requiredParameter in requiredList:
+        if not requiredParameter in updatedProcParameters:
+            updatedProcParameters[requiredParameter] = defaultParameters[requiredParameter]
+            print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
+            print(defaultParameters[requiredParameter])
+
+    return updatedProcParameters
+
+def procString(name,procParameters,requiredList):
+    '''
+    '''
+    procStepString = name
+    for requiredParameter in requiredList:
+        procStepString += requiredParameter + ',' + str(procParameters[requiredParameter]) + '\n'
+
+    return procStepString
+
+def stampProcStep(data,procStepString):
+    '''
+    '''
+    if '*proc*' in data.params:
+        data.params['*proc*'].append(procStepString)
+    else:
+        data.params['*proc*'] = [procStepString]
+    return data
+
+def removeOffset(allData,procParameters):
+    '''
+    Remove DC offset from FID by averaging the last few data points
+    and subtracting
+    '''
+    # Determine if data is dictionary or odnpData object
+    data, isDict = returnData(allData)
+
+    requiredList = ['axes','offsetPoints']
+    procParameters = updateParameters(procParameters,requiredList,_defaultRemoveOffsetParameters)
+    axes = procParameters['axes']
+    offsetPoints = int(procParameters['offsetPoints'])
+
+    offsetData = data['t',-1*offsetPoints:].data
+    offsetData = offsetData.reshape(-1)
+    offset = _np.mean(offsetData)
+
+    data -= offset
+
+    procStepName = 'Remove Offset:'
+    procStepString = procString(procStepName,procParameters,requiredList)
+    data = stampProcStep(data,procStepString)
+
+    if isDict:
+        allData['proc'] = data
+        return allData
+    else:
+        return data
+
+
+def fourierTransform(allData, procParameters):
+    '''
+    Perform Fourier Transform down given dimension
+    assumes dt = t[1] - t[0]
+
+    Example:
+    data.ft('t')
+    '''
+
+    # Determine if data is dictionary or odnpData object
+    data, isDict = returnData(allData)
 
     requiredList = ['axes','zeroFillFactor','shift','convert2ppm']
 
-    for requiredParameter in requiredList:
-        if not requiredParameter in procParameters:
-            procParameters[requiredParameter] = _defaultFourierTransformParameters[requiredParameter]
-            print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
-            print(_defaultFourierTransformParameters[requiredParameter])
+    procParameters = updateParameters(procParameters,requiredList,_defaultFourierTransformParameters)
 
     axesLabel = procParameters['axes']
     zeroFillFactor = procParameters['zeroFillFactor']
@@ -80,10 +148,9 @@ def fourierTransform(allData, procParameters):
         data.data = _np.fft.fftshift(data.data,axes=index)
     data.axes[index] = f
 
-    procStepString = 'ft:'
-    for requiredParameter in requiredList:
-        procStepString += requiredParameter + ',' + str(procParameters[requiredParameter]) + '\n'
-    data.procList.append(procStepString)
+    procStepName = 'Fourier Transform:'
+    procStepString = procString(procStepName,procParameters,requiredList)
+    data = stampProcStep(data,procStepString)
 
     if isDict:
         allData['proc'] = data
@@ -111,26 +178,11 @@ def window(allData,procParameters):
     data.window('t',linewidth = 20)
     '''
 
-    isDict = False
-    if isinstance(allData,_odnpData):
-        data = allData.copy()
-    elif isinstance(allData,dict):
-        isDict = True
-        if 'proc' in allData:
-            data = allData['proc'].copy()
-        elif 'raw' in allData:
-            data = allData['raw'].copy()
-    else:
-        print('Type not supported')
-        return
+    data, isDict = returnData(allData)
 
     requiredList = ['axes','linewidth']
 
-    for requiredParameter in requiredList:
-        if not requiredParameter in procParameters:
-            procParameters[requiredParameter] = _defaultWindowParameters[requiredParameter]
-            print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
-            print(_defaultWindowParameters[requiredParameter])
+    procParameters = updateParameters(procParameters,requiredList,_defaultWindowParameters)
 
     axesLabel = procParameters['axes']
     linewidth = procParameters['linewidth']
@@ -140,20 +192,14 @@ def window(allData,procParameters):
     reshape_size = [1 for k in data.axesLabels]
     reshape_size[index] = len(data.axes[index])
 
-#    if window_type == 'exp':
     window_array = _np.exp(-1.*data.axes[index]*linewidth).reshape(reshape_size)
-        #NOTE Verify that this produces the correct linewidth, likely missing a factor of 2
-#    else:
-#        print('\'%s\' window type is not defined')
-#        return
     window_array = _np.ones_like(data.data) * window_array
     data.data *= window_array
 
-    procStepString = 'window:'
-    for requiredParameter in requiredList:
-        procStepString += requiredParameter + ',' + str(procParameters[requiredParameter]) + '\n'
-    data.procList.append(procStepString)
+    procStepName = 'window:'
+    procStepString = procString(procStepName,procParameters,requiredList)
 
+    data = stampProcStep(data,procStepString)
 
     if isDict:
         allData['proc'] = data
@@ -161,23 +207,57 @@ def window(allData,procParameters):
     else:
         return data
 
+def integrate(allData,procParameters):
+    '''
+    Integrate data down given dimension
+    
+    Parameters:
+
+    axes_label: str
+        dimension to integrate
+    integrateCenter:
+        center for width of integration
+    integrateWidth: 
+        width of integration window
+
+    Exampe:
+    data.integrate(dataDict,procParameters)
+    '''
+
+    data, isDict = returnData(allData)
+
+    requiredList = ['axes','integrateCenter','integrateWidth']
+
+    procParameters = updateParameters(procParameters,requiredList,_defaultIntegrateParameters)
+
+    axes = procParameters['axes']
+    integrateCenter = procParameters['integrateCenter']
+    integrateWidth = procParameters['integrateWidth']
+
+    integrateMin = integrateCenter - _np.abs(integrateWidth)/2.
+    integrateMax = integrateCenter + _np.abs(integrateWidth)/2.
+
+    data = data.range(axes,integrateMin,integrateMax)
+
+    data.sum(axes)
+
+    procStepName = 'Integrate:'
+    procStepString = procString(procStepName,procParameters,requiredList)
+    data = stampProcStep(data,procStepString)
+
+    if isDict:
+        allData['proc'] = data
+        return allData
+    else:
+        return data
+
+
 def align(allData,procParameters):
     '''
     Alignment of NMR spectra down given axes dimension
     '''
 
-    isDict = False
-    if isinstance(allData,_odnpData.odnpData):
-        data = allData.copy()
-    elif isinstance(allData,dict):
-        isDict = True
-        if 'proc' in allData:
-            data = allData['proc'].copy()
-        elif 'raw' in allData:
-            data = allData['raw'].copy()
-    else:
-        print('Type not supported')
-        return
+    data, isDict = returnData(allData)
 
     if len(_np.shape(data.data)) != 2:
         print('Only 2-dimensional data supported')
@@ -185,11 +265,7 @@ def align(allData,procParameters):
 
     requiredList = ['axes']
 
-    for requiredParameter in requiredList:
-        if not requiredParameter in procParameters:
-            procParameters[requiredParameter] = _defaultAlignParameters[requiredParameter]
-            print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
-            print(_defaultAlignParameters[requiredParameter])
+    procParameters = updateParameters(procParameters,requiredList,_defaultAlignParameters)
 
     alignAxesLabel = procParameters['axes']
     originalAxesOrder = data.axesLabels
@@ -206,10 +282,9 @@ def align(allData,procParameters):
         data.data[:,ix] = shiftData
     data.reorder(originalAxesOrder)
 
-    procStepString = 'align:'
-    for requiredParameter in requiredList:
-        procStepString += requiredParameter + ',' + str(procParameters[requiredParameter]) + '\n'
-    data.procList.append(procStepString)
+    procStepName = 'Align:'
+    procStepString = procString(procStepName,procParameters,requiredList)
+    data = stampProcStep(data,procStepString)
 
     if isDict:
         allData['proc'] = data
@@ -223,31 +298,26 @@ def steps(allData):
     print processing steps
     '''
 
-    if isinstance(allData,_odnpData):
-        data = allData.copy()
-    elif isinstance(allData,dict):
-        isDict = True
-        if 'proc' in allData:
-            data = allData['proc'].copy()
-        elif 'raw' in allData:
-            data = allData['raw'].copy()
-    else:
-        print('Type not supported')
-        return
-    print('----------------')
-    print('PROCESSING STEPS:')
+    string = ''
+    data,isDict = returnData(allData)
+    string += '----------------\n'
+    string += 'PROCESSING STEPS:\n'
     ix = 1
-    for procStep in data.procList:
-#        print('%i.)'%ix)
-        procStep = procStep.split(':')
-        print('----------------')
-        print('%i.) '%ix + procStep[0] + ':')
-        line = procStep[1].strip('\n').split('\n')
-        for info in line:
-            param_value = info.split(',')
-            param = param_value[0]
-            value = param_value[1]
-            print(param + ', ' + value)
-        ix += 1
+    if '*proc*' in data.params:
+        for procStep in data.params['*proc*']:
+#            string += '%i.)'%ix + '\n'
+            procStep = procStep.split(':')
+            string += '----------------\n'
+            string += '%i.) '%ix + procStep[0] + ':\n'
+            line = procStep[1].strip('\n').split('\n')
+            for info in line:
+                param_value = info.split(',')
+                param = param_value[0]
+                value = param_value[1]
+                string += param + ', ' + value + '\n'
+            ix += 1
+        return string
+    else:
+        return 'No Processing Steps Found'
 
 

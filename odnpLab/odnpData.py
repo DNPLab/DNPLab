@@ -19,11 +19,10 @@ class odnpData:
         self.axes = axes
         self.axesLabels = axesLabels
         self.params = params
-        self.procList = procList
 
     def __add__(self,data):
         new_data = deepcopy(self)
-        if isinstance(data,int) or isinstance(data,float):
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
             new_data.data += data
         elif isinstance(data,np.ndarray):
             new_data.data = new_data.data + data
@@ -36,28 +35,93 @@ class odnpData:
         return new_data
 
     def __radd__(self,data):
+        return self.__add__(data)
+
+    def __sub__(self,data):
         new_data = deepcopy(self)
-        if isinstance(data,int) or isinstance(data,float):
-            new_data.data += data
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            new_data.data -= data
         elif isinstance(data,np.ndarray):
-            new_data.data = new_data.data + data
-        elif isinstance(data,odnp_data):
-            new_data.data = new_data.data + data.data
+            new_data.data = new_data.data - data
+        elif isinstance(data,odnpData):
+            new_data.data = new_data.data - data.data
         else:
             print('Cannot add, type not supported:')
             print(type(data))
             return
         return new_data
 
-    def __sub__(self,data):
+    def __rsub__(self,data):
         new_data = deepcopy(self)
-        new_data.data = new_data.data - data.data
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            new_data.data = data - new_data.data
+        elif isinstance(data,np.ndarray):
+            new_data.data = data - new_data.data
+        elif isinstance(data,odnpData):
+            new_data.data = data.data - new_data.data
+        else:
+            print('Cannot add, type not supported:')
+            print(type(data))
+            return
         return new_data
 
+
+    def __mul__(self,data):
+        new_data = deepcopy(self)
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            new_data.data *= data
+        elif isinstance(data,np.ndarray):
+            new_data.data = new_data.data * data
+        elif isinstance(data,odnpData):
+            new_data.data = new_data.data * data.data
+        else:
+            print('Cannot add, type not supported:')
+            print(type(data))
+            return
+
+        return new_data
+
+    def __rmul__(self,data):
+        return self.__mul__(data)
+
+    def __pow__(self,data):
+        new_data = deepcopy(self)
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            new_data.data = new_data.data**data
+        elif isinstance(data,np.ndarray):
+            new_data.data = new_data.data**data
+        elif isinstance(data,odnpData):
+            new_data.data = new_data.data**data.data
+        else:
+            print('Cannot add, type not supported:')
+            print(type(data))
+            return
+        return new_data
+        
+    
     def __abs__(self):
         out = deepcopy(self)
         out.data = np.abs(out.data)
         return out
+
+    def real(self):
+        out = deepcopy(self)
+        out.data = np.real(out.data)
+        return out
+
+    def imag(self):
+        out = deepcopy(self)
+        out.data = np.imag(out.data)
+        return out
+
+    def abs(self):
+        out = deepcopy(self)
+        out.data = np.abs(out.data)
+        return out
+    def max(self):
+        out = deepcopy(self)
+        maxValue = np.max(out.data)
+        return maxValue
 
     def __getitem__(self,index):
 #        return self.data[index]
@@ -131,14 +195,47 @@ class odnpData:
     def __str__(self):
         string = 'Data Shape:' + repr(np.shape(self.data)) + '\n'
         string += 'Data Axes:' + repr(self.axesLabels) + '\n'
-        string += 'Parameters:' + repr(self.params)
+        string += 'Parameters:\n'# + repr(self.params)
+        for key in self.params:
+            if key != '*proc*':
+                string += str(key) + ': ' + str(self.params[key]) + '\n'
+
+        if '*proc*' in self.params:
+            string += '*PROCESSING*\n'
+            ix = 1
+            for procStep in self.params['*proc*']:
+                procStep = procStep.split(':')
+                string += '%i.) '%ix + procStep[0] + ':\n'
+                line = procStep[1].strip('\n').split('\n')
+                for info in line:
+                    param_value = info.split(',')
+                    param = param_value[0]
+                    value = param_value[1]
+                    string += param + ', ' + value + '\n'
+                ix += 1
         return string
 
     def __repr__(self):
-        string = 'B12T odnp data object, version %s\n'%version
-        string += 'Data Shape:' + repr(np.shape(self.data)) + '\n'
+        string = 'Data Shape:' + repr(np.shape(self.data)) + '\n'
         string += 'Data Axes:' + repr(self.axesLabels) + '\n'
-        string += 'Parameters:' + repr(self.params)
+        string += 'Parameters:\n'# + repr(self.params)
+        for key in self.params:
+            if key != '*proc*':
+                string += str(key) + ': ' + str(self.params[key]) + '\n'
+
+        if '*proc*' in self.params:
+            string += '*PROCESSING*\n'
+            ix = 1
+            for procStep in self.params['*proc*']:
+                procStep = procStep.split(':')
+                string += '%i.) '%ix + procStep[0] + ':\n'
+                line = procStep[1].strip('\n').split('\n')
+                for info in line:
+                    param_value = info.split(',')
+                    param = param_value[0]
+                    value = param_value[1]
+                    string += param + ', ' + value + '\n'
+                ix += 1
         return string
 
     def sort(self):
@@ -199,11 +296,14 @@ class odnpData:
     def add_axes(self,axes_label,axes_value):
         if axes_label in self.axesLabels:
             index = self.axesLabels.index(axes_label)
-        elif type(axes_label) == int:
+            print('Axes %s already exists'%(str(axes_label)))
+        elif type(axes_label) != str:
             index = axes_label
-        self.axesLabels.append(axes_label)
-        self.axes.append(np.r_[axes_value])
-        self.data = self.data[:,np.newaxis]
+            print('Axes label must be a string')
+        else:
+            self.axesLabels.append(axes_label)
+            self.axes.append(np.r_[axes_value])
+            self.data = np.expand_dims(self.data,-1)
 
     def get_axes(self,axes_label):
         '''
