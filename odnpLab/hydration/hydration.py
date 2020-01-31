@@ -1,14 +1,49 @@
-# hydration function(s)
-# goal: take odnpImport and output tcorr and many observables
+""" Hydration module
+function            description
+------------------  ------------------------------------------------------------
+interpolateT1       # input should be odnpData object, adds to this the interpolated T1p
+calcODNP            # input should be odnpData object, ExpOptions object which
+                    should contain 'field', 'slC', 'T100', bulk values, choice
+                    of smax model, output should be Results object
+getTcorr            # returns correlation time tcorr
+"""
 
 import numpy as np
 from scipy import interpolate
 from scipy import optimize
+from odnpLab.odnpData import odnpData
 
-# Define constants
+
+# I don't know how eventually the odnpData object is going to store the
+# T1p, T1_power, Enhancements, Enhancement_power.
+# TODO: change axe_label of this class
+class ODNPData(odnpData):
+
+    def get_T1p(self):
+        return self.get_axes('T1p')
+
+    def get_T1power(self):
+        return self.get_axes('power')
+
+    def get_Ep(self):
+        return self.get_axes('Enhancement')
+
+    def get_Epower(self):
+        return self.get_axes('Enhancement_power')
 
 
-def getT1p(T1: np.array, power: np.array): # input should be odnpData object, adds to this the interpolated T1p
+# input should be odnpData object, adds to this the interpolated T1p
+def interpolateT1(indata: ODNPData):
+    """
+    interpolate T1(p)
+    :param indata: ODNPData
+    :return:
+    """
+    # TODO: implement this
+    raise NotImplementedError
+
+
+def getT1p(T1: np.array, power: np.array):
     """
     returns a function to calculate T1 at arbitrary power
 
