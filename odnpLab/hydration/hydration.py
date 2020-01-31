@@ -8,7 +8,7 @@ from scipy import optimize
 # Define constants
 
 
-def getT1p(T1: np.array, power: np.array):
+def getT1p(T1: np.array, power: np.array): # input should be odnpData object, adds to this the interpolated T1p
     """
     returns a function to calculate T1 at arbitrary power
 
@@ -25,7 +25,7 @@ def getT1p(T1: np.array, power: np.array):
                                 fill_value='extrapolate')
 
 
-def calcODNP(Ep: np.array, T1p: np.array):
+def calcODNP(Ep: np.array, T1p: np.array): # input should be odnpData object, ExpOptions object which should contain 'field', 'slC', 'T100', bulk values, choice of smax model, output should be Results object
     """
     returns all calculated values
 
@@ -42,16 +42,19 @@ def calcODNP(Ep: np.array, T1p: np.array):
     """
     # Following: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     # equations are labeled (#) for where they appear in the paper, sections are specified in some cases
-
+    
     field = 348.5  # static magnetic field in mT, needed to find omega_e and _H
 
     slC = 200e-6
     # (Eq. 1-2) unit is M, spin label concentration for scaling relaxations to
     # get "relaxivities"
-
+    
+    # TODO: define "if" statement for chosing smax option based on smax model choice in ExpOptions object
+    # Option 1, tether spin label
     s_max = 1  # (section 2.2) maximal saturation factor
-    # for s_max eventually we can specify if bulk or not and use 1 or,
-    # s_max = 1-(2/(3+(3*(slC*1e-6*198.7)))), from:
+    
+    # Option 2, free spin probe
+    s_max = 1-(2/(3+(3*(slC*1e-6*198.7)))) # from:
     # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
     # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
 
@@ -85,7 +88,7 @@ def calcODNP(Ep: np.array, T1p: np.array):
     T100 = 2.5  # this is the T1 without spin label and without mw power, unit is sec
     k_rho = ((1/T10) - (1/T100)) / slC  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
 
-    ksi = k_sigma / k_rho  # (3) this is the coupling factor, unitless
+    ksi = k_sigma / k_rho  # (Eq. 3) this is the coupling factor, unitless
 
     tcorr = getTcorr(ksi, omega_e, omega_H)
     # (Eq. 21-23) this calls the fit to the spectral density functions. The fit
@@ -124,26 +127,20 @@ def calcODNP(Ep: np.array, T1p: np.array):
     # The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
     # Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
     # 2015, 137, 12013−12023. Figure 3 caption
-
-    # # these quantities are often used
-    # print 'k_sigma = ', k_sigma
-    # print '[k_sig/k_sig,bulk]^-1 = ', 1/(k_sigma/ksig_bulk)
-    # print 'k_low = ', k_low
-    # print 'k_low/klow_bulk = ', k_low/k_low_bulk
-    # print 'tcorr = ', tcorr
-    # print 'tcorr retardation = ', tcorr/tcorr_bulk
-    # print 'coupling factor = ', ksi
-    # print 'Diffusivity = ', dLocal
     
+    # this list should be in the Results object,
+    # should also include flags, exceptions, etc. related to calculations
     return {
+        'k_sigma_array' : ksig_smax / smax,
         'k_sigma': k_sigma,
+        'ksigma_kbulk_invratio' : 1/(k_sigma/ksig_bulk),
         'k_rho'  : k_rho,
+        'k_low'  : k_low,
+        'klow_klow_bulk_ratio': k_low / k_low_bulk,
         'ksi'    : ksi,
         'tcorr'  : tcorr,
-        'dLocal' : dLocal,
-        'k_low'  : k_low,
-        'k_low/k_low_bulk': k_low / k_low_bulk,
-        'tcorr_retardation': tcorr / tcorr_bulk
+        'tcorr_tcorr_bulk_ratio': tcorr / tcorr_bulk,
+        'dLocal' : dLocal
     }
 
 
