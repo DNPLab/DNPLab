@@ -55,13 +55,13 @@ def calcODNP(Ep: np.array, T1p: np.array):
     # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
     # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
 
-    omega_e = (1.76085963023e5 * 1e-6) * (field / 1000) # gamma_e  in MHz/T,  convert to 1/ps for the tcorr unit later, then correct by field in T.
+    omega_e = (1.76085963023e5 * 1e-6) * (field / 1000) # gamma_e in MHz/T, convert to 1/ps for the tcorr unit later, then correct by field in T.
     # gamma_e is from NIST. The field cancels in the following wRatio but you need these individually for the spectral density functions later.
 
-    omega_H = (267.52218744 / (2 * 3.14159) * 1e-6) * (field / 1000) # gamma_H starts in MHz/T, divide by (2*pi), convert to 1/ps for the tcorr unit later, then correct by field in T.
+    omega_H = (267.52218744 * 1e-6) * (field / 1000) # gamma_H in MHz/T, convert to 1/ps for the tcorr unit later, then correct by field in T.
     # gamma_H is from NIST. The field cancels in the following wRatio but you need these individually for the spectral density functions later.
 
-    wRatio = ((omega_e / (2 * 3.14159)) / omega_H)  # (Eq. 4-6) ratio of omega_e and omega_H, this is also ~= to the ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
+    wRatio = ((omega_e / (2 * 3.14159)) / (omega_H / (2 * 3.14159)))  # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular frequency units in order to correspond to S_0/I_0, this is also ~= to the ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
 
     # Ep will be the series of enhancements
     # T1p will be the series of T1s after interpolated to match the enhancement
