@@ -156,14 +156,14 @@ def getTcorr(ksi: float):
         # Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
         # (Eq. 22), difference, sum and H terms for "z"
-        zdiff = sqrt(i * (omega_e - omega_H) * tcorr)
-        zsum = sqrt(i * (omega_e + omega_H) * tcorr)
-        zH = sqrt(i * omega_H * tcorr)
+        zdiff = np.sqrt(1j * (omega_e - omega_H) * tcorr)
+        zsum  = np.sqrt(1j * (omega_e + omega_H) * tcorr)
+        zH    = np.sqrt(1j * omega_H * tcorr)
 
         # (Eq. 21) the three forms of the FFHS spectral density function corresponding to the three "z" terms above
-        Jdiff=real((1 + (zdiff/4)) / (1 + zdiff + ((4*(zdiff^2))/9) + ((zdiff^3)/9)))
-        Jsum=real((1 + (zsum/4)) / (1 + zsum + ((4*(zsum^2))/9) + ((zsum^3)/9)))
-        JH=real((1 + (zH/4)) / (1 + zH + ((4*(zH^2))/9) + ((zH^3)/9)))
+        Jdiff = np.real((1 + (zdiff / 4)) / (1 + zdiff + ((4 * (zdiff ** 2)) / 9) + ((zdiff ** 3) / 9)))
+        Jsum  = np.real((1 + (zsum  / 4)) / (1 + zsum  + ((4 * (zsum ** 2)) / 9)  + ((zsum ** 3) / 9)))
+        JH    = np.real((1 + (zH    / 4)) / (1 + zH    + ((4 * (zH ** 2)) / 9)    + ((zH ** 3) / 9)))
         
         # (Eq. 23) calculation of ksi from the spectral density functions
         ksi_tcorr = ((6 * Jdiff) - Jsum) / ((6 * Jdiff) + (3 * JH) + Jsum)
