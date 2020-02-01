@@ -1,4 +1,9 @@
 """ Hydration module
+class               description
+------------------  ------------------------------------------------------------
+ExpOptions          Experiment options, including field, spin label concentrations
+Results             Hydration results
+
 function            description
 ------------------  ------------------------------------------------------------
 interpolateT1       # input should be odnpData object, adds to this the interpolated T1p
@@ -14,26 +19,12 @@ from scipy import optimize
 from odnpLab.odnpData import odnpData
 
 
-# I don't know how eventually the odnpData object is going to store the
+# WIP: it depends on how eventually the odnpData object is going to store the
 # T1p, T1_power, Enhancements, Enhancement_power.
-# TODO: change axe_label of this class
-class ODNPData(odnpData):
-
-    def get_T1p(self):
-        return self.get_axes('T1p')
-
-    def get_T1power(self):
-        return self.get_axes('power')
-
-    def get_Ep(self):
-        return self.get_axes('Enhancement')
-
-    def get_Epower(self):
-        return self.get_axes('Enhancement_power')
-
+# TODO: figure out the interface of hydration module to odnpImport module
 
 # input should be odnpData object, adds to this the interpolated T1p
-def interpolateT1(indata: ODNPData):
+def interpolateT1(indata: odnpData):
     """
     interpolate T1(p)
     :param indata: ODNPData
@@ -60,7 +51,10 @@ def getT1p(T1: np.array, power: np.array):
                                 fill_value='extrapolate')
 
 
-def calcODNP(Ep: np.array, T1p: np.array): # input should be odnpData object, ExpOptions object which should contain 'field', 'slC', 'T100', bulk values, choice of smax model, output should be Results object
+# input should be odnpData object, ExpOptions object which should contain
+# 'field', 'slC', 'T100', bulk values, choice of smax model, output should be
+# Results object
+def calcODNP(Ep: np.array, T1p: np.array):
     """
     returns all calculated values
 
