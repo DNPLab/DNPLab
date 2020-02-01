@@ -17,21 +17,46 @@ import numpy as np
 from scipy import interpolate
 from scipy import optimize
 from odnpLab.odnpData import odnpData
+from odnpLab.hydration import ExpOptions
 
 
-# WIP: it depends on how eventually the odnpData object is going to store the
+# WorkInProgress: it depends on how eventually the odnpData object is going to store the
 # T1p, T1_power, Enhancements, Enhancement_power.
 # TODO: figure out the interface of hydration module to odnpImport module
 
-# input should be odnpData object, adds to this the interpolated T1p
-def interpolateT1(indata: odnpData):
-    """
-    interpolate T1(p)
-    :param indata: ODNPData
-    :return:
-    """
-    # TODO: implement this
-    raise NotImplementedError
+# WorkInProgress: This module requires an object with the following properties and methods
+# TODO: determine its class name and inheritance; Write Doc
+class HydrationData(odnpData):
+    """"""
+    T1, T1_power, E, E_power = None, None, None, None
+    def __init__(self, T1: np.array, T1_power: np.array, E: np.array, E_power: np.array):
+        super().__init__()
+
+        # assert all are 1 dimension array
+        if any([x.ndim > 1 for x in [T1, T1_power, E, E_power]]):
+            raise ValueError('not one dimension')
+
+        # assert length matches
+        if T1.size() != T1_power.size():
+            raise ValueError('different length of T1, T1_power')
+
+        if E.size() != E_power.size():
+            raise ValueError('different length of E, E_power')
+
+        self.T1, self.T1_power, self.E, self.E_power = T1, T1_power, E, E_power
+
+
+# TODO: determine its name
+def interpolateT1(hdata: HydrationData):
+    """Adds interpolated T1p to hydration data"""
+    # get interpolate function T1(power) = f(T1, T1_power, power)
+    fp = getT1p(hdata.T1, hdata.T1_power)
+
+    # do interpolation
+    hdata.T1 = fp(hdata.E_power)
+    hdata.T1_power = hdata.E_power
+
+    return hdata
 
 
 def getT1p(T1: np.array, power: np.array):
@@ -54,21 +79,18 @@ def getT1p(T1: np.array, power: np.array):
 # input should be odnpData object, ExpOptions object which should contain
 # 'field', 'slC', 'T100', bulk values, choice of smax model, output should be
 # Results object
-def calcODNP(Ep: np.array, T1p: np.array, power: np.array):
-    """
-    returns all calculated values
+def calcODNP(hdata: HydrationData, expopts: ExpOptions):
+    """ returns a HydrationResults object that contains all calculated ODNP values
 
-    :param Ep: np.array of enhancements
-    :param T1p: np.array of T1, should be same length as Ep
+    Following: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+    equations are labeled (#) for where they appear in the paper, sections are specified in some cases
+
+    :param hdata: HydrationData object that contains Enhancement, T1 and power
+    :param expopts: np.array of T1, should be same length as Ep
     :return:
-        dictionary of the following parameters:
-            'k_sigma': k_sigma,
-            'k_rho'  : k_rho,
-            'ksi'    : ksi,
-            'tcorr'  : tcorr,
-            'dLocal' : dLocal,
-            'k_low'  : k_low
+        HydrationResults, object that contains all relevant hydration values
     """
+    Ep, T1p, power = hdata.E, hdata.T1, hdata.E_power
     # Following: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     # equations are labeled (#) for where they appear in the paper, sections are specified in some cases
     
