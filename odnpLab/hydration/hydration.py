@@ -25,7 +25,7 @@ def getT1p(T1: np.array, power: np.array): # input should be odnpData object, ad
                                 fill_value='extrapolate')
 
 
-def calcODNP(Ep: np.array, T1p: np.array): # input should be odnpData object, ExpOptions object which should contain 'field', 'slC', 'T100', bulk values, choice of smax model, output should be Results object
+def calcODNP(Ep: np.array, T1p: np.array, power: np.array): # input should be odnpData object, ExpOptions object which should contain 'field', 'slC', 'T100', bulk values, choice of smax model, output should be Results object
     """
     returns all calculated values
 
@@ -66,18 +66,25 @@ def calcODNP(Ep: np.array, T1p: np.array): # input should be odnpData object, Ex
 
     wRatio = ((omega_e / (2 * 3.14159)) / (omega_H / (2 * 3.14159)))  # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular frequency units in order to correspond to S_0/I_0, this is also ~= to the ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
 
-    # Ep will be the series of enhancements
-    # T1p will be the series of T1s after interpolated to match the enhancement
-    # series. Power not needed anymore, it is only used to line up and
-    # interpolate the T1s to the Enhancements
+    # Ep is the array of enhancements
+    # T1p is the array of T1s after interpolated to match the enhancement
+    # array.
 
-    ksig_smax = (1 - Ep) / (slC * wRatio * T1p)
-    # (Eq. 42) this calculates the series of k_sigma*s(p) which approximates to
-    # k_sigma*s_max
-
-    k_sigma = max(ksig_smax) / s_max
-    # (Eq. 43) this takes the maximum of the k_sigma*s(p) series and divides by
-    # the s_max to isolate k_sigma, unit is s^-1 M^-1
+    ksig_sp = (1 - Ep) / (slC * wRatio * T1p)
+    # (Eq. 41) this calculates the array of k_sigma*s(p) from the enhancement array, dividing by the T1p array for the "corrected" analysis
+    
+    ksig_smax , p_12 = getksigsmax(ksig_sp, power) # fit to the right side of Eq. 42 to get (k_sigma*smax) and half of the power at s_max, called p_12 here
+    
+    #################
+    # TODO: plot: 'Data', {power, ksig_sp}, and the 'Corrected', {power, ksigsp_fit}, and 'Uncorrected', {power, ksig_sp_uncorr} that are calculated below to assess the quality of fit as well as compare "corrected" to "uncorrected" analyses to assess heating.
+    
+    ksigsp_fit = (ksig_smax * power) / (p_12 + power) # (Eq. 42) calculate the "corrected" k_sigma*s(p) array using the fit parameters, this can be used to plot over the data ksig_sp array to assess the quality of fit. This would correspond to the corrected curves in Figure 9
+    
+    ksig_sp_uncorr = (1 - Ep) / (slC * wRatio * T10) # (Eq. 44) the "uncorrected" model, this can also be plotted with the corrected curve to determine the severity of heating effects, as in Figure 9. Notice the division by T10 instead of the T1p array
+    #################
+    
+    k_sigma = ksig_smax / s_max
+    # (Eq. 43) this divides by the s_max to isolate k_sigma, the "cross" relaxivity, unit is s^-1 M^-1
 
     ksig_bulk = 95.4  # unit is s^-1 M^-1
     # The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
@@ -189,6 +196,45 @@ def getTcorr(ksi: float, omega_e: float, omega_H: float):
         lambda tcorr: ((get_ksi(tcorr, omega_e=omega_e, omega_H=omega_H) - ksi) ** 2),
         method='newton',
         x0=500)
+
+    assert results.converged
+    return results.root
+
+
+# TODO: make sure the ksig_sp fit below is coded correctly, along with the call at ~line 76. it should take as inputs the ksig_sp array and the power array and output the fit parameters ksig_smax and p_12. Use scipy.least_squares(get_ksigsmax,..) to match the calculation of ksigsp_fit to ksig_sp varying ksig_smax and p_12. A good initial guess for ksig_smax would be ~50-100, a good guess for p_12 would be ~max(power)/2.
+
+def getksigsmax(ksig_sp: float, power: float):
+"""
+returns ksig_smax and p_12
+
+:param ksig_sp: float of array of (k_sigma * s(p))
+:param power: float of power array
+:return:
+    float ksig_smax
+"""
+
+    def get_ksigsmax([ksig_smax, p_12], power: float):
+        """
+        returns ksigs_p for any given ksig_smax and p_12
+
+        :param ksig_sp: float of array of (k_sigma * s(p))
+        :param power: float of power array
+        
+        :return:
+            float ksigsp_fit
+        """
+
+        # Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+        
+        # Right side of Eq. 42. This function should fit to ksig_sp
+        ksigsp_fit = (ksig_smax * power) / (p_12 + power)
+
+        return ksigsp_fit
+
+    # least-squares fitting. I like this one because it can calculate a jacobian that we can use to get an estimate of the error in k_sigma.
+    # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html#scipy.optimize.least_squares
+    
+    results = optimize.least_squares(get_ksigsmax, [75, (max(power) / 2)],  jac='3-point', method='lm'),
 
     assert results.converged
     return results.root
