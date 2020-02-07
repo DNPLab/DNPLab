@@ -2,17 +2,20 @@ import numpy as _np
 
 from scipy.io import loadmat as _loadmat
 
+from .. import odnpData as _odnpData
+
 def importPower(path,filename = ''):
+    '''
+    import powers file
+    '''
     fullPath = path + filename
 
     if fullPath[-4:] == '.mat':
         rawDict = _loadmat(fullPath)
         t = rawDict['timelist'].reshape(-1)
-        print(t)
         p = rawDict['powerlist'].reshape(-1)
-        print(power)
     elif fullPath[-4:] == '.csv':
-        raw = np.loadtxt(fullPath,delimiter = ',',skiprows = 1)
+        raw = _np.loadtxt(fullPath,delimiter = ',',skiprows = 1)
         t = raw[:,0].reshape(-1)
         p = raw[:,1].reshape(-1)
     else:
@@ -26,7 +29,7 @@ def chopPower(t,p,threshold = 0.1):
     Use Derivative to chop Powers
     '''
 
-    diffPower = np.diff(p)
+    diffPower = _np.diff(p)
 
     step = [abs(x) > threshold for x in diffPower]
 
@@ -51,15 +54,37 @@ def chopPower(t,p,threshold = 0.1):
     averageTimeList = []
     for stepTuple in stepTupleList:
         averagePower = p[stepTuple[0]+1:stepTuple[1]]
-        averagePower = np.mean(averagePower)
+        averagePower = _np.mean(averagePower)
         averagePowerList.append(averagePower)
 
         averageTime = (t[stepTuple[0]+1] + t[stepTuple[1]]) / 2.
         averageTimeList.append(averageTime)
     
-    averagePowerArray = np.array(averagePowerList)
-    averageTimeArray = np.array(averageTimeList)
+    averagePowerArray = _np.array(averagePowerList)
+    averageTimeArray = _np.array(averageTimeList)
     return averageTimeArray, averagePowerArray
+
+def assignPower(dataDict,expNumList,powersList):
+    '''
+    Given a dictionary of odnpData objects with key being folder string,
+    return the data with power values assigned to a new axis dimension
+    '''
+
+
+    doInitialize = True
+    for ix,expNum in enumerate(expNumList):
+        if str(expNum) in dataDict:
+            if doInitialize:
+                data = dataDict[str(expNum)]
+                data.add_axes('power',powersList[ix])
+                doInitialize = False
+            else:
+                tempData = dataDict[str(expNum)].copy()
+                tempData.add_axes('power',powersList[ix])
+                data.concatenate_along(tempData,'power')
+
+
+    return data
 
 if __name__ == '__main__':
     from matplotlib.pylab import *
