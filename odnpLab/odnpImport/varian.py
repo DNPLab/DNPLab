@@ -68,41 +68,93 @@ def importProcpar(path,filename):
             if line == '':
                 return paramDict
             else:
+                # Line 1: Name & Type Line
                 splitLine = line.rstrip().split(' ')
 
                 varName = splitLine[0]
+                variable = procparVariable(varName)
 
+                variable.subtype = splitLine[1]
+                variable.basictype = int(splitLine[2])
+                variable.maxvalue = float(splitLine[3])
+                variable.minvalue = float(splitLine[4])
+                variable.stepsize = float(splitLine[5])
+                variable.Ggroup = int(splitLine[6])
+                variable.Dgroup = int(splitLine[6])
+                variable.protection = int(splitLine[7])
+                variable.active = int(splitLine[8])
+                variable.intptr = int(splitLine[9])
+
+                # 3 Cases:
+                # basictype is 1 (real) -> Line 2 separated by spaces
+                # basictype is 2 (string) & First number is 1 -> single string on same line inside double quotes
+                # basic type is 2 (string) & first number is greater than 1 -> first element is on same line, subsequent elements are on next lines, strings are surrounded by double quotes
+
+                # Line 2: Value line
                 firstValueLine = f.readline()
-                valueLine = firstValueLine.rstrip().split(' ',1)
-                numValues = valueLine[0]
+                valueLine = firstValueLine.rstrip().split(' ')
+                numValues = int(valueLine[0])
 
-                if numValues == '1':
-                    try:
-                        value = float(valueLine[1])
-                    except:
-                        value = valueLine[1]
-                else:
-                    # determine if value line is number
-                    try:
-                        valueLineNumberCheck = firstValueLine.rstrip().split(' ')
-                        value = []
-                        for eachValue in valueLineNumberCheck[1:]:
-                            value.append(float(eachValue))
+                variable.numValues = numValues
 
-                    except:
-                        value = [valueLine[1]]
-                        for ix in range(int(numValues)-1):
-                            otherValueLine = f.readline()
-                            valueLine = otherValueLine.rstrip()
-                            value.append(valueLine)
+                if variable.basictype == 1:
+                    if variable.numValues == 1:
+                        variable.value = float(valueLine[1])
+                    else:
+                        listFloats = []
+                        for number in valueLine[1:]:
+                            listFloats.append(float(number))
+
+                        variable.value = listFloats
+
+                elif variable.basictype == 2:
+                    if variable.numValues == 1:
+                        variable.value = valueLine[1].replace('"','')
+                    else:
+                        listStrings = []
+                        listStrings.append(valueLine[1].replace('"',''))
+
+                        for ix in range(variable.numValues - 1):
+                            nextValueLine = f.readline()
+                            nextValue = nextValueLine.strip()
+                            listStrings.append(nextValue.replace('"',''))
+
+                        variable.value = listStrings
+
+
+
+
+
+#                if numValues == '1':
+#                    try:
+#                        value = float(valueLine[1])
+#                    except:
+#                        value = valueLine[1]
+#                else:
+#                    # determine if value line is number
+#                    try:
+#                        valueLineNumberCheck = firstValueLine.rstrip().split(' ')
+#                        value = []
+#                        for eachValue in valueLineNumberCheck[1:]:
+#                            value.append(float(eachValue))
+#
+#                    except:
+#                        value = [valueLine[1]]
+#                        for ix in range(int(numValues)-1):
+#                            otherValueLine = f.readline()
+#                            valueLine = otherValueLine.rstrip()
+#                            value.append(valueLine)
 
                 finalLine = f.readline()
                 enumValuesLine = finalLine.rstrip().split(' ')
                 numEnumValues = enumValuesLine[0]
-                if int(numEnumValues) > 0:
-                   enumValues = enumValuesLine[1:]
+                variable.numEnumValues = numEnumValues
+                if int(numEnumValues) == 1:
+                    variable.enumValues = enumValuesLine[1]
+                else:
+                    variable.enumValues = enumValuesLine[1:]
 
-                paramDict[varName] = value
+                paramDict[variable.name] = variable
 
 def importVarian(path,filename,paramFilename = 'procpar'):
     '''
@@ -110,11 +162,12 @@ def importVarian(path,filename,paramFilename = 'procpar'):
 
     paramDict = importProcpar(path,paramFilename)
 
-    nmrFreq = paramDict['sfrq'] * 1.e6
-    sw = paramDict['sw']
-    npts = int(paramDict['np']/2)
 
-    arraydim = paramDict['arraydim']
+    nmrFreq = paramDict['sfrq'].value * 1.e6
+    sw = paramDict['sw'].value
+    npts = int(paramDict['np'].value/2)
+
+    arraydim = paramDict['arraydim'].value
 
     dwellTime = 1./sw
 
@@ -130,4 +183,48 @@ def importVarian(path,filename,paramFilename = 'procpar'):
     return output
 
 
+class procparVariable():
+    '''
+    Storage container for procpar varibles
+    Line 1:
+    name, subtype, basictype, naxvalue, minvalue, stepsizei, Ggroup, Dgroup, protection, active, intptr
+    '''
+    def __init__(self,variableName):
+        self.name = variableName
 
+    def __repr__(self):
+        string = str(self.name)
+        string += ' ' + str(self.subtype)
+        string += ' ' + str(self.basictype)
+        string += ' ' + str(self.maxvalue)
+        string += ' ' + str(self.minvalue)
+        string += ' ' + str(self.stepsize)
+        string += ' ' + str(self.Ggroup)
+        string += ' ' + str(self.Dgroup)
+        string += ' ' + str(self.protection)
+        string += ' ' + str(self.active)
+        string += ' ' + str(self.intptr) + '\n'
+
+        string += str(self.numValues)
+        if self.basictype == 1:
+            if self.numValues == 1:
+                string += ' ' + str(self.value) + '\n'
+            else:
+                for each in self.value:
+                    string += ' ' + str(each)
+                string += '\n'
+        else:
+            if self.numValues == 1:
+                string += ' "' + self.value + '"\n'
+            else:
+                for value in self.value:
+                    string += ' "' + value + '"\n'
+        string += str(self.numEnumValues)
+
+        if self.numEnumValues == 1:
+            string += ' ' + str(self.enumValues)
+        else:
+            for enumValues in self.enumValues:
+                string += ' ' + str(enumValues)
+
+        return string
