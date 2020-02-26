@@ -80,10 +80,10 @@ def importProcpar(path,filename):
                 variable.minvalue = float(splitLine[4])
                 variable.stepsize = float(splitLine[5])
                 variable.Ggroup = int(splitLine[6])
-                variable.Dgroup = int(splitLine[6])
-                variable.protection = int(splitLine[7])
-                variable.active = int(splitLine[8])
-                variable.intptr = int(splitLine[9])
+                variable.Dgroup = int(splitLine[7])
+                variable.protection = int(splitLine[8])
+                variable.active = int(splitLine[9])
+                variable.intptr = int(splitLine[10])
 
                 # 3 Cases:
                 # basictype is 1 (real) -> Line 2 separated by spaces
