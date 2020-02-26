@@ -10,6 +10,18 @@ odnpLab is an open-source, python library for importing and processing ODNP data
   - Construct n-dimensional arrays easily
   - Process Data including window, zero-filling, Fourier transforms, etc.
 
+# Requirements
+
+  - odnpLab requires: numpy, matplotlib, scipy, h5py
+
+To install the required packages, perform:
+```console
+python -m pip install numpy
+python -m pip install matplotlib
+python -m pip install scipy
+python -m pip install h5py
+```
+
 # Installation
 
   - A description of the installation procedure will be available on release

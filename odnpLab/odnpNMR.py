@@ -192,7 +192,8 @@ def window(allData,procParameters):
     reshape_size = [1 for k in data.axesLabels]
     reshape_size[index] = len(data.axes[index])
 
-    window_array = _np.exp(-1.*data.axes[index]*linewidth).reshape(reshape_size)
+    # Must include factor of 2 in exponential to get correct linewidth ->
+    window_array = _np.exp(-1.*data.axes[index]*2.*linewidth).reshape(reshape_size)
     window_array = _np.ones_like(data.data) * window_array
     data.data *= window_array
 
@@ -278,7 +279,7 @@ def align(allData,procParameters):
 
         corrData = _np.correlate(_np.abs(tempData),_np.abs(refData),mode='same')
         shiftIx = _np.argmax(corrData) - (len(corrData)/2) # subtract half length so spectrum is shifted relative to center, not edge
-        shiftData = _np.roll(tempData,-1*shiftIx)
+        shiftData = _np.roll(tempData,-1*int(shiftIx))
         data.data[:,ix] = shiftData
     data.reorder(originalAxesOrder)
 
