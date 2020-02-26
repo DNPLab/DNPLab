@@ -30,12 +30,13 @@ def importfid(path,filename):
         # check if int or float
         isFloat = False
         if status & 0x08:
-            is_float = True
+            isFloat = True
 
         dataList = []
         for ix in range(nblocks):
             blockHeaderString = f.read(blockHeaderSize)
             blockHeader = unpack(blockHeader_fmt,blockHeaderString)
+
 
             scale = blockHeader[0] # scaling factor
             block_status = blockHeader[1] # status of data in block
@@ -50,7 +51,8 @@ def importfid(path,filename):
             blockDataString = f.read(tbytes)
 
             if isFloat:
-                blockData = _np.array(unpack('>if'%(npts),blockDataString),dtype = complex)
+                blockData = _np.array(unpack('>%if'%(npts),blockDataString),dtype = complex)
+
             else:
                 blockData = _np.array(unpack('>%ii'%(npts),blockDataString))
             data = blockData[0::2] + 1j*blockData[1:2]
@@ -163,11 +165,13 @@ def importVarian(path,filename,paramFilename = 'procpar'):
     paramDict = importProcpar(path,paramFilename)
 
 
-    nmrFreq = paramDict['sfrq'].value * 1.e6
+    
+    nmrFreq = paramDict['H1reffrq'].value*1.e6
     sw = paramDict['sw'].value
     npts = int(paramDict['np'].value/2)
 
-    arraydim = paramDict['arraydim'].value
+    arraydim = int(paramDict['arraydim'].value)
+    print(arraydim)
 
     dwellTime = 1./sw
 
@@ -175,11 +179,19 @@ def importVarian(path,filename,paramFilename = 'procpar'):
     
     data = importfid(path,filename)
 
+    if arraydim == 1:
+        data = data.reshape(-1)
+        output = _odnpData(data,[t],['t'],{})
+    else:
+#        data = data.T
+#        data = data.reshape(-1,arraydim)
+        output = _odnpData(data,[t,_np.array(range(arraydim))],['t','x'],{})
+
     importantParamsDict = {}
     importantParamsDict['nmrFreq'] = nmrFreq
-    print(_np.shape(data))
-    print(len(t))
-    output = _odnpData(data,[t],['t'],importantParamsDict)
+    output.params = importantParamsDict
+#    print(_np.shape(data))
+#    print(len(t))
     return output
 
 
