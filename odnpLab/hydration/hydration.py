@@ -1,13 +1,13 @@
 """ Hydration module
 class               description
 ------------------  ------------------------------------------------------------
-ExpOptions          Experiment options, including field, spin label concentrations
+HydrationParameter          Experiment options, including field, spin label concentrations
 Results             Hydration results
 
 function            description
 ------------------  ------------------------------------------------------------
 interpolateT1       # input should be odnpData object, adds to this the interpolated T1p
-calcODNP            # input should be odnpData object, ExpOptions object which
+calcODNP            # input should be odnpData object, HydrationParameter object which
                     should contain 'field', 'slC', 'T100', bulk values, choice
                     of smax model, output should be Results object
 getTcorr            # returns correlation time tcorr
@@ -17,7 +17,7 @@ import numpy as np
 from scipy import interpolate
 from scipy import optimize
 from odnpLab.odnpData import odnpData
-from odnpLab.hydration import ExpOptions
+from odnpLab.hydration import Parameter
 
 
 # WorkInProgress: it depends on how eventually the odnpData object is going to store the
@@ -76,10 +76,10 @@ def getT1p(T1: np.array, power: np.array):
                                 fill_value='extrapolate')
 
 
-# input should be odnpData object, ExpOptions object which should contain
+# input should be odnpData object, HydrationParameter object which should contain
 # 'field', 'slC', 'T100', bulk values, choice of smax model, output should be
 # Results object
-def calcODNP(hdata: HydrationData, expopts: ExpOptions):
+def calcODNP(hdata: HydrationData, expopts: Parameter):
     """ returns a HydrationResults object that contains all calculated ODNP values
 
     Following: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
@@ -100,7 +100,7 @@ def calcODNP(hdata: HydrationData, expopts: ExpOptions):
     # (Eq. 1-2) unit is M, spin label concentration for scaling relaxations to
     # get "relaxivities"
     
-    # TODO: define "if" statement for chosing smax option based on smax model choice in ExpOptions object
+    # TODO: define "if" statement for chosing smax option based on smax model choice in HydrationParameter object
     # Option 1, tether spin label
     s_max = 1  # (section 2.2) maximal saturation factor
     
