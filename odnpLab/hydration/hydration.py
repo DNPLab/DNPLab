@@ -59,7 +59,7 @@ def interpolateT1(hdata: HydrationData):
     return hdata
 
 
-def getT1p(T1: np.array, power: np.array):
+def getT1p(T1: np.array, T1power: np.array, power: np.array):
     """
     returns a function to calculate T1 at arbitrary power
 
@@ -70,10 +70,34 @@ def getT1p(T1: np.array, power: np.array):
         points inside the data range will be linearly interpolated
         points outside the data range will be extrapolated
     """
-    assert len(T1) == len(power)
-    return interpolate.interp1d(power, T1,
-                                kind='linear',
-                                fill_value='extrapolate')
+    assert len(T1) == len(T1power)
+    
+    option = 1
+    
+    if option==1: # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
+        
+        delT1w=T1p[end]-T1p[0]
+        T1w=T100
+        macroC=slC
+        
+        kHH = ((1/T10) - (1/(T1w)))./(macroC/1e6)
+        krp=((1./T1)-(1./(T1w + delT1w.*T1power))-(kHH*(macroC/1e6)))./(slC/1e6)
+
+        p = np.polyfit(T1power,krp,2)
+        flinear = np.polyval(p,power)
+
+        intT1 = 1./(((slC/1e6).*flinear)+(1./(T1w + delT1w.*power))+(kHH*(macroC/1e6)))
+        
+    if option==2: # linear fit, Franck et al. PNMRS (Eq. 39)
+    
+        linearT1=1./((1./T1)-(1/T10)+(1/T100))
+        
+        p = np.polyfit(T1power,linearT1,1)
+        flinear = np.polyval(p,power)
+        
+        intT1=flinear./(1+(flinear./T10)-(flinear./T100))
+
+    return intT1
 
 
 # input should be odnpData object, ExpOptions object which should contain
@@ -241,20 +265,40 @@ def getTcorr(ksi: float, omega_e: float, omega_H: float):
             float ksi
         """
 
-        # Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+        # Using Barnes et al. JACS (2017)
+        
+        zdiff = (omega_e - omega_H) * tcorr
+        zsum  = (omega_e + omega_H) * tcorr
+        zH    = omega_H * tcorr
 
-        # (Eq. 22), difference, sum and H terms for "z"
-        zdiff = np.sqrt(1j * (omega_e - omega_H) * tcorr)
-        zsum  = np.sqrt(1j * (omega_e + omega_H) * tcorr)
-        zH    = np.sqrt(1j * omega_H * tcorr)
+        # (Eq. 2)
+        Jzdiff = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zdiff)) + (zdiff/4)) / (1 + np.sqrt(2*zdiff) + zdiff + ((np.sqrt(2)/3) * (zdiff**(3/2))) + ((16/81) * (zdiff**2)) + (((4*np.sqrt(2))/81) * (zdiff**(5/2))) + ((zdiff**3)/81))
+        
+        Jzsum  = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zsum)) + (zsum/4)) / (1 + np.sqrt(2*zsum) + zsum + ((np.sqrt(2)/3) * (zsum**(3/2))) + ((16/81) * (zsum**2)) + (((4*np.sqrt(2))/81) * (zsum**(5/2))) + ((zsum**3)/81))
+        
+        JzH    = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zH)) + (zH/4)) / (1 + np.sqrt(2*zH) + zH + ((np.sqrt(2)/3) * (zH**(3/2))) + ((16/81) * (zH**2)) + (((4*np.sqrt(2))/81) * (zH**(5/2))) + ((zH**3)/81))
+        
+        option = 0
+        
+        if option==0: # don't include J_Rot
 
-        # (Eq. 21) the three forms of the FFHS spectral density function corresponding to the three "z" terms above
-        Jdiff = np.real((1 + (zdiff / 4)) / (1 + zdiff + ((4 * (zdiff ** 2)) / 9) + ((zdiff ** 3) / 9)))
-        Jsum  = np.real((1 + (zsum  / 4)) / (1 + zsum  + ((4 * (zsum ** 2)) / 9)  + ((zsum ** 3) / 9)))
-        JH    = np.real((1 + (zH    / 4)) / (1 + zH    + ((4 * (zH ** 2)) / 9)    + ((zH ** 3) / 9)))
+            Jdiff = Jzdiff
+            Jsum = Jzsum
+            JH = JzH
+            
+        if option==1: # include J_Rot, (Eq. 6) from Barnes et al. JACS (2017)
+        
+            percentBound = 0
+            tauRot = 1 # in ns
+
+            Jdiff = (1 - (percentBound/100)) * Jzdiff + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*(omega_e - omega_H) * (tauRot*1000)))))
+            
+            Jsum  = (1 - (percentBound/100)) * Jzsum + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*(omega_e + omega_H) * (tauRot*1000)))))
+            
+            JH    = (1 - (percentBound/100)) * JzH + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*omega_H * (tauRot*1000)))))
         
         # (Eq. 23) calculation of ksi from the spectral density functions
-        ksi_tcorr = ((6 * Jdiff) - Jsum) / ((6 * Jdiff) + (3 * JH) + Jsum)
+        ksi_tcorr = ((6 * np.real(Jdiff)) - np.real(Jsum)) / ((6 * np.real(Jdiff)) + (3 * np.real(JH)) + np.real(Jsum))
 
         return ksi_tcorr
 
