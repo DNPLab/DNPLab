@@ -1,50 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-
-class AttrDict(object):
-    def __init__(self, init=None):
-        if init is not None:
-            self.__dict__.update(init)
-
-    def __getitem__(self, key):
-        return self.__dict__[key]
-
-    def __setitem__(self, key, value):
-        self.__dict__[key] = value
-
-    def __delitem__(self, key):
-        del self.__dict__[key]
-
-    def __contains__(self, key):
-        return key in self.__dict__
-
-    def __len__(self):
-        return len(self.__dict__)
-
-    def __repr__(self):
-        return repr(self.__dict__)
-
-    def __eq__(self, other):
-        """This ensure equality between two dictionary"""
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        else:
-            return False
-
-    def __ne__(self, other):
-        """Not necessary for Python 3"""
-        return not self.__eq__(other)
-
-
-class Parameter(AttrDict):
-    """Parent Class for ImportParameter, HydrationParameter"""
-
-    def __init__(self, init=None):
-        super().__init__(init=init)
+from odnpLab.hydration.parameter import Parameter
 
 
 class HydrationParameter(Parameter):
+    """Hydration Parameters Getting and Setting"""
 
     def __init__(self):
         """"""
@@ -53,8 +13,9 @@ class HydrationParameter(Parameter):
         self.field = 380
         # static magnetic field in mT, needed to find omega_e and _H
 
-        self.slC = 100  # unit is M,
-        # spin label concentration for scaling relaxations to get "relaxivities"
+        self.slC = 100
+        # (Eq. 1-2) unit is M, spin label concentration for scaling relaxations to
+        # get "relaxivities"
 
         self.__smaxMod = 'tethered'  # either 'tethered' or 'free'
 
@@ -63,8 +24,8 @@ class HydrationParameter(Parameter):
         # Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
         # 2015, 137, 12013−12023. Figure 3 caption
 
-        self.T100 = 2.5
-        # this is the T1 without spin label and without mw power, unit is sec
+        self.T10 = 1.33  # this is the T1 with spin label but at 0 mw power, unit is sec
+        self.T100 = 2.5  # this is the T1 without spin label and without mw power, unit is sec
 
         self.tcorr_bulk = 54  # (section 2.5), "corrected" bulk tcorr, unit is ps
 
@@ -80,6 +41,20 @@ class HydrationParameter(Parameter):
         # The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
         # Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
         # 2015, 137, 12013−12023. Figure 3 caption
+
+        # fit option, either linear or 2nd order  TODO: insert ref
+        self.__fitOpt = 'linear'
+
+    @property
+    def fitopt(self):
+        return self.__fitOpt
+
+    @fitopt.setter
+    def fitopt(self, value: str):
+        if value in ['2ord', 'linear']:
+            self.__fitOpt = value
+        else:
+            raise ValueError('fitopt should be either `linear` or `2ord`')
 
     @property
     def smaxMod(self):
