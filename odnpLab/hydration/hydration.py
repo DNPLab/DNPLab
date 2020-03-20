@@ -115,6 +115,9 @@ class HydrationCalculator:
         # field and spin label concentration are defined in Hydration Parameter
         field, slC = self.hp.field, self.hp.slC
 
+        T10 = self.hp.T10  # this is the T1 with spin label but at 0 mw power, unit is sec
+        T100 = self.hp.T100  # this is the T1 without spin label and without mw power, unit is sec
+
         if self.hp.smaxMod == 'tethered':
             # Option 1, tether spin label
             s_max = 1  # (section 2.2) maximal saturation factor
@@ -171,8 +174,6 @@ class HydrationCalculator:
         # Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
         # 2015, 137, 12013−12023. Figure 3 caption
 
-        T10 = self.hp.T10  # this is the T1 with spin label but at 0 mw power, unit is sec
-        T100 = self.hp.T100  # this is the T1 without spin label and without mw power, unit is sec
         k_rho = ((1/T10) - (1/T100)) / slC  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
 
         ksi = k_sigma / k_rho  # (Eq. 3) this is the coupling factor, unitless
