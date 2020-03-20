@@ -55,7 +55,7 @@ def importfid(path,filename):
 
             else:
                 blockData = _np.array(unpack('>%ii'%(npts),blockDataString))
-            data = blockData[0::2] + 1j*blockData[1:2]
+            data = blockData[0::2] + 1j*blockData[1::2]
             dataList.append(data)
         dataArray = _np.array(dataList).T
 
