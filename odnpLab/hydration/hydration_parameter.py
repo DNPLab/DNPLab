@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
-from odnpLab.hydration.parameter import Parameter
+from odnpLab.parameter import Parameter
 
 
 class HydrationParameter(Parameter):

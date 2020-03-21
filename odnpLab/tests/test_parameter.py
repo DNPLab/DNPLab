@@ -2,7 +2,7 @@
 # coding: utf-8
 
 import unittest
-from odnpLab.hydration.parameter import AttrDict
+from odnpLab.parameter import AttrDict
 
 
 class TestAttrDict(unittest.TestCase):
