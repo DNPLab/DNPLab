@@ -189,9 +189,11 @@ if __name__ == '__main__':
     hpar.T10 = rest['T10']
     hpar.field = 380.4
 
-    hc = HydrationCalculator(T1=t1, T1_power=t1_power, E=e, E_power=e_power, hp=hpar)
-    hc._setT1p()
-    answ = hc._calcODNP()
-    print(answ)
+    hc = HydrationCalculator(T1=t1,
+                             T1_power=t1_power,
+                             E=e,
+                             E_power=e_power,
+                             hp=hpar)
+    print(hc.results)
 
 # savemat('/Users/thomascasey/Documents/MATLAB/' + 'test.mat', {'odnp' : odnpData}, oned_as='column')

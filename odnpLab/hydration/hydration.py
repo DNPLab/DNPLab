@@ -42,8 +42,6 @@ class HydrationCalculator:
         """
         super().__init__()
 
-        if any([x.ndim > 1 for x in [T1, T1_power, E, E_power]]):
-            raise ValueError('T1, T1_power, E and E_power must be 1 dimension')
         if T1.size != T1_power.size:
             raise ValueError('T1 and T1_power must have same length')
         if E.size != E_power.size:
