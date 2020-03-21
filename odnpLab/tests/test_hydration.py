@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from ..hydration.scratch import *
+from odnpLab.hydration import HydrationCalculator, HydrationParameter
 import os
 
 simple_set_path = os.path.join('data', 'test_hydration', 'simple_set_1')
@@ -12,32 +12,26 @@ class TestHydration(unittest.TestCase):
         self.Ep = np.genfromtxt(os.path.join(simple_set_path, 'Ep.txt'))
         self.T1_powers = np.genfromtxt(os.path.join(simple_set_path, 'T1_powers.txt'))
         self.T1p = np.genfromtxt(os.path.join(simple_set_path, 'T1p.txt'))
-        self.conc = 100
-        self.k_sig_bulk = 95.4
-        self.T100 = 2.5
 
-    def test_getT1p(self):
+        hp = HydrationParameter()
+        hp.slC = 100
+        hp.ksig_bulk = 95.4
+        hp.T100 = 2.5
+        hp.smaxMod = 'tethered'
+        hp.fitopt = 'linear'
+        hc = HydrationCalculator(T1=self.T1p, T1_power=self.T1_powers,
+                                 E=self.Ep, E_power=self.E_powers,
+                                 hp=hp)
+
+        self.hc, self.hp = hc, hp
+
+    def test_T10_is_1p33(self):
         # TODO: implement more assertions
-        t1p_fun = getT1p(self.T1p, self.T1_powers)
-        T10 = t1p_fun(0)
+        T10 = self.hc.T1fit[0]
         self.assertAlmostEqual(T10, 1.33)
 
-        mis_matched_T1p = np.array([range(len(self.T1_powers)-1)])
-        self.assertRaises(AssertionError, getT1p, mis_matched_T1p, self.T1_powers)
-
-    def test_getKsigma(self):
-        t1p_fun = getT1p(self.T1p, self.T1_powers)
-        ksigma = getKsigma(self.Ep, self.E_powers, t1p_fun)
-
-        T10 = t1p_fun(0)
-        k_rho = ((1 / T10) - (1 / self.T100)) / self.conc
-        ksi = ksigma / k_rho
-
-        self.assertAlmostEqual(ksi, 0.0326)
-
-    def test_getTcorr(self):
-        # TODO: implement this
-        pass
+    def test_ksi_is_0p0326(self):
+        self.assertAlmostEqual(self.hc.results.ksi, 0.0326)
 
 
 if __name__ == '__main__':

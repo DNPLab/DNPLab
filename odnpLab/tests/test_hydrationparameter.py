@@ -2,7 +2,7 @@
 # coding: utf-8
 
 import unittest
-from odnpLab.parameter import HydrationParameter
+from odnpLab.hydration import HydrationParameter
 
 
 class TestHydrationParameter(unittest.TestCase):
