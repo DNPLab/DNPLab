@@ -41,9 +41,9 @@ class HydrationCalculator:
         if any([x.ndim > 1 for x in [T1, T1_power, E, E_power]]):
             raise ValueError('not one dimension')
         # assert length matches
-        if T1.size() != T1_power.size():
+        if T1.size != T1_power.size:
             raise ValueError('different length of T1, T1_power')
-        if E.size() != E_power.size():
+        if E.size != E_power.size:
             raise ValueError('different length of E, E_power')
 
         self.T1, self.T1_power, self.E, self.E_power = T1, T1_power, E, E_power
@@ -60,6 +60,7 @@ class HydrationCalculator:
             points outside the data range will be extrapolated
         """
         T1p, T1power = self.T1, self.T1_power
+        power = self.E_power
         T10, T100, slC = self.hp.T10, self.hp.T100, self.hp.slC
 
         t1_fitopt = self.hp.fitopt
@@ -247,7 +248,7 @@ def getTcorr(ksi: float, omega_e: float, omega_H: float):
         """
         returns ksi for any given tcorr
 
-        :param tcorr: float
+        :param tcorr: float  # TODO: unit?
         :param omega_e: float
         :param omega_H: float
         :return:
@@ -293,13 +294,13 @@ def getTcorr(ksi: float, omega_e: float, omega_H: float):
 
     # root finding
     # see https://docs.scipy.org/doc/scipy/reference/optimize.html
-    results = optimize.root_scalar(
-        lambda tcorr: ((get_ksi(tcorr, omega_e=omega_e, omega_H=omega_H) - ksi) ** 2),
-        method='newton',
-        x0=500)
+    result = optimize.root_scalar(
+        lambda tcorr: get_ksi(tcorr, omega_e=omega_e, omega_H=omega_H) - ksi,
+        method='brentq',
+        bracket=[1, 1e5])
 
-    assert results.converged
-    return results.root
+    assert result.converged
+    return result.root
 
 
 # TODO: make sure the ksig_sp fit below is coded correctly, along with the call at ~line 76. it should take as inputs the ksig_sp array and the power array and output the fit parameters ksig_smax and p_12. Use scipy.least_squares(get_ksigsmax,..) to match the calculation of ksigsp_fit to ksig_sp varying ksig_smax and p_12. A good initial guess for ksig_smax would be ~50-100, a good guess for p_12 would be ~max(power)/2.
@@ -338,4 +339,4 @@ def getksigsmax(ksig_sp: float, power: float):
                                      jac='3-point', method='lm')
 
     assert result.success
-    return result.x[0]
+    return result.x
