@@ -7,7 +7,7 @@ Results             Hydration results
 function            description
 ------------------  ------------------------------------------------------------
 interpolateT1       # input should be odnpData object, adds to this the interpolated T1p
-calcODNP            # input should be odnpData object, HydrationParameter object which
+_calcODNP            # input should be odnpData object, HydrationParameter object which
                     should contain 'field', 'slC', 'T100', bulk values, choice
                     of smax model, output should be Results object
 getTcorr            # returns correlation time tcorr
@@ -17,14 +17,19 @@ import numpy as np
 from scipy import interpolate
 from scipy import optimize
 from odnpLab.hydration.hydration_parameter import HydrationParameter
+from odnpLab.parameter import AttrDict
 
 
 # WorkInProgress: it depends on how eventually the odnpData object is going to store the
 # T1p, T1_power, Enhancements, Enhancement_power.
 # TODO: figure out the interface of hydration module to odnpImport module
 
-# WorkInProgress: This module requires an object with the following properties and methods
-# TODO: determine its class name and inheritance; Write Doc
+
+class HydrationResults(AttrDict):
+    """Class for handling hydration results"""
+    pass
+
+
 class HydrationCalculator:
     """"""
     def __init__(self, T1: np.array, T1_power: np.array, E: np.array, E_power: np.array, hp: HydrationParameter):
@@ -37,23 +42,24 @@ class HydrationCalculator:
         """
         super().__init__()
 
-        # assert all are 1 dimension array
         if any([x.ndim > 1 for x in [T1, T1_power, E, E_power]]):
-            raise ValueError('not one dimension')
-        # assert length matches
+            raise ValueError('T1, T1_power, E and E_power must be 1 dimension')
         if T1.size != T1_power.size:
-            raise ValueError('different length of T1, T1_power')
+            raise ValueError('T1 and T1_power must have same length')
         if E.size != E_power.size:
-            raise ValueError('different length of E, E_power')
+            raise ValueError('E and E_power must have same length')
 
         self.T1, self.T1_power, self.E, self.E_power = T1, T1_power, E, E_power
 
         self.hp = hp
 
-        #Fitted T1
         self.T1fit = None
+        self.results = None
 
-    def setT1p(self):
+        self._setT1p()
+        self._calcODNP()
+
+    def _setT1p(self):
         """
         set T1fit to an np.array of T1 at given POWER
             points inside the data range will be interpolated
@@ -71,7 +77,7 @@ class HydrationCalculator:
             T1w=T100
             macroC=slC
 
-            kHH = ((1./T10) - (1./(T1w))) / (macroC/1e6)  #Fixme: what is 'T10', T1[0] ?
+            kHH = ((1./T10) - (1./(T1w))) / (macroC/1e6)
             krp=((1./T1p)-(1./(T1w + delT1w * T1power))-(kHH*(macroC/1e6))) / (slC/1e6)
 
             p = np.polyfit(T1power, krp, 2)
@@ -81,23 +87,19 @@ class HydrationCalculator:
 
         elif t1_fitopt=='linear': # linear fit, Franck et al. PNMRS (Eq. 39)
 
-            linearT1=1./((1./T1p)-(1./T10)+(1./T100))  #Fixme: what is 'T10', T1[0] ?
+            linearT1=1./((1./T1p)-(1./T10)+(1./T100))
 
             p = np.polyfit(T1power, linearT1, 1)
             flinear = np.polyval(p, power)
 
-            intT1=flinear/(1.+(flinear/T10)-(flinear/T100))  #Fixme: what is 'T10', T1[0] ?
+            intT1=flinear/(1.+(flinear/T10)-(flinear/T100))
 
         else:
             raise Exception('NotImplemented T1 fitopt')
 
         self.T1fit = intT1
 
-
-    # input should be odnpData object, HydrationParameter object which should contain
-    # 'field', 'slC', 'T100', bulk values, choice of smax model, output should be
-    # Results object
-    def calcODNP(self):
+    def _calcODNP(self):
         """ returns a HydrationResults object that contains all calculated ODNP values
 
         Following: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
@@ -148,7 +150,7 @@ class HydrationCalculator:
         # (Eq. 41) this calculates the array of k_sigma*s(p) from the enhancement array,
         # dividing by the T1p array for the "corrected" analysis
 
-        ksig_smax , p_12 = getksigsmax(ksig_sp, power)
+        ksig_smax , p_12 = self.getksigsmax(ksig_sp, power)
         # fit to the right side of Eq. 42 to get (k_sigma*smax) and half of the power at s_max, called p_12 here
 
         #################
@@ -179,7 +181,7 @@ class HydrationCalculator:
 
         ksi = k_sigma / k_rho  # (Eq. 3) this is the coupling factor, unitless
 
-        tcorr = getTcorr(ksi, omega_e, omega_H)
+        tcorr = self.getTcorr(ksi, omega_e, omega_H)
         # (Eq. 21-23) this calls the fit to the spectral density functions. The fit
         # optimizes the value of tcorr in the calculation of ksi, the correct tcorr
         # is the one for which the calculation of ksi from the spectral density
@@ -219,7 +221,7 @@ class HydrationCalculator:
 
         # this list should be in the Results object,
         # should also include flags, exceptions, etc. related to calculations
-        return {
+        self.results = HydrationResults({
             'k_sigma_array' : ksig_smax / s_max,
             'k_sigma': k_sigma,
             'ksigma_kbulk_invratio' : 1/(k_sigma/ksig_bulk),
@@ -230,113 +232,111 @@ class HydrationCalculator:
             'tcorr'  : tcorr,
             'tcorr_tcorr_bulk_ratio': tcorr / tcorr_bulk,
             'dLocal' : dLocal
-        }
+        })
 
-
-def getTcorr(ksi: float, omega_e: float, omega_H: float):
-    """
-    returns correlation time tcorr
-
-    :param ksi: float of epsilon
-    :param omega_e: float
-    :param omega_H: float
-    :return:
-        float tcorr
-    """
-
-    def get_ksi(tcorr: float, omega_e: float, omega_H: float):
+    @staticmethod
+    def getTcorr(ksi: float, omega_e: float, omega_H: float):
         """
-        returns ksi for any given tcorr
+        returns correlation time tcorr in pico second
 
-        :param tcorr: float  # TODO: unit?
+        :param ksi: float of epsilon
         :param omega_e: float
         :param omega_H: float
         :return:
-            float ksi
+            float tcorr
         """
 
-        # Using Barnes et al. JACS (2017)
-        
-        zdiff = (omega_e - omega_H) * tcorr
-        zsum  = (omega_e + omega_H) * tcorr
-        zH    = omega_H * tcorr
+        def get_ksi(tcorr: float, omega_e: float, omega_H: float):
+            """
+            returns ksi for any given tcorr
 
-        # (Eq. 2)
-        Jzdiff = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zdiff)) + (zdiff/4)) / (1 + np.sqrt(2*zdiff) + zdiff + ((np.sqrt(2)/3) * (zdiff**(3/2))) + ((16/81) * (zdiff**2)) + (((4*np.sqrt(2))/81) * (zdiff**(5/2))) + ((zdiff**3)/81))
-        
-        Jzsum  = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zsum)) + (zsum/4)) / (1 + np.sqrt(2*zsum) + zsum + ((np.sqrt(2)/3) * (zsum**(3/2))) + ((16/81) * (zsum**2)) + (((4*np.sqrt(2))/81) * (zsum**(5/2))) + ((zsum**3)/81))
-        
-        JzH    = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zH)) + (zH/4)) / (1 + np.sqrt(2*zH) + zH + ((np.sqrt(2)/3) * (zH**(3/2))) + ((16/81) * (zH**2)) + (((4*np.sqrt(2))/81) * (zH**(5/2))) + ((zH**3)/81))
-        
-        option = 0
-        
-        if option==0: # don't include J_Rot
+            :param tcorr: float  # TODO: unit?
+            :param omega_e: float
+            :param omega_H: float
+            :return:
+                float ksi
+            """
 
-            Jdiff = Jzdiff
-            Jsum = Jzsum
-            JH = JzH
-            
-        if option==1: # include J_Rot, (Eq. 6) from Barnes et al. JACS (2017)
-        
-            percentBound = 0
-            tauRot = 1 # in ns
+            # Using Barnes et al. JACS (2017)
 
-            Jdiff = (1 - (percentBound/100)) * Jzdiff + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*(omega_e - omega_H) * (tauRot*1000)))))
-            
-            Jsum  = (1 - (percentBound/100)) * Jzsum + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*(omega_e + omega_H) * (tauRot*1000)))))
-            
-            JH    = (1 - (percentBound/100)) * JzH + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*omega_H * (tauRot*1000)))))
-        
-        # (Eq. 23) calculation of ksi from the spectral density functions
-        ksi_tcorr = ((6 * np.real(Jdiff)) - np.real(Jsum)) / ((6 * np.real(Jdiff)) + (3 * np.real(JH)) + np.real(Jsum))
+            zdiff = (omega_e - omega_H) * tcorr
+            zsum  = (omega_e + omega_H) * tcorr
+            zH    = omega_H * tcorr
 
-        return ksi_tcorr
+            # (Eq. 2)
+            Jzdiff = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zdiff)) + (zdiff/4)) / (1 + np.sqrt(2*zdiff) + zdiff + ((np.sqrt(2)/3) * (zdiff**(3/2))) + ((16/81) * (zdiff**2)) + (((4*np.sqrt(2))/81) * (zdiff**(5/2))) + ((zdiff**3)/81))
 
-    # root finding
-    # see https://docs.scipy.org/doc/scipy/reference/optimize.html
-    result = optimize.root_scalar(
-        lambda tcorr: get_ksi(tcorr, omega_e=omega_e, omega_H=omega_H) - ksi,
-        method='brentq',
-        bracket=[1, 1e5])
+            Jzsum  = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zsum)) + (zsum/4)) / (1 + np.sqrt(2*zsum) + zsum + ((np.sqrt(2)/3) * (zsum**(3/2))) + ((16/81) * (zsum**2)) + (((4*np.sqrt(2))/81) * (zsum**(5/2))) + ((zsum**3)/81))
 
-    assert result.converged
-    return result.root
+            JzH    = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zH)) + (zH/4)) / (1 + np.sqrt(2*zH) + zH + ((np.sqrt(2)/3) * (zH**(3/2))) + ((16/81) * (zH**2)) + (((4*np.sqrt(2))/81) * (zH**(5/2))) + ((zH**3)/81))
 
+            option = 0
 
-# TODO: make sure the ksig_sp fit below is coded correctly, along with the call at ~line 76. it should take as inputs the ksig_sp array and the power array and output the fit parameters ksig_smax and p_12. Use scipy.least_squares(get_ksigsmax,..) to match the calculation of ksigsp_fit to ksig_sp varying ksig_smax and p_12. A good initial guess for ksig_smax would be ~50-100, a good guess for p_12 would be ~max(power)/2.
+            if option==0: # don't include J_Rot
 
-def getksigsmax(ksig_sp: float, power: float):
-    """
-    returns ksig_smax and p_12
-    :param ksig_sp: float of array of (k_sigma * s(p))
-    :param power: float of power array
-    :return:
-        float ksig_smax
-    """
-    def residual(x, p: np.array, ksig_sp: np.array):
+                Jdiff = Jzdiff
+                Jsum = Jzsum
+                JH = JzH
+
+            if option==1: # include J_Rot, (Eq. 6) from Barnes et al. JACS (2017)
+
+                percentBound = 0
+                tauRot = 1 # in ns
+
+                Jdiff = (1 - (percentBound/100)) * Jzdiff + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*(omega_e - omega_H) * (tauRot*1000)))))
+
+                Jsum  = (1 - (percentBound/100)) * Jzsum + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*(omega_e + omega_H) * (tauRot*1000)))))
+
+                JH    = (1 - (percentBound/100)) * JzH + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*omega_H * (tauRot*1000)))))
+
+            # (Eq. 23) calculation of ksi from the spectral density functions
+            ksi_tcorr = ((6 * np.real(Jdiff)) - np.real(Jsum)) / ((6 * np.real(Jdiff)) + (3 * np.real(JH)) + np.real(Jsum))
+
+            return ksi_tcorr
+
+        # root finding
+        # see https://docs.scipy.org/doc/scipy/reference/optimize.html
+        result = optimize.root_scalar(
+            lambda tcorr: get_ksi(tcorr, omega_e=omega_e, omega_H=omega_H) - ksi,
+            method='brentq',
+            bracket=[1, 1e5])
+
+        assert result.converged
+        return result.root
+
+    @staticmethod
+    def getksigsmax(ksig_sp: float, power: float):
         """
-        residual function for ksigs_p for any given ksig_smax and p_12
-        :param x: parameters. p = [ksig_smax, p_12]
-        :param p: float of power array
+        Get ksig_smax and p_12
         :param ksig_sp: float of array of (k_sigma * s(p))
+        :param power: float of power array
         :return:
-            residuals
+            float tuple. ksig_smax, p_12
         """
-        ksig_smax, p_12 = x[0], x[1]
+        def residual(x, p: np.array, ksig_sp: np.array):
+            """
+            residual function for ksigs_p for any given ksig_smax and p_12
+            :param x: parameters. p = [ksig_smax, p_12]
+            :param p: float of power array
+            :param ksig_sp: float of array of (k_sigma * s(p))
+            :return:
+                residuals
+            """
+            ksig_smax, p_12 = x[0], x[1]
 
-        # Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+            # Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
-        # Right side of Eq. 42. This function should fit to ksig_sp
-        ksigsp_fit = (ksig_smax * p) / (p_12 + p)
+            # Right side of Eq. 42. This function should fit to ksig_sp
+            ksigsp_fit = (ksig_smax * p) / (p_12 + p)
 
-        return ksigsp_fit - ksig_sp
+            return ksigsp_fit - ksig_sp
 
-    # least-squares fitting. I like this one because it can calculate a jacobian that we can use to get an estimate of the error in k_sigma.
-    # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html#scipy.optimize.least_squares
-    result = optimize.least_squares(fun=residual,
-                                     x0=[75, (max(power) / 2)],
-                                     args=(power, ksig_sp),
-                                     jac='3-point', method='lm')
+        # least-squares fitting. I like this one because it can calculate a jacobian that we can use to get an estimate of the error in k_sigma.
+        # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html#scipy.optimize.least_squares
+        result = optimize.least_squares(fun=residual,
+                                         x0=[75, (max(power) / 2)],
+                                         args=(power, ksig_sp),
+                                         jac='3-point', method='lm')
 
-    assert result.success
-    return result.x
+        assert result.success
+        return result.x
