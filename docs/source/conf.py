@@ -1,3 +1,4 @@
+#!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation builder.
@@ -14,7 +15,13 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('.'))
+#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../odnpLab/odnpLab'))
+#sys.path.insert(0, os.path.abspath('..'))
+#sys.path.insert(0,'C:/Users/tkeller/Documents/python/odnpLab/')
+print('path:')
+print(sys.path)
 
 
 # -- Project information -----------------------------------------------------
@@ -71,6 +78,7 @@ rst_epilog = make_rst_epilog(rst_epilog_list)
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
     'sphinx.ext.ifconfig',
     'sphinx.ext.intersphinx'
 ]

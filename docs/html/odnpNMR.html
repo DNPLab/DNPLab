@@ -137,8 +137,94 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="odnpnmr">
-<h1>odnpNMR<a class="headerlink" href="#odnpnmr" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-odnpLab.odnpNMR">
+<span id="odnpnmr"></span><h1>odnpNMR<a class="headerlink" href="#module-odnpLab.odnpNMR" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="odnpLab.odnpNMR.align">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">align</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.align" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alignment of NMR spectra down given axes dimension</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.fourierTransform">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">fourierTransform</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.fourierTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform Fourier Transform down given dimension
+assumes dt = t[1] - t[0]</p>
+<p>Example:
+data.ft('t')</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.integrate">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">integrate</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.integrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integrate data down given dimension</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt>axes_label: str</dt>
+<dd>dimension to integrate</dd>
+<dt>integrateCenter:</dt>
+<dd>center for width of integration</dd>
+<dt>integrateWidth:</dt>
+<dd>width of integration window</dd>
+</dl>
+<p>Exampe:
+data.integrate(dataDict,procParameters)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.procString">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">procString</code><span class="sig-paren">(</span><em>name</em>, <em>procParameters</em>, <em>requiredList</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.procString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.removeOffset">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">removeOffset</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.removeOffset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove DC offset from FID by averaging the last few data points
+and subtracting</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.returnData">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">returnData</code><span class="sig-paren">(</span><em>allData</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.returnData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine what the data type is for processing</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.stampProcStep">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">stampProcStep</code><span class="sig-paren">(</span><em>data</em>, <em>procStepString</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.stampProcStep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.steps">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">steps</code><span class="sig-paren">(</span><em>allData</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.steps" title="Permalink to this definition">¶</a></dt>
+<dd><p>print processing steps</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.updateParameters">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">updateParameters</code><span class="sig-paren">(</span><em>procParameters</em>, <em>requiredList</em>, <em>defaultParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.updateParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>For all parameters without default parameters, assign parameter value to default</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.window">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">window</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply Apodization to data down given dimension</p>
+<p>Parameters:</p>
+<dl class="docutils">
+<dt>axes_label: str</dt>
+<dd>dimension to apply apodization</dd>
+<dt>linewidth:</dt>
+<dd>Linewidth for exponential apodization, Hz</dd>
+<dt>window type: str</dt>
+<dd>Type of window function to apply</dd>
+</dl>
+<p>NOTES:
+Axis units assumed to be seconds</p>
+<p>Exampe:
+data.window('t',linewidth = 20)</p>
+</dd></dl>
+
 </div>
 
 
