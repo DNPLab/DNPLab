@@ -78,9 +78,17 @@ class TestHydration(unittest.TestCase):
         self._run_tethered_2ord()
         self.assertAlmostEqual(self.hc.results.k_rho, 564.1, places=1)
 
-    def _run_all_options(self):
+    def _run_expert_mode(self):
         """Expert Mode"""
-        pass
+        self.hc.hp.smaxMod = 'tethered'
+        self.hc.hp.t1InterpMethod = '2ord'
+        self.hc.hp.includeJRot = True
+        self.hc.run()
+
+    def test_expert_ksigma_is_25p53(self):
+        self._run_expert_mode()
+        self.assertAlmostEqual(self.hc.results.k_sigma, 25.53)
+
 
     # def test_T10_is_1p33(self):
     #     # TODO: implement more assertions

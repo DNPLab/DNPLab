@@ -68,6 +68,9 @@ class HydrationParameter(Parameter):
         self.__t1InterpMethod = 'linear'
         """str: Method used to interpolate T1, either linear or 2nd order"""
 
+        self.__includeJRot = False
+        """bool: Whether to include J_rot"""
+
     @property
     def t1InterpMethod(self):
         """str: Method used to interpolate T1, either linear or 2nd order"""
@@ -94,6 +97,15 @@ class HydrationParameter(Parameter):
             self.__smaxMod = value
         else:
             raise ValueError('smaxMod should be either `tethered` or `free`')
+
+    @property
+    def includeJRot(self):
+        """bool: Whether to include J_rot"""
+        return self.__includeJRot
+
+    @includeJRot.setter
+    def includeJRot(self, value: bool):
+        self.__includeJRot = value
 
     def __getitem__(self, key):
         if key in ['smaxMod']:
@@ -315,7 +327,7 @@ class HydrationCalculator:
 
         ksi = k_sigma / k_rho  # (Eq. 3) this is the coupling factor, unitless
 
-        tcorr = self.getTcorr(ksi, omega_e, omega_H)
+        tcorr = self.getTcorr(ksi, omega_e, omega_H, self.hp.includeJRot)
         # (Eq. 21-23) this calls the fit to the spectral density functions. The fit
         # optimizes the value of tcorr in the calculation of ksi, the correct tcorr
         # is the one for which the calculation of ksi from the spectral density
@@ -370,7 +382,7 @@ class HydrationCalculator:
         })
 
     @staticmethod
-    def getTcorr(ksi: float, omega_e: float, omega_H: float):
+    def getTcorr(ksi: float, omega_e: float, omega_H: float, includeJRot: bool):
         """Returns correlation time tcorr in pico second
 
         Args:
@@ -412,16 +424,8 @@ class HydrationCalculator:
 
             JzH    = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zH)) + (zH/4)) / (1 + np.sqrt(2*zH) + zH + ((np.sqrt(2)/3) * (zH**(3/2))) + ((16/81) * (zH**2)) + (((4*np.sqrt(2))/81) * (zH**(5/2))) + ((zH**3)/81))
 
-            #TODO: implement includeJRot
-            option = 0
 
-            if option==0: # don't include J_Rot
-
-                Jdiff = Jzdiff
-                Jsum = Jzsum
-                JH = JzH
-
-            if option==1: # include J_Rot, (Eq. 6) from Barnes et al. JACS (2017)
+            if includeJRot: # include J_Rot, (Eq. 6) from Barnes et al. JACS (2017)
 
                 percentBound = 0
                 tauRot = 1 # in ns
@@ -431,6 +435,13 @@ class HydrationCalculator:
                 Jsum  = (1 - (percentBound/100)) * Jzsum + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*(omega_e + omega_H) * (tauRot*1000)))))
 
                 JH    = (1 - (percentBound/100)) * JzH + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*omega_H * (tauRot*1000)))))
+
+            else: # don't include J_Rot
+
+                Jdiff = Jzdiff
+                Jsum = Jzsum
+                JH = JzH
+
 
             # (Eq. 23) calculation of ksi from the spectral density functions
             ksi_tcorr = ((6 * np.real(Jdiff)) - np.real(Jsum)) / ((6 * np.real(Jdiff)) + (3 * np.real(JH)) + np.real(Jsum))
