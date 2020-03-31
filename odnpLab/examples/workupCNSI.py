@@ -10,29 +10,36 @@ import sys
 # sys.path.append('/Users/thomascasey/odnplab')
 
 class ProcParameter(Parameter):
-    """Processing Parameters"""
+    """Processing Parameters
+
+    Attributes:
+        eic (float): enhancement data integration window center
+        eiw (float): enhancement data integration window width
+        tic (float): T1 data integration window center
+        tiw (float): T1 data integration window width
+        verbose (bool): Whether verbose.
+
+    """
     def __init__(self, init=None):  # TODO: enable manual adjustment
         super().__init__(init=init)
-
-        eic = 0  # enhancement data integration window center
-        eiw = 100  # enhancement data integration window width
-
-        tic = 0  # T1 data integration window center
-        tiw = 100  # T1 data integration window width
-
+        eic = 0
+        eiw = 100
+        tic = 0
+        tiw = 100
         self.eic, self.eiw, self.tic, self.tiw = eic, eiw, tic, tiw
-
-        # if verbose
         self.verbose = True
 
 
 def process_cnsi(path: str, par: ProcParameter):
-    """
-     Process CNSI dataset
-    :param path: str. Path to CNSI data folder
-    :param par: ProcParameter. Processing parameters
-    :return
-        dictionary with T1, T1_power, E, E_power
+    """Process CNSI dataset
+
+    Args:
+        path (str): Path to CNSI data folder.
+        par (ProcParameter): Processing parameters.
+
+    Returns:
+        Dictionary with T1, T1_power, E, E_power
+
     """
 
     eic, eiw, tic, tiw = par.eic, par.eiw, par.tic, par.tiw
