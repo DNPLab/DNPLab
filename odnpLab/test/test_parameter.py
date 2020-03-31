@@ -27,6 +27,15 @@ class TestAttrDict(TestCase):
         self.assertEquals(my_dict.spam, 'ham')
         self.assertEquals(my_dict['spam'], 'ham')
 
+    def test_should_not_change_values_by_update(self):
+        base = {'eggs': 42, 'spam': 'ham'}
+        my_dict = AttrDict(base)
+        new = {'cheese': 10}
+        new_dict = AttrDict(new)
+        my_dict.update(new_dict)
+        self.assertEqual(my_dict.eggs, 42)
+        self.assertEqual(my_dict.cheese, 10)
+
     def test_get_item(self):
         my_dict = AttrDict()
         my_dict.test = 123

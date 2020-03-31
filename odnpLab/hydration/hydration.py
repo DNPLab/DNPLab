@@ -129,7 +129,7 @@ class HydrationResults(AttrDict):
 
     """
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__()
         self.T1fit = None
         self.k_sigma_array = None
         self.k_sigma = None
@@ -141,6 +141,7 @@ class HydrationResults(AttrDict):
         self.tcorr = None
         self.tcorr_tcorr_bulk_ratio = None
         self.dLocal = None
+        self.update(*args, **kwargs)
 
 
 class HydrationCalculator:
@@ -183,9 +184,8 @@ class HydrationCalculator:
 
     def run(self):
         T1fit = self.interpT1(self.E_power, self.T1_power, self.T1)
-        self.results.T1fit = T1fit
-        more_results = self._calcODNP(self.E_power, self.E, T1fit)
-        self.results.update(more_results)
+        results = self._calcODNP(self.E_power, self.E, T1fit)
+        self.results = results
 
     def interpT1(self, power: np.array, T1power: np.array, T1p: np.array):
         """Returns the one-dimensional piecewise interpolant to a function with
@@ -356,6 +356,7 @@ class HydrationCalculator:
         # this list should be in the Results object,
         # should also include flags, exceptions, etc. related to calculations
         return HydrationResults({
+            'T1fit' : T1p,
             'k_sigma_array' : ksig_smax / s_max,
             'k_sigma': k_sigma,
             'ksigma_kbulk_invratio' : 1/(k_sigma/ksig_bulk),
