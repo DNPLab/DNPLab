@@ -1,3 +1,4 @@
+#!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation builder.
@@ -12,9 +13,15 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../odnpLab/odnpLab'))
+#sys.path.insert(0, os.path.abspath('..'))
+#sys.path.insert(0,'C:/Users/tkeller/Documents/python/odnpLab/')
+print('path:')
+print(sys.path)
 
 
 # -- Project information -----------------------------------------------------
@@ -23,12 +30,43 @@ project = u'odnpLab'
 copyright = u'2020, Timothy Keller'
 author = u'Timothy Keller'
 
+from datetime import datetime
+
+date = datetime.now().strftime(u'%m/%d/%Y, %H:%M:%S')
+
 # The short X.Y version
-version = u''
+version = u'1.0'
 # The full version, including alpha/beta/rc tags
 release = u'1.0.0'
 
+print(u'Build Time: ' + date)
+print(u'Version: ' + version)
+print(u'Release: ' + release)
 
+
+
+rst_epilog_list = [
+        ('date',date),
+        ('author','Bridge12 + Han Lab'),
+        ]
+
+def make_rst_epilog(rst_epilog_list):
+    rst_epilog = ''
+
+    for var, value in rst_epilog_list:
+        my_string = '.. ' + '|' + var + '| replace:: ' + value + '\n'
+
+        rst_epilog += my_string
+
+    rst_epilog += '\n'
+
+    return rst_epilog
+
+rst_epilog = make_rst_epilog(rst_epilog_list)
+
+#rst_epilog = """
+#.. |psf| replace:: Python Software Foundation
+#"""
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -40,7 +78,9 @@ release = u'1.0.0'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
     'sphinx.ext.ifconfig',
+    'sphinx.ext.intersphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -76,7 +116,8 @@ pygments_style = None
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+#html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -87,7 +128,8 @@ html_theme = 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
+html_static_path = []
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
