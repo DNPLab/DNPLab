@@ -4,9 +4,13 @@
 
 class AttrDict(object):
     """Class with Dictionary-like Setting and Getting"""
-    def __init__(self, init=None):
-        if init is not None:
+    def __init__(self, init=None, **kwargs):
+        if isinstance(init, dict):
             self.__dict__.update(init)
+        elif isinstance(init, AttrDict):
+            self.__dict__.update(init.__dict__)
+        else:
+            self.update(**kwargs)
 
     def __getitem__(self, key):
         return self.__dict__[key]
@@ -37,9 +41,16 @@ class AttrDict(object):
         """Not necessary for Python 3"""
         return not self.__eq__(other)
 
+    def update(self, *args, **kwargs):
+        """Update existing parameters
+        If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k]
+        If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
+        """
+        self.__dict__.update(*args, **kwargs)
+
 
 class Parameter(AttrDict):
     """Parent Parameter Class"""
 
-    def __init__(self, init=None):
-        super().__init__(init=init)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

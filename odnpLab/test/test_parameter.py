@@ -1,17 +1,22 @@
-#!/usr/bin/env python
 # coding: utf-8
 
-import unittest
-from odnpLab.parameter import AttrDict
+from unittest import TestCase
+
+from odnpLab.parameter import AttrDict, Parameter
 
 
-class TestAttrDict(unittest.TestCase):
+class TestAttrDict(TestCase):
     def test_should_init_with_one_dict(self):
         my_dict = AttrDict({'eggs': 42, 'spam': 'ham'})
         self.assertEquals(my_dict.eggs, 42)
         self.assertEquals(my_dict['eggs'], 42)
         self.assertEquals(my_dict.spam, 'ham')
         self.assertEquals(my_dict['spam'], 'ham')
+
+    def test_should_init_with_another_attrdict(self):
+        one_dict = AttrDict({'eggs': 42, 'spam': 'ham'})
+        another_dict = AttrDict(one_dict)
+        self.assertEqual(one_dict, another_dict)
 
     def test_should_not_change_values_by_inited_dict(self):
         base = {'eggs': 42, 'spam': 'ham'}
@@ -61,9 +66,23 @@ class TestAttrDict(unittest.TestCase):
         my_dict = AttrDict()
         my_dict['test'] = 123
         my_dict.python = 42
-        self.assertEquals(repr(my_dict),"{'test': 123, 'python': 42}")
+        self.assertEquals(repr(my_dict), "{'test': 123, 'python': 42}")
 
     def test_equal(self):
         my_dict = AttrDict({'test': 123})
         my_dict_2 = AttrDict({'test': 123})
         self.assertEqual(my_dict, my_dict_2)
+
+
+class TestParameter(TestCase):
+    def test_update_using_kwargs(self):
+        my_param = Parameter()
+        my_param.update(test=123, test2=321)
+        self.assertEqual(my_param.test, 123)
+        self.assertEqual(my_param.test2, 321)
+
+    def test_update_using_dict(self):
+        my_param = Parameter()
+        my_param.update({'test': 123, 'test2': 321})
+        self.assertEqual(my_param.test, 123)
+        self.assertEqual(my_param.test2, 321)
