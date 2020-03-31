@@ -1,16 +1,8 @@
+# coding: utf-8
 """ Hydration module
-class               description
-------------------  ------------------------------------------------------------
-HydrationParameter          Experiment options, including field, spin label concentrations
-Results             Hydration results
 
-function            description
-------------------  ------------------------------------------------------------
-interpolateT1       # input should be odnpData object, adds to this the interpolated T1p
-_calcODNP            # input should be odnpData object, HydrationParameter object which
-                    should contain 'field', 'slC', 'T100', bulk values, choice
-                    of smax model, output should be Results object
-getTcorr            # returns correlation time tcorr
+This module calculates hydration related quantities using processed ODNP data.
+
 """
 
 import numpy as np
@@ -20,35 +12,32 @@ from odnpLab.hydration.hydration_parameter import HydrationParameter
 from odnpLab.parameter import AttrDict
 
 
-# WorkInProgress: it depends on how eventually the odnpData object is going to store the
-# T1p, T1_power, Enhancements, Enhancement_power.
-# TODO: figure out the interface of hydration module to odnpImport module
-
-
 class FitError(Exception):
     """Exception of Failed Fitting"""
     pass
 
 
 class HydrationResults(AttrDict):
-    """Class for handling hydration results"""
+    """Class for handling hydration related quantities"""
     pass
 
 
 class HydrationCalculator:
-    '''Hydration Results Calculator
+    """Hydration Results Calculator
 
     Attributes:
         T1 (numpy.array): T1 array. Unit: second.
         T1_power (numpy.array): power in Watt unit, same length as T1.
         E (numpy.array): Enhancements.
         E_power (numpy.array): power in Watt unit, same length as E.
-        hp (HydrationParameter): Parameters for calculation, including default values.
+        hp (HydrationParameter): Parameters for calculation, including default
+            values.
         T1fit (numpy.array): Interpolated T1 values on E_power.
         results (HydrationResults): Hydration results.
 
-    '''
-    def __init__(self, T1: np.array, T1_power: np.array, E: np.array, E_power: np.array, hp: HydrationParameter):
+    """
+    def __init__(self, T1: np.array, T1_power: np.array, E: np.array,
+                 E_power: np.array, hp: HydrationParameter):
         """Class Init
 
         Args:
@@ -56,7 +45,8 @@ class HydrationCalculator:
             T1_power (numpy.array): power in Watt unit, same length as T1.
             E (numpy.array): Enhancements.
             E_power (numpy.array): power in Watt unit, same length as E.
-            hp (HydrationParameter): Parameters for calculation, including default values.
+            hp (HydrationParameter): Parameters for calculation, including
+                default values.
         """
         super().__init__()
 
@@ -76,9 +66,10 @@ class HydrationCalculator:
         self._calcODNP()
 
     def _setT1p(self):
-        """set T1fit to an np.array of T1 at given POWER
-            points inside the data range will be interpolated
-            points outside the data range will be extrapolated
+        """Set T1fit to an np.array of T1 at given POWER
+
+        Points inside the data range will be interpolated.
+        Points outside the data range will be extrapolated
         """
         T1p, T1power = self.T1, self.T1_power
         power = self.E_power
@@ -115,7 +106,7 @@ class HydrationCalculator:
         self.T1fit = intT1
 
     def _calcODNP(self):
-        """returns a HydrationResults object that contains all calculated ODNP values
+        """Returns a HydrationResults object that contains all calculated ODNP values
 
         Following: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
         equations are labeled (#) for where they appear in the paper, sections are specified in some cases
@@ -247,7 +238,7 @@ class HydrationCalculator:
 
     @staticmethod
     def getTcorr(ksi: float, omega_e: float, omega_H: float):
-        '''Returns correlation time tcorr in pico second
+        """Returns correlation time tcorr in pico second
 
         Args:
             ksi (float):
@@ -257,9 +248,12 @@ class HydrationCalculator:
         Returns:
             tcorr (float): correlation time in pico second
 
-        '''
+        Raises:
+            FitError: If no available root is found.
 
-        def get_ksi(tcorr: float, omega_e: float, omega_H: float):
+        """
+
+        def f_ksi(tcorr: float, omega_e: float, omega_H: float):
             '''Returns ksi for any given tcorr
 
             Args:
@@ -313,49 +307,48 @@ class HydrationCalculator:
         # root finding
         # see https://docs.scipy.org/doc/scipy/reference/optimize.html
         result = optimize.root_scalar(
-            lambda tcorr: get_ksi(tcorr, omega_e=omega_e, omega_H=omega_H) - ksi,
+            lambda tcorr: f_ksi(tcorr, omega_e=omega_e, omega_H=omega_H) - ksi,
             method='brentq',
             bracket=[1, 1e5])
 
-        assert result.converged
+        if not result.converged:
+            raise FitError("Could not find tcorr")
         return result.root
 
     @staticmethod
     def getksigsmax(ksig_sp: np.array, power: np.array):
-        '''Get ksig * smax and power at half ksig
+        """Get ksig * smax and power at half ksig
 
         Args:
-            ksig_sp (numpy.array): Array of (k_sigma * s(p)).
+            ksig_sp (numpy.array): Array of (k_sigma * s(power)).
             power (numpy.array): Array of power.
 
         Returns:
             A tuple of float (ksig_smax, p_12).
 
-        '''
+        Raises:
+            FitError: If least square fitting is not succeed.
 
-        def residual(x, p: np.array, ksig_sp: np.array):
-            '''Residual function for ksigs_p for any given ksig_smax and p_12
+        """
+
+        def residual(x, power: np.array, ksig_sp: np.array):
+            """Residual function for ksigs_p for any given ksig_smax and p_12
 
             Args:
                 x (tuple): length of 2
-                p (numpy.array):
-                ksig_sp (numpy.array):
+                power (numpy.array): Array of power.
+                ksig_sp (numpy.array): Array of (k_sigma * s(power)).
 
             Returns:
+                Residuals.
 
-            '''
-            ''':param x: parameters. p = [ksig_smax, p_12]
-            :param p: float of power array
-            :param ksig_sp: float of array of (k_sigma * s(p))
-            :return:
-                residuals
-            '''
+            """
             ksig_smax, p_12 = x[0], x[1]
 
             # Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
             # Right side of Eq. 42. This function should fit to ksig_sp
-            ksigsp_fit = (ksig_smax * p) / (p_12 + p)
+            ksigsp_fit = (ksig_smax * power) / (p_12 + power)
 
             return ksigsp_fit - ksig_sp
 

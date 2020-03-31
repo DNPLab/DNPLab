@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # coding: utf-8
 from odnpLab.parameter import Parameter
 
@@ -11,44 +10,53 @@ class HydrationParameter(Parameter):
         super().__init__()
 
         self.field = 380
-        # static magnetic field in mT, needed to find omega_e and _H
+        """float: Static magnetic field in mT, needed to find omega_e and _H"""
 
         self.slC = 100
-        # (Eq. 1-2) unit is M, spin label concentration for scaling relaxations to
-        # get "relaxivities"
+        """float: (Eq. 1-2) unit is M, spin label concentration for scaling 
+        relaxations to get "relaxivities" """
 
-        # method used to determine smax
         self.__smaxMod = 'tethered'  # either 'tethered' or 'free'
+        """str: Method used to determine smax"""
 
-        self.ksig_bulk = 95.4  # unit is s^-1 M^-1
-        # The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
-        # Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
-        # 2015, 137, 12013−12023. Figure 3 caption
+        self.ksig_bulk = 95.4
+        """float: unit is s^-1 M^-1
+        
+        The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
+        Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
+        2015, 137, 12013−12023. Figure 3 caption
+        """
 
-        self.T10 = 1.33  # this is the T1 with spin label but at 0 mw power, unit is sec
-        self.T100 = 2.5  # this is the T1 without spin label and without mw power, unit is sec
+        self.T10 = 1.33
+        """float: T1 with spin label but at 0 mw power, unit is sec"""
 
-        self.tcorr_bulk = 54  # (section 2.5), "corrected" bulk tcorr, unit is ps
+        self.T100 = 2.5
+        """float: T1 without spin label and without mw power, unit is sec"""
+
+        self.tcorr_bulk = 54
+        """float: (section 2.5), "corrected" bulk tcorr, unit is ps"""
 
         self.dH2O = 2.3e-9
-        # (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is distance in
-        # meters. *didnt use m to avoid confusion with mass
+        """float: (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is 
+        distance in meters. *didnt use m to avoid confusion with mass"""
 
         self.dSL = 4.1e-10
-        # (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is distance in
-        # meters. *didnt use m to avoid confusion with mass
+        """float: (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is distance in
+        meters. *didnt use m to avoid confusion with mass"""
 
-        self.k_low_bulk = 366  # unit is s^-1 M^-1
-        # The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
-        # Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
-        # 2015, 137, 12013−12023. Figure 3 caption
+        self.k_low_bulk = 366
+        """float: unit is s^-1 M^-1
+        
+        The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
+        Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
+        2015, 137, 12013−12023. Figure 3 caption"""
 
-        # method used to interpolate T1, either linear or 2nd order  TODO: insert ref
         self.__t1InterpMethod = 'linear'
+        """str: Method used to interpolate T1, either linear or 2nd order"""
 
     @property
     def t1InterpMethod(self):
-        """method used to interpolate T1, either linear or 2nd order"""
+        """str: Method used to interpolate T1, either linear or 2nd order"""
         return self.__t1InterpMethod
 
     @t1InterpMethod.setter
@@ -60,6 +68,7 @@ class HydrationParameter(Parameter):
 
     @property
     def smaxMod(self):
+        """str: Method used to determine smax"""
         return self.__smaxMod
 
     @smaxMod.setter
