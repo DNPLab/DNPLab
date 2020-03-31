@@ -116,11 +116,31 @@ class HydrationResults(AttrDict):
 
     Attributes:
         T1fit (numpy.array): Interpolated T1 values on E_power.
+        k_sigma_array (float)           : ksig_smax / s_max,
+        k_sigma (float)                 : k_sigma,
+        ksigma_kbulk_invratio (float)   : 1/(k_sigma/ksig_bulk),
+        k_rho (float)                   : k_rho,
+        k_low (float)                   : k_low,
+        klow_klow_bulk_ratio (float)    : k_low / k_low_bulk,
+        ksi (float)                     : ksi,
+        tcorr (float)                   : tcorr,
+        tcorr_tcorr_bulk_ratio (float)  : tcorr / tcorr_bulk,
+        dLocal (float)                  : dLocal
 
     """
-    def __init__(self, init=None):
-        super().__init__(init)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.T1fit = None
+        self.k_sigma_array = None
+        self.k_sigma = None
+        self.ksigma_kbulk_invratio = None
+        self.k_rho = None
+        self.k_low = None
+        self.klow_klow_bulk_ratio = None
+        self.ksi = None
+        self.tcorr = None
+        self.tcorr_tcorr_bulk_ratio = None
+        self.dLocal = None
 
 
 class HydrationCalculator:
@@ -164,7 +184,8 @@ class HydrationCalculator:
     def run(self):
         T1fit = self.interpT1(self.E_power, self.T1_power, self.T1)
         self.results.T1fit = T1fit
-        # self._calcODNP()
+        more_results = self._calcODNP(self.E_power, self.E, T1fit)
+        self.results.update(more_results)
 
     def interpT1(self, power: np.array, T1power: np.array, T1p: np.array):
         """Returns the one-dimensional piecewise interpolant to a function with
@@ -216,18 +237,18 @@ class HydrationCalculator:
 
         return intT1
 
-    def _calcODNP(self):
+    def _calcODNP(self, power:np.array, Ep:np.array, T1p:np.array):
         """Returns a HydrationResults object that contains all calculated ODNP values
 
         Following: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
         equations are labeled (#) for where they appear in the paper, sections are specified in some cases
 
+        Args:
+            power (numpy.array): Sequence of powers in Watts. Will be internally
+                sorted to be ascending.
+            Ep (numpy.array): Array of enhancements. Must be same length as power
+            T1p (numpy.array): Array of T1. Must be same length as power.
         """
-        # Ep is the array of enhancements
-        # T1p is the array of T1s after interpolated to match the enhancement
-        # array.
-        Ep, T1p, power = self.E, self.T1fit, self.E_power
-
         # field and spin label concentration are defined in Hydration Parameter
         field, slC = self.hp.field, self.hp.slC
 
@@ -334,7 +355,7 @@ class HydrationCalculator:
 
         # this list should be in the Results object,
         # should also include flags, exceptions, etc. related to calculations
-        self.results = HydrationResults({
+        return HydrationResults({
             'k_sigma_array' : ksig_smax / s_max,
             'k_sigma': k_sigma,
             'ksigma_kbulk_invratio' : 1/(k_sigma/ksig_bulk),

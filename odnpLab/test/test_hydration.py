@@ -48,14 +48,11 @@ class TestHydration(unittest.TestCase):
         linear = self.hc.results.T1fit[0]
         self.assertLess(second, linear)
 
-
     def test_no_trot_tethered_ksigma_is_25p53(self):
-        hp = self.hp
-        hp.smaxMod = 'tethered'
-        hp.t1InterpMethod = 'linear'
-
-        results = hc.results
-        self.assertAlmostEqual(results.ksigma, 25.53)
+        self.hc.hp.smaxMod = 'tethered'
+        self.hc.hp.t1InterpMethod = 'linear'
+        self.hc.run()
+        self.assertAlmostEqual(self.hc.results.ksigma, 25.53)
 
     # def test_T10_is_1p33(self):
     #     # TODO: implement more assertions
