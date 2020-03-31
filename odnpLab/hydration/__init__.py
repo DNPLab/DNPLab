@@ -1,2 +1,1 @@
-from .hydration_parameter import HydrationParameter
-from .hydration import HydrationCalculator
+from .hydration import HydrationCalculator, HydrationParameter
