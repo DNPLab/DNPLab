@@ -31,14 +31,27 @@ class HydrationResults(AttrDict):
 
 
 class HydrationCalculator:
-    """"""
+    '''Hydration Results Calculator
+
+    Attributes:
+        T1 (numpy.array): T1 array. Unit: second.
+        T1_power (numpy.array): power in Watt unit, same length as T1.
+        E (numpy.array): Enhancements.
+        E_power (numpy.array): power in Watt unit, same length as E.
+        hp (HydrationParameter): Parameters for calculation, including default values.
+        T1fit (numpy.array): Interpolated T1 values on E_power.
+        results (HydrationResults): Hydration results.
+
+    '''
     def __init__(self, T1: np.array, T1_power: np.array, E: np.array, E_power: np.array, hp: HydrationParameter):
-        """
-        :param T1: np.array of T1
-        :param T1_power: np.array of power in Watt unit, same length as T1
-        :param E: np.array of enhancement
-        :param E_power: np.array of power in Watt unit, same length as E
-        :param hp: HydrationParameter
+        """Class Init
+
+        Args:
+            T1 (numpy.array): T1 array. Unit: second.
+            T1_power (numpy.array): power in Watt unit, same length as T1.
+            E (numpy.array): Enhancements.
+            E_power (numpy.array): power in Watt unit, same length as E.
+            hp (HydrationParameter): Parameters for calculation, including default values.
         """
         super().__init__()
 
@@ -58,8 +71,7 @@ class HydrationCalculator:
         self._calcODNP()
 
     def _setT1p(self):
-        """
-        set T1fit to an np.array of T1 at given POWER
+        """set T1fit to an np.array of T1 at given POWER
             points inside the data range will be interpolated
             points outside the data range will be extrapolated
         """
@@ -98,15 +110,11 @@ class HydrationCalculator:
         self.T1fit = intT1
 
     def _calcODNP(self):
-        """ returns a HydrationResults object that contains all calculated ODNP values
+        """returns a HydrationResults object that contains all calculated ODNP values
 
         Following: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
         equations are labeled (#) for where they appear in the paper, sections are specified in some cases
 
-        :param hdata: HydrationCalculator object that contains Enhancement, T1 and power
-        :param expopts: np.array of T1, should be same length as Ep
-        :return:
-            HydrationResults, object that contains all relevant hydration values
         """
         # Ep is the array of enhancements
         # T1p is the array of T1s after interpolated to match the enhancement
@@ -234,26 +242,30 @@ class HydrationCalculator:
 
     @staticmethod
     def getTcorr(ksi: float, omega_e: float, omega_H: float):
-        """
-        returns correlation time tcorr in pico second
+        '''Returns correlation time tcorr in pico second
 
-        :param ksi: float of epsilon
-        :param omega_e: float
-        :param omega_H: float
-        :return:
-            float tcorr
-        """
+        Args:
+            ksi (float):
+            omega_e (float):
+            omega_H (float):
+
+        Returns:
+            tcorr (float): correlation time in pico second
+
+        '''
 
         def get_ksi(tcorr: float, omega_e: float, omega_H: float):
-            """
-            returns ksi for any given tcorr
+            '''Returns ksi for any given tcorr
 
-            :param tcorr: float  # TODO: unit?
-            :param omega_e: float
-            :param omega_H: float
-            :return:
-                float ksi
-            """
+            Args:
+                tcorr (float):
+                omega_e (float):
+                omega_H (float):
+
+            Returns:
+                ksi (float):
+
+            '''
 
             # Using Barnes et al. JACS (2017)
 
@@ -268,6 +280,7 @@ class HydrationCalculator:
 
             JzH    = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zH)) + (zH/4)) / (1 + np.sqrt(2*zH) + zH + ((np.sqrt(2)/3) * (zH**(3/2))) + ((16/81) * (zH**2)) + (((4*np.sqrt(2))/81) * (zH**(5/2))) + ((zH**3)/81))
 
+            #TODO: implement includeJRot
             option = 0
 
             if option==0: # don't include J_Rot
@@ -303,23 +316,35 @@ class HydrationCalculator:
         return result.root
 
     @staticmethod
-    def getksigsmax(ksig_sp: float, power: float):
-        """
-        Get ksig_smax and p_12
-        :param ksig_sp: float of array of (k_sigma * s(p))
-        :param power: float of power array
-        :return:
-            float tuple. ksig_smax, p_12
-        """
+    def getksigsmax(ksig_sp: np.array, power: np.array):
+        '''Get ksig * smax and power at half ksig
+
+        Args:
+            ksig_sp (numpy.array): Array of (k_sigma * s(p)).
+            power (numpy.array): Array of power.
+
+        Returns:
+            A tuple of float (ksig_smax, p_12).
+
+        '''
+
         def residual(x, p: np.array, ksig_sp: np.array):
-            """
-            residual function for ksigs_p for any given ksig_smax and p_12
-            :param x: parameters. p = [ksig_smax, p_12]
+            '''Residual function for ksigs_p for any given ksig_smax and p_12
+
+            Args:
+                x (tuple): length of 2
+                p (numpy.array):
+                ksig_sp (numpy.array):
+
+            Returns:
+
+            '''
+            ''':param x: parameters. p = [ksig_smax, p_12]
             :param p: float of power array
             :param ksig_sp: float of array of (k_sigma * s(p))
             :return:
                 residuals
-            """
+            '''
             ksig_smax, p_12 = x[0], x[1]
 
             # Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56

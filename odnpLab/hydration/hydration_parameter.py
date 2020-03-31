@@ -17,6 +17,7 @@ class HydrationParameter(Parameter):
         # (Eq. 1-2) unit is M, spin label concentration for scaling relaxations to
         # get "relaxivities"
 
+        # method used to determine smax
         self.__smaxMod = 'tethered'  # either 'tethered' or 'free'
 
         self.ksig_bulk = 95.4  # unit is s^-1 M^-1
@@ -42,11 +43,12 @@ class HydrationParameter(Parameter):
         # Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
         # 2015, 137, 12013−12023. Figure 3 caption
 
-        # fit option, either linear or 2nd order  TODO: insert ref
+        # method used to interpolate T1, either linear or 2nd order  TODO: insert ref
         self.__t1InterpMethod = 'linear'
 
     @property
     def t1InterpMethod(self):
+        """method used to interpolate T1, either linear or 2nd order"""
         return self.__t1InterpMethod
 
     @t1InterpMethod.setter
