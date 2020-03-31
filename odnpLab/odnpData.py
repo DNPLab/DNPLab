@@ -430,16 +430,16 @@ class odnpData:
 ##            for key in new_data.params:
 ##                self.params[key] = new_data.params[key]
 #            self.params = new_data.params
-#            self.add_axes('power',power)
+#            self.addAxes('power',power)
 #            return
 #
 #        # This wouldn't work, it would only work for empty data
 #        if not 'power' in self.axesLabels:
 #            print('No Power Axes in Original Data')
-#            self.add_axes('power',power)
+#            self.addAxes('power',power)
 #
 #        if not 'power' in new_data.axesLabels:
-#            new_data.add_axes('power',power)
+#            new_data.addAxes('power',power)
 #        self.concatenate_along(new_data,'power')
 
 #    def add_t1(self,new_data,t1):
