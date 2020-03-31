@@ -19,6 +19,7 @@ class TestHydration(unittest.TestCase):
         # self.T1p = np.genfromtxt(os.path.join(simple_set_path, 'T1p.txt'))
 
         hp = HydrationParameter()
+        hp.field = 348.5
         hp.slC = 200e-6
         hp.T100 = 2.50
         hp.T10 = 1.95
@@ -48,11 +49,38 @@ class TestHydration(unittest.TestCase):
         linear = self.hc.results.T1fit[0]
         self.assertLess(second, linear)
 
-    def test_no_trot_tethered_ksigma_is_25p53(self):
+    def _run_tethered_2ord(self):
         self.hc.hp.smaxMod = 'tethered'
-        self.hc.hp.t1InterpMethod = 'linear'
+        self.hc.hp.t1InterpMethod = '2ord'
         self.hc.run()
-        self.assertAlmostEqual(self.hc.results.k_sigma, 25.53)
+
+    def test_no_trot_tethered_ksigma_is_25p99(self):
+        self._run_tethered_2ord()
+        self.assertAlmostEqual(self.hc.results.k_sigma, 25.99, places=2)
+
+    def test_no_trot_tethere_ksigma_bulk_ratio_is_3p67(self):
+        self._run_tethered_2ord()
+        self.assertAlmostEqual(self.hc.results.ksigma_kbulk_invratio, 3.67, places=2)
+
+    def test_no_trot_tethere_klow_is_879p5(self):
+        self._run_tethered_2ord()
+        self.assertAlmostEqual(self.hc.results.k_low, 879.5, places=1)
+
+    def test_no_trot_tethere_tcorr_is_326p0(self):
+        self._run_tethered_2ord()
+        self.assertAlmostEqual(self.hc.results.tcorr, 326.0, places=1)
+
+    def test_no_trot_tethere_Dlocal_is_4p49Em10(self):
+        self._run_tethered_2ord()
+        self.assertAlmostEqual(self.hc.results.dLocal, 4.49e-10, places=12)
+
+    def test_kpho_is_564p1(self):
+        self._run_tethered_2ord()
+        self.assertAlmostEqual(self.hc.results.k_rho, 564.1, places=1)
+
+    def _run_all_options(self):
+        """Expert Mode"""
+        pass
 
     # def test_T10_is_1p33(self):
     #     # TODO: implement more assertions
