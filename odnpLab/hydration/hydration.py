@@ -112,8 +112,15 @@ class HydrationParameter(Parameter):
 
 
 class HydrationResults(AttrDict):
-    """Class for handling hydration related quantities"""
-    pass
+    """Class for handling hydration related quantities
+
+    Attributes:
+        T1fit (numpy.array): Interpolated T1 values on E_power.
+
+    """
+    def __init__(self, init=None):
+        super().__init__(init)
+        self.T1fit = None
 
 
 class HydrationCalculator:
@@ -126,7 +133,6 @@ class HydrationCalculator:
         E_power (numpy.array): power in Watt unit, same length as E.
         hp (HydrationParameter): Parameters for calculation, including default
             values.
-        T1fit (numpy.array): Interpolated T1 values on E_power.
         results (HydrationResults): Hydration results.
 
     """
@@ -153,25 +159,36 @@ class HydrationCalculator:
 
         self.hp = hp
 
-        self.T1fit = None
-        self.results = None
+        self.results = HydrationResults()
 
-        self._setT1p()
-        self._calcODNP()
+    def run(self):
+        T1fit = self.interpT1(self.E_power, self.T1_power, self.T1)
+        self.results.T1fit = T1fit
+        # self._calcODNP()
 
-    def _setT1p(self):
-        """Set T1fit to an np.array of T1 at given POWER
+    def interpT1(self, power: np.array, T1power: np.array, T1p: np.array):
+        """Returns the one-dimensional piecewise interpolant to a function with
+        given discrete data points (T1power, T1p), evaluated at power.
 
-        Points inside the data range will be interpolated.
         Points outside the data range will be extrapolated
+
+        Args:
+            power: The x-coordinates at which to evaluate.
+            T1power: The x-coordinates of the data points, must be increasing.
+                Otherwise, T1power is internally sorted.
+            T1p: The y-coordinates of the data points, same length as T1power.
+
+        Returns:
+            interplatedT1 (np.array): The evaluated values, same shape as power.
+
         """
-        T1p, T1power = self.T1, self.T1_power
-        power = self.E_power
         T10, T100, slC = self.hp.T10, self.hp.T100, self.hp.slC
 
-        t1_fitopt = self.hp.t1InterpMethod
+        t1_interp_method = self.hp.t1InterpMethod
 
-        if t1_fitopt=='2ord': # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
+        #TODO: sort T1p and T1powers
+
+        if t1_interp_method=='2ord': # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
 
             delT1w=T1p[-1]-T1p[0]  #Fixme: This requires T1p to be ascending, any better way?
             T1w=T100
@@ -185,7 +202,7 @@ class HydrationCalculator:
 
             intT1 = 1./(((slC/1e6) * flinear)+(1./(T1w + delT1w * power))+(kHH * (macroC/1e6)))
 
-        elif t1_fitopt=='linear': # linear fit, Franck et al. PNMRS (Eq. 39)
+        elif t1_interp_method=='linear': # linear fit, Franck et al. PNMRS (Eq. 39)
 
             linearT1=1./((1./T1p)-(1./T10)+(1./T100))
 
@@ -197,7 +214,7 @@ class HydrationCalculator:
         else:
             raise Exception('NotImplemented T1 t1InterpMethod')
 
-        self.T1fit = intT1
+        return intT1
 
     def _calcODNP(self):
         """Returns a HydrationResults object that contains all calculated ODNP values
