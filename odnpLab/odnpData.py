@@ -310,7 +310,7 @@ class odnpData:
         self.axesLabels = [self.axesLabels[ix] for ix in ix_reorder]
         self.data = np.transpose(self.data,ix_reorder)
 
-    def rename(self, old_label, new_label):
+    def rename(self, oldLabel, newLabel):
         '''Rename axis
         
         Args:

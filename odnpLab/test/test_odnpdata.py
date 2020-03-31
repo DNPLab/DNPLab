@@ -10,11 +10,11 @@ class OdnpDataTester(unittest.TestCase):
         self.odnpdata = odnpData(self.gauss_3d, [self.x, self.y, self.z], ['x', 'y', 'z'])
 
     def test_odnpdata(self):
-        assertArrayEqual(self.odnpdata.get_axes('x'), self.x)
+        assertArrayEqual(self.odnpdata.getAxes('x'), self.x)
         assertArrayEqual(self.odnpdata.axesLabels, ['x', 'y', 'z'])
 
     def test_axes_get_set(self):
-        self.odnpdata.add_axes('r', range(10))
+        self.odnpdata.addAxes('r', range(10))
         assertArrayEqual(self.odnpdata.axesLabels, ['x', 'y', 'z', 'r'])
         self.odnpdata.rename('r', 's')
         assertArrayEqual(self.odnpdata.axesLabels, ['x', 'y', 'z', 's'])
@@ -22,10 +22,10 @@ class OdnpDataTester(unittest.TestCase):
     def test_axes_sort_reorder(self):
         self.odnpdata.reorder(['y', 'z', 'x'])
         assertArrayEqual(self.odnpdata.axesLabels, ['y', 'z', 'x'])
-        assertArrayEqual(self.odnpdata.get_axes('z'), self.z)
+        assertArrayEqual(self.odnpdata.getAxes('z'), self.z)
         self.odnpdata.sort()
         assertArrayEqual(self.odnpdata.axesLabels, ['x', 'y', 'z'])
-        assertArrayEqual(self.odnpdata.get_axes('z'), self.z)
+        assertArrayEqual(self.odnpdata.getAxes('z'), self.z)
 
 
 if __name__ == '__main__':
