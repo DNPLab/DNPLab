@@ -18,7 +18,7 @@ class TestHydration(unittest.TestCase):
         hp.ksig_bulk = 95.4
         hp.T100 = 2.5
         hp.smaxMod = 'tethered'
-        hp.fitopt = 'linear'
+        hp.t1InterpMethod = 'linear'
         hc = HydrationCalculator(T1=self.T1p, T1_power=self.T1_powers,
                                  E=self.Ep, E_power=self.E_powers,
                                  hp=hp)

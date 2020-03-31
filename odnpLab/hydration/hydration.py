@@ -25,6 +25,11 @@ from odnpLab.parameter import AttrDict
 # TODO: figure out the interface of hydration module to odnpImport module
 
 
+class FitError(Exception):
+    """Exception of Failed Fitting"""
+    pass
+
+
 class HydrationResults(AttrDict):
     """Class for handling hydration results"""
     pass
@@ -360,6 +365,7 @@ class HydrationCalculator:
                                          x0=[75, (max(power) / 2)],
                                          args=(power, ksig_sp),
                                          jac='3-point', method='lm')
-
-        assert result.success
+        if not result.success:
+            raise FitError('Could not fit ksigma ~ power')
+        assert result.x[0] > 0, 'Unexpected ksigma value: %d < 0' % result.x[0]
         return result.x
