@@ -81,7 +81,7 @@ def assignPower(dataDict,expNumList,powersList):
             else:
                 tempData = dataDict[str(expNum)].copy()
                 tempData.addAxes('power',powersList[ix])
-                data.concatenate_along(tempData,'power')
+                data.concatenateAlong(tempData,'power')
 
 
     return data

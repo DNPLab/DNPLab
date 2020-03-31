@@ -380,7 +380,7 @@ class odnpData:
 #            return
 #        if len(diff_axes) == 0:
 ##            print 'This function does not duplicate data'
-#            print('dimension to concatenate along is ambiguous, use concatenate_along')
+#            print('dimension to concatenate along is ambiguous, use concatenateAlong')
 #            return
 #
 ##        index = self.axesLabels.index(axes_label)
@@ -440,7 +440,7 @@ class odnpData:
 #
 #        if not 'power' in new_data.axesLabels:
 #            new_data.addAxes('power',power)
-#        self.concatenate_along(new_data,'power')
+#        self.concatenateAlong(new_data,'power')
 
 #    def add_t1(self,new_data,t1):
 #    def window(self,axes_label,linewidth = 10.,window_type = 'exp'):
