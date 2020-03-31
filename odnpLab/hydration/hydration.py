@@ -67,7 +67,7 @@ class HydrationCalculator:
         power = self.E_power
         T10, T100, slC = self.hp.T10, self.hp.T100, self.hp.slC
 
-        t1_fitopt = self.hp.fitopt
+        t1_fitopt = self.hp.t1InterpMethod
 
         if t1_fitopt=='2ord': # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
 
@@ -93,7 +93,7 @@ class HydrationCalculator:
             intT1=flinear/(1.+(flinear/T10)-(flinear/T100))
 
         else:
-            raise Exception('NotImplemented T1 fitopt')
+            raise Exception('NotImplemented T1 t1InterpMethod')
 
         self.T1fit = intT1
 

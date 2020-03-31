@@ -43,18 +43,18 @@ class HydrationParameter(Parameter):
         # 2015, 137, 12013−12023. Figure 3 caption
 
         # fit option, either linear or 2nd order  TODO: insert ref
-        self.__fitOpt = 'linear'
+        self.__t1InterpMethod = 'linear'
 
     @property
-    def fitopt(self):
-        return self.__fitOpt
+    def t1InterpMethod(self):
+        return self.__t1InterpMethod
 
-    @fitopt.setter
-    def fitopt(self, value: str):
+    @t1InterpMethod.setter
+    def t1InterpMethod(self, value: str):
         if value in ['2ord', 'linear']:
-            self.__fitOpt = value
+            self.__t1InterpMethod = value
         else:
-            raise ValueError('fitopt should be either `linear` or `2ord`')
+            raise ValueError('t1InterpMethod should be either `linear` or `2ord`')
 
     @property
     def smaxMod(self):
