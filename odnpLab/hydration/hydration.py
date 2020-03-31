@@ -71,6 +71,12 @@ class HydrationParameter(Parameter):
         self.__includeJRot = False
         """bool: Whether to include J_rot"""
 
+        self.tauRot = None
+        """float: Only required for calculating J_rot"""
+
+        self.percentBound = None
+        """float: Only required for calculating J_rot"""
+
     @property
     def t1InterpMethod(self):
         """str: Method used to interpolate T1, either linear or 2nd order"""
@@ -81,8 +87,7 @@ class HydrationParameter(Parameter):
         if value in ['2ord', 'linear']:
             self.__t1InterpMethod = value
         else:
-            raise ValueError(
-                't1InterpMethod should be either `linear` or `2ord`')
+            raise ValueError('t1InterpMethod should be either `linear` or `2ord`')
 
     @property
     def smaxMod(self):
@@ -100,13 +105,27 @@ class HydrationParameter(Parameter):
 
     @property
     def includeJRot(self):
-        """bool: Whether to include J_rot"""
+        """bool: Whether to include J_rot. Read-only."""
         return self.__includeJRot
 
     @includeJRot.setter
-    def includeJRot(self, value: bool):
-        self.__includeJRot = value
+    def includeJRot(self, value):
+        raise ValueError('includedJRot cannot be set. Use enableJRot() disableJRot()')
 
+    def enableJRot(self, tauRot: float, percentBound: float):
+        """Enable Disable JRot"""
+        if percentBound < 0 or percentBound > 100:
+            raise ValueError('Must be 0 <= percentBound <= 100')
+        if tauRot <= 0:
+            raise ValueError('tauRot must > 0')
+        self.__includeJRot = True
+        self.tauRot, self.percentBound = tauRot, percentBound
+
+    def disableJRot(self):
+        self.__includeJRot = False
+        self.tauRot, self.percentBound = None, None
+
+    # These two function enable dictionary-like getting and setting properties.
     def __getitem__(self, key):
         if key in ['smaxMod']:
             return self.smaxMod
@@ -327,7 +346,8 @@ class HydrationCalculator:
 
         ksi = k_sigma / k_rho  # (Eq. 3) this is the coupling factor, unitless
 
-        tcorr = self.getTcorr(ksi, omega_e, omega_H, self.hp.includeJRot)
+        tcorr = self.getTcorr(ksi, omega_e, omega_H,
+                              self.hp.includeJRot, self.hp.tauRot, self.hp.percentBound)
         # (Eq. 21-23) this calls the fit to the spectral density functions. The fit
         # optimizes the value of tcorr in the calculation of ksi, the correct tcorr
         # is the one for which the calculation of ksi from the spectral density
@@ -382,21 +402,33 @@ class HydrationCalculator:
         })
 
     @staticmethod
-    def getTcorr(ksi: float, omega_e: float, omega_H: float, includeJRot: bool):
+    def getTcorr(ksi: float, omega_e: float, omega_H: float, includeJRot: bool,
+                 tauRot=None, percentBound=None):
         """Returns correlation time tcorr in pico second
 
         Args:
             ksi (float):
             omega_e (float):
             omega_H (float):
+            includeJRot (bool): Whether to include J_Rot,
+                (Eq. 6) from Barnes et al. JACS (2017)
+            tauRot (float): tau_rot. Unit: nanosecond. Required when
+                includedJRot is True.
+            percentBound (float): Percentage of bound water. Required when
+                includedJRot is True.
 
         Returns:
             tcorr (float): correlation time in pico second
 
         Raises:
+            ValueError: If includeJRot is True and either precentBound or tauRot
+                is None.
             FitError: If no available root is found.
 
         """
+
+        if includeJRot and (tauRot is None or percentBound is None):
+            raise ValueError('Need both tauRot and percentBound when includeJRot is True')
 
         def f_ksi(tcorr: float, omega_e: float, omega_H: float):
             '''Returns ksi for any given tcorr
@@ -426,9 +458,6 @@ class HydrationCalculator:
 
 
             if includeJRot: # include J_Rot, (Eq. 6) from Barnes et al. JACS (2017)
-
-                percentBound = 0
-                tauRot = 1 # in ns
 
                 Jdiff = (1 - (percentBound/100)) * Jzdiff + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*(omega_e - omega_H) * (tauRot*1000)))))
 
