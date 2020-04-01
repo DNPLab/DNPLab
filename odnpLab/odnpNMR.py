@@ -134,7 +134,7 @@ def fourierTransform(allData, procParameters):
         procParameters (dict, procParam): Processing parameters
 
     Returns:
-        allData (odnpDataa, dict): Processed data in container
+        allData (odnpData, dict): Processed data in container
         
     Example:
 

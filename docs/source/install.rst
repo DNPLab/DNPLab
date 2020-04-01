@@ -4,8 +4,8 @@
 Installing odnpLab
 ==================
 
-Required
-========
+Required Packages
+=================
 
 Installing with pip
 ===========================
