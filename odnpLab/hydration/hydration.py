@@ -459,11 +459,11 @@ class HydrationCalculator:
 
             if includeJRot: # include J_Rot, (Eq. 6) from Barnes et al. JACS (2017)
 
-                Jdiff = (1 - (percentBound/100)) * Jzdiff + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*(omega_e - omega_H) * (tauRot*1000)))))
+                Jdiff = (1 - (percentBound/100)) * Jzdiff + ((percentBound/100) * (tauRot / (1 - (1j*(omega_e - omega_H) * tauRot))))
 
-                Jsum  = (1 - (percentBound/100)) * Jzsum + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*(omega_e + omega_H) * (tauRot*1000)))))
+                Jsum  = (1 - (percentBound/100)) * Jzsum + ((percentBound/100) * (tauRot / (1 - (1j*(omega_e + omega_H) * tauRot))))
 
-                JH    = (1 - (percentBound/100)) * JzH + ((percentBound/100) * ((tauRot*1000) / (1 - (1j*omega_H * (tauRot*1000)))))
+                JH    = (1 - (percentBound/100)) * JzH + ((percentBound/100) * (tauRot / (1 - (1j*omega_H * tauRot))))
 
             else: # don't include J_Rot
 

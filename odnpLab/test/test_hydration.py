@@ -75,12 +75,12 @@ class TestHydration(unittest.TestCase):
         """Expert Mode"""
         self.hc.hp.smaxMod = 'tethered'
         self.hc.hp.t1InterpMethod = '2ord'
-        self.hc.hp.enableJRot(tauRot=0.020, percentBound=50)
+        self.hc.hp.enableJRot(tauRot=20, percentBound=50)
         self.hc.run()
 
-    def test_expert_ksigma_is_25p53(self):
+    def test_expert_tcorr_is_509p3(self):
         self._run_expert_mode()
-        self.assertAlmostEqual(self.hc.results.k_sigma, 25.53)
+        self.assertAlmostEqual(self.hc.results.tcorr, 509.3, places=1)
 
 
 if __name__ == '__main__':
