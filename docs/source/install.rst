@@ -7,7 +7,7 @@ Installing odnpLab
 Required
 ========
 
-(TODO): Installing with pip
+Installing with pip
 ===========================
 .. code-block:: bash
 

@@ -148,27 +148,84 @@
 <dl class="function">
 <dt id="odnpLab.odnpNMR.fourierTransform">
 <code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">fourierTransform</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.fourierTransform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Perform Fourier Transform down given dimension
-assumes dt = t[1] - t[0]</p>
-<p>Example:
-data.ft('t')</p>
+<dd><p>Perform Fourier Transform down axes dimension given in procParameters</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Assumes dt = t[1] - t[0]</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>allData</strong> (<a class="reference internal" href="odnpData.html#odnpLab.odnpData.odnpData" title="odnpLab.odnpData.odnpData"><em>odnpData</em></a><em>, </em><em>dict</em>) -- Data container</li>
+<li><strong>procParameters</strong> (<em>dict</em><em>, </em><em>procParam</em>) -- Processing parameters</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Processed data in container</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">allData (odnpDataa, dict)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;axes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;t&#39;</span>
+<span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;zeroFillFactor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;shift&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;convert2ppm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="n">allData</span> <span class="o">=</span> <span class="n">odnpLab</span><span class="o">.</span><span class="n">odnpNMR</span><span class="o">.</span><span class="n">fourierTransform</span><span class="p">(</span><span class="n">allData</span><span class="p">,</span> <span class="n">procParameters</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="function">
 <dt id="odnpLab.odnpNMR.integrate">
 <code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">integrate</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.integrate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Integrate data down given dimension</p>
-<p>Parameters:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>allData</strong> (<a class="reference internal" href="odnpData.html#odnpLab.odnpData.odnpData" title="odnpLab.odnpData.odnpData"><em>odnpData</em></a><em>,</em><em>dict</em>) -- Data container</li>
+<li><strong>procParameters</strong> (<em>dict</em><em>, </em><em>procParam</em>) -- <p>Processing Parameters
+axes_label: str</p>
+<blockquote>
+<div>dimension to integrate</div></blockquote>
 <dl class="docutils">
-<dt>axes_label: str</dt>
-<dd>dimension to integrate</dd>
 <dt>integrateCenter:</dt>
 <dd>center for width of integration</dd>
 <dt>integrateWidth:</dt>
 <dd>width of integration window</dd>
 </dl>
+</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Processed data</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">allData (<a class="reference internal" href="odnpData.html#odnpLab.odnpData.odnpData" title="odnpLab.odnpData.odnpData">odnpData</a>,dict)</p>
+</td>
+</tr>
+</tbody>
+</table>
 <p>Exampe:
-data.integrate(dataDict,procParameters)</p>
+.. code-block:: python</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>procParameters = {</dt>
+<dd>'axes' : 't',
+'integrateCenter' : 0,
+'integrateWidth' : 100,
+}</dd>
+</dl>
+<p>odnpLab.odnpNMR.integrate(allData,procParameters)</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="function">
@@ -179,8 +236,33 @@ data.integrate(dataDict,procParameters)</p>
 <dl class="function">
 <dt id="odnpLab.odnpNMR.removeOffset">
 <code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">removeOffset</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.removeOffset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove DC offset from FID by averaging the last few data points
-and subtracting</p>
+<dd><p>Remove DC offset from FID by averaging the last few data points and subtracting the average</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>allData</strong> (<a class="reference internal" href="odnpData.html#odnpLab.odnpData.odnpData" title="odnpLab.odnpData.odnpData"><em>odnpData</em></a><em>, </em><em>dict</em>) -- Data container for data</li>
+<li><strong>procParameters</strong> (<em>dict</em><em>,</em><em>procParam</em>) -- Processing Parameters</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;axes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;t&#39;</span>
+<span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;offsetPoints&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="n">outData</span> <span class="o">=</span> <span class="n">odnpLab</span><span class="o">.</span><span class="n">odnpNMR</span><span class="o">.</span><span class="n">removeOffset</span><span class="p">(</span><span class="n">allData</span><span class="p">,</span><span class="n">procParameters</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">allData (odnpData, dict)</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -210,19 +292,30 @@ and subtracting</p>
 <dt id="odnpLab.odnpNMR.window">
 <code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">window</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.window" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply Apodization to data down given dimension</p>
-<p>Parameters:</p>
-<dl class="docutils">
-<dt>axes_label: str</dt>
-<dd>dimension to apply apodization</dd>
-<dt>linewidth:</dt>
-<dd>Linewidth for exponential apodization, Hz</dd>
-<dt>window type: str</dt>
-<dd>Type of window function to apply</dd>
-</dl>
-<p>NOTES:
-Axis units assumed to be seconds</p>
-<p>Exampe:
-data.window('t',linewidth = 20)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>allData</strong> (<a class="reference internal" href="odnpData.html#odnpLab.odnpData.odnpData" title="odnpLab.odnpData.odnpData"><em>odnpData</em></a><em>, </em><em>dict</em>) -- data container</li>
+<li><strong>procParameters</strong> (<em>dict</em><em>, </em><em>procParam</em>) -- parameter values</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Axis units assumed to be seconds</p>
+</div>
+<p>Exampe:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span class="n">procParameters</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;linewidth&#39;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s">&#39;axes&#39;</span> <span class="p">:</span> <span class="s">&#39;t&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+<span class="n">allData</span> <span class="o">=</span> <span class="n">odnpLab</span><span class="o">.</span><span class="n">odnpNMR</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">allData</span><span class="p">,</span><span class="n">procParameters</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>

@@ -82,9 +82,21 @@ def stampProcStep(data,procStepString):
     return data
 
 def removeOffset(allData,procParameters):
-    '''
-    Remove DC offset from FID by averaging the last few data points
-    and subtracting
+    '''Remove DC offset from FID by averaging the last few data points and subtracting the average
+
+    Args:
+        allData (odnpData, dict): Data container for data
+        procParameters (dict,procParam): Processing Parameters
+
+    .. code-block:: python
+
+       procParameters['axes'] = 't'
+       procParameters['offsetPoints'] = 10
+
+       outData = odnpLab.odnpNMR.removeOffset(allData,procParameters)
+
+    Returns:
+        allData (odnpData, dict)
     '''
     # Determine if data is dictionary or odnpData object
     data, isDict = returnData(allData)
@@ -112,12 +124,28 @@ def removeOffset(allData,procParameters):
 
 
 def fourierTransform(allData, procParameters):
-    '''
-    Perform Fourier Transform down given dimension
-    assumes dt = t[1] - t[0]
+    '''Perform Fourier Transform down axes dimension given in procParameters
 
+    .. Note::
+        Assumes dt = t[1] - t[0]
+
+    Args:
+        allData (odnpData, dict): Data container
+        procParameters (dict, procParam): Processing parameters
+
+    Returns:
+        allData (odnpDataa, dict): Processed data in container
+        
     Example:
-    data.ft('t')
+
+    .. code-block:: python
+    
+        procParameters['axes'] = 't'
+        procParameters['zeroFillFactor'] = 2
+        procParameters['shift'] = True
+        procParameters['convert2ppm'] = True
+
+        allData = odnpLab.odnpNMR.fourierTransform(allData, procParameters)
     '''
 
     # Determine if data is dictionary or odnpData object
@@ -159,23 +187,25 @@ def fourierTransform(allData, procParameters):
         return data
 
 def window(allData,procParameters):
-    '''
-    Apply Apodization to data down given dimension
+    '''Apply Apodization to data down given dimension
     
-    Parameters:
+    Args:
+        allData (odnpData, dict): data container
+        procParameters (dict, procParam): parameter values
 
-    axes_label: str
-        dimension to apply apodization
-    linewidth:
-        Linewidth for exponential apodization, Hz
-    window type: str
-        Type of window function to apply
-
-    NOTES:
-    Axis units assumed to be seconds
+    .. note::
+        Axis units assumed to be seconds
 
     Exampe:
-    data.window('t',linewidth = 20)
+
+    .. code-block:: python
+
+        procParameters = {
+                'linewidth' : 10,
+                'axes' : 't',
+                }
+        allData = odnpLab.odnpNMR.window(allData,procParameters)
+        
     '''
 
     data, isDict = returnData(allData)
@@ -209,20 +239,30 @@ def window(allData,procParameters):
         return data
 
 def integrate(allData,procParameters):
-    '''
-    Integrate data down given dimension
+    '''Integrate data down given dimension
     
-    Parameters:
+    Args:
+        allData (odnpData,dict): Data container
+        procParameters (dict, procParam): Processing Parameters
+            axes_label: str
+                dimension to integrate
+            integrateCenter:
+                center for width of integration
+            integrateWidth: 
+                width of integration window
 
-    axes_label: str
-        dimension to integrate
-    integrateCenter:
-        center for width of integration
-    integrateWidth: 
-        width of integration window
+    Returns:
+        allData (odnpData,dict): Processed data
 
     Exampe:
-    data.integrate(dataDict,procParameters)
+    .. code-block:: python
+
+        procParameters = {
+                    'axes' : 't',
+                    'integrateCenter' : 0,
+                    'integrateWidth' : 100,
+                    }
+        odnpLab.odnpNMR.integrate(allData,procParameters)
     '''
 
     data, isDict = returnData(allData)
