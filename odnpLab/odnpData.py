@@ -33,6 +33,10 @@ class odnpData:
 
         Args:
             data (numpy.ndarray): 
+            axes (list): list of axes
+            axesLabels (list): list of strings which are names of axes
+            params (dict): dictionary of parameters
+
 
         '''
 
@@ -42,82 +46,82 @@ class odnpData:
         self.params = params
 
     def __add__(self,data):
-        new_data = deepcopy(self)
+        newData = deepcopy(self)
         if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            new_data.data += data
+            newData.data += data
         elif isinstance(data,np.ndarray):
-            new_data.data = new_data.data + data
+            newData.data = newData.data + data
         elif isinstance(data,odnpData):
-            new_data.data = new_data.data + data.data
+            newData.data = newData.data + data.data
         else:
             print('Cannot add, type not supported:')
             print(type(data))
             return
-        return new_data
+        return newData
 
     def __radd__(self,data):
         return self.__add__(data)
 
     def __sub__(self,data):
-        new_data = deepcopy(self)
+        newData = deepcopy(self)
         if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            new_data.data -= data
+            newData.data -= data
         elif isinstance(data,np.ndarray):
-            new_data.data = new_data.data - data
+            newData.data = newData.data - data
         elif isinstance(data,odnpData):
-            new_data.data = new_data.data - data.data
+            newData.data = newData.data - data.data
         else:
             print('Cannot add, type not supported:')
             print(type(data))
             return
-        return new_data
+        return newData
 
     def __rsub__(self,data):
-        new_data = deepcopy(self)
+        newData = deepcopy(self)
         if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            new_data.data = data - new_data.data
+            newData.data = data - newData.data
         elif isinstance(data,np.ndarray):
-            new_data.data = data - new_data.data
+            newData.data = data - newData.data
         elif isinstance(data,odnpData):
-            new_data.data = data.data - new_data.data
+            newData.data = data.data - newData.data
         else:
             print('Cannot add, type not supported:')
             print(type(data))
             return
-        return new_data
+        return newData
 
 
     def __mul__(self,data):
-        new_data = deepcopy(self)
+        newData = deepcopy(self)
         if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            new_data.data *= data
+            newData.data *= data
         elif isinstance(data,np.ndarray):
-            new_data.data = new_data.data * data
+            newData.data = newData.data * data
         elif isinstance(data,odnpData):
-            new_data.data = new_data.data * data.data
+            newData.data = newData.data * data.data
         else:
             print('Cannot add, type not supported:')
             print(type(data))
             return
 
-        return new_data
+        return newData
 
     def __rmul__(self,data):
         return self.__mul__(data)
 
     def __pow__(self,data):
-        new_data = deepcopy(self)
+        newData = deepcopy(self)
         if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            new_data.data = new_data.data**data
+            newData.data = newData.data**data
         elif isinstance(data,np.ndarray):
-            new_data.data = new_data.data**data
+            newData.data = newData.data**data
         elif isinstance(data,odnpData):
-            new_data.data = new_data.data**data.data
+            newData.data = newData.data**data.data
         else:
             print('Cannot add, type not supported:')
             print(type(data))
             return
-        return new_data
+        return newData
         
     
     def __abs__(self):
@@ -186,13 +190,13 @@ class odnpData:
 
         return out
 
-    def range(self,axes_label,min_value,max_value):
+    def range(self,axesLabel,minValue,maxValue):
 
         out = deepcopy(self)
-        index = self.axesLabels.index(axes_label)
+        index = self.axesLabels.index(axesLabel)
 
-        min_list = list(out.axes[index] > min_value)
-        max_list = list(out.axes[index] < max_value)
+        min_list = list(out.axes[index] > minValue)
+        max_list = list(out.axes[index] < maxValue)
         inRange = [min_list[i] and max_list[i] for i in range(len(min_list))]
         #NOTE if no values in range, will cause issues
 
@@ -357,123 +361,27 @@ class odnpData:
         '''
         return self.axesLabels.index(axesLabel)
 
-#    def concatenate(self,new_data):
-#        '''Concatenate two odnpData objects
-#
-#        NOTE: Ambiguous
-#        '''
-#        reorder_labels = self.axesLabels
-#        
-#        self.sort()
-#        new_data.sort()
-#
-#        if self.axesLabels != new_data.axesLabels:
-##            print 'ERROR' # NOTE determine how error handling will work
-#            return
-#        diff_axes = []
-#        for ix,axes in enumerate(self.axes):
-#            if not (np.array_equal(axes,new_data.axes[ix])):
-#                diff_axes.append(ix)
-#
-#        if len(diff_axes) > 1:
-#            print('Only 1 dimension can be different')
-#            return
-#        if len(diff_axes) == 0:
-##            print 'This function does not duplicate data'
-#            print('dimension to concatenate along is ambiguous, use concatenateAlong')
-#            return
-#
-##        index = self.axesLabels.index(axes_label)
-#        index = diff_axes[0]
-#
-#        self.data = np.concatenate((self.data,new_data.data),axis = index)
-#        self.axes[index] = np.concatenate((self.axes[index],new_data.axes[index]))
-#
-#        self.reorder(reorder_labels)
-
     def concatenateAlong(self,newData,axesLabel):
         '''Concatenate new odnp data to original data along given axes label
 
         Args:
             newData (odnpData): data to be concatenated to odnp_data object
-            axes_label (str): axis to concatenate down
+            axesLabel (str): axis to concatenate down
         '''
-        reorder_labels = self.axesLabels
+        reorderLabels = self.axesLabels
         
         self.sort()
-        new_data.sort()
+        newData.sort()
 
-        if self.axesLabels != new_data.axesLabels:
+        if self.axesLabels != newData.axesLabels:
 #            print 'ERROR' # NOTE determine how error handling will work
             return
-        index = self.axesLabels.index(axes_label)
+        index = self.axesLabels.index(axesLabel)
 
-        self.data = np.concatenate((self.data,new_data.data),axis = index)
-        self.axes[index] = np.concatenate((self.axes[index],new_data.axes[index]))
+        self.data = np.concatenate((self.data,newData.data),axis = index)
+        self.axes[index] = np.concatenate((self.axes[index],newData.axes[index]))
 
-        self.reorder(reorder_labels)
-
-#    def add_power(self,new_data,power):
-#        '''Add Power to data ODNP data
-#        
-#        Args:
-#            new_data (odnpData): odnp_data object
-#        power: float, int
-#
-#        '''
-#
-#        # if odnp_data is empty
-#        if (self.axes == []) and (self.axesLabels == []) and np.array_equal(self.data,np.r_[[]]):
-#            self.axes = new_data.axes
-#            self.axesLabels = new_data.axesLabels
-#            self.data = new_data.data
-##            for key in new_data.params:
-##                self.params[key] = new_data.params[key]
-#            self.params = new_data.params
-#            self.addAxes('power',power)
-#            return
-#
-#        # This wouldn't work, it would only work for empty data
-#        if not 'power' in self.axesLabels:
-#            print('No Power Axes in Original Data')
-#            self.addAxes('power',power)
-#
-#        if not 'power' in new_data.axesLabels:
-#            new_data.addAxes('power',power)
-#        self.concatenateAlong(new_data,'power')
-
-#    def add_t1(self,new_data,t1):
-#    def window(self,axes_label,linewidth = 10.,window_type = 'exp'):
-#        '''
-#        Apply Apodization to data down given dimension
-#        
-#        Parameters:
-#
-#        axes_label: str
-#            dimension to apply apodization
-#        linewidth:
-#            Linewidth for exponential apodization, Hz
-#        window type: str
-#            Type of window function to apply
-#
-#        NOTES:
-#        Axis units assumed to be seconds
-#
-#        Exampe:
-#        data.window('t',linewidth = 20)
-#        '''
-#        index = self.axesLabels.index(axes_label)
-#
-#        reshape_size = [1 for k in self.axesLabels]
-#        reshape_size[index] = len(self.axes[index])
-#
-#        if window_type == 'exp':
-#            window_array = np.exp(-1.*self.axes[index]*linewidth).reshape(reshape_size)
-#        else:
-#            print('\'%s\' window type is not defined')
-#            return
-#        window_array = np.ones_like(data) * window_array
-#        self.data *= window_array
+        self.reorder(reorderLabels)
 
 #    def plot(self,axes_label,*args,**kwargs):
 #        '''
@@ -500,81 +408,6 @@ class odnpData:
 #
 #        plot(self.axes[index],np.swapaxes(plot_data,0,index),*args,**kwargs)
 #        xlabel(self.axesLabels[index])
-
-
-#    def zero_fill(self,axes_label,n_pts):
-#        '''
-#        Zero fill down given dimension
-#        Parameters:
-#        axes_label: str
-#            axis to zero fill down
-#        n_pts: int
-#            new length of zero filled axes
-#
-#        NOTES:
-#        Assumes axes dimension is linear
-#
-#        Example:
-#        data.zero_fill('t',16384)
-#        '''
-#        index = self.axesLabels.index(axes_label)
-#
-#        dx = self.axes[index][1] - self.axes[index][0]
-#        x0 = self.axes[index][0]
-#        x = np.r_[0:dx*n_pts:1j*n_pts] + x0
-#
-#        self.axes[index] = x
-#        pad = []
-#        for this_axes_label in self.axesLabels:
-#            if this_axes_label == axes_label:
-#                pad.append((0,n_pts - self.len(this_axes_label)))
-#            else:
-#                pad.append((0,0))
-#        pad = tuple(pad)
-#        self.data = np.pad(self.data,pad,mode = 'constant',constant_values = 0)
-
-
-#    def ft(self, axes_label,zero_fill_factor = 1, fftshift = True):
-#        '''
-#        Perform Fourier Transform down given dimension
-#        assumes dt = t[1] - t[0]
-#
-#        Example:
-#        data.ft('t')
-#        '''
-#
-#        index = self.axesLabels.index(axes_label)
-#        dt = self.axes[index][1] - self.axes[index][0]
-#        n_pts = zero_fill_factor*len(self.axes[index])
-#        f = (1./(n_pts*dt))*np.r_[0:n_pts]
-#        if fftshift == True:
-#            f -= (1./(2*dt))
-#
-#        self.data = np.fft.fft(self.data,n=n_pts,axis=index)
-#        if fftshift:
-#            self.data = np.fft.fftshift(self.data,axes=index)
-#        self.axes[index] = f
-#
-#    def ift(self, axes_label,zero_fill_factor = 1, fftshift = True):
-#        '''
-#        Perform Inverse Fourier Transform down given dimension
-#        assumes dt = t[1] - t[0]
-#        
-#        Example:
-#        data.ift('t')
-#        '''
-#
-#        index = self.axesLabels.index(axes_label)
-#        dt = self.axes[index][1] - self.axes[index][0]
-#        n_pts = zero_fill_factor*len(self.axes[index])
-#        f = (1./(n_pts*dt))*np.r_[0:n_pts]
-#        if fftshift == True:
-#            f -= (1./(2*dt))
-#
-#        self.data = np.fft.ifft(self.data,n=n_pts,axis=index)
-#        if fftshift:
-#            self.data = np.fft.fftshift(self.data,axes=index)
-#        self.axes[index] = f
 
     def squeeze(self):
         '''
@@ -630,7 +463,7 @@ class odnpData:
         '''
         return np.arctan(np.sum(np.imag(self.data))/np.sum(np.real(self.data)))
 
-    def len(self,axes_label):
+    def len(self,axesLabel):
         '''Return length of given dimension
 
         Args:
@@ -639,89 +472,10 @@ class odnpData:
         Example:
         data.len('t')
         '''
-        index = self.axesLabels.index(axes_label)
+        index = self.axesLabels.index(axesLabel)
 
         return np.shape(self.data)[index]
 
-#    def align(self,axes_label,ref_data):
-#        '''
-#        Align spectra by maximizing cross correlation
-#        '''
-#
-#        if len(ref_data.axesLabels) > 1:
-#            print('must be 1d reference')
-#            return
-#
-#        axes_label = ref_data.axesLabels[0]
-#        reorder_array = self.axesLabels
-#
-#
-#        new_order = self.axesLabels
-#        new_order.insert(0,new_order.remove(axes_label))
-#        self.reorder(new_order)
-#
-#        list(np.ones(len(self.axesLabels)))
-##        new_shape = [1 for x in range(len(self.axesLabels))]
-#        new_shape[0] = len(self.axes)
-#        new_shape = [len(self.axes)]
-#
-#        self.data.reshape()
-#
-#        s = np.shape(data.data)
-#
-#        toAlign = deepcopy(self)
-#
-#        cross_corr = np.correlate(np.abs(spec),np.abs(spec_ref),mode='same')
-#
-#        shift_ix = np.argmax(cross_corr) - (len(cross_corr)/2) # subtract half length so spectrum is shifted relative to center, not edge
-#
-#        
-#        spec_shift = np.roll(spec,-1*shift_ix)
-
-#def test3d(std_noise = 0.):
-#    x = np.r_[0:100]
-#    y = np.r_[0:100]
-#    z = np.r_[0:100]
-#
-#    noise = std_noise * np.random.randn(len(x),len(y),len(z))
-#    gauss = np.exp(-1.*(x-50)**2./(10.**2))
-#    gauss_3d = gauss.reshape(-1,1,1) * gauss.reshape(1,-1,1) * gauss.reshape(1,1,-1)
-#    gauss_3d += noise
-#
-#    test_data = odnp_data(gauss_3d,[x,y,z],['x','y','z'])
-#
-#    return test_data
-#
-#        
-#
-#def import_kea(path,filename = '',num = 1 ,verbose = False):
-#    params_dict = {}
-#    with open(path + filename + '/%i/'%num + 'acqu.par','r') as f:
-#        raw_params = f.read()
-#
-#    raw_params = raw_params.strip().split('\n')
-#    for line in raw_params:
-#        if verbose:
-#            print(line)
-#        key_value = line.split(' = ')
-#        try:
-#            params_dict[key_value[0]] = float(key_value[1])
-#        except:
-#            params_dict[key_value[0]] = key_value[1]
-#
-#    raw_data = np.loadtxt(path + filename + '/%i/'%num + 'data.csv', delimiter = ',')
-#
-#    t = raw_data[:,0]
-#    t = t / 1.e6 # convert from us to s
-#
-#    temp_data = raw_data[:,1] - 1j*raw_data[:,2]
-#    nmr_params = {}
-#    nmrFreq = float(params_dict['b1Freq'].strip('d'))*1e6 # convert to Hz
-#
-#    nmr_params['nmrFreq'] = nmrFreq
-#    data = odnp_data(temp_data,[t],['t'],nmr_params)
-#    data.kea_params = params_dict
-#    return data
 
 
 if __name__ == '__main__':
