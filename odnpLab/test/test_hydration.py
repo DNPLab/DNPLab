@@ -24,21 +24,21 @@ class TestHydration(unittest.TestCase):
     def test_interpT1_linear_almost_1p99(self):
         self.hc.hp.t1InterpMethod = 'linear'
         self.hc.run()
-        self.assertAlmostEqual(self.hc.results.T1fit[0], 1.995006087, places=2)
+        self.assertAlmostEqual(self.hc.results.T1interp[0], 1.995006087, places=2)
 
     def test_interpT1_2ord_almost_1p99(self):
         self.hc.hp.t1InterpMethod = '2ord'
         self.hc.run()
-        self.assertAlmostEqual(self.hc.results.T1fit[0], 1.99, places=2)
+        self.assertAlmostEqual(self.hc.results.T1interp[0], 1.99, places=2)
 
     def test_interpT1_2ord_smaller_than_linear(self):
         """Second order interpolation should gives smaller T1[0] than linear?"""
         self.hc.hp.t1InterpMethod = '2ord'
         self.hc.run()
-        second = self.hc.results.T1fit[0]
+        second = self.hc.results.T1interp[0]
         self.hc.hp.t1InterpMethod = 'linear'
         self.hc.run()
-        linear = self.hc.results.T1fit[0]
+        linear = self.hc.results.T1interp[0]
         self.assertLess(second, linear)
 
     def _run_tethered_2ord(self):
