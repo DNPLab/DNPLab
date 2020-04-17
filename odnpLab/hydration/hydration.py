@@ -308,7 +308,7 @@ class HydrationCalculator:
         # gamma_H is from NIST. The field cancels in the following wRatio but you
         # need these individually for the spectral density functions later.
 
-        wRatio = ((omega_e / (2 * 3.14159)) / (omega_H / (2 * 3.14159)))
+        wRatio = ((omega_e / (2 * np.pi)) / (omega_H / (2 * np.pi)))
         # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular
         # frequency units in order to correspond to S_0/I_0, this is also ~= to the
         # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
