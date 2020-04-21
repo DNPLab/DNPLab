@@ -4,3 +4,4 @@ from . import odnpNMR
 from . import odnpImport
 from . import odnpFit
 from . import odnpPlot
+from . import hydration
