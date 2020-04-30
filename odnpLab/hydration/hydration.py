@@ -536,7 +536,7 @@ class HydrationCalculator:
         # least-squares fitting. I like this one because it can calculate a jacobian that we can use to get an estimate of the error in k_sigma.
         # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html#scipy.optimize.least_squares
         result = optimize.least_squares(fun=residual,
-                                         x0=[75, (max(power) / 2)],
+                                         x0=[50, (max(power) / 2)],
                                          args=(power, ksig_sp),
                                          jac='3-point', method='lm')
         if not result.success:
