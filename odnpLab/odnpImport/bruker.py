@@ -108,6 +108,19 @@ def findGroupDelay(decim,dspfvs):
 
     return groupDelay
 
+def loadTitle(path, expNum = 1, titlePath = 'pdata/1',titleFilename = 'title'):
+    '''
+    Import Bruker Experiment Title File
+    '''
+
+    pathFilename = _os.path.join(path,str(expNum),titlePath,titleFilename) 
+
+    with open(pathFilename,'r') as f:
+        rawTitle = f.read()
+    title = rawTitle.rstrip()
+
+    return title
+
 def loadAcqu(path, expNum = 1, paramFilename = 'acqus'):
     '''
     JCAMPDX file

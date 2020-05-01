@@ -1,0 +1,393 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>odnpNMR &mdash; odnpLab 1.0.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="odnpLab 1.0.0 documentation" href="index.html"/>
+        <link rel="next" title="odnpFit" href="odnpFit.html"/>
+        <link rel="prev" title="odnpImport" href="odnpImport.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+  
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="index.html" class="icon icon-home"> odnpLab
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <p class="caption"><span class="caption-text">Documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installing odnpLab</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#required-packages">Required Packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#installing-with-pip">Installing with pip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#installing-from-source">Installing from Source</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quick-start.html">Quick-Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#importing-data">Importing data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#processing-nmr-data">Processing NMR Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick-start.html#example-script">Example Script</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="odnpData.html">odnpData</a></li>
+<li class="toctree-l1"><a class="reference internal" href="odnpImport.html">odnpImport</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">odnpNMR</a></li>
+<li class="toctree-l1"><a class="reference internal" href="odnpFit.html">odnpFit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="odnpHydration.html">odnpHydration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="odnpPlot.html">odnpPlot</a></li>
+<li class="toctree-l1"><a class="reference internal" href="odnpGUI.html">odnpGUI</a></li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+  
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">odnpLab</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>odnpNMR</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/odnpNMR.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-odnpLab.odnpNMR">
+<span id="odnpnmr"></span><h1>odnpNMR<a class="headerlink" href="#module-odnpLab.odnpNMR" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="odnpLab.odnpNMR.align">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">align</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.align" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alignment of NMR spectra down given axes dimension</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.fourierTransform">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">fourierTransform</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.fourierTransform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform Fourier Transform down axes dimension given in procParameters</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Assumes dt = t[1] - t[0]</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>allData</strong> (<a class="reference internal" href="odnpData.html#odnpLab.odnpData.odnpData" title="odnpLab.odnpData.odnpData"><em>odnpData</em></a><em>, </em><em>dict</em>) -- Data container</li>
+<li><strong>procParameters</strong> (<em>dict</em><em>, </em><em>procParam</em>) -- Processing parameters</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Processed data in container</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">allData (<a class="reference internal" href="odnpData.html#odnpLab.odnpData.odnpData" title="odnpLab.odnpData.odnpData">odnpData</a>, dict)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;axes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;t&#39;</span>
+<span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;zeroFillFactor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;shift&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+<span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;convert2ppm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="n">allData</span> <span class="o">=</span> <span class="n">odnpLab</span><span class="o">.</span><span class="n">odnpNMR</span><span class="o">.</span><span class="n">fourierTransform</span><span class="p">(</span><span class="n">allData</span><span class="p">,</span> <span class="n">procParameters</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.integrate">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">integrate</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.integrate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integrate data down given dimension</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>allData</strong> (<a class="reference internal" href="odnpData.html#odnpLab.odnpData.odnpData" title="odnpLab.odnpData.odnpData"><em>odnpData</em></a><em>,</em><em>dict</em>) -- Data container</li>
+<li><strong>procParameters</strong> (<em>dict</em><em>, </em><em>procParam</em>) -- <p>Processing Parameters
+axes_label: str</p>
+<blockquote>
+<div>dimension to integrate</div></blockquote>
+<dl class="docutils">
+<dt>integrateCenter:</dt>
+<dd>center for width of integration</dd>
+<dt>integrateWidth:</dt>
+<dd>width of integration window</dd>
+</dl>
+</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Processed data</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">allData (<a class="reference internal" href="odnpData.html#odnpLab.odnpData.odnpData" title="odnpLab.odnpData.odnpData">odnpData</a>,dict)</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Exampe:
+.. code-block:: python</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>procParameters = {</dt>
+<dd>'axes' : 't',
+'integrateCenter' : 0,
+'integrateWidth' : 100,
+}</dd>
+</dl>
+<p>odnpLab.odnpNMR.integrate(allData,procParameters)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.procString">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">procString</code><span class="sig-paren">(</span><em>name</em>, <em>procParameters</em>, <em>requiredList</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.procString" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.removeOffset">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">removeOffset</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.removeOffset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove DC offset from FID by averaging the last few data points and subtracting the average</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>allData</strong> (<a class="reference internal" href="odnpData.html#odnpLab.odnpData.odnpData" title="odnpLab.odnpData.odnpData"><em>odnpData</em></a><em>, </em><em>dict</em>) -- Data container for data</li>
+<li><strong>procParameters</strong> (<em>dict</em><em>,</em><em>procParam</em>) -- Processing Parameters</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;axes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;t&#39;</span>
+<span class="n">procParameters</span><span class="p">[</span><span class="s">&#39;offsetPoints&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+<span class="n">outData</span> <span class="o">=</span> <span class="n">odnpLab</span><span class="o">.</span><span class="n">odnpNMR</span><span class="o">.</span><span class="n">removeOffset</span><span class="p">(</span><span class="n">allData</span><span class="p">,</span><span class="n">procParameters</span><span class="p">)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">allData (odnpData, dict)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.returnData">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">returnData</code><span class="sig-paren">(</span><em>allData</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.returnData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine what the data type is for processing</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.stampProcStep">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">stampProcStep</code><span class="sig-paren">(</span><em>data</em>, <em>procStepString</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.stampProcStep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.steps">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">steps</code><span class="sig-paren">(</span><em>allData</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.steps" title="Permalink to this definition">¶</a></dt>
+<dd><p>print processing steps</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.updateParameters">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">updateParameters</code><span class="sig-paren">(</span><em>procParameters</em>, <em>requiredList</em>, <em>defaultParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.updateParameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>For all parameters without default parameters, assign parameter value to default</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="odnpLab.odnpNMR.window">
+<code class="descclassname">odnpLab.odnpNMR.</code><code class="descname">window</code><span class="sig-paren">(</span><em>allData</em>, <em>procParameters</em><span class="sig-paren">)</span><a class="headerlink" href="#odnpLab.odnpNMR.window" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply Apodization to data down given dimension</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>allData</strong> (<a class="reference internal" href="odnpData.html#odnpLab.odnpData.odnpData" title="odnpLab.odnpData.odnpData"><em>odnpData</em></a><em>, </em><em>dict</em>) -- data container</li>
+<li><strong>procParameters</strong> (<em>dict</em><em>, </em><em>procParam</em>) -- parameter values</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Axis units assumed to be seconds</p>
+</div>
+<p>Exampe:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span class="n">procParameters</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;linewidth&#39;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="s">&#39;axes&#39;</span> <span class="p">:</span> <span class="s">&#39;t&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+<span class="n">allData</span> <span class="o">=</span> <span class="n">odnpLab</span><span class="o">.</span><span class="n">odnpNMR</span><span class="o">.</span><span class="n">window</span><span class="p">(</span><span class="n">allData</span><span class="p">,</span><span class="n">procParameters</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="odnpFit.html" class="btn btn-neutral float-right" title="odnpFit" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="odnpImport.html" class="btn btn-neutral" title="odnpImport" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Timothy Keller.
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+
+  
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+  
+   
+
+</body>
+</html>
