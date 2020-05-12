@@ -68,15 +68,6 @@ class HydrationParameter(Parameter):
         self.__t1InterpMethod = '2ord'
         """str: Method used to interpolate T1, either linear or 2nd order"""
 
-        self.__includeJRot = False
-        """bool: Whether to include J_rot"""
-
-        self.tauRot = None
-        """float: Only required for calculating J_rot"""
-
-        self.percentBound = None
-        """float: Only required for calculating J_rot"""
-
     @property
     def t1InterpMethod(self):
         """str: Method used to interpolate T1, either linear or 2nd order"""
@@ -102,28 +93,6 @@ class HydrationParameter(Parameter):
             self.__smaxMod = value
         else:
             raise ValueError('smaxMod should be either `tethered` or `free`')
-
-    @property
-    def includeJRot(self):
-        """bool: Whether to include J_rot. Read-only."""
-        return self.__includeJRot
-
-    @includeJRot.setter
-    def includeJRot(self, value):
-        raise ValueError('includedJRot cannot be set. Use enableJRot() disableJRot()')
-
-    def enableJRot(self, tauRot: float, percentBound: float):
-        """Enable Disable JRot"""
-        if percentBound < 0 or percentBound > 100:
-            raise ValueError('Must be 0 <= percentBound <= 100')
-        if tauRot <= 0:
-            raise ValueError('tauRot must > 0')
-        self.__includeJRot = True
-        self.tauRot, self.percentBound = tauRot, percentBound
-
-    def disableJRot(self):
-        self.__includeJRot = False
-        self.tauRot, self.percentBound = None, None
 
     # These two function enable dictionary-like getting and setting properties.
     def __getitem__(self, key):
@@ -298,13 +267,13 @@ class HydrationCalculator:
             # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
             # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
 
-        omega_e = (1.76085963023e5 * 1e-6) * (field / 1000)
-        # gamma_e in MHz/T, convert to 1/ps for the tcorr unit later, then correct by field in T.
+        omega_e = (1.76085963023e-1) * (field / 1000)
+        # gamma_e in 1/ps for the tcorr unit, then correct by field in T.
         # gamma_e is from NIST. The field cancels in the following wRatio but you
         # need these individually for the spectral density functions later.
 
-        omega_H = (267.52218744 * 1e-6) * (field / 1000)
-        # gamma_H in MHz/T, convert to 1/ps for the tcorr unit later, then correct by field in T.
+        omega_H = (2.6752218744e-4) * (field / 1000)
+        # gamma_H in 1/ps for the tcorr unit, then correct by field in T.
         # gamma_H is from NIST. The field cancels in the following wRatio but you
         # need these individually for the spectral density functions later.
 
@@ -348,8 +317,7 @@ class HydrationCalculator:
 
         ksi = k_sigma / k_rho  # (Eq. 3) this is the coupling factor, unitless
 
-        tcorr = self.getTcorr(ksi, omega_e, omega_H,
-                              self.hp.includeJRot, self.hp.tauRot, self.hp.percentBound)
+        tcorr = self.getTcorr(ksi, omega_e, omega_H)
         # (Eq. 21-23) this calls the fit to the spectral density functions. The fit
         # optimizes the value of tcorr in the calculation of ksi, the correct tcorr
         # is the one for which the calculation of ksi from the spectral density
@@ -410,33 +378,21 @@ class HydrationCalculator:
         })
 
     @staticmethod
-    def getTcorr(ksi: float, omega_e: float, omega_H: float, includeJRot: bool,
-                 tauRot=None, percentBound=None):
+    def getTcorr(ksi: float, omega_e: float, omega_H: float):
         """Returns correlation time tcorr in pico second
 
         Args:
             ksi (float):
             omega_e (float):
             omega_H (float):
-            includeJRot (bool): Whether to include J_Rot,
-                (Eq. 6) from Barnes et al. JACS (2017)
-            tauRot (float): tau_rot. Unit: nanosecond. Required when
-                includedJRot is True.
-            percentBound (float): Percentage of bound water. Required when
-                includedJRot is True.
 
         Returns:
             tcorr (float): correlation time in pico second
 
         Raises:
-            ValueError: If includeJRot is True and either precentBound or tauRot
-                is None.
             FitError: If no available root is found.
 
         """
-
-        if includeJRot and (tauRot is None or percentBound is None):
-            raise ValueError('Need both tauRot and percentBound when includeJRot is True')
 
         def f_ksi(tcorr: float, omega_e: float, omega_H: float):
             '''Returns ksi for any given tcorr
@@ -451,34 +407,18 @@ class HydrationCalculator:
 
             '''
 
-            # Using Barnes et al. JACS (2017)
+            # Using Franck et al. PNMRS (2013)
 
-            zdiff = (omega_e - omega_H) * tcorr
-            zsum  = (omega_e + omega_H) * tcorr
-            zH    = omega_H * tcorr
+            zdiff = np.sqrt(1j * (omega_e - omega_H) * tcorr)
+            zsum  = np.sqrt(1j * (omega_e + omega_H) * tcorr)
+            zH    = np.sqrt(1j * omega_H * tcorr)
 
             # (Eq. 2)
-            Jzdiff = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zdiff)) + (zdiff/4)) / (1 + np.sqrt(2*zdiff) + zdiff + ((np.sqrt(2)/3) * (zdiff**(3/2))) + ((16/81) * (zdiff**2)) + (((4*np.sqrt(2))/81) * (zdiff**(5/2))) + ((zdiff**3)/81))
+            Jdiff = (1 + (zdiff / 4)) / (1 + zdiff + ((4 * (zdiff**2)) / 9) + ((zdiff**3) / 9))
 
-            Jzsum  = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zsum)) + (zsum/4)) / (1 + np.sqrt(2*zsum) + zsum + ((np.sqrt(2)/3) * (zsum**(3/2))) + ((16/81) * (zsum**2)) + (((4*np.sqrt(2))/81) * (zsum**(5/2))) + ((zsum**3)/81))
+            Jsum  = (1 + (zsum / 4)) / (1 + zsum + ((4 * (zsum**2)) / 9) + ((zsum**3) / 9))
 
-            JzH    = (1 + (((5*np.sqrt(2))/8) * np.sqrt(zH)) + (zH/4)) / (1 + np.sqrt(2*zH) + zH + ((np.sqrt(2)/3) * (zH**(3/2))) + ((16/81) * (zH**2)) + (((4*np.sqrt(2))/81) * (zH**(5/2))) + ((zH**3)/81))
-
-
-            if includeJRot: # include J_Rot, (Eq. 6) from Barnes et al. JACS (2017)
-
-                Jdiff = (1 - (percentBound/100)) * Jzdiff + ((percentBound/100) * (tauRot / (1 - (1j*(omega_e - omega_H) * tauRot))))
-
-                Jsum  = (1 - (percentBound/100)) * Jzsum + ((percentBound/100) * (tauRot / (1 - (1j*(omega_e + omega_H) * tauRot))))
-
-                JH    = (1 - (percentBound/100)) * JzH + ((percentBound/100) * (tauRot / (1 - (1j*omega_H * tauRot))))
-
-            else: # don't include J_Rot
-
-                Jdiff = Jzdiff
-                Jsum = Jzsum
-                JH = JzH
-
+            JH    = (1 + (zH / 4)) / (1 + zH + ((4 * (zH**2)) / 9) + ((zH**3) / 9))
 
             # (Eq. 23) calculation of ksi from the spectral density functions
             ksi_tcorr = ((6 * np.real(Jdiff)) - np.real(Jsum)) / ((6 * np.real(Jdiff)) + (3 * np.real(JH)) + np.real(Jsum))
