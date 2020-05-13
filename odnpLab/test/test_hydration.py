@@ -1,21 +1,72 @@
+import sys
+sys.path.append('.../odnplab')
+
 import unittest
 import numpy as np
+import odnpLab
 from odnpLab.hydration import HydrationCalculator, HydrationParameter
 
 
 class TestHydration(unittest.TestCase):
     def setUp(self):
-        self.T1p = np.array([1.995006087,2.059663367,2.149840696,2.245130396,2.302170516])
-        self.T1_powers = np.array([0.00062242,0.025845202,0.058096435,0.092231066,0.123976276])
-        self.Ep = np.array([0.296341264,-1.648327271,-1.754501023,-2.69317187,-3.3022277,-3.810733497,-4.010433129,-4.108039458,-4.353963952,-4.541108629,-4.770356192,-4.938621066,-5.25776408,-5.372534317,-5.445489014,-5.529224875,-5.695695725,-5.989497644,-6.143749818,-6.353057052,-6.541485408])
-        self.E_powers = np.array([0.000643822,0.004483313,0.004731359,0.0091599,0.013577705,0.019220847,0.02205228,0.022732423,0.02664021,0.029912122,0.034827366,0.039436018,0.04900578,0.055400375,0.055803875,0.059311184,0.067142499,0.082665971,0.093849966,0.110199413,0.123976276])
+        self.T1p = np.array([2.0850606305680700
+        ,2.1588239679329700
+        ,2.246270535391770
+        ,2.3131083281827900
+        ,2.361693123732750])
+        self.T1_powers = np.array([0.0005813884968087980
+        ,0.023929259151532000
+        ,0.05364586645098500
+        ,0.08510236988564890
+        ,0.11448695555368400])
+        self.Ep = np.array([0.5244962257098100
+        ,-1.0460060878468600
+        ,-1.1923729834996700
+        ,-2.0283543307318300
+        ,-2.5623585026035300
+        ,-3.1083332432507900
+        ,-3.2258438385993300
+        ,-3.347961336229490
+        ,-3.67138811609969
+        ,-3.7817316135687500
+        ,-4.032510453619460
+        ,-4.2417758835183300
+        ,-4.552046251816710
+        ,-4.733158273060310
+        ,-4.777088808443740
+        ,-4.8489491678359600
+        ,-5.024100136084710
+        ,-5.324997995063750
+        ,-5.51186544738343
+        ,-5.807764442039210
+        ,-5.9835905676571500])
+        self.E_powers = np.array([0.0006370105281515720
+        ,0.004214559147178920
+        ,0.004652040210109040
+        ,0.008966203931561900
+        ,0.013256981804212100
+        ,0.018721615363004000
+        ,0.02068371710482890
+        ,0.022057273192711100
+        ,0.025735671896052500
+        ,0.028814716528459300
+        ,0.03343506130920710
+        ,0.03775305788018570
+        ,0.04682777569441930
+        ,0.052001376894013300
+        ,0.05321444208836340
+        ,0.05628331436209730
+        ,0.06358027888841540
+        ,0.07825239654597910
+        ,0.08867115988141430
+        ,0.1042006843923840
+        ,0.11448695555368400])
 
         hp = HydrationParameter()
         hp.field = 348.5
-        hp.slC = 200e-6
-        hp.T100 = 2.50
-        hp.T10 = 1.95
-        hp.ksig_bulk = 95.4
+        hp.slC = 125e-6
+        hp.T100 = 2.0
+        hp.T10 = 1.5
         self.hp = hp
         self.hc = HydrationCalculator(T1=self.T1p, T1_power=self.T1_powers,
                                  E=self.Ep, E_power=self.E_powers,
@@ -24,64 +75,70 @@ class TestHydration(unittest.TestCase):
     def test_interpT1_linear_almost_1p99(self):
         self.hc.hp.t1InterpMethod = 'linear'
         self.hc.run()
-        self.assertAlmostEqual(self.hc.results.T1interp[0], 1.995006087, places=2)
+        self.assertAlmostEqual(self.hc.results.T1interp[0], 2.097, places=3)
 
     def test_interpT1_2ord_almost_1p99(self):
         self.hc.hp.t1InterpMethod = '2ord'
         self.hc.run()
-        self.assertAlmostEqual(self.hc.results.T1interp[0], 1.99, places=2)
+        self.assertAlmostEqual(self.hc.results.T1interp[0], 2.085, places=3)
 
-    def test_interpT1_2ord_smaller_than_linear(self):
-        """Second order interpolation should gives smaller T1[0] than linear?"""
+    def _run_2ord(self):
+        self.hc.hp.smaxMod = 'tethered'
         self.hc.hp.t1InterpMethod = '2ord'
         self.hc.run()
-        second = self.hc.results.T1interp[0]
+        
+    def _run_linear(self):
+        self.hc.hp.smaxMod = 'tethered'
         self.hc.hp.t1InterpMethod = 'linear'
         self.hc.run()
-        linear = self.hc.results.T1interp[0]
-        self.assertLess(second, linear)
+    
+    def test_2ord_krho(self):
+        self._run_2ord()
+        self.assertAlmostEqual(self.hc.results.k_rho, 1333.33, places=2)
+    
+    def test_2ord_ksigma(self):
+        self._run_2ord()
+        self.assertAlmostEqual(self.hc.results.k_sigma, 38.04, places=2)
+    
+    def test_2ord_ksi(self):
+        self._run_2ord()
+        self.assertAlmostEqual(self.hc.results.ksi, 0.0285, places=4)
 
-    def _run_tethered_2ord(self):
-        self.hc.hp.smaxMod = 'tethered'
-        self.hc.hp.t1InterpMethod = '2ord'
-        self.hc.hp.disableJRot()
-        self.hc.run()
+    def test_2ord_klow(self):
+        self._run_2ord()
+        self.assertAlmostEqual(self.hc.results.k_low, 2133.46, places=2)
 
-    def test_no_trot_tethered_ksigma_is_25p99(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.k_sigma, 25.99, places=2)
+    def test_2ord_tcorr(self):
+        self._run_2ord()
+        self.assertAlmostEqual(self.hc.results.tcorr, 448.97, places=2)
 
-    def test_no_trot_tethere_ksigma_bulk_ratio_is_3p67(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.ksigma_kbulk_invratio, 3.67, places=2)
+    def test_2ord_Dlocal(self):
+        self._run_2ord()
+        self.assertAlmostEqual(self.hc.results.dLocal, 3.26e-10, places=12)
+        
+    def test_linear_krho(self):
+        self._run_linear()
+        self.assertAlmostEqual(self.hc.results.k_rho, 1333.33, places=2)
+    
+    def test_linear_ksigma(self):
+        self._run_linear()
+        self.assertAlmostEqual(self.hc.results.k_sigma, 38.20, places=2)
+    
+    def test_linear_ksi(self):
+        self._run_linear()
+        self.assertAlmostEqual(self.hc.results.ksi, 0.0286, places=4)
 
-    def test_no_trot_tethere_klow_is_879p5(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.k_low, 879.5, places=1)
+    def test_linear_klow(self):
+        self._run_linear()
+        self.assertAlmostEqual(self.hc.results.k_low, 2133.09, places=2)
 
-    def test_no_trot_tethere_tcorr_is_326p0(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.tcorr, 326.0, places=1)
+    def test_linear_tcorr(self):
+        self._run_linear()
+        self.assertAlmostEqual(self.hc.results.tcorr, 447.77, places=2)
 
-    def test_no_trot_tethere_Dlocal_is_4p49Em10(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.dLocal, 4.49e-10, places=12)
-
-    def test_kpho_is_564p1(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.k_rho, 564.1, places=1)
-
-    def _run_expert_mode(self):
-        """Expert Mode"""
-        self.hc.hp.smaxMod = 'tethered'
-        self.hc.hp.t1InterpMethod = '2ord'
-        self.hc.hp.enableJRot(tauRot=20, percentBound=50)
-        self.hc.run()
-
-    def test_expert_tcorr_is_509p3(self):
-        self._run_expert_mode()
-        self.assertAlmostEqual(self.hc.results.tcorr, 509.3, places=1)
-
+    def test_linear_Dlocal(self):
+        self._run_linear()
+        self.assertAlmostEqual(self.hc.results.dLocal, 3.27e-10, places=12)
 
 if __name__ == '__main__':
     unittest.main()

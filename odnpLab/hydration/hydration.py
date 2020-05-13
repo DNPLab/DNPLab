@@ -1,4 +1,3 @@
-# coding: utf-8
 """ Hydration module
 
 This module calculates hydration related quantities using processed ODNP data.
@@ -23,7 +22,7 @@ class HydrationParameter(Parameter):
         """"""
         super().__init__()
 
-        self.field = 380
+        self.field = 348.5
         """float: Static magnetic field in mT, needed to find omega_e and _H"""
 
         self.slC = 100
@@ -41,7 +40,7 @@ class HydrationParameter(Parameter):
         2015, 137, 12013−12023. Figure 3 caption
         """
 
-        self.T10 = 1.33
+        self.T10 = 1.5
         """float: T1 with spin label but at 0 mw power, unit is sec"""
 
         self.T100 = 2.5
@@ -478,7 +477,7 @@ class HydrationCalculator:
         result = optimize.least_squares(fun=residual,
                                          x0=[50, (max(power) / 2)],
                                          args=(power, ksig_sp),
-                                         jac='3-point', method='lm')
+                                         jac='2-point', method='lm')
         if not result.success:
             raise FitError('Could not fit ksigma ~ power')
         assert result.x[0] > 0, 'Unexpected ksigma value: %d < 0' % result.x[0]
@@ -534,7 +533,7 @@ class HydrationCalculator:
         result = optimize.least_squares(fun=residual,
                                          x0=[0.5, (max(power) / 2)],
                                          args=(Ep, power, T10, T100, wRatio, s_max),
-                                         jac='3-point', method='lm')
+                                         jac='2-point', method='lm')
         if not result.success:
             raise FitError('Could not fit Ep')
         assert result.x[0] > 0, 'Unexpected ksi value: %d < 0' % result.x[0]
