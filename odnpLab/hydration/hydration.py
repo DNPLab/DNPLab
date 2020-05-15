@@ -105,10 +105,6 @@ class HydrationParameter(Parameter):
         else:
             self.__dict__[key] = value
 
-    def print(self):
-        # TODO: implement this
-        raise NotImplementedError
-
 
 class HydrationResults(AttrDict):
     """Class for handling hydration related quantities
@@ -116,10 +112,11 @@ class HydrationResults(AttrDict):
     Attributes:
         Ep_unc (numpy.array): Fit of Ep array.
         T1interp (numpy.array): Interpolated T1 values on E_power.
-        k_sigma_array (numpy.array)     : ksig_sp / sp,
-        k_sigma_fit (numpy.array)       : ksigsp_fit,
+        k_sigma_array (numpy.array)     : ksig,
+        k_sigma_fit (numpy.array)       : ksig_fit,
         k_sigma (float)                 : k_sigma,
-        ksigma_kbulk_invratio (float)   : 1/(k_sigma/ksig_bulk),
+        k_sigma_error (float)           : k_sigma_error,
+        ksigma_kbulk_ratio (float)      : k_sigma/ksig_bulk,
         k_rho (float)                   : k_rho,
         k_low (float)                   : k_low,
         klow_klow_bulk_ratio (float)    : k_low / k_low_bulk,
@@ -134,7 +131,8 @@ class HydrationResults(AttrDict):
         self.T1interp = None
         self.k_sigma_array = None
         self.k_sigma = None
-        self.ksigma_kbulk_invratio = None
+        self.k_sigma_error = None
+        self.ksigma_kbulk_ratio = None
         self.k_rho = None
         self.k_low = None
         self.klow_klow_bulk_ratio = None
@@ -208,8 +206,6 @@ class HydrationCalculator:
 
         t1_interp_method = self.hp.t1InterpMethod
 
-        #TODO: sort T1p and T1powers
-
         if t1_interp_method=='2ord': # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
 
             delT1w=T1p[-1]-T1p[0]  #Fixme: This requires T1p to be ascending, any better way?
@@ -281,31 +277,27 @@ class HydrationCalculator:
         # frequency units in order to correspond to S_0/I_0, this is also ~= to the
         # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
 
-        ksig_sp = (1 - Ep) / (slC * wRatio * T1p)
+        ksig = ((1 - Ep) / (slC * wRatio * T1p)) / s_max
         # (Eq. 41) this calculates the array of k_sigma*s(p) from the enhancement array,
         # dividing by the T1p array for the "corrected" analysis
 
-        ksigma_smax , p_12 = self.getksigsmax(ksig_sp, power)
+        popt, pcov = self.getksig(ksig, power)
         # fit to the right side of Eq. 42 to get (k_sigma*smax) and half of the power at s_max, called p_12 here
-        
-        #################
-        # TODO: plot: 'Data', {power, ksig_sp}, and the 'Corrected', {power, ksigsp_fit},
-        #  and 'Uncorrected', {power, ksig_sp_uncorr} that are calculated below to assess
-        #  the quality of fit as well as compare "corrected" to "uncorrected" analyses to assess heating.
+        k_sigma = popt[0]
+        p_12 = popt[1]
+        stdd_ksig = np.sqrt(np.diag(pcov))
+        k_sigma_error = stdd_ksig[0]
 
-        ksigsp_fit = (ksigma_smax * power) / (p_12 + power)
+        ksig_fit = (k_sigma * power) / (p_12 + power)
         # (Eq. 42) calculate the "corrected" k_sigma*s(p) array using the fit parameters,
         # this can be used to plot over the data ksig_sp array to assess the quality of fit.
         # This would correspond to the corrected curves in Figure 9
 
-        ksig_sp_uncorr = (1 - Ep) / (slC * wRatio * T10)
+        ksig_uncorr = ((1 - Ep) / (slC * wRatio * T10)) / s_max
         # (Eq. 44) the "uncorrected" model, this can also be plotted with the corrected
         # curve to determine the severity of heating effects, as in Figure 9.
         # Notice the division by T10 instead of the T1p array
         #################
-
-        k_sigma = ksigma_smax / s_max
-        # (Eq. 43) this divides by the s_max to isolate k_sigma, the "cross" relaxivity, unit is s^-1 M^-1
 
         ksig_bulk = self.hp.ksig_bulk  # unit is s^-1 M^-1
         # The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
@@ -354,7 +346,17 @@ class HydrationCalculator:
         # Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
         # 2015, 137, 12013−12023. Figure 3 caption
         
-        ksi_unc , p_12_unc = self.getksiunc(Ep, power, T10, T100, wRatio, s_max)
+        results = self.getksiunc(Ep, power, T10, T100, wRatio, s_max)
+        ksi_unc = results.x[0]
+        p_12_unc = results.x[1]
+        
+        #placeholder
+        """
+        J = results.jac
+        cov = np.linalg.inv(J.T.dot(J))
+        results_std = np.sqrt(np.diagonal(cov))
+        ksi_unc_error = results_std[0]
+        """
         
         Ep_unc = 1-((ksi_unc*(1-(T10/T100))*wRatio)*((power*s_max)/(p_12_unc+power)))
         
@@ -363,10 +365,11 @@ class HydrationCalculator:
         return HydrationResults({
             'Ep_unc'   : Ep_unc,
             'T1interp' : T1p,
-            'k_sigma_array' : ksig_sp / s_max,
-            'k_sigma_fit' : ksigsp_fit,
+            'k_sigma_array' : ksig,
+            'k_sigma_fit' : ksig_fit,
             'k_sigma': k_sigma,
-            'ksigma_kbulk_invratio' : 1/(k_sigma/ksig_bulk),
+            'k_sigma_error': k_sigma_error,
+            'ksigma_kbulk_ratio' : k_sigma/ksig_bulk,
             'k_rho'  : k_rho,
             'k_low'  : k_low,
             'klow_klow_bulk_ratio': k_low / k_low_bulk,
@@ -436,52 +439,48 @@ class HydrationCalculator:
         return result.root
 
     @staticmethod
-    def getksigsmax(ksig_sp: np.array, power: np.array):
-        """Get ksig * smax and power at half ksig
+    def getksig(ksig: np.array, power: np.array):
+        """Get ksig and power at half ksig
 
         Args:
-            ksig_sp (numpy.array): Array of (k_sigma * s(power)).
+            ksig (numpy.array): Array of k_sigma.
             power (numpy.array): Array of power.
 
         Returns:
-            A tuple of float (ksigma_smax, p_12).
+            A tuple of float (ksigma, p_12).
 
         Raises:
             FitError: If least square fitting is not succeed.
 
         """
 
-        def residual(x, power: np.array, ksig_sp: np.array):
-            """Residual function for ksigs_p for any given ksigma_smax and p_12
+        def f_ksig(power: np.array, ksigma: float, p_12: float):
+            """Residual function for ksigs_p for any given ksigma and p_12
 
             Args:
                 x (tuple): length of 2
                 power (numpy.array): Array of power.
-                ksig_sp (numpy.array): Array of (k_sigma * s(power)).
+                ksig (numpy.array): Array of k_sigma.
 
             Returns:
                 Residuals.
 
             """
-            ksigma_smax, p_12 = x[0], x[1]
 
             # Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
             # Right side of Eq. 42. This function should fit to ksig_sp
-            ksigsp_fit = (ksigma_smax * power) / (p_12 + power)
+            ksig_fit = (ksigma * power) / (p_12 + power)
 
-            return ksigsp_fit - ksig_sp
+            return ksig_fit
 
         # least-squares fitting. I like this one because it can calculate a jacobian that we can use to get an estimate of the error in k_sigma.
         # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html#scipy.optimize.least_squares
-        result = optimize.least_squares(fun=residual,
-                                         x0=[50, (max(power) / 2)],
-                                         args=(power, ksig_sp),
-                                         jac='2-point', method='lm')
-        if not result.success:
-            raise FitError('Could not fit ksigma ~ power')
-        assert result.x[0] > 0, 'Unexpected ksigma value: %d < 0' % result.x[0]
-        return result.x
+        popt, pcov = optimize.curve_fit(f_ksig, power, ksig,
+                                         p0=[50, (max(power) / 2)], method='lm')
+
+        assert popt[0] > 0, 'Unexpected ksigma value: %d < 0' % popt[0]
+        return popt, pcov
 
     @staticmethod
     def getksiunc(Ep: np.array, power: np.array, T10: float, T100: float, wRatio: float, s_max: float):
@@ -530,11 +529,11 @@ class HydrationCalculator:
 
         # least-squares fitting. I like this one because it can calculate a jacobian that we can use to get an estimate of the error in k_sigma.
         # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html#scipy.optimize.least_squares
-        result = optimize.least_squares(fun=residual,
+        results = optimize.least_squares(fun=residual,
                                          x0=[0.5, (max(power) / 2)],
                                          args=(Ep, power, T10, T100, wRatio, s_max),
                                          jac='2-point', method='lm')
-        if not result.success:
+        if not results.success:
             raise FitError('Could not fit Ep')
-        assert result.x[0] > 0, 'Unexpected ksi value: %d < 0' % result.x[0]
-        return result.x
+        assert results.x[0] > 0, 'Unexpected ksi value: %d < 0' % results.x[0]
+        return results
