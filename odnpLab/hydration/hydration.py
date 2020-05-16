@@ -35,9 +35,7 @@ class HydrationParameter(Parameter):
         self.ksig_bulk = 95.4
         """float: unit is s^-1 M^-1
 
-        The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
-        Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
-        2015, 137, 12013−12023. Figure 3 caption
+        Franck, JM, et. al.; "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023. Figure 3 caption
         """
 
         self.T10 = 1.5
@@ -60,8 +58,7 @@ class HydrationParameter(Parameter):
         self.k_low_bulk = 366
         """float: unit is s^-1 M^-1
 
-        The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
-        Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
+        "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
         2015, 137, 12013−12023. Figure 3 caption"""
 
         self.__t1InterpMethod = '2ord'
@@ -300,9 +297,7 @@ class HydrationCalculator:
         #################
 
         ksig_bulk = self.hp.ksig_bulk  # unit is s^-1 M^-1
-        # The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
-        # Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
-        # 2015, 137, 12013−12023. Figure 3 caption
+        # "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023. Figure 3 caption
 
         k_rho = ((1/T10) - (1/T100)) / slC  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
 
@@ -342,9 +337,7 @@ class HydrationCalculator:
         ############################################################################
 
         k_low_bulk = self.hp.k_low_bulk  # unit is s^-1 M^-1
-        # The only place I can find this is Franck, JM, et. al.; "Anomalously Rapid
-        # Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
-        # 2015, 137, 12013−12023. Figure 3 caption
+        # "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023. Figure 3 caption
         
         results = self.getksiunc(Ep, power, T10, T100, wRatio, s_max)
         ksi_unc = results.x[0]
@@ -360,8 +353,6 @@ class HydrationCalculator:
         
         Ep_unc = 1-((ksi_unc*(1-(T10/T100))*wRatio)*((power*s_max)/(p_12_unc+power)))
         
-        # this list should be in the Results object,
-        # should also include flags, exceptions, etc. related to calculations
         return HydrationResults({
             'Ep_unc'   : Ep_unc,
             'T1interp' : T1p,
@@ -440,30 +431,29 @@ class HydrationCalculator:
 
     @staticmethod
     def getksig(ksig: np.array, power: np.array):
-        """Get ksig and power at half ksig
+        """Get k_sigma and power at half max of ksig
 
         Args:
             ksig (numpy.array): Array of k_sigma.
             power (numpy.array): Array of power.
 
         Returns:
-            A tuple of float (ksigma, p_12).
+            popt: fit results
+            pcov: covariance matrix
 
-        Raises:
-            FitError: If least square fitting is not succeed.
+        Asserts:
+            k_sigma (popt[0]) is greater than zero
 
         """
 
         def f_ksig(power: np.array, ksigma: float, p_12: float):
-            """Residual function for ksigs_p for any given ksigma and p_12
+            """Function to calcualte ksig array for any given ksigma and p_12
 
             Args:
-                x (tuple): length of 2
                 power (numpy.array): Array of power.
-                ksig (numpy.array): Array of k_sigma.
 
             Returns:
-                Residuals.
+                fit to ksig array
 
             """
 
@@ -474,8 +464,8 @@ class HydrationCalculator:
 
             return ksig_fit
 
-        # least-squares fitting. I like this one because it can calculate a jacobian that we can use to get an estimate of the error in k_sigma.
-        # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html#scipy.optimize.least_squares
+        # curve fitting
+        # see https://docs.scipy.org/doc/scipy/reference/optimize.html
         popt, pcov = optimize.curve_fit(f_ksig, power, ksig,
                                          p0=[50, (max(power) / 2)], method='lm')
 
@@ -527,8 +517,8 @@ class HydrationCalculator:
 
             return Ep - Ep_fit
 
-        # least-squares fitting. I like this one because it can calculate a jacobian that we can use to get an estimate of the error in k_sigma.
-        # see https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.least_squares.html#scipy.optimize.least_squares
+        # least-squares fitting.
+        # see https://docs.scipy.org/doc/scipy/reference/optimize.html
         results = optimize.least_squares(fun=residual,
                                          x0=[0.5, (max(power) / 2)],
                                          args=(Ep, power, T10, T100, wRatio, s_max),
