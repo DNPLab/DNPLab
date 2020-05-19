@@ -26,7 +26,7 @@ class HydrationParameter(Parameter):
         """float: Static magnetic field in mT, needed to find omega_e and _H"""
 
         self.slC = 100
-        """float: (Eq. 1-2) unit is M, spin label concentration for scaling 
+        """float: (Eq. 1-2) unit is microM, spin label concentration for scaling
         relaxations to get "relaxivities" """
 
         self.__smaxMod = 'tethered'  # either 'tethered' or 'free'
@@ -199,23 +199,24 @@ class HydrationCalculator:
             interplatedT1 (np.array): The evaluated values, same shape as power.
 
         """
-        T10, T100, slC = self.hp.T10, self.hp.T100, self.hp.slC
-
+        T10, T100 = self.hp.T10, self.hp.T100
+        slC = self.hp.slC / 1e6
+        
         t1_interp_method = self.hp.t1InterpMethod
 
         if t1_interp_method=='2ord': # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
 
-            delT1w=T1p[-1]-T1p[0]  #Fixme: This requires T1p to be ascending, any better way?
+            delT1w=T1p[-1]-T1p[0]
             T1w=T100
             macroC=slC
 
-            kHH = ((1./T10) - (1./(T1w))) / (macroC/1e6)
-            krp=((1./T1p)-(1./(T1w + delT1w * T1power))-(kHH*(macroC/1e6))) / (slC/1e6)
+            kHH = ((1./T10) - (1./(T1w))) / (macroC)
+            krp=((1./T1p)-(1./(T1w + delT1w * T1power))-(kHH*(macroC))) / (slC)
 
             p = np.polyfit(T1power, krp, 2)
             flinear = np.polyval(p, power)
 
-            intT1 = 1./(((slC/1e6) * flinear)+(1./(T1w + delT1w * power))+(kHH * (macroC/1e6)))
+            intT1 = 1./(((slC) * flinear)+(1./(T1w + delT1w * power))+(kHH * (macroC)))
 
         elif t1_interp_method=='linear': # linear fit, Franck et al. PNMRS (Eq. 39)
 
@@ -244,8 +245,9 @@ class HydrationCalculator:
             T1p (numpy.array): Array of T1. Must be same length as power.
         """
         # field and spin label concentration are defined in Hydration Parameter
-        field, slC = self.hp.field, self.hp.slC
-
+        field = self.hp.field
+        slC = self.hp.slC / 1e6
+        
         T10 = self.hp.T10  # this is the T1 with spin label but at 0 mw power, unit is sec
         T100 = self.hp.T100  # this is the T1 without spin label and without mw power, unit is sec
 
@@ -253,9 +255,9 @@ class HydrationCalculator:
             # Option 1, tether spin label
             s_max = 1  # (section 2.2) maximal saturation factor
 
-        else:
+        elif self.hp.smaxMod == 'free':
             # Option 2, free spin probe
-            s_max = 1-(2/(3+(3*(slC*1e-6*198.7)))) # from:
+            s_max = 1-(2/(3+(3*(slC*198.7)))) # from:
             # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
             # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
 
@@ -274,23 +276,25 @@ class HydrationCalculator:
         # frequency units in order to correspond to S_0/I_0, this is also ~= to the
         # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
 
-        ksig = ((1 - Ep) / (slC * wRatio * T1p)) / s_max
+        ksig_sp = ((1 - Ep) / (slC * wRatio * T1p))
         # (Eq. 41) this calculates the array of k_sigma*s(p) from the enhancement array,
         # dividing by the T1p array for the "corrected" analysis
 
-        popt, pcov = self.getksig(ksig, power)
+        popt, pcov = self.getksig(ksig_sp, power)
         # fit to the right side of Eq. 42 to get (k_sigma*smax) and half of the power at s_max, called p_12 here
-        k_sigma = popt[0]
+        k_sigma_smax = popt[0]
         p_12 = popt[1]
         stdd_ksig = np.sqrt(np.diag(pcov))
         k_sigma_error = stdd_ksig[0]
 
-        ksig_fit = (k_sigma * power) / (p_12 + power)
+        ksig_fit = (k_sigma_smax * power) / (p_12 + power)
         # (Eq. 42) calculate the "corrected" k_sigma*s(p) array using the fit parameters,
         # this can be used to plot over the data ksig_sp array to assess the quality of fit.
         # This would correspond to the corrected curves in Figure 9
-
-        ksig_uncorr = ((1 - Ep) / (slC * wRatio * T10)) / s_max
+        
+        k_sigma = k_sigma_smax / s_max
+        
+        # ksig_uncorr = ((1 - Ep) / (slC * wRatio * T10)) / s_max
         # (Eq. 44) the "uncorrected" model, this can also be plotted with the corrected
         # curve to determine the severity of heating effects, as in Figure 9.
         # Notice the division by T10 instead of the T1p array
@@ -356,7 +360,7 @@ class HydrationCalculator:
         return HydrationResults({
             'Ep_unc'   : Ep_unc,
             'T1interp' : T1p,
-            'k_sigma_array' : ksig,
+            'k_sigma_array' : ksig_sp,
             'k_sigma_fit' : ksig_fit,
             'k_sigma': k_sigma,
             'k_sigma_error': k_sigma_error,
@@ -430,7 +434,7 @@ class HydrationCalculator:
         return result.root
 
     @staticmethod
-    def getksig(ksig: np.array, power: np.array):
+    def getksig(ksig_sp: np.array, power: np.array):
         """Get k_sigma and power at half max of ksig
 
         Args:
@@ -446,7 +450,7 @@ class HydrationCalculator:
 
         """
 
-        def f_ksig(power: np.array, ksigma: float, p_12: float):
+        def f_ksig(power: np.array, ksigma_smax: float, p_12: float):
             """Function to calcualte ksig array for any given ksigma and p_12
 
             Args:
@@ -460,13 +464,13 @@ class HydrationCalculator:
             # Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
             # Right side of Eq. 42. This function should fit to ksig_sp
-            ksig_fit = (ksigma * power) / (p_12 + power)
+            ksig_fit = (ksigma_smax * power) / (p_12 + power)
 
             return ksig_fit
 
         # curve fitting
         # see https://docs.scipy.org/doc/scipy/reference/optimize.html
-        popt, pcov = optimize.curve_fit(f_ksig, power, ksig,
+        popt, pcov = optimize.curve_fit(f_ksig, power, ksig_sp,
                                          p0=[50, (max(power) / 2)], method='lm')
 
         assert popt[0] > 0, 'Unexpected ksigma value: %d < 0' % popt[0]
