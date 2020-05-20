@@ -134,25 +134,36 @@ class odnpData:
         return out
 
     def real(self):
+        '''Return real part of data
+        '''
         out = deepcopy(self)
         out.data = np.real(out.data)
         return out
 
     def imag(self):
+        '''Return imaginary part of data
+        '''
         out = deepcopy(self)
         out.data = np.imag(out.data)
         return out
 
     def abs(self):
+        '''Return absolute value of data
+        '''
         out = deepcopy(self)
         out.data = np.abs(out.data)
         return out
+
     def max(self):
+        '''Return maximum value of data
+        '''
         out = deepcopy(self)
         maxValue = np.max(out.data)
         return maxValue
 
     def __getitem__(self,index):
+        '''Indexing odnpData function
+        '''
 #        return self.data[index]
 #        print index
 
@@ -284,8 +295,7 @@ class odnpData:
         self.data = np.transpose(self.data,ix_sort)
 
     def reorder(self,axesLabels):
-        '''
-        Reorder array given a list of axes labels
+        '''Reorder array given a list of axes labels
 
         Args:
             axesLabels (list,tuple, str): Axes to reorder
@@ -410,8 +420,7 @@ class odnpData:
 #        xlabel(self.axesLabels[index])
 
     def squeeze(self):
-        '''
-        Remove all length 1 dimensions from data
+        '''Remove all length 1 dimensions from data
 
         .. warning::
             Axes information is lost
@@ -450,6 +459,8 @@ class odnpData:
         removedAxes = self.axes.pop(index)
 
     def autophase(self,):
+        '''Automatically phase data
+        '''
         p = self.phase()
         self.data *= np.exp(-1j*p)
         if np.sum(np.real(self.data)) < 0:
