@@ -285,7 +285,7 @@ class HydrationCalculator:
         k_sigma_smax = popt[0]
         p_12 = popt[1]
         stdd_ksig = np.sqrt(np.diag(pcov))
-        k_sigma_error = stdd_ksig[0]
+        k_sigma_error = stdd_ksig[0] / s_max
 
         ksig_fit = (k_sigma_smax * power) / (p_12 + power)
         # (Eq. 42) calculate the "corrected" k_sigma*s(p) array using the fit parameters,
