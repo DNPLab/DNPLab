@@ -39,6 +39,36 @@ def importKea(path,filename = '',num = 1 ,verbose = False):
 #    data.kea_params = params_dict
     return data
 
+def importAcqu(filename):
+    '''Import Prospa ASCII parameters file
+
+    Returns:
+        params (dict): dictionary of parameters
+    '''
+
+    with open(filename,'r') as f:
+        raw = f.read()
+
+    lines = raw.rstrip().rsplit()
+
+    for line in lines:
+        split_line = line.split(' = ')
+
+        key = split_line[0]
+
+        value = split_line[1]
+
+        if (value[0] == '"') and (value[-1] == '"'):
+            value = value[1:-1]
+        if (value[0] == '[') and (value[-1] == ']'):
+            split_value = value[1:-1].split(',')
+            value_list = []
+#            for v in value_list:
+#                try:
+#                    v
+                
+
+
 def importEmx(path,filename = ''):
     '''
     Load EMX data
@@ -86,76 +116,3 @@ def importEmx(path,filename = ''):
     output = odnpData(data,[field],['field'],paramsDict)
     return output
 
-#def saveh5(dataDict,path):
-#    '''
-#    Save All Data in .h5 format
-#    Requires a dictionary of odnpData objects
-#
-#    '''
-#
-#    if not isinstance(dataDict,dict):
-#        print('data input must be dictionary of odnpData objects')
-#        return
-#
-#    keysList = dataDict.keys()
-#
-#    f = h5py.File(path,'w')
-#    for key in keysList:
-#        odnpDataObject = dataDict[key]
-#
-#        h5_data = f.create_dataset(key,data = odnpDataObject.data)
-#        for index in range(len(odnpDataObject.axesLabels)):
-#            label = odnpDataObject.axesLabels[index]
-#            detailedLabel = '*' + key + ' ' + label + ' axes*'
-#            axes = odnpDataObject.axes[index].copy()
-#
-#            f[detailedLabel] = axes
-#            f[detailedLabel].make_scale(detailedLabel)
-#            f[key].dims[index].attach_scale(f[detailedLabel])
-#
-#            for k in odnpDataObject.params.keys():
-#                f[key].attrs[k] = odnpDataObject.params[k]
-#    f.close()
-#
-#def loadh5(path):
-#    '''
-#    Returns Dictionary of odnpDataObjects
-#    '''
-#
-#    odnpDict = {}
-#
-#    f = h5py.File(path,'r')
-#
-#    keysList = f.keys()
-#    dataKeysList = []
-#    for key in keysList:
-#        if (key[-1] == '*') and (key[0] == '*'):
-#            pass
-#            # disregard as data, assume axes
-#        else:
-#            dataKeysList.append(key)
-#    
-#    for key in dataKeysList:
-#        data = f[key][:]
-#        params =  {} 
-#        for k in f[key].attrs.keys():
-#            if k != 'DIMENSION_LIST':
-#                params[k] = f[key].attrs[k]
-#
-#        axesLabels = []
-#        axes = []
-#
-#        for index in range(len(np.shape(data))):
-#            dimKeyRaw = f[key].dims[index].keys()[0] # assumes 1 key only
-#            label = dimKeyRaw[len('*' + key + ' '):-1*len(' axes*')]
-#
-#            axesLabels.append(label)
-#            axes.append(f[key].dims[index][dimKeyRaw][:])
-#        odnpDict[key] = odnpData(data,axes,axesLabels,params)
-#    
-#
-#    f.close()
-#    return odnpDict
-#
-#
-#
