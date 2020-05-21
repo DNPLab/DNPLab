@@ -28,22 +28,14 @@ class odnpData:
 
     '''
 
-    def __init__(self,data = np.r_[[]],axes = [],axesLabels = [],params = {},procList = []):
-        '''odnpData Class __init__ method
-
-        Args:
-            data (numpy.ndarray): 
-            axes (list): list of axes
-            axesLabels (list): list of strings which are names of axes
-            params (dict): dictionary of parameters
-
-
+    def __abs__(self):
+        '''return absolute value of odnpData object
+        Example::
+           >> data = abs(data)
         '''
-
-        self.data = data
-        self.axes = axes
-        self.axesLabels = axesLabels
-        self.params = params
+        out = deepcopy(self)
+        out.data = np.abs(out.data)
+        return out
 
     def __add__(self,data):
         newData = deepcopy(self)
@@ -59,107 +51,8 @@ class odnpData:
             return
         return newData
 
-    def __radd__(self,data):
-        return self.__add__(data)
-
-    def __sub__(self,data):
-        newData = deepcopy(self)
-        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.data -= data
-        elif isinstance(data,np.ndarray):
-            newData.data = newData.data - data
-        elif isinstance(data,odnpData):
-            newData.data = newData.data - data.data
-        else:
-            print('Cannot add, type not supported:')
-            print(type(data))
-            return
-        return newData
-
-    def __rsub__(self,data):
-        newData = deepcopy(self)
-        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.data = data - newData.data
-        elif isinstance(data,np.ndarray):
-            newData.data = data - newData.data
-        elif isinstance(data,odnpData):
-            newData.data = data.data - newData.data
-        else:
-            print('Cannot add, type not supported:')
-            print(type(data))
-            return
-        return newData
-
-
-    def __mul__(self,data):
-        newData = deepcopy(self)
-        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.data *= data
-        elif isinstance(data,np.ndarray):
-            newData.data = newData.data * data
-        elif isinstance(data,odnpData):
-            newData.data = newData.data * data.data
-        else:
-            print('Cannot add, type not supported:')
-            print(type(data))
-            return
-
-        return newData
-
-    def __rmul__(self,data):
-        return self.__mul__(data)
-
-    def __pow__(self,data):
-        newData = deepcopy(self)
-        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.data = newData.data**data
-        elif isinstance(data,np.ndarray):
-            newData.data = newData.data**data
-        elif isinstance(data,odnpData):
-            newData.data = newData.data**data.data
-        else:
-            print('Cannot add, type not supported:')
-            print(type(data))
-            return
-        return newData
-        
-    
-    def __abs__(self):
-        '''return absolute value of odnpData object
-        Example::
-           >> data = abs(data)
-        '''
-        out = deepcopy(self)
-        out.data = np.abs(out.data)
-        return out
-
-    def real(self):
-        '''Return real part of data
-        '''
-        out = deepcopy(self)
-        out.data = np.real(out.data)
-        return out
-
-    def imag(self):
-        '''Return imaginary part of data
-        '''
-        out = deepcopy(self)
-        out.data = np.imag(out.data)
-        return out
-
-    def abs(self):
-        '''Return absolute value of data
-        '''
-        out = deepcopy(self)
-        out.data = np.abs(out.data)
-        return out
-
-    def max(self):
-        '''Return maximum value of data
-        '''
-        out = deepcopy(self)
-        maxValue = np.max(out.data)
-        return maxValue
+    def __copy__(self):
+        return deepcopy(self)
 
     def __getitem__(self,index):
         '''Indexing odnpData function
@@ -171,7 +64,6 @@ class odnpData:
         if len(index) % 2 == 1:
             print('invalid indexing')
             return
-
 
         indexing_labels = index[0::2]
         indexing_list = index[1::2]
@@ -198,39 +90,109 @@ class odnpData:
         for ix in range(len(out.axes)):
             out.axes[ix] = out.axes[ix][indices[ix]]
 
-
         return out
 
-    def range(self,axesLabel,minValue,maxValue):
+    def __init__(self,data = np.r_[[]],axes = [],axesLabels = [],params = {},procList = []):
+        '''odnpData Class __init__ method
 
-        out = deepcopy(self)
-        index = self.axesLabels.index(axesLabel)
+        Args:
+            data (numpy.ndarray): 
+            axes (list): list of axes
+            axesLabels (list): list of strings which are names of axes
+            params (dict): dictionary of parameters
 
-        min_list = list(out.axes[index] > minValue)
-        max_list = list(out.axes[index] < maxValue)
-        inRange = [min_list[i] and max_list[i] for i in range(len(min_list))]
-        #NOTE if no values in range, will cause issues
 
-        keep = [i for i, x in enumerate(inRange) if x]
-        out.data = np.take(out.data,keep,axis=index)
-        out.axes[index] = out.axes[index][keep]
+        '''
 
-        return out
+        self.data = data
+        self.axes = axes
+        self.axesLabels = axesLabels
+        self.params = params
 
-    def __copy__(self):
-        return deepcopy(self)
-    def copy(self):
-        return deepcopy(self)
+    def __len__(self):
+        return np.size(self.data)
+
+    def __mul__(self,data):
+        newData = deepcopy(self)
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            newData.data *= data
+        elif isinstance(data,np.ndarray):
+            newData.data = newData.data * data
+        elif isinstance(data,odnpData):
+            newData.data = newData.data * data.data
+        else:
+            print('Cannot add, type not supported:')
+            print(type(data))
+            return
+
+        return newData
 
     def __max__(self):
-        '''
+        ''' Return maximum value of numpy array
         '''
         #NOTE Not working
         out = deepcopy(self)
         out.data = np.max(out.data)
         return out
-    def __len__(self):
-        return np.size(self.data)
+
+    def __pow__(self,data):
+        newData = deepcopy(self)
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            newData.data = newData.data**data
+        elif isinstance(data,np.ndarray):
+            newData.data = newData.data**data
+        elif isinstance(data,odnpData):
+            newData.data = newData.data**data.data
+        else:
+            print('Cannot add, type not supported:')
+            print(type(data))
+            return
+        return newData
+
+    def __radd__(self,data):
+        return self.__add__(data)
+
+    def __repr__(self):
+        ''' Representation of odnpData object
+        '''
+        string = 'Data Shape:' + repr(np.shape(self.data)) + '\n'
+        string += 'Data Axes:' + repr(self.axesLabels) + '\n'
+        string += 'Parameters:\n'# + repr(self.params)
+        for key in self.params:
+            if key != '*proc*':
+                string += str(key) + ': ' + str(self.params[key]) + '\n'
+
+        if '*proc*' in self.params:
+            string += '*PROCESSING*\n'
+            ix = 1
+            for procStep in self.params['*proc*']:
+                procStep = procStep.split(':')
+                string += '%i.) '%ix + procStep[0] + ':\n'
+                line = procStep[1].strip('\n').split('\n')
+                for info in line:
+                    param_value = info.split(',')
+                    param = param_value[0]
+                    value = param_value[1]
+                    string += param + ', ' + value + '\n'
+                ix += 1
+        return string
+
+    def __rmul__(self,data):
+        return self.__mul__(data)
+
+    def __rsub__(self,data):
+        newData = deepcopy(self)
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            newData.data = data - newData.data
+        elif isinstance(data,np.ndarray):
+            newData.data = data - newData.data
+        elif isinstance(data,odnpData):
+            newData.data = data.data - newData.data
+        else:
+            print('Cannot add, type not supported:')
+            print(type(data))
+            return
+        return newData
 
     def __str__(self):
         ''' String representation of odnpData object
@@ -260,39 +222,154 @@ class odnpData:
                 ix += 1
         return string
 
-    def __repr__(self):
-        ''' Representation of odnpData object
+    def __sub__(self,data):
+        newData = deepcopy(self)
+        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+            newData.data -= data
+        elif isinstance(data,np.ndarray):
+            newData.data = newData.data - data
+        elif isinstance(data,odnpData):
+            newData.data = newData.data - data.data
+        else:
+            print('Cannot add, type not supported:')
+            print(type(data))
+            return
+        return newData
+        
+    def abs(self):
+        '''Return absolute value of data
         '''
-        string = 'Data Shape:' + repr(np.shape(self.data)) + '\n'
-        string += 'Data Axes:' + repr(self.axesLabels) + '\n'
-        string += 'Parameters:\n'# + repr(self.params)
-        for key in self.params:
-            if key != '*proc*':
-                string += str(key) + ': ' + str(self.params[key]) + '\n'
+        out = deepcopy(self)
+        out.data = np.abs(out.data)
+        return out
 
-        if '*proc*' in self.params:
-            string += '*PROCESSING*\n'
-            ix = 1
-            for procStep in self.params['*proc*']:
-                procStep = procStep.split(':')
-                string += '%i.) '%ix + procStep[0] + ':\n'
-                line = procStep[1].strip('\n').split('\n')
-                for info in line:
-                    param_value = info.split(',')
-                    param = param_value[0]
-                    value = param_value[1]
-                    string += param + ', ' + value + '\n'
-                ix += 1
-        return string
+    def addAxes(self,axesLabel,axesValue):
+        '''Add new axesLabel to odnpData object with ax
 
-    def sort(self):
-        '''Sort order of axes based on python list sorting for axes labels
+        This function increases the dimension of the odnpData object by 1 with the axesValue parameter giving the axes
 
+        Args:
+            axesLabel (str): Name of new axis
+            axesValue (float,int): Axes value for new dimension
         '''
-        ix_sort = sorted(range(len(self.axesLabels)), key = lambda k: self.axesLabels[k])
-        self.axes = [self.axes[ix] for ix in ix_sort]
-        self.axesLabels = [self.axesLabels[ix] for ix in ix_sort]
-        self.data = np.transpose(self.data,ix_sort)
+        if axesLabel in self.axesLabels:
+            index = self.axesLabels.index(axesLabel)
+            print('Axes %s already exists'%(str(axesLabel)))
+        elif type(axesLabel) != str:
+            index = axesLabel
+            print('Axes label must be a string')
+        else:
+            self.axesLabels.append(axesLabel)
+            self.axes.append(np.r_[axesValue])
+            self.data = np.expand_dims(self.data,-1)
+
+    def autophase(self,):
+        '''Automatically phase data
+        '''
+        p = self.phase()
+        self.data *= np.exp(-1j*p)
+        if np.sum(np.real(self.data)) < 0:
+            self.data *= -1.
+
+    def concatenateAlong(self,newData,axesLabel):
+        '''Concatenate new odnp data to original data along given axes label
+
+        Args:
+            newData (odnpData): data to be concatenated to odnp_data object
+            axesLabel (str): axis to concatenate down
+        '''
+        reorderLabels = self.axesLabels
+        
+        self.sort()
+        newData.sort()
+
+        if self.axesLabels != newData.axesLabels:
+#            print 'ERROR' # NOTE determine how error handling will work
+            return
+        index = self.axesLabels.index(axesLabel)
+
+        self.data = np.concatenate((self.data,newData.data),axis = index)
+        self.axes[index] = np.concatenate((self.axes[index],newData.axes[index]))
+
+        self.reorder(reorderLabels)
+
+    def copy(self):
+        return deepcopy(self)
+
+    def getAxes(self,axesLabel):
+        '''Return given axes of odnpData object
+
+        Args:
+            axes_label (str): Axes to retrieve
+        '''
+        index = self.axesLabels.index(axesLabel)
+        return self.axes[index]
+
+    def imag(self):
+        '''Return imaginary part of data
+        '''
+        out = deepcopy(self)
+        out.data = np.imag(out.data)
+        return out
+
+    def index(self,axesLabel):
+        '''Return index of given axes label
+
+        Args:
+            axesLabel (str): axis label to index
+        '''
+        return self.axesLabels.index(axesLabel)
+
+    def len(self,axesLabel):
+        '''Return length of given dimension
+
+        Args:
+            axes_label (str): Axis to return length
+
+        Example:
+        data.len('t')
+        '''
+        index = self.axesLabels.index(axesLabel)
+
+        return np.shape(self.data)[index]
+
+    def max(self):
+        '''Return maximum value of data
+        '''
+        out = deepcopy(self)
+        maxValue = np.max(out.data)
+        return maxValue
+
+    def phase(self,):
+        '''Return phase of odnpData object
+
+        Returns:
+            phase (float,int): phase of data calculated from sum of imaginary divided by sum of real components
+        '''
+        return np.arctan(np.sum(np.imag(self.data))/np.sum(np.real(self.data)))
+
+    def range(self,axesLabel,minValue,maxValue):
+
+        out = deepcopy(self)
+        index = self.axesLabels.index(axesLabel)
+
+        min_list = list(out.axes[index] > minValue)
+        max_list = list(out.axes[index] < maxValue)
+        inRange = [min_list[i] and max_list[i] for i in range(len(min_list))]
+        #NOTE if no values in range, will cause issues
+
+        keep = [i for i, x in enumerate(inRange) if x]
+        out.data = np.take(out.data,keep,axis=index)
+        out.axes[index] = out.axes[index][keep]
+
+        return out
+
+    def real(self):
+        '''Return real part of data
+        '''
+        out = deepcopy(self)
+        out.data = np.real(out.data)
+        return out
 
     def reorder(self,axesLabels):
         '''Reorder array given a list of axes labels
@@ -334,64 +411,16 @@ class odnpData:
         index = self.axesLabels.index(oldLabel)
         self.axesLabels[index] = newLabel
 
-    def addAxes(self,axesLabel,axesValue):
-        '''Add new axesLabel to odnpData object with ax
+    def sort(self):
+        '''Sort order of axes based on python list sorting for axes labels
 
-        This function increases the dimension of the odnpData object by 1 with the axesValue parameter giving the axes
-
-        Args:
-            axesLabel (str): Name of new axis
-            axesValue (float,int): Axes value for new dimension
         '''
-        if axesLabel in self.axesLabels:
-            index = self.axesLabels.index(axesLabel)
-            print('Axes %s already exists'%(str(axesLabel)))
-        elif type(axesLabel) != str:
-            index = axesLabel
-            print('Axes label must be a string')
-        else:
-            self.axesLabels.append(axesLabel)
-            self.axes.append(np.r_[axesValue])
-            self.data = np.expand_dims(self.data,-1)
+        ix_sort = sorted(range(len(self.axesLabels)), key = lambda k: self.axesLabels[k])
+        self.axes = [self.axes[ix] for ix in ix_sort]
+        self.axesLabels = [self.axesLabels[ix] for ix in ix_sort]
+        self.data = np.transpose(self.data,ix_sort)
 
-    def getAxes(self,axesLabel):
-        '''Return given axes of odnpData object
 
-        Args:
-            axes_label (str): Axes to retrieve
-        '''
-        index = self.axesLabels.index(axesLabel)
-        return self.axes[index]
-
-    def index(self,axesLabel):
-        '''Return index of given axes label
-
-        Args:
-            axesLabel (str): axis label to index
-        '''
-        return self.axesLabels.index(axesLabel)
-
-    def concatenateAlong(self,newData,axesLabel):
-        '''Concatenate new odnp data to original data along given axes label
-
-        Args:
-            newData (odnpData): data to be concatenated to odnp_data object
-            axesLabel (str): axis to concatenate down
-        '''
-        reorderLabels = self.axesLabels
-        
-        self.sort()
-        newData.sort()
-
-        if self.axesLabels != newData.axesLabels:
-#            print 'ERROR' # NOTE determine how error handling will work
-            return
-        index = self.axesLabels.index(axesLabel)
-
-        self.data = np.concatenate((self.data,newData.data),axis = index)
-        self.axes[index] = np.concatenate((self.axes[index],newData.axes[index]))
-
-        self.reorder(reorderLabels)
 
 #    def plot(self,axes_label,*args,**kwargs):
 #        '''
@@ -458,34 +487,7 @@ class odnpData:
         removedAxesLabel = self.axesLabels.pop(index)
         removedAxes = self.axes.pop(index)
 
-    def autophase(self,):
-        '''Automatically phase data
-        '''
-        p = self.phase()
-        self.data *= np.exp(-1j*p)
-        if np.sum(np.real(self.data)) < 0:
-            self.data *= -1.
 
-    def phase(self,):
-        '''Return phase of odnpData object
-
-        Returns:
-            phase (float,int): phase of data calculated from sum of imaginary divided by sum of real components
-        '''
-        return np.arctan(np.sum(np.imag(self.data))/np.sum(np.real(self.data)))
-
-    def len(self,axesLabel):
-        '''Return length of given dimension
-
-        Args:
-            axes_label (str): Axis to return length
-
-        Example:
-        data.len('t')
-        '''
-        index = self.axesLabels.index(axesLabel)
-
-        return np.shape(self.data)[index]
 
 
 
