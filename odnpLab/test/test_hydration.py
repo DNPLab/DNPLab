@@ -9,136 +9,231 @@ from odnpLab.hydration import HydrationCalculator, HydrationParameter
 
 class TestHydration(unittest.TestCase):
     def setUp(self):
-        self.T1p = np.array([2.0850606305680700
-        ,2.1588239679329700
-        ,2.246270535391770
-        ,2.3131083281827900
-        ,2.361693123732750])
-        self.T1_powers = np.array([0.0005813884968087980
-        ,0.023929259151532000
-        ,0.05364586645098500
-        ,0.08510236988564890
-        ,0.11448695555368400])
-        self.Ep = np.array([0.5244962257098100
-        ,-1.0460060878468600
-        ,-1.1923729834996700
-        ,-2.0283543307318300
-        ,-2.5623585026035300
-        ,-3.1083332432507900
-        ,-3.2258438385993300
-        ,-3.347961336229490
-        ,-3.67138811609969
-        ,-3.7817316135687500
-        ,-4.032510453619460
-        ,-4.2417758835183300
-        ,-4.552046251816710
-        ,-4.733158273060310
-        ,-4.777088808443740
-        ,-4.8489491678359600
-        ,-5.024100136084710
-        ,-5.324997995063750
-        ,-5.51186544738343
-        ,-5.807764442039210
-        ,-5.9835905676571500])
-        self.E_powers = np.array([0.0006370105281515720
-        ,0.004214559147178920
-        ,0.004652040210109040
-        ,0.008966203931561900
-        ,0.013256981804212100
-        ,0.018721615363004000
-        ,0.02068371710482890
-        ,0.022057273192711100
-        ,0.025735671896052500
-        ,0.028814716528459300
-        ,0.03343506130920710
-        ,0.03775305788018570
-        ,0.04682777569441930
-        ,0.052001376894013300
-        ,0.05321444208836340
-        ,0.05628331436209730
-        ,0.06358027888841540
-        ,0.07825239654597910
-        ,0.08867115988141430
-        ,0.1042006843923840
-        ,0.11448695555368400])
+        self.T1p = np.array([2.020153734009,
+        2.276836030132750,
+        2.3708172489377400,
+        2.4428968088189100,
+        2.5709096032675700])
+        self.T1_powers = np.array([0.000589495934876689,
+        0.024242327290569100,
+        0.054429505156431400,
+        0.0862844940360515,
+        0.11617812912435900])
+        self.Ep = np.array([0.57794113752189,
+        -0.4688718613022250,
+        -0.5464528159680670,
+        -1.0725090541762200,
+        -1.4141203961920700,
+        -1.695789643686440,
+        -1.771840068080760,
+        -1.8420812985152700,
+        -1.97571340381877,
+        -2.091405209753480,
+        -2.1860546327712800,
+        -2.280712535872610,
+        -2.4709892163826400,
+        -2.5184316153191200,
+        -2.556110148443770,
+        -2.576413132701720,
+        -2.675593912859120,
+        -2.8153300703866400,
+        -2.897475156648710,
+        -3.0042154567120800,
+        -3.087886507216510])
+        self.E_powers = np.array([0.0006454923080882520,
+        0.004277023425898170,
+        0.004719543572446050,
+        0.00909714298712173,
+        0.01344187403986090,
+        0.01896059941058610,
+        0.02101937603827090,
+        0.022335737104727900,
+        0.026029715703921800,
+        0.02917012237740640,
+        0.0338523245243911,
+        0.03820738749745440,
+        0.04733370907740660,
+        0.05269608016472140,
+        0.053790874615060400,
+        0.05697639350179900,
+        0.06435487925718170,
+        0.07909179437004270,
+        0.08958910066880800,
+        0.1051813598911370,
+        0.11617812912435900])
 
         hp = HydrationParameter()
         hp.field = 348.5
-        hp.slC = 125e-6
+        hp.spin_C = 125
         hp.T100 = 2.0
         hp.T10 = 1.5
         self.hp = hp
         self.hc = HydrationCalculator(T1=self.T1p, T1_power=self.T1_powers,
                                  E=self.Ep, E_power=self.E_powers,
                                  hp=hp)
-
-    def test_interpT1_linear_almost_1p99(self):
-        self.hc.hp.t1InterpMethod = 'linear'
+    
+    def test_tethered_2ord(self):
+        self.hc.hp.smax_model = 'tethered'
+        self.hc.hp.t1_interp_method = 'second_order'
         self.hc.run()
-        self.assertAlmostEqual(self.hc.results.T1interp[0], 2.097, places=3)
-
-    def test_interpT1_2ord_almost_1p99(self):
-        self.hc.hp.t1InterpMethod = '2ord'
+    def test_tethered_linear(self):
+        self.hc.hp.smax_model = 'tethered'
+        self.hc.hp.t1_interp_method = 'linear'
         self.hc.run()
-        self.assertAlmostEqual(self.hc.results.T1interp[0], 2.085, places=3)
-
-    def _run_2ord(self):
-        self.hc.hp.smaxMod = 'tethered'
-        self.hc.hp.t1InterpMethod = '2ord'
+    def test_2ord_free(self):
+        self.hc.hp.t1_interp_method = 'second_order'
+        self.hc.hp.smax_model = 'free'
         self.hc.run()
-        
-    def _run_linear(self):
-        self.hc.hp.smaxMod = 'tethered'
-        self.hc.hp.t1InterpMethod = 'linear'
+    def test_linear_free(self):
+        self.hc.hp.smax_model = 'free'
+        self.hc.hp.t1_interp_method = 'linear'
         self.hc.run()
     
+    def _run_tethered_2ord(self):
+        self.hc.hp.smax_model = 'tethered'
+        self.hc.hp.t1_interp_method = 'second_order'
+        self.hc.run()
+        
+    def _run_tethered_linear(self):
+        self.hc.hp.smax_model = 'tethered'
+        self.hc.hp.t1_interp_method = 'linear'
+        self.hc.run()
+    
+    def _run_free_2ord(self):
+        self.hc.hp.smax_model = 'free'
+        self.hc.hp.t1_interp_method = 'second_order'
+        self.hc.run()
+        
+    def _run_free_linear(self):
+        self.hc.hp.smax_model = 'free'
+        self.hc.hp.t1_interp_method = 'linear'
+        self.hc.run()
+        
+    def test_interpT1_linear_tethered(self):
+        self._run_tethered_linear()
+        self.assertAlmostEqual(self.hc.results.interpolated_T1[0], 2.0959, places=4)
+        self.assertAlmostEqual(self.hc.results.interpolated_T1[len(self.hc.results.interpolated_T1)-1], 2.5802, places=4)
+
+    def test_interpT1_2ord_tethered(self):
+        self._run_tethered_2ord()
+        self.assertAlmostEqual(self.hc.results.interpolated_T1[0], 2.0517, places=4)
+        self.assertAlmostEqual(self.hc.results.interpolated_T1[len(self.hc.results.interpolated_T1)-1], 2.5383, places=4)
+        
+    def test_interpT1_linear_free(self):
+        self._run_free_linear()
+        self.assertAlmostEqual(self.hc.results.interpolated_T1[0], 2.0959, places=4)
+        self.assertAlmostEqual(self.hc.results.interpolated_T1[len(self.hc.results.interpolated_T1)-1], 2.5802, places=4)
+
+    def test_interpT1_2ord_free(self):
+        self._run_free_2ord()
+        self.assertAlmostEqual(self.hc.results.interpolated_T1[0], 2.0517, places=4)
+        self.assertAlmostEqual(self.hc.results.interpolated_T1[len(self.hc.results.interpolated_T1)-1], 2.5383, places=4)
+    
+    #tethered
     def test_2ord_krho(self):
-        self._run_2ord()
+        self._run_2ord_tethered()
         self.assertAlmostEqual(self.hc.results.k_rho, 1333.33, places=2)
     
     def test_2ord_ksigma(self):
-        self._run_2ord()
-        self.assertAlmostEqual(self.hc.results.k_sigma, 38.04, places=2)
+        self._run_2ord_tethered()
+        self.assertAlmostEqual(self.hc.results.k_sigma, 20.18, places=2)
+        self.assertAlmostEqual(self.hc.results.k_sigma_array[0], 2.50, places=2)
+        self.assertAlmostEqual(self.hc.results.k_sigma_array[len(self.hc.results.k_sigma_array)-1], 19.57, places=2)
     
-    def test_2ord_ksi(self):
-        self._run_2ord()
-        self.assertAlmostEqual(self.hc.results.ksi, 0.0285, places=4)
-
+    def test_2ord_xi(self):
+        self._run_2ord_tethered()
+        self.assertAlmostEqual(self.hc.results.coupling_factor, 0.0151, places=4)
+    
     def test_2ord_klow(self):
-        self._run_2ord()
-        self.assertAlmostEqual(self.hc.results.k_low, 2133.46, places=2)
+        self._run_2ord_tethered()
+        self.assertAlmostEqual(self.hc.results.k_low, 2175.14, places=2)
 
     def test_2ord_tcorr(self):
-        self._run_2ord()
-        self.assertAlmostEqual(self.hc.results.tcorr, 448.97, places=2)
+        self._run_2ord_tethered()
+        self.assertAlmostEqual(self.hc.results.tcorr, 667.63, places=2)
 
     def test_2ord_Dlocal(self):
-        self._run_2ord()
-        self.assertAlmostEqual(self.hc.results.dLocal, 3.26e-10, places=12)
+        self._run_2ord_tethered()
+        self.assertAlmostEqual(self.hc.results.d_local, 2.19e-10, places=12)
         
     def test_linear_krho(self):
-        self._run_linear()
+        self._run_tethered_linear()
         self.assertAlmostEqual(self.hc.results.k_rho, 1333.33, places=2)
     
     def test_linear_ksigma(self):
-        self._run_linear()
-        self.assertAlmostEqual(self.hc.results.k_sigma, 38.20, places=2)
+        self._run_tethered_linear()
+        self.assertAlmostEqual(self.hc.results.k_sigma, 20.48, places=2)
+        self.assertAlmostEqual(self.hc.results.k_sigma_array[0], 2.45, places=2)
+        self.assertAlmostEqual(self.hc.results.k_sigma_array[len(self.hc.results.k_sigma_array)-1], 19.26, places=2)
     
-    def test_linear_ksi(self):
-        self._run_linear()
-        self.assertAlmostEqual(self.hc.results.ksi, 0.0286, places=4)
+    def test_linear_xi(self):
+        self._run_tethered_linear()
+        self.assertAlmostEqual(self.hc.results.coupling_factor, 0.0154, places=4)
 
     def test_linear_klow(self):
-        self._run_linear()
-        self.assertAlmostEqual(self.hc.results.k_low, 2133.09, places=2)
+        self._run_tethered_linear()
+        self.assertAlmostEqual(self.hc.results.k_low, 2174.44, places=2)
 
     def test_linear_tcorr(self):
-        self._run_linear()
-        self.assertAlmostEqual(self.hc.results.tcorr, 447.77, places=2)
+        self._run_tethered_linear()
+        self.assertAlmostEqual(self.hc.results.tcorr, 661.67, places=2)
 
     def test_linear_Dlocal(self):
-        self._run_linear()
-        self.assertAlmostEqual(self.hc.results.dLocal, 3.27e-10, places=12)
+        self._run_tethered_linear()
+        self.assertAlmostEqual(self.hc.results.d_local, 2.21e-10, places=12)
+        
+    # free
+    def test_2ord_krho(self):
+        self._run_free_2ord()
+        self.assertAlmostEqual(self.hc.results.k_rho, 1333.33, places=2)
+    
+    def test_2ord_ksigma(self):
+        self._run_free_2ord()
+        self.assertAlmostEqual(self.hc.results.k_sigma, 57.74, places=2)
+        self.assertAlmostEqual(self.hc.results.k_sigma_array[0], 2.50, places=2)
+        self.assertAlmostEqual(self.hc.results.k_sigma_array[len(self.hc.results.k_sigma_array)-1], 19.57, places=2)
+    
+    def test_2ord_xi(self):
+        self._run_free_2ord()
+        self.assertAlmostEqual(self.hc.results.coupling_factor, 0.0433, places=4)
+
+    def test_2ord_klow(self):
+        self._run_free_2ord()
+        self.assertAlmostEqual(self.hc.results.k_low, 2087.51, places=2)
+
+    def test_2ord_tcorr(self):
+        self._run_free_2ord()
+        self.assertAlmostEqual(self.hc.results.tcorr, 340.24, places=2)
+
+    def test_2ord_Dlocal(self):
+        self._run_free_2ord()
+        self.assertAlmostEqual(self.hc.results.d_local, 4.30e-10, places=12)
+        
+    def test_linear_krho(self):
+        self._run_free_linear()
+        self.assertAlmostEqual(self.hc.results.k_rho, 1333.33, places=2)
+    
+    def test_linear_ksigma(self):
+        self._run_free_linear()
+        self.assertAlmostEqual(self.hc.results.k_sigma, 58.59, places=2)
+        self.assertAlmostEqual(self.hc.results.k_sigma_array[0], 2.45, places=2)
+        self.assertAlmostEqual(self.hc.results.k_sigma_array[len(self.hc.results.k_sigma_array)-1], 19.26, places=2)
+    
+    def test_linear_xi(self):
+        self._run_free_linear()
+        self.assertAlmostEqual(self.hc.results.coupling_factor, 0.0439, places=4)
+
+    def test_linear_klow(self):
+        self._run_free_linear()
+        self.assertAlmostEqual(self.hc.results.k_low, 2085.51, places=2)
+
+    def test_linear_tcorr(self):
+        self._run_free_linear()
+        self.assertAlmostEqual(self.hc.results.tcorr, 336.81, places=2)
+
+    def test_linear_Dlocal(self):
+        self._run_free_linear()
+        self.assertAlmostEqual(self.hc.results.d_local, 4.34e-10, places=12)
 
 if __name__ == '__main__':
     unittest.main()
