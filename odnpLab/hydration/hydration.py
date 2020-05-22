@@ -95,11 +95,15 @@ class HydrationParameter(Parameter):
     def __getitem__(self, key):
         if key in ['smax_model']:
             return self.smax_model
+        elif key in ['t1_interp_method']:
+            return self.t1_interp_method
         return self.__dict__[key]
 
     def __setitem__(self, key, value):
         if key in ['smax_model']:
             self.smax_model = value
+        elif key in ['t1_interp_method']:
+            self.t1_interp_method = value
         else:
             self.__dict__[key] = value
     
