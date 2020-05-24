@@ -1,0 +1,18 @@
+##TITLE= Audit trail, TOPSPIN		Version 1.3
+##JCAMPDX= 5.01
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= ccheng
+$$ C:/Bruker/TOPSPIN/data/rBarnes/nmr/170619_10mM4OHT_H20_StandardProbe_ODNP/4/audita.txt
+##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, VERSION, WHAT)
+(   1,<2017-06-19 11:43:54.593 -0700>,<ccheng>,<EPR1>,<TOPSPIN 1.3>,
+      <created by zg
+	started at 2017-06-19 11:43:22.328 -0700,
+	POWCHK disabled, PULCHK disabled
+       configuration hash MD5:
+       D9 F1 5D 64 2C 45 2E 5B 87 82 1F 12 B5 66 1A 3A
+       data hash MD5: 15966 * 5
+       99 7B F8 94 FC 24 6E 7E D6 F5 6A 27 DE B2 19 1C>)
+##END=
+
+$$ hash MD5
+$$ 05 A2 BB AB 54 FF 05 F6 5F C7 7D FB D6 FC 0A 21

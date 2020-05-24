@@ -1,0 +1,23 @@
+##TITLE= Parameter file, TOPSPIN		Version 1.3
+##JCAMPDX= 5.0
+##DATATYPE= Parameter Values
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= training
+$$ 2017-06-19 11:43:22.250 -0700  ccheng@EPR1
+$$ C:/Bruker/TOPSPIN/data/rBarnes/nmr/170619_10mM4OHT_H20_StandardProbe_ODNP/4/scon
+##$BLKPA= (0..15)
+3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+##$BLKTR= (0..15)
+3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+##$DE1= 3
+##$DE2= 3
+##$DEADC= 5
+##$DEPA= 0.5
+##$DERX= 4
+##$PHASP4= (0..15)
+0.5 0.35 0.35 0.35 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 
+##$PHASPR= (0..15)
+3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+##$SHAPPR= (0..15)
+1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 
+##END=

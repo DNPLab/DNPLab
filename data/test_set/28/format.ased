@@ -1,0 +1,136 @@
+EDIT_PAR COMMAND FILE
+
+DI_MODE         LONG
+ED_ENTRY        ACQU
+ORDER           FILE
+
+
+HEADER		"F2 - Acquisition Parameters"
+NAME		PULPROG
+		EXTFUNCT "lists/pp"
+END
+NAME		TD
+END
+NAME		NS
+END
+NAME		DS
+END
+T_NAME		SWH
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"SWH=SW*SFO1"
+		INV_REL "SW=SWH/SFO1"
+		UNIT	"Hz"
+		FORMAT	"%14.2f Hz"
+		TEXT	"sweep width in Hz"
+END
+T_NAME          AQ
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"AQ=aqcalc(SW,SFO1,TD,DIGTYP)"
+		INV_REL	"TD=tdcalc(SW,SFO1,1.0e6*AQ,DIGTYP)"
+		UNIT	"sec"
+		FORMAT	"%14.7f sec"
+                TEXT	"acquisition time"
+END
+NAME		RG
+END
+T_NAME          DW
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"DW=1/(2*SW*SFO1)"
+		INV_REL	"SW=1000000/(2*(0.005+DW)*SFO1)"
+		UNIT	"usec"
+		FORMAT	"%14.3f usec"
+		TEXT	"dwell time "
+END
+NAME		DE
+		FORMAT	"%14.2f usec"
+END
+T_NAME		D1
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"D1=D[1]"
+		INV_REL	"D[1]=D1"
+		UNIT	"sec"
+		FORMAT	"%14.8f sec"
+		TEXT	"delay 1"
+END
+T_NAME		d3 
+		TYPE	R32
+		SUBRANGE 0.0 1e8
+		CLASS	ACQU
+		REL	"d3 = d1 - aq"
+		INV_REL	"D[0]=d3 "
+		UNIT	"sec"
+		TEXT	"d3 = d1 - aq"
+		FORMAT	"%14.8f sec"
+		NONEDIT
+END
+T_NAME		D11
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"D11=D[11]"
+		INV_REL	"D[11]=D11"
+		UNIT	"sec"
+		FORMAT	"%14.8f sec"
+		TEXT	"delay 11"
+END
+T_NAME		L21
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1e38
+		REL	"L21=L[21]"
+		INV_REL	"L[21]=L21"
+		FORMAT	"%14.0f"
+		TEXT	"loop counter 21"
+END
+T_NAME		l22 
+		TYPE	I32
+		SUBRANGE 0 2147483647
+		CLASS	ACQU
+		REL	"l22 = td1 / l21"
+		INV_REL	"D[0]=l22 "
+		UNIT	"no"
+		TEXT	"l22 = td1 / l21"
+		FORMAT	"%14d"
+		NONEDIT
+END
+NAME		VDLIST
+		TEXT	"variable delay list"
+		EXTFUNCT "lists/vd"
+END
+HEADER		"======== CHANNEL f1 ========"
+NAME		NUC1
+		NONEDIT
+		TEXT	"nucleus for channel 1"
+END
+T_NAME		P1
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE 0.0 1.0e10
+		REL	"P1=P[1]"
+		INV_REL	"P[1]=P1"
+		UNIT	"usec"
+		FORMAT	"%14.2f usec"
+		TEXT	"pulse 1"
+END
+T_NAME		PL1
+		TYPE	R32
+		CLASS	ACQU
+		SUBRANGE -6.0 1e38
+		REL	"PL1=PL[1]"
+		INV_REL	"PL[1]=PL1"
+		UNIT	"dB"
+		FORMAT	"%14.2f dB"
+		TEXT	"power Pl1 "
+END
+NAME		SFO1
+		FORMAT	"%14.7f MHz"
+		TEXT	"frequency of observe channel"
+END

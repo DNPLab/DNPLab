@@ -1,0 +1,15 @@
+##TITLE= Parameter file, TOPSPIN		Version 1.3
+##JCAMPDX= 5.0
+##DATATYPE= Parameter Values
+##ORIGIN= UXNMR, Bruker Analytische Messtechnik GmbH
+##OWNER= root
+$$ 2009-10-06 10:20:58.201 -0700  training@NMR200SB
+$$ C:/Bruker/TOPSPIN/data/training/nmr/1H_EB_train_100609/1/pdata/1//outd
+##$CURPLOT= <NMR-lj1200>
+##$CURPRIN= <$noprint>
+##$DFORMAT= <normdp>
+##$LAYOUT= <+/1D_H.xwp>
+##$LFORMAT= <normlp>
+##$PFORMAT= <normpl>
+##$SURQMSG= 1
+##END=
