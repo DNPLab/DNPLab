@@ -4,7 +4,7 @@ import odnpLab.odnpImport.bruker as bruker
 
 class ODNPImportBrukerTester(unittest.TestCase):
     def setUp(self):
-        self.testdata = './data/20190821_TW_4OH-TEMPO_500uM/'
+        self.testdata = './data/test_set/'
 
     def test_dirDataType(self):
         self.assertEqual('fid', bruker.dirDataType(self.testdata, expNum=1))
