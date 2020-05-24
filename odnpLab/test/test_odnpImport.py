@@ -2,7 +2,7 @@ import unittest
 import odnpLab.odnpImport.bruker as bruker
 
 
-class ODNPImportBrukerTester(unittest.TestCase):
+class ImportBrukerTester(unittest.TestCase):
     def setUp(self):
         self.testdata = './data/test_set/'
 
@@ -41,6 +41,28 @@ class ODNPImportBrukerTester(unittest.TestCase):
         self.assertEqual('ser', bruker.dirDataType(self.testdata, expNum=32))
         self.assertEqual('',    bruker.dirDataType(self.testdata, expNum=33))
 
-    def test_bruker_import(self):
+    def test_importBruker_exp1_is_fid(self):
         data = bruker.importBruker(self.testdata, expNum=1)
-        print(data)
+        self.assertEqual(data.axesLabels[0], 't')
+        self.assertEqual(data.data.size, 8147)
+        self.assertAlmostEqual(data.data.min(), -5-4.168734491315137j)
+        self.assertAlmostEqual(data.params['nmrFreq'], 14831413.270000001)
+
+    def test_importBruker_exp5_is_2d_phcyc(self):
+        data = bruker.importBruker(self.testdata, expNum=5)
+        self.assertEqual(data.data.shape[0], 11912)
+        self.assertEqual(data.axesLabels, ['t'])
+        self.assertAlmostEqual(data.params['nmrFreq'], 14831413.270000001)
+        self.assertAlmostEqual(data.data[365], -0.182861328125-0.71875j)
+
+    def test_importBruker_exp28_is_2d(self):
+        data = bruker.importBruker(self.testdata, expNum=28)
+        self.assertEqual(data.data.shape, (7922, 8))
+        self.assertEqual(data.axesLabels, ['t', 't1'])
+        self.assertAlmostEqual(data.params['nmrFreq'], 14831413.270000001)
+        self.assertAlmostEqual(data.data[365, 6], -0.110595703125+0.47705078125j)
+
+
+if __name__ == '__main__':
+    unittest.main()
+    pass
