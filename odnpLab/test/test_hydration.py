@@ -72,23 +72,6 @@ class TestHydration(unittest.TestCase):
                                  E=self.Ep, E_power=self.E_powers,
                                  hp=hp)
     
-    def test_tethered_2ord(self):
-        self.hc.hp.smax_model = 'tethered'
-        self.hc.hp.t1_interp_method = 'second_order'
-        self.hc.run()
-    def test_tethered_linear(self):
-        self.hc.hp.smax_model = 'tethered'
-        self.hc.hp.t1_interp_method = 'linear'
-        self.hc.run()
-    def test_2ord_free(self):
-        self.hc.hp.t1_interp_method = 'second_order'
-        self.hc.hp.smax_model = 'free'
-        self.hc.run()
-    def test_linear_free(self):
-        self.hc.hp.smax_model = 'free'
-        self.hc.hp.t1_interp_method = 'linear'
-        self.hc.run()
-    
     def _run_tethered_2ord(self):
         self.hc.hp.smax_model = 'tethered'
         self.hc.hp.t1_interp_method = 'second_order'
