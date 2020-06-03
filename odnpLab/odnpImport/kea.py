@@ -4,6 +4,17 @@ from struct import unpack
 
 
 def importKea(path,filename = '',num = 1 ,verbose = False):
+    '''Import Kea data
+
+    Args:
+        path (str): Directory of data
+        filename (str): Filename of data
+        num (int): Experiment number
+        verbose (bool): If true, prints additional information for troubleshooting
+    
+    Returns:
+        odnpData object with Kea data
+    '''
     params_dict = {}
     try:
         with open(path + filename + '/%i/'%num + 'acqu.par','r') as f:
@@ -39,8 +50,7 @@ def importKea(path,filename = '',num = 1 ,verbose = False):
     return data
 
 def importEmx(path,filename = ''):
-    '''
-    Load EMX data
+    '''Load EMX data
     '''
 
     if path[-1] != '\\' and path[-1] != '/':
@@ -87,6 +97,12 @@ def importEmx(path,filename = ''):
 
 def importd01(filename):
     '''Import Prospa Binary Format
+
+    Args:
+        filename: Path to data
+
+    Returns:
+        numpy.ndarray: binary data
     '''
 
     headerSize = 32
