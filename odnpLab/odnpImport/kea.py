@@ -2,6 +2,7 @@
 #from odnpData import odnpData
 from .. import odnpData
 import numpy as np
+import os
 
 
 def importKea(path, expNum=1, verbose=False):
@@ -18,10 +19,8 @@ def importKea(path, expNum=1, verbose=False):
     """
     params_dict = {}
     try:
-        with open(path + filename + '/%i/' % expNum + 'acqu.par', 'r') as f:
-            #TODO: use os.path.join for both windows and mac?
+        with open(os.path.join(str(path), str(expNum), 'acqu.par'), 'r') as f:
             raw_params = f.read()
-
 
         raw_params = raw_params.strip().split('\n')
         for line in raw_params:
@@ -39,8 +38,7 @@ def importKea(path, expNum=1, verbose=False):
     except:
         pass
 
-    raw_data = np.loadtxt(path + filename + '/%i/' % expNum + 'data.csv', delimiter =',')
-    # TODO: os.path.join?
+    raw_data = np.loadtxt(os.path.join(str(path), str(expNum), 'data.csv'), delimiter =',')
 
     t = raw_data[:,0]
     t = t / 1.e6 # convert from us to s
@@ -51,6 +49,7 @@ def importKea(path, expNum=1, verbose=False):
     data = odnpData(temp_data,[t],['t'],params_dict)
 #    data.kea_params = params_dict
     return data
+
 
 def importEmx(path,filename = ''):
     '''

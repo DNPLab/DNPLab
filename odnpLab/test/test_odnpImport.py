@@ -65,10 +65,20 @@ class ImportBrukerTester(unittest.TestCase):
 
 
 class KEAImportTester(unittest.TestCase):
-    def setup(self):
+    def setUp(self):
         self.test_data = './data/kea/toluene_10mM_Tempone'
-    def test_importKEA(self):
-        data = kea.importKea(self.test_data)
+
+    def test_importKEA_exp_is_1d(self):
+        datas = [kea.importKea(self.test_data, expNum=expNum) \
+                 for expNum in[1, 21, 42]]
+        for i, data in enumerate(datas):
+            self.assertEqual(data.data.shape, (16384, ))
+            self.assertEqual(data.axesLabels, ['t'])
+            self.assertAlmostEqual(data.params['nmrFreq'], 14244500.0)
+        self.assertAlmostEqual(datas[0].data[365], -0.217937-0.24907j)
+        self.assertAlmostEqual(datas[1].data[365], 0.0400292+0.0756107j)
+        self.assertAlmostEqual(datas[2].data[365], 1.09858+2.57966j)
+
 
 if __name__ == '__main__':
     unittest.main()
