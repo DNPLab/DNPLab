@@ -39,14 +39,14 @@ class TestAttrDict(TestCase):
     def test_get_item(self):
         my_dict = AttrDict()
         my_dict.test = 123
-        self.assertEquals(my_dict.test, 123)
-        self.assertEquals(my_dict['test'], 123)
+        self.assertEqual(my_dict.test, 123)
+        self.assertEqual(my_dict['test'], 123)
 
     def test_set_item(self):
         my_dict = AttrDict()
         my_dict['test'] = 123
-        self.assertEquals(my_dict['test'], 123)
-        self.assertEquals(my_dict.test, 123)
+        self.assertEqual(my_dict['test'], 123)
+        self.assertEqual(my_dict.test, 123)
 
     def test_del_attr(self):
         my_dict = AttrDict()
@@ -69,13 +69,13 @@ class TestAttrDict(TestCase):
         my_dict = AttrDict()
         my_dict['test'] = 123
         my_dict.python = 42
-        self.assertEquals(len(my_dict), 2)
+        self.assertEqual(len(my_dict), 2)
 
     def test_repr(self):
         my_dict = AttrDict()
         my_dict['test'] = 123
         my_dict.python = 42
-        self.assertEquals(repr(my_dict), "{'test': 123, 'python': 42}")
+        self.assertEqual(repr(my_dict), "{'test': 123, 'python': 42}")
 
     def test_equal(self):
         my_dict = AttrDict({'test': 123})
