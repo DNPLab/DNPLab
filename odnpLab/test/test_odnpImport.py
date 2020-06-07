@@ -1,5 +1,6 @@
 import unittest
 import odnpLab.odnpImport.bruker as bruker
+import odnpLab.odnpImport.kea as kea
 
 
 class ImportBrukerTester(unittest.TestCase):
@@ -62,6 +63,12 @@ class ImportBrukerTester(unittest.TestCase):
         self.assertAlmostEqual(data.params['nmrFreq'], 14831413.270000001)
         self.assertAlmostEqual(data.data[365, 6], -0.110595703125+0.47705078125j)
 
+
+class KEAImportTester(unittest.TestCase):
+    def setup(self):
+        self.test_data = './data/kea/toluene_10mM_Tempone'
+    def test_importKEA(self):
+        data = kea.importKea(self.test_data)
 
 if __name__ == '__main__':
     unittest.main()

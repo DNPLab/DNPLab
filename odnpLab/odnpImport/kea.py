@@ -4,10 +4,22 @@ from .. import odnpData
 import numpy as np
 
 
-def importKea(path,filename = '',num = 1 ,verbose = False):
+def importKea(path, expNum=1, verbose=False):
+    """TODO:
+
+    Args:
+        path(str): path to experiment folder
+        expNum(int): experiment number
+        verbose(bool): whether berbose or not
+
+    Returns:
+        odnpData: data
+
+    """
     params_dict = {}
     try:
-        with open(path + filename + '/%i/'%num + 'acqu.par','r') as f:
+        with open(path + filename + '/%i/' % expNum + 'acqu.par', 'r') as f:
+            #TODO: use os.path.join for both windows and mac?
             raw_params = f.read()
 
 
@@ -27,7 +39,8 @@ def importKea(path,filename = '',num = 1 ,verbose = False):
     except:
         pass
 
-    raw_data = np.loadtxt(path + filename + '/%i/'%num + 'data.csv', delimiter = ',')
+    raw_data = np.loadtxt(path + filename + '/%i/' % expNum + 'data.csv', delimiter =',')
+    # TODO: os.path.join?
 
     t = raw_data[:,0]
     t = t / 1.e6 # convert from us to s
