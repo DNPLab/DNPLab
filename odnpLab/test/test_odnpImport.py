@@ -1,6 +1,7 @@
 import unittest
 import odnpLab.odnpImport.bruker as bruker
 import odnpLab.odnpImport.kea as kea
+import odnpLab.odnpImport.varian as varian
 
 
 class ImportBrukerTester(unittest.TestCase):
@@ -78,6 +79,34 @@ class KEAImportTester(unittest.TestCase):
         self.assertAlmostEqual(datas[0].data[365], -0.217937-0.24907j)
         self.assertAlmostEqual(datas[1].data[365], 0.0400292+0.0756107j)
         self.assertAlmostEqual(datas[2].data[365], 1.09858+2.57966j)
+
+
+class VNMRJImportTester(unittest.TestCase):
+    def setUp(self):
+        self.test_data2Ds = ['./data/vnmrj/'+s for s in [
+            '10mM_tempol_in_water_array.fid'
+        ]]
+        self.test_data1Ds = ['./data/vnmrj/' + s for s in [
+            '10mM_tempol_in_water_mw_40dBm.fid',
+            '10mM_tempol_in_water_mw_off.fid'
+        ]]
+
+    def test_importVNMRJ1D(self):
+        datas = [varian.importVarian(path=path) for path in self.test_data1Ds]
+        for i, data in enumerate(datas):
+            self.assertEqual(data.data.shape, (131072, ))
+            self.assertEqual(data.axesLabels, ['t', ])
+            self.assertAlmostEqual(data.params['nmrFreq'], 14244283.4231)
+        self.assertAlmostEqual(datas[0].data[365], (-20378767-2734659j))
+        self.assertAlmostEqual(datas[1].data[365], (-950662+138458j))
+
+    def test_importVNMRJ2D(self):
+        datas = [varian.importVarian(path=path) for path in self.test_data2Ds]
+        for i, data in enumerate(datas):
+            self.assertEqual(data.data.shape, (131072, 5))
+            self.assertEqual(data.axesLabels, ['t', 'x'])
+            self.assertAlmostEqual(data.params['nmrFreq'], 14244283.4231)
+        self.assertAlmostEqual(datas[0].data[365, 3], (-1263136+1063328.5j))
 
 
 if __name__ == '__main__':

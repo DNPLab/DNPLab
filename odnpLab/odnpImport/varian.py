@@ -1,4 +1,5 @@
 import numpy as _np
+import os
 
 from .. import odnpData as _odnpData
 
@@ -12,7 +13,7 @@ blockHeader_fmt = '>hhhhlffff'
 
 
 def importfid(path,filename):
-    with open(path + filename,'rb') as f:
+    with open(os.path.join(path, filename),'rb') as f:
         headerString = f.read(headerSize)
         header = unpack(header_fmt,headerString)
 
@@ -64,7 +65,7 @@ def importfid(path,filename):
 
 def importProcpar(path,filename):
     paramDict = {}
-    with open(path + filename,'r') as f:
+    with open(os.path.join(path, filename),'r') as f:
         while True:
             line = f.readline()
             if line == '':
@@ -158,14 +159,22 @@ def importProcpar(path,filename):
 
                 paramDict[variable.name] = variable
 
-def importVarian(path,filename,paramFilename = 'procpar'):
-    '''
-    '''
+
+def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
+    """
+
+    Args:
+        path(str): path to experiment folder
+        fidFilename(str): FID file name
+        paramFilename(str): process parameter filename
+
+    Returns:
+        odnpData: data
+
+    """
 
     paramDict = importProcpar(path,paramFilename)
 
-
-    
     nmrFreq = paramDict['H1reffrq'].value*1.e6
     sw = paramDict['sw'].value
     npts = int(paramDict['np'].value/2)
@@ -177,7 +186,7 @@ def importVarian(path,filename,paramFilename = 'procpar'):
 
     t = _np.r_[0.:int(npts)] * dwellTime
     
-    data = importfid(path,filename)
+    data = importfid(path, fidFilename)
 
     if arraydim == 1:
         data = data.reshape(-1)
