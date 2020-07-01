@@ -349,6 +349,16 @@ class odnpData:
         return np.arctan(np.sum(np.imag(self.data))/np.sum(np.real(self.data)))
 
     def range(self,axesLabel,minValue,maxValue):
+        '''Select range of data given axes values
+
+        Args:
+            axesLabel (str): Axes label for indexing
+            minValue (float): Minimum axes value for indexing
+            maxValue (float): Maximum axes value for indexing
+
+        Returns:
+            odnpData
+        '''
 
         out = deepcopy(self)
         index = self.axesLabels.index(axesLabel)

@@ -1,8 +1,20 @@
 from .. import odnpData
 import numpy as np
+from struct import unpack
 
 
 def importKea(path,filename = '',num = 1 ,verbose = False):
+    '''Import Kea data
+
+    Args:
+        path (str): Directory of data
+        filename (str): Filename of data
+        num (int): Experiment number
+        verbose (bool): If true, prints additional information for troubleshooting
+    
+    Returns:
+        odnpData object with Kea data
+    '''
     params_dict = {}
     try:
         with open(path + filename + '/%i/'%num + 'acqu.par','r') as f:
@@ -38,8 +50,7 @@ def importKea(path,filename = '',num = 1 ,verbose = False):
     return data
 
 def importEmx(path,filename = ''):
-    '''
-    Load EMX data
+    '''Load EMX data
     '''
 
     if path[-1] != '\\' and path[-1] != '/':
@@ -83,4 +94,44 @@ def importEmx(path,filename = ''):
 
     output = odnpData(data,[field],['field'],paramsDict)
     return output
+
+def importd01(filename):
+    '''Import Prospa Binary Format
+
+    Args:
+        filename: Path to data
+
+    Returns:
+        numpy.ndarray: binary data
+    '''
+
+    headerSize = 32
+
+    header_fmt = '<8i'
+    with open(filename,'rb') as f:
+        headerString = f.read(headerSize)
+        header = unpack(header_fmt,headerString)
+
+        data_amount = header[0]
+        data_format = header[1]
+        data_dimension = header[2]
+        array_of_dimensions = header[3:7]
+        overall_data_size = header[7]
+
+        if data_format == 0:
+            unpack_type = 'd'
+            bytes_per_point = 8
+        else:
+            unpack_type = 'f'
+            bytes_per_point = 4
+
+
+
+        total_bytes = bytes_per_point*overall_data_size
+        dataString = f.read(4)
+
+        data = unpack('<f',dataString)
+
+    return data
+
 
