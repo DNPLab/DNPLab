@@ -1,0 +1,179 @@
+# 1 "C:/Bruker/TOPSPIN/exp/stan/nmr/lists/pp/jf_zg_ph"
+;zg
+;avance-version (06/11/09)
+;1D sequence
+;
+;$CLASS=HighRes
+;$DIM=1D
+;$TYPE=
+;$SUBTYPE=
+;$COMMENT=
+
+
+# 1 "C:/Bruker/TOPSPIN/exp/stan/nmr/lists/pp/Avance.incl" 1
+;Avance.incl
+;
+;avance-version (07/01/22)
+;
+;$CLASS=HighRes Incl
+;$COMMENT=
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;$Id: Avance1.incl,v 1.10.6.2 2007/01/22 13:54:46 ber Exp $
+# 12 "C:/Bruker/TOPSPIN/exp/stan/nmr/lists/pp/jf_zg_ph" 2
+
+
+
+"acqt0=-p1*2/3.1416"
+
+
+1 ze
+2 30m rpp1 ; because I want to reset the phase pointers --> no dummy scans here
+3 d1
+  p1 ph1 ;excitation pulse
+  1u ipp1
+  goscnp ph31 ;acquire and repeat
+  d11 wr #0 if #0; screw this F1QF shit  --> was 30m mc #0 to 2 F0(zd) I don't know what this meant
+lo to 3 times l21 ; td1 is just the indirect dim size
+exit
+
+
+ph1=0 1 2 3
+ph31=0 0 0 0
+
+
+;pl1 : f1 channel - power level for pulse (default)
+;p1 : f1 channel -  high power pulse
+;d1 : relaxation delay; 1-5 * T1
+;NS: 1 * n, total number of scans: NS * TD0
+
+
+
+;$Id: zg,v 1.7.10.2 2006/11/10 11:04:15 ber Exp $

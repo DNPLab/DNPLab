@@ -423,7 +423,7 @@ class HydrationCalculator:
             tauRot (float): tau_rot. Unit: nanosecond. Required when
                 includedJRot is True.
             percentBound (float): Percentage of bound water. Required when
-                includedJRot is True.
+                includedJRot is True. Must between 0 and 100.
 
         Returns:
             tcorr (float): correlation time in pico second
