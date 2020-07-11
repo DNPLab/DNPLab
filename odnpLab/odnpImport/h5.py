@@ -2,6 +2,8 @@ from .. import odnpData
 import numpy as np
 import h5py
 
+odnp_data_h5version = '1.0'
+
 def saveh5(dataDict,path):
     '''
     Save All Data in .h5 format
@@ -9,28 +11,29 @@ def saveh5(dataDict,path):
 
     '''
 
-    if not isinstance(dataDict,dict):
-        print('data input must be dictionary of odnpData objects')
-        return
-
     keysList = dataDict.keys()
 
     f = h5py.File(path,'w')
+
     for key in keysList:
         odnpDataObject = dataDict[key]
+        odnpDataGroup = f.create_group(key,track_order = True)
+        dims_group = odnpDataGroup.create_group('dims') # dimension names e.g. x,y,z
+        attrs_group = odnpDataGroup.create_group('attrs') # dictionary information
+        odnp_dataset = odnpDataGroup.create_dataset('values',data = odnpDataObject.data)
 
-        h5_data = f.create_dataset(key,data = odnpDataObject.data)
-        for index in range(len(odnpDataObject.axesLabels)):
-            label = odnpDataObject.axesLabels[index]
-            detailedLabel = '*' + key + ' ' + label + ' axes*'
-            axes = odnpDataObject.axes[index].copy()
+        # Save axes information
+        for ix in range(len(odnpDataObject.axes)):
+            label = odnpDataObject.axesLabels[ix]
+            this_axes = odnpDataObject.axes[ix]
+            dims_group.create_dataset(label,data = this_axes)
+            dims_group[label].make_scale(label)
 
-            f[detailedLabel] = axes
-            f[detailedLabel].make_scale(detailedLabel)
-            f[key].dims[index].attach_scale(f[detailedLabel])
+            odnp_dataset.dims[ix].attach_scale(dims_group[label])
 
-            for k in odnpDataObject.params.keys():
-                f[key].attrs[k] = odnpDataObject.params[k]
+        # Save Parameters
+        for key in odnpDataObject.params:
+            attrs_group.attrs[key] = odnpDataObject.params[key]
     f.close()
 
 def loadh5(path):
@@ -41,37 +44,26 @@ def loadh5(path):
     odnpDict = {}
 
     f = h5py.File(path,'r')
-
     keysList = f.keys()
-    dataKeysList = []
-    for key in keysList:
-        if (key[-1] == '*') and (key[0] == '*'):
-            pass
-            # disregard as data, assume axes
-        else:
-            dataKeysList.append(key)
-    
-    for key in dataKeysList:
-        data = f[key][:]
-        params =  {} 
-        for k in f[key].attrs.keys():
-            if k != 'DIMENSION_LIST':
-                params[k] = f[key].attrs[k]
+    print('keys:')
+    print(keysList)
 
-        axesLabels = []
+    for key in keysList:
         axes = []
+        axesLabels = []
+        params = {}
+        data = f[key]['values'][:]
 
         for index in range(len(np.shape(data))):
-            dimKeyRaw = f[key].dims[index].keys()[0] # assumes 1 key only
-            label = dimKeyRaw[len('*' + key + ' '):-1*len(' axes*')]
+            dimKey = f[key]['values'].dims[index].keys()[0] # assumes 1 key only
+            axes.append(f[key]['values'].dims[index][dimKey][:])
+            axesLabels.append(dimKey)
 
-            axesLabels.append(label)
-            axes.append(f[key].dims[index][dimKeyRaw][:])
+        for k in f[key]['attrs'].attrs.keys():
+            print(k)
+            print(f[key]['attrs'].attrs[k])
+            params[k] = f[key]['attrs'].attrs[k]
         odnpDict[key] = odnpData(data,axes,axesLabels,params)
-    
 
-    f.close()
     return odnpDict
-
-
 
