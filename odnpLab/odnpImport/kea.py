@@ -1,97 +1,78 @@
 from .. import odnpData
 import numpy as np
 from struct import unpack
+import os
+import glob
 
 
-def importKea(path,filename = '',num = 1 ,verbose = False):
+def importKea(path, parameters_filename = None, verbose = False):
     '''Import Kea data
 
     Args:
-        path (str): Directory of data
-        filename (str): Filename of data
+        path (str): Path to data
         num (int): Experiment number
         verbose (bool): If true, prints additional information for troubleshooting
     
     Returns:
         odnpData object with Kea data
     '''
-    params_dict = {}
-    try:
-        with open(path + filename + '/%i/'%num + 'acqu.par','r') as f:
-            raw_params = f.read()
 
+    if parameters_filename == None:
+        parameters_filename = 'acqu.par'
+    extension = ''
 
-        raw_params = raw_params.strip().split('\n')
-        for line in raw_params:
-            if verbose:
-                print(line)
-            key_value = line.split(' = ')
-            try:
-                params_dict[key_value[0]] = float(key_value[1])
-            except:
-                params_dict[key_value[0]] = key_value[1]
-        nmr_params = {}
-        nmrFreq = float(params_dict['b1Freq'].strip('d'))*1e6 # convert to Hz
-
-        params_dict['nmrFreq'] = nmrFreq
-    except:
-        pass
-
-    raw_data = np.loadtxt(path + filename + '/%i/'%num + 'data.csv', delimiter = ',')
-
-    t = raw_data[:,0]
-    t = t / 1.e6 # convert from us to s
-
-    temp_data = raw_data[:,1] - 1j*raw_data[:,2]
-#    data = odnpData.odnpData(temp_data,[t],['t'],nmr_params)
-#    data = odnpData(temp_data,[t],['t'],nmr_params)
-    data = odnpData(temp_data,[t],['t'],params_dict)
-#    data.kea_params = params_dict
-    return data
-
-
-def importd01(filename):
-    '''Import Prospa Binary Format
-
-    Args:
-        filename: Path to data
-
-    Returns:
-        numpy.ndarray: binary data
-    '''
-
-    headerSize = 32
-
-    header_fmt = '<8i'
-    with open(filename,'rb') as f:
-        headerString = f.read(headerSize)
-        header = unpack(header_fmt,headerString)
-
-        data_amount = header[0]
-        data_format = header[1]
-        data_dimension = header[2]
-        array_of_dimensions = header[3:7]
-        overall_data_size = header[7]
-
-        if data_format == 0:
-            unpack_type = 'd'
-            bytes_per_point = 8
+    if os.path.isfile(path):
+        path, filename = os.path.split(path)
+        filename, extension = os.path.splitext(filename)
+    elif os.path.isdir(path):
+        filesList = glob.glob(path + '*.[1-4]d')
+        if len(filesList) == 0:
+            raise ValueError('No binary data file in directory:')
+        elif len(filesList) > 1:
+            raise ValueError('More than one binary data file in directory:',fileList)
         else:
-            unpack_type = 'f'
-            bytes_per_point = 4
+            data_filename = filesList[0]
 
+    attrs = import_par(os.path.join(path, parameters_filename))
 
+    if extension == '.csv':
+        # Import csv data
+        x, data = import_csv(os.path.join(path, filename + extension))
+    else:
+        # Import Binary data
+        x, data = import_nd(os.path.join(path, filename + extension))
 
-        total_bytes = bytes_per_point*overall_data_size
-        dataString = f.read(4)
+    if 'b1Freq' in attrs:
+        nmrFrequency = attrs['b1Freq']
+    else:
+        nmrFrequency = 14.5
+    try:
+        nmrFrequency = float(nmrFrequency)
+    except:
+        nmrFrequency = float(nmrFrequency.replace('d',''))
 
-        data = unpack('<f',dataString)
+    attrs['nmrFrequency'] = nmrFrequency
 
-    return data
+    # Assume direct dimension is 1st dimension
+    data_shape = np.shape(np.squeeze(data))
 
+    dims = []
+    coords = []
+    for ix in range(len(data_shape)):
+        dims.append(str(ix))
+        coords.append(np.arange(data_shape[ix]))
+
+    # If axes information is give, assume it is the first dimension
+    if x is not None:
+        dims[0] = 't'
+        coords[0] = x
+
+    kea_data = odnpData(data, coords, dims, attrs)
+
+    return kea_data
 
 def import_nd(path):
-    '''Import Kea 1d, 2d, 3d files
+    '''Import Kea 1d, 2d, 3d, 4d files
 
     Args:
         path (str): Path to file
@@ -225,6 +206,7 @@ def import_csv(path, return_raw = False, is_complex = True):
             data = raw[:,1::2] + 1j * raw[:,2::2]
         else:
             data = raw[:,1:]
+        data = np.squeeze(data)
         return x, data
     else:
         return raw
