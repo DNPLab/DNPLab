@@ -2,7 +2,7 @@ from .. import odnpData
 import numpy as np
 import h5py
 
-odnp_data_h5version = '1.0'
+odnpLab_h5_version = '1.0'
 
 def saveh5(dataDict, path, overwrite = False):
     '''
@@ -19,6 +19,8 @@ def saveh5(dataDict, path, overwrite = False):
     keysList = dataDict.keys()
 
     f = h5py.File(path, mode)
+
+    f.attrs['odnpLab_h5_version'] = odnpLab_h5_version
 
     for key in keysList:
         odnpDataObject = dataDict[key]
