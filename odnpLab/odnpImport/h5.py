@@ -4,16 +4,21 @@ import h5py
 
 odnp_data_h5version = '1.0'
 
-def saveh5(dataDict,path):
+def saveh5(dataDict, path, overwrite = False):
     '''
     Save All Data in .h5 format
     Requires a dictionary of odnpData objects
 
     '''
 
+    if overwrite:
+        mode = 'w'
+    else:
+        mode = 'w-'
+
     keysList = dataDict.keys()
 
-    f = h5py.File(path,'w')
+    f = h5py.File(path, mode)
 
     for key in keysList:
         odnpDataObject = dataDict[key]
