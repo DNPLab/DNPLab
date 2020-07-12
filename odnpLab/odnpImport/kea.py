@@ -49,51 +49,6 @@ def importKea(path,filename = '',num = 1 ,verbose = False):
 #    data.kea_params = params_dict
     return data
 
-def importEmx(path,filename = ''):
-    '''Load EMX data
-    '''
-
-    if path[-1] != '\\' and path[-1] != '/':
-        filenamePath = path + filename
-    else:
-        filenamePath = path + '/' + filename
-
-    # Strip Extension from filename path string
-    if (filenamePath[-4:] == '.spc') or (filenamePath[-4:] == '.par'):
-        ext = filenamePath[-4:]
-        filenamePath = filenamePath[:-4]
-
-    data = np.fromfile(filenamePath + '.spc',dtype = np.float32)
-
-    # open with 'U' mode to enable univeral new-line for Python2 only
-    with open(filenamePath + '.par',mode = 'U') as f:
-        params_raw = f.read()
-    params_lines = params_raw.strip().split('\n')
-
-    paramsDict = {}
-
-    for line in params_lines:
-        key = line[0:3]
-        value = line[4:]
-#        print(key, value)
-
-        try:
-            value = float(value)
-        except:
-            pass
-
-        paramsDict[key] = value
-    print(paramsDict)
-
-    center_field = paramsDict['HCF']
-    sweep_width = paramsDict['HSW']
-    xpts = paramsDict['ANZ']
-
-
-    field = center_field + np.r_[-0.5*sweep_width:0.5*sweep_width:1j*xpts]
-
-    output = odnpData(data,[field],['field'],paramsDict)
-    return output
 
 def importd01(filename):
     '''Import Prospa Binary Format
@@ -135,3 +90,117 @@ def importd01(filename):
     return data
 
 
+def import_nd(path):
+    '''Import Kea 1d, 2d, 3d files
+
+    Args:
+        path (str): Path to file
+
+    Returns:
+        tuple:
+            x (None, numpy.array): Axes if included in binary file, None otherwise
+            data (numpy.array): Numpy array of data
+    '''
+
+    ascii_header_size = 12
+    ascii_header_format = '<4s4s4s'
+
+    with open(path, 'rb') as f:
+        ascii_header_bytes = f.read(ascii_header_size)
+
+        ascii_header = unpack(ascii_header_format, ascii_header_bytes)
+
+        owner = ascii_header[0][::-1].decode('utf-8')
+        format_ = ascii_header[1][::-1].decode('utf-8')
+        version = ascii_header[2][::-1].decode('utf-8')
+
+        # header size depends on version
+        if version == 'V1.0':
+            header_format = '4i'
+            header_size = 16
+        else:
+            header_format = '5i'
+            header_size = 20
+
+        header_bytes = f.read(header_size)
+
+        header = unpack(header_format, header_bytes)
+
+        dataType = header[0]
+        xDim = header[1]
+        yDim = header[2]
+        zDim = header[3]
+        if version != 'V1.0':
+            qDim = header[4]
+        else:
+            qDim = 1
+
+        raw = f.read()
+
+        x = None
+        if dataType == 500: # float
+            raw_data = unpack('<%if'%(xDim*yDim*zDim*qDim), raw)
+            data = np.array(raw_data)
+        elif dataType == 501: # complex
+            raw_data = unpack('<%if'%(xDim*yDim*zDim*qDim*2), raw)
+            data = np.array(raw_data)
+            data = data[0::2] + 1j * data[1::2]
+        elif dataType == 502: # double
+            raw_data = unpack('<%id'%(xDim*yDim*zDim*qDim), raw)
+            data = np.array(raw_data)
+        elif dataType == 503:
+            raw_data = unpack('<%if'%(xDim*yDim*zDim*qDim*2), raw)
+            raw_data = np.array(raw_data)
+            x = raw_data[0:xDim]
+            data = raw_data[xDim:]
+        elif dataType == 504:
+            raw_data = unpack('<%if'%(xDim*yDim*zDim*qDim*3), raw) #504
+            raw_data = np.array(raw_data)
+            x = raw_data[0:xDim]
+            data = raw_data[xDim:]
+            data = data[0::2] + 1j * data[1::2]
+        else:
+            raise ValueError('Data %i type not recognized'%dataType)
+
+        data = data.reshape(xDim, yDim, zDim, qDim) # reshape data
+        data = data.squeeze() # remove length 1 dimensions
+
+    return x, data
+
+def import_par(path):
+    ''' Import Kea parameters .par file
+
+    Args:
+        path (str): Path to parameters file
+
+    Returns:
+        dict: Dictionary of Kea Parameters
+    '''
+
+    attrs = {}
+
+    with open(path, 'r') as f:
+
+        raw = f.read()
+
+        lines = raw.rstrip().rsplit('\n')
+
+        for line in lines:
+            key, value = line.rstrip().rsplit(' = ')
+
+            if value[0] == '"' and value[-1] == '"':
+                value = value[1:-1]
+
+            if '.' in value:
+                try:
+                    value = float(value)
+                except:
+                    pass
+            else:
+                try:
+                    value = int(value)
+                except:
+                    pass
+            attrs[key] = value
+
+    return attrs 
