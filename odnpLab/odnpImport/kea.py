@@ -204,3 +204,27 @@ def import_par(path):
             attrs[key] = value
 
     return attrs 
+
+def import_csv(path, return_raw = False, is_complex = True):
+    '''Import Kea csv file
+
+    Args:
+        path (str): Path to csv file
+
+    Returns:
+        tuple:
+            x(numpy.array): axes if return_raw = False
+            data(numpy.array): Data in csv file
+    '''
+
+    raw = np.loadtxt(path, delimiter = ',')
+
+    if not return_raw:
+        x = raw[:,0]
+        if is_complex:
+            data = raw[:,1::2] + 1j * raw[:,2::2]
+        else:
+            data = raw[:,1:]
+        return x, data
+    else:
+        return raw
