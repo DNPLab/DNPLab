@@ -160,9 +160,9 @@ def fourierTransform(allData, procParameters):
     shift = procParameters['shift']
     convert2ppm = procParameters['convert2ppm']
 
-    index = data.axesLabels.index(axesLabel)
-    dt = data.axes[index][1] - data.axes[index][0]
-    n_pts = zeroFillFactor*len(data.axes[index])
+    index = data.dims.index(axesLabel)
+    dt = data.coords[index][1] - data.coords[index][0]
+    n_pts = zeroFillFactor*len(data.coords[index])
     f = (1./(n_pts*dt))*_np.r_[0:n_pts]
     if shift == True:
         f -= (1./(2*dt))
@@ -174,7 +174,7 @@ def fourierTransform(allData, procParameters):
     data.values = _np.fft.fft(data.values,n=n_pts,axis=index)
     if shift:
         data.values = _np.fft.fftshift(data.values,axes=index)
-    data.axes[index] = f
+    data.coords[index] = f
 
     procStepName = 'Fourier Transform:'
     procStepString = procString(procStepName,procParameters,requiredList)
@@ -217,13 +217,13 @@ def window(allData,procParameters):
     axesLabel = procParameters['axes']
     linewidth = procParameters['linewidth']
 
-    index = data.axesLabels.index(axesLabel)
+    index = data.dims.index(axesLabel)
 
-    reshape_size = [1 for k in data.axesLabels]
-    reshape_size[index] = len(data.axes[index])
+    reshape_size = [1 for k in data.dims]
+    reshape_size[index] = len(data.coords[index])
 
     # Must include factor of 2 in exponential to get correct linewidth ->
-    window_array = _np.exp(-1.*data.axes[index]*2.*linewidth).reshape(reshape_size)
+    window_array = _np.exp(-1.*data.coords[index]*2.*linewidth).reshape(reshape_size)
     window_array = _np.ones_like(data.values) * window_array
     data.values *= window_array
 
@@ -309,9 +309,9 @@ def align(allData,procParameters):
     procParameters = updateParameters(procParameters,requiredList,_defaultAlignParameters)
 
     alignAxesLabel = procParameters['axes']
-    originalAxesOrder = data.axesLabels
+    originalAxesOrder = data.dims
     data.reorder(alignAxesLabel)
-    axesIter = data.axesLabels[-1]
+    axesIter = data.dims[-1]
 
     refData = data[axesIter,0].data.reshape(-1)
     for ix in range(data.len(axesIter)):

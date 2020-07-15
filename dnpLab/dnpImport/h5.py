@@ -31,9 +31,9 @@ def saveh5(dataDict, path, overwrite = False):
         dnp_dataset = dnpDataGroup.create_dataset('values',data = dnpDataObject.values)
 
         # Save axes information
-        for ix in range(len(dnpDataObject.axes)):
-            label = dnpDataObject.axesLabels[ix]
-            this_axes = dnpDataObject.axes[ix]
+        for ix in range(len(dnpDataObject.coords)):
+            label = dnpDataObject.dims[ix]
+            this_axes = dnpDataObject.coords[ix]
             dims_group.create_dataset(label,data = this_axes)
             dims_group[label].make_scale(label)
 
@@ -58,7 +58,7 @@ def loadh5(path):
 
     for key in keysList:
         axes = []
-        axesLabels = []
+        dims = []
         params = {}
         data = f[key]['values'][:]
         version = f[key].attrs['dnpLab_version']
@@ -66,13 +66,13 @@ def loadh5(path):
         for index in range(len(np.shape(data))):
             dimKey = f[key]['values'].dims[index].keys()[0] # assumes 1 key only
             axes.append(f[key]['values'].dims[index][dimKey][:])
-            axesLabels.append(dimKey)
+            dims.append(dimKey)
 
         for k in f[key]['attrs'].attrs.keys():
             print(k)
             print(f[key]['attrs'].attrs[k])
             params[k] = f[key]['attrs'].attrs[k]
-        dnpDict[key] = dnpData(data,axes,axesLabels,params)
+        dnpDict[key] = dnpData(data,axes,dims,params)
         dnpDict[key].version = version
 
     return dnpDict

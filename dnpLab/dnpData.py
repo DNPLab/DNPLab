@@ -21,8 +21,8 @@ class dnpData:
 
     Attributes:
     values (numpy.ndarray): Numpy Array containing data
-    axes (list): List of numpy arrays containing axes of data
-    axesLabels (list): List of axes labels for data
+    coords (list): List of numpy arrays containing axes of data
+    dims (list): List of axes labels for data
     params (dict): Dictionary of parameters for data
 
     '''
@@ -69,7 +69,7 @@ class dnpData:
 
         indices = []
 
-        for axes_ix, axes_label in enumerate(self.axesLabels):
+        for axes_ix, axes_label in enumerate(self.dims):
             if axes_label in indexing_labels:
                 ix = indexing_labels.index(axes_label)
 #                indices.append(indexing_list[ix])
@@ -80,33 +80,33 @@ class dnpData:
                 else:
                     indices.append(indexing_list[ix])
             else:
-                indices.append(slice(0,len(self.axes[axes_ix])))
+                indices.append(slice(0,len(self.coords[axes_ix])))
 
         indices = tuple(indices)
 
         out = deepcopy(self)
         out.values = out.values[indices]
-        for ix in range(len(out.axes)):
-            out.axes[ix] = out.axes[ix][indices[ix]]
+        for ix in range(len(out.coords)):
+            out.coords[ix] = out.coords[ix][indices[ix]]
 
         return out
 
-    def __init__(self,data = np.r_[[]],axes = [],axesLabels = [],params = {},procList = []):
+    def __init__(self,values = np.r_[[]],coords = [],dims = [],params = {},procList = []):
         '''dnpData Class __init__ method
 
         Args:
             data (numpy.ndarray): 
-            axes (list): list of axes
-            axesLabels (list): list of strings which are names of axes
+            coords (list): list of axes
+            dims (list): list of strings which are names of axes
             params (dict): dictionary of parameters
 
 
         '''
         self.version = version
 
-        self.values = data
-        self.axes = axes
-        self.axesLabels = axesLabels
+        self.values = values
+        self.coords = coords
+        self.dims = dims
         self.params = params
 
     def __len__(self):
@@ -156,7 +156,7 @@ class dnpData:
         ''' Representation of dnpData object
         '''
         string = 'Data Shape:' + repr(np.shape(self.values)) + '\n'
-        string += 'Data Axes:' + repr(self.axesLabels) + '\n'
+        string += 'Data Axes:' + repr(self.dims) + '\n'
         string += 'Parameters:\n'# + repr(self.params)
         for key in self.params:
             if key != '*proc*':
@@ -201,7 +201,7 @@ class dnpData:
             string (str): string representation of dnpData object
         '''
         string = 'Data Shape:' + repr(np.shape(self.values)) + '\n'
-        string += 'Data Axes:' + repr(self.axesLabels) + '\n'
+        string += 'Data Axes:' + repr(self.dims) + '\n'
         string += 'Parameters:\n'# + repr(self.params)
         for key in self.params:
             if key != '*proc*':
@@ -252,15 +252,15 @@ class dnpData:
             axesLabel (str): Name of new axis
             axesValue (float,int): Axes value for new dimension
         '''
-        if axesLabel in self.axesLabels:
-            index = self.axesLabels.index(axesLabel)
+        if axesLabel in self.dims:
+            index = self.dims.index(axesLabel)
             print('Axes %s already exists'%(str(axesLabel)))
         elif type(axesLabel) != str:
             index = axesLabel
             print('Axes label must be a string')
         else:
-            self.axesLabels.append(axesLabel)
-            self.axes.append(np.r_[axesValue])
+            self.dims.append(axesLabel)
+            self.coords.append(np.r_[axesValue])
             self.values = np.expand_dims(self.values,-1)
 
     def autophase(self,):
@@ -278,18 +278,18 @@ class dnpData:
             newData (dnpData): data to be concatenated to dnp_data object
             axesLabel (str): axis to concatenate down
         '''
-        reorderLabels = self.axesLabels
+        reorderLabels = self.dims
         
         self.sort()
         newData.sort()
 
-        if self.axesLabels != newData.axesLabels:
+        if self.dims != newData.dims:
 #            print 'ERROR' # NOTE determine how error handling will work
             return
-        index = self.axesLabels.index(axesLabel)
+        index = self.dims.index(axesLabel)
 
         self.values = np.concatenate((self.values,newData.values),axis = index)
-        self.axes[index] = np.concatenate((self.axes[index],newData.axes[index]))
+        self.coords[index] = np.concatenate((self.coords[index],newData.coords[index]))
 
         self.reorder(reorderLabels)
 
@@ -302,8 +302,8 @@ class dnpData:
         Args:
             axes_label (str): Axes to retrieve
         '''
-        index = self.axesLabels.index(axesLabel)
-        return self.axes[index]
+        index = self.dims.index(axesLabel)
+        return self.coords[index]
 
     def imag(self):
         '''Return imaginary part of data
@@ -318,7 +318,7 @@ class dnpData:
         Args:
             axesLabel (str): axis label to index
         '''
-        return self.axesLabels.index(axesLabel)
+        return self.dims.index(axesLabel)
 
     def len(self,axesLabel):
         '''Return length of given dimension
@@ -329,7 +329,7 @@ class dnpData:
         Example:
         data.len('t')
         '''
-        index = self.axesLabels.index(axesLabel)
+        index = self.dims.index(axesLabel)
 
         return np.shape(self.values)[index]
 
@@ -361,16 +361,16 @@ class dnpData:
         '''
 
         out = deepcopy(self)
-        index = self.axesLabels.index(axesLabel)
+        index = self.dims.index(axesLabel)
 
-        min_list = list(out.axes[index] > minValue)
-        max_list = list(out.axes[index] < maxValue)
+        min_list = list(out.coords[index] > minValue)
+        max_list = list(out.coords[index] < maxValue)
         inRange = [min_list[i] and max_list[i] for i in range(len(min_list))]
         #NOTE if no values in range, will cause issues
 
         keep = [i for i, x in enumerate(inRange) if x]
         out.values = np.take(out.values,keep,axis=index)
-        out.axes[index] = out.axes[index][keep]
+        out.coords[index] = out.coords[index][keep]
 
         return out
 
@@ -381,34 +381,34 @@ class dnpData:
         out.values = np.real(out.values)
         return out
 
-    def reorder(self,axesLabels):
+    def reorder(self,dims):
         '''Reorder array given a list of axes labels
 
         Args:
-            axesLabels (list,tuple, str): Axes to reorder
+            dims (list,tuple, str): Axes to reorder
 
         .. note::
             If not all axes are defined, they will be placed at the end of the axes labels in their original order
         '''
-        if isinstance(axesLabels,str):
-            axesLabels = [axesLabels]
-        if isinstance(axesLabels,tuple):
-            axesLabels = list(axesLabels)
-        if not isinstance(axesLabels,list):
-            print('axesLabels must be a list')
+        if isinstance(dims,str):
+            dims = [dims]
+        if isinstance(dims,tuple):
+            dims = list(dims)
+        if not isinstance(dims,list):
+            print('dims must be a list')
             return
 
-        if sorted(axesLabels) != sorted(self.axesLabels):
-            for label in axesLabels:
-                if label not in self.axesLabels:
+        if sorted(dims) != sorted(self.dims):
+            for label in dims:
+                if label not in self.dims:
                     print('\'%s\' not in axes labels'%label)
                     return
-            for label in self.axesLabels:
-                if label not in axesLabels:
-                    axesLabels.append(label)
-        ix_reorder = [self.axesLabels.index(k) for k in axesLabels]
-        self.axes = [self.axes[ix] for ix in ix_reorder]
-        self.axesLabels = [self.axesLabels[ix] for ix in ix_reorder]
+            for label in self.dims:
+                if label not in dims:
+                    dims.append(label)
+        ix_reorder = [self.dims.index(k) for k in dims]
+        self.coords = [self.coords[ix] for ix in ix_reorder]
+        self.dims = [self.dims[ix] for ix in ix_reorder]
         self.values = np.transpose(self.values,ix_reorder)
 
     def rename(self, oldLabel, newLabel):
@@ -418,16 +418,16 @@ class dnpData:
             oldLabel (str): Axis label to be changed
             newLabel (str): New label for axes
         '''
-        index = self.axesLabels.index(oldLabel)
-        self.axesLabels[index] = newLabel
+        index = self.dims.index(oldLabel)
+        self.dims[index] = newLabel
 
     def sort(self):
         '''Sort order of axes based on python list sorting for axes labels
 
         '''
-        ix_sort = sorted(range(len(self.axesLabels)), key = lambda k: self.axesLabels[k])
-        self.axes = [self.axes[ix] for ix in ix_sort]
-        self.axesLabels = [self.axesLabels[ix] for ix in ix_sort]
+        ix_sort = sorted(range(len(self.dims)), key = lambda k: self.dims[k])
+        self.coords = [self.coords[ix] for ix in ix_sort]
+        self.dims = [self.dims[ix] for ix in ix_sort]
         self.values = np.transpose(self.values,ix_sort)
 
 
@@ -451,12 +451,12 @@ class dnpData:
 #        data.plot('t')
 #        '''
 #
-#        index = self.axesLabels.index(axes_label)
+#        index = self.dims.index(axes_label)
 #
 #        plot_data = self.values
 #
-#        plot(self.axes[index],np.swapaxes(plot_data,0,index),*args,**kwargs)
-#        xlabel(self.axesLabels[index])
+#        plot(self.coords[index],np.swapaxes(plot_data,0,index),*args,**kwargs)
+#        xlabel(self.dims[index])
 
     def squeeze(self):
         '''Remove all length 1 dimensions from data
@@ -468,14 +468,14 @@ class dnpData:
         data.squeeze()
         '''
         remove_axes = []
-        for axes_ix,axes_value in enumerate(self.axes):
+        for axes_ix,axes_value in enumerate(self.coords):
             if len(axes_value) == 1:
                 remove_axes.append(axes_ix)
          
         reverse_remove_axes = remove_axes[::-1]
         for index_ix,index_value in enumerate(reverse_remove_axes):
-            self.axes.pop(index_value)
-            self.axesLabels.pop(index_value)
+            self.coords.pop(index_value)
+            self.dims.pop(index_value)
             self.values = np.squeeze(self.values)
 
     def sum(self,axesLabel):
@@ -492,10 +492,10 @@ class dnpData:
             data.sum('t')
         '''
 
-        index = self.axesLabels.index(axesLabel)
+        index = self.dims.index(axesLabel)
         self.values = np.sum(self.values,axis = index)
-        removedAxesLabel = self.axesLabels.pop(index)
-        removedAxes = self.axes.pop(index)
+        removedAxesLabel = self.dims.pop(index)
+        removedAxes = self.coords.pop(index)
 
 if __name__ == '__main__':
     pass
