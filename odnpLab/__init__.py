@@ -1,6 +1,6 @@
 #import odnpData
 from .dnpData import dnpData
-from . import odnpNMR
+from . import dnpNMR
 from . import dnpImport
-from . import odnpFit
+from . import dnpFit
 from . import hydration
