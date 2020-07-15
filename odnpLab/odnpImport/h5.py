@@ -2,7 +2,6 @@ from .. import odnpData
 import numpy as np
 import h5py
 
-odnpLab_h5_version = '1.0'
 
 def saveh5(dataDict, path, overwrite = False):
     '''
@@ -20,11 +19,13 @@ def saveh5(dataDict, path, overwrite = False):
 
     f = h5py.File(path, mode)
 
-    f.attrs['odnpLab_h5_version'] = odnpLab_h5_version
+#    f.attrs['odnpLab_version'] = version
 
     for key in keysList:
         odnpDataObject = dataDict[key]
+        
         odnpDataGroup = f.create_group(key,track_order = True)
+        odnpDataGroup.attrs['dnpLab_version'] = dataDict[key].version
         dims_group = odnpDataGroup.create_group('dims') # dimension names e.g. x,y,z
         attrs_group = odnpDataGroup.create_group('attrs') # dictionary information
         odnp_dataset = odnpDataGroup.create_dataset('values',data = odnpDataObject.data)
@@ -60,6 +61,7 @@ def loadh5(path):
         axesLabels = []
         params = {}
         data = f[key]['values'][:]
+        version = f[key].attrs['dnpLab_version']
 
         for index in range(len(np.shape(data))):
             dimKey = f[key]['values'].dims[index].keys()[0] # assumes 1 key only
@@ -71,6 +73,7 @@ def loadh5(path):
             print(f[key]['attrs'].attrs[k])
             params[k] = f[key]['attrs'].attrs[k]
         odnpDict[key] = odnpData(data,axes,axesLabels,params)
+        odnpDict[key].version = version
 
     return odnpDict
 

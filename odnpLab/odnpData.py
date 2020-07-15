@@ -103,6 +103,7 @@ class odnpData:
 
 
         '''
+        self.version = version
 
         self.data = data
         self.axes = axes
