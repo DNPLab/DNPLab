@@ -1,8 +1,8 @@
 ========
-odnpData
+dnp_data
 ========
 
-here is a reference: :func:`odnpLab.odnpData.odnpData.phase`
+here is a reference: :func:`dnpLab.dnpData.dnpData.phase`
 
 .. note::
    Here is a note
@@ -29,8 +29,8 @@ here is a reference: :func:`odnpLab.odnpData.odnpData.phase`
    * displayed horizontally
 
 .. glossary::
-   :func:`odnpLab.odnpData.odnpData.phase`
+   :func:`dnpLab.dnpData.dnpData.phase`
       calculate phase
 
-.. automodule:: odnpLab.odnpData
+.. automodule:: dnpLab.dnpData
    :members:

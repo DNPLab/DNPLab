@@ -2,5 +2,5 @@
 odnpNMR
 =======
 
-.. automodule:: odnpLab.odnpNMR
+.. automodule:: dnpLab.dnpNMR
     :members:
