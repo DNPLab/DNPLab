@@ -106,7 +106,7 @@ def removeOffset(allData,procParameters):
     axes = procParameters['axes']
     offsetPoints = int(procParameters['offsetPoints'])
 
-    offsetData = data['t',-1*offsetPoints:].data
+    offsetData = data['t',-1*offsetPoints:].values
     offsetData = offsetData.reshape(-1)
     offset = _np.mean(offsetData)
 
@@ -171,9 +171,9 @@ def fourierTransform(allData, procParameters):
         nmrFrequency = data.params['nmrFreq']
         f /= (nmrFrequency / 1.e6)
 
-    data.data = _np.fft.fft(data.data,n=n_pts,axis=index)
+    data.values = _np.fft.fft(data.values,n=n_pts,axis=index)
     if shift:
-        data.data = _np.fft.fftshift(data.data,axes=index)
+        data.values = _np.fft.fftshift(data.values,axes=index)
     data.axes[index] = f
 
     procStepName = 'Fourier Transform:'
@@ -224,8 +224,8 @@ def window(allData,procParameters):
 
     # Must include factor of 2 in exponential to get correct linewidth ->
     window_array = _np.exp(-1.*data.axes[index]*2.*linewidth).reshape(reshape_size)
-    window_array = _np.ones_like(data.data) * window_array
-    data.data *= window_array
+    window_array = _np.ones_like(data.values) * window_array
+    data.values *= window_array
 
     procStepName = 'window:'
     procStepString = procString(procStepName,procParameters,requiredList)
@@ -300,7 +300,7 @@ def align(allData,procParameters):
 
     data, isDict = returnData(allData)
 
-    if len(_np.shape(data.data)) != 2:
+    if len(_np.shape(data.values)) != 2:
         print('Only 2-dimensional data supported')
         return
 
@@ -315,12 +315,12 @@ def align(allData,procParameters):
 
     refData = data[axesIter,0].data.reshape(-1)
     for ix in range(data.len(axesIter)):
-        tempData = data[axesIter,ix].data.reshape(-1)
+        tempData = data[axesIter,ix].values.reshape(-1)
 
         corrData = _np.correlate(_np.abs(tempData),_np.abs(refData),mode='same')
         shiftIx = _np.argmax(corrData) - (len(corrData)/2) # subtract half length so spectrum is shifted relative to center, not edge
         shiftData = _np.roll(tempData,-1*int(shiftIx))
-        data.data[:,ix] = shiftData
+        data.values[:,ix] = shiftData
     data.reorder(originalAxesOrder)
 
     procStepName = 'Align:'

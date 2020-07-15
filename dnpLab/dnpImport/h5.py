@@ -28,7 +28,7 @@ def saveh5(dataDict, path, overwrite = False):
         dnpDataGroup.attrs['dnpLab_version'] = dataDict[key].version
         dims_group = dnpDataGroup.create_group('dims') # dimension names e.g. x,y,z
         attrs_group = dnpDataGroup.create_group('attrs') # dictionary information
-        dnp_dataset = dnpDataGroup.create_dataset('values',data = dnpDataObject.data)
+        dnp_dataset = dnpDataGroup.create_dataset('values',data = dnpDataObject.values)
 
         # Save axes information
         for ix in range(len(dnpDataObject.axes)):

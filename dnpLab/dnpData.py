@@ -20,7 +20,7 @@ class dnpData:
     This class is designed to handle data and axes together so that performing NMR processing can be performed easily.
 
     Attributes:
-    data (numpy.ndarray): Numpy Array containing data
+    values (numpy.ndarray): Numpy Array containing data
     axes (list): List of numpy arrays containing axes of data
     axesLabels (list): List of axes labels for data
     params (dict): Dictionary of parameters for data
@@ -33,17 +33,17 @@ class dnpData:
            >> data = abs(data)
         '''
         out = deepcopy(self)
-        out.data = np.abs(out.data)
+        out.values = np.abs(out.values)
         return out
 
     def __add__(self,data):
         newData = deepcopy(self)
         if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.data += data
+            newData.values += data
         elif isinstance(data,np.ndarray):
-            newData.data = newData.data + data
+            newData.values = newData.values + data
         elif isinstance(data,dnpData):
-            newData.data = newData.data + data.data
+            newData.values = newData.values + data.values
         else:
             print('Cannot add, type not supported:')
             print(type(data))
@@ -85,7 +85,7 @@ class dnpData:
         indices = tuple(indices)
 
         out = deepcopy(self)
-        out.data = out.data[indices]
+        out.values = out.values[indices]
         for ix in range(len(out.axes)):
             out.axes[ix] = out.axes[ix][indices[ix]]
 
@@ -104,22 +104,22 @@ class dnpData:
         '''
         self.version = version
 
-        self.data = data
+        self.values = data
         self.axes = axes
         self.axesLabels = axesLabels
         self.params = params
 
     def __len__(self):
-        return np.size(self.data)
+        return np.size(self.values)
 
     def __mul__(self,data):
         newData = deepcopy(self)
         if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.data *= data
+            newData.values *= data
         elif isinstance(data,np.ndarray):
-            newData.data = newData.data * data
+            newData.values = newData.values * data
         elif isinstance(data,dnpData):
-            newData.data = newData.data * data.data
+            newData.values = newData.values * data.values
         else:
             print('Cannot add, type not supported:')
             print(type(data))
@@ -132,17 +132,17 @@ class dnpData:
         '''
         #NOTE Not working
         out = deepcopy(self)
-        out.data = np.max(out.data)
+        out.values = np.max(out.values)
         return out
 
     def __pow__(self,data):
         newData = deepcopy(self)
         if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.data = newData.data**data
+            newData.values = newData.values**data
         elif isinstance(data,np.ndarray):
-            newData.data = newData.data**data
+            newData.values = newData.values**data
         elif isinstance(data,dnpData):
-            newData.data = newData.data**data.data
+            newData.values = newData.values**data.values
         else:
             print('Cannot add, type not supported:')
             print(type(data))
@@ -155,7 +155,7 @@ class dnpData:
     def __repr__(self):
         ''' Representation of dnpData object
         '''
-        string = 'Data Shape:' + repr(np.shape(self.data)) + '\n'
+        string = 'Data Shape:' + repr(np.shape(self.values)) + '\n'
         string += 'Data Axes:' + repr(self.axesLabels) + '\n'
         string += 'Parameters:\n'# + repr(self.params)
         for key in self.params:
@@ -183,11 +183,11 @@ class dnpData:
     def __rsub__(self,data):
         newData = deepcopy(self)
         if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.data = data - newData.data
+            newData.values = data - newData.data
         elif isinstance(data,np.ndarray):
-            newData.data = data - newData.data
+            newData.values = data - newData.values
         elif isinstance(data,dnpData):
-            newData.data = data.data - newData.data
+            newData.values = data.values - newData.values
         else:
             print('Cannot add, type not supported:')
             print(type(data))
@@ -200,7 +200,7 @@ class dnpData:
         Returns:
             string (str): string representation of dnpData object
         '''
-        string = 'Data Shape:' + repr(np.shape(self.data)) + '\n'
+        string = 'Data Shape:' + repr(np.shape(self.values)) + '\n'
         string += 'Data Axes:' + repr(self.axesLabels) + '\n'
         string += 'Parameters:\n'# + repr(self.params)
         for key in self.params:
@@ -225,11 +225,11 @@ class dnpData:
     def __sub__(self,data):
         newData = deepcopy(self)
         if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.data -= data
+            newData.values -= data
         elif isinstance(data,np.ndarray):
-            newData.data = newData.data - data
+            newData.values = newData.values - data
         elif isinstance(data,dnpData):
-            newData.data = newData.data - data.data
+            newData.values = newData.values - data.values
         else:
             print('Cannot add, type not supported:')
             print(type(data))
@@ -240,7 +240,7 @@ class dnpData:
         '''Return absolute value of data
         '''
         out = deepcopy(self)
-        out.data = np.abs(out.data)
+        out.values = np.abs(out.values)
         return out
 
     def addAxes(self,axesLabel,axesValue):
@@ -261,15 +261,15 @@ class dnpData:
         else:
             self.axesLabels.append(axesLabel)
             self.axes.append(np.r_[axesValue])
-            self.data = np.expand_dims(self.data,-1)
+            self.values = np.expand_dims(self.values,-1)
 
     def autophase(self,):
         '''Automatically phase data
         '''
         p = self.phase()
-        self.data *= np.exp(-1j*p)
-        if np.sum(np.real(self.data)) < 0:
-            self.data *= -1.
+        self.values *= np.exp(-1j*p)
+        if np.sum(np.real(self.values)) < 0:
+            self.values *= -1.
 
     def concatenateAlong(self,newData,axesLabel):
         '''Concatenate new dnp data to original data along given axes label
@@ -288,7 +288,7 @@ class dnpData:
             return
         index = self.axesLabels.index(axesLabel)
 
-        self.data = np.concatenate((self.data,newData.data),axis = index)
+        self.values = np.concatenate((self.values,newData.values),axis = index)
         self.axes[index] = np.concatenate((self.axes[index],newData.axes[index]))
 
         self.reorder(reorderLabels)
@@ -309,7 +309,7 @@ class dnpData:
         '''Return imaginary part of data
         '''
         out = deepcopy(self)
-        out.data = np.imag(out.data)
+        out.values = np.imag(out.values)
         return out
 
     def index(self,axesLabel):
@@ -331,13 +331,13 @@ class dnpData:
         '''
         index = self.axesLabels.index(axesLabel)
 
-        return np.shape(self.data)[index]
+        return np.shape(self.values)[index]
 
     def max(self):
         '''Return maximum value of data
         '''
         out = deepcopy(self)
-        maxValue = np.max(out.data)
+        maxValue = np.max(out.values)
         return maxValue
 
     def phase(self,):
@@ -346,7 +346,7 @@ class dnpData:
         Returns:
             phase (float,int): phase of data calculated from sum of imaginary divided by sum of real components
         '''
-        return np.arctan(np.sum(np.imag(self.data))/np.sum(np.real(self.data)))
+        return np.arctan(np.sum(np.imag(self.values))/np.sum(np.real(self.values)))
 
     def range(self,axesLabel,minValue,maxValue):
         '''Select range of data given axes values
@@ -369,7 +369,7 @@ class dnpData:
         #NOTE if no values in range, will cause issues
 
         keep = [i for i, x in enumerate(inRange) if x]
-        out.data = np.take(out.data,keep,axis=index)
+        out.values = np.take(out.values,keep,axis=index)
         out.axes[index] = out.axes[index][keep]
 
         return out
@@ -378,7 +378,7 @@ class dnpData:
         '''Return real part of data
         '''
         out = deepcopy(self)
-        out.data = np.real(out.data)
+        out.values = np.real(out.values)
         return out
 
     def reorder(self,axesLabels):
@@ -409,7 +409,7 @@ class dnpData:
         ix_reorder = [self.axesLabels.index(k) for k in axesLabels]
         self.axes = [self.axes[ix] for ix in ix_reorder]
         self.axesLabels = [self.axesLabels[ix] for ix in ix_reorder]
-        self.data = np.transpose(self.data,ix_reorder)
+        self.values = np.transpose(self.values,ix_reorder)
 
     def rename(self, oldLabel, newLabel):
         '''Rename axis
@@ -428,7 +428,7 @@ class dnpData:
         ix_sort = sorted(range(len(self.axesLabels)), key = lambda k: self.axesLabels[k])
         self.axes = [self.axes[ix] for ix in ix_sort]
         self.axesLabels = [self.axesLabels[ix] for ix in ix_sort]
-        self.data = np.transpose(self.data,ix_sort)
+        self.values = np.transpose(self.values,ix_sort)
 
 
 
@@ -453,7 +453,7 @@ class dnpData:
 #
 #        index = self.axesLabels.index(axes_label)
 #
-#        plot_data = self.data
+#        plot_data = self.values
 #
 #        plot(self.axes[index],np.swapaxes(plot_data,0,index),*args,**kwargs)
 #        xlabel(self.axesLabels[index])
@@ -476,7 +476,7 @@ class dnpData:
         for index_ix,index_value in enumerate(reverse_remove_axes):
             self.axes.pop(index_value)
             self.axesLabels.pop(index_value)
-            self.data = np.squeeze(self.data)
+            self.values = np.squeeze(self.values)
 
     def sum(self,axesLabel):
         '''Perform sum down given dimension
@@ -493,13 +493,9 @@ class dnpData:
         '''
 
         index = self.axesLabels.index(axesLabel)
-        self.data = np.sum(self.data,axis = index)
+        self.values = np.sum(self.values,axis = index)
         removedAxesLabel = self.axesLabels.pop(index)
         removedAxes = self.axes.pop(index)
-
-
-
-
 
 if __name__ == '__main__':
     pass

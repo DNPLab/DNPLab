@@ -33,7 +33,7 @@ def t1Fit(dataDict):
 
     t1_axes = data.getAxes('t1')
 
-    inputData = _np.real(data.data)
+    inputData = _np.real(data.values)
 
     x0 = [1.,inputData[-1],inputData[-1]]
 
@@ -85,7 +85,7 @@ def enhancementFit(dataDict):
 
     power_axes = data.getAxes('power')
 
-    inputData = _np.real(data.data)
+    inputData = _np.real(data.values)
 
     x0 = [inputData[-1],0.1]
 

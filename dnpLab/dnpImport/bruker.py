@@ -389,24 +389,3 @@ def importBrukerDir(path):
 
 if __name__ == "__main__":
     pass
-#    path = 'C:/Users/tjkel/OneDrive/Documents/Bridge12/data/2017_01_10_AMS37_DNP_hydrophilic/'
-#    path = 'C:/Users/tjkel/OneDrive/Documents/Bridge12/data/20191017_TW_4OHTEMPO_1p0mM/'
-#    path = 'C:/Users/tjkel/OneDrive/Documents/Bridge12/data/20191101_TW_PEG-SL_100uM_1/'
-
-#    expNum = 4
-#
-#    paramsDict = loadAcqu(path,expNum,paramFilename = 'acqus')
-#
-#    for key in paramsDict:
-#        print('%s: %s'%(key,str(paramsDict[key])))
-#
-#    dirType = dirDataType(path,expNum)
-#    print('Directory Type:' + dirType)
-##    brukerSerPhaseCycle(path,expNum,paramFilename = 'acqu'):
-#    output = importBruker(path,expNum,paramFilename = 'acqus')
-#    figure()
-#    figure()
-#    plot(t,data)
-#    show()
-
-

@@ -5,7 +5,7 @@ def save_csv(filename,odnpData):
     '''
     '''
 
-    data = odnpData.data
+    data = odnpData.values
 
     np.savetxt(filename,data,delimiter = ',')
 
