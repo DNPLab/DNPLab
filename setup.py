@@ -1,3 +1,4 @@
+import setuptools
 from distutils.core import setup
 
 setup(
@@ -16,7 +17,7 @@ setup(
             'scipy',
             'matplotlib',
             'h5py',
-            ]
+            ],
         classifiers = [
             'Development Status :: 3 - Alpha',
             'License :: OSI Approved :: MIT License',
