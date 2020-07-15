@@ -1,16 +1,16 @@
 from distutils.core import setup
 
 setup(
-        name = 'odnpLab',
-        packages = ['odnpLab'],
+        name = 'dnpLab',
+        packages = ['dnpLab'],
         version = '1.0',
         license = 'MIT',
-        description = 'odnpLab - A NMR Processing Library for ODNP Experiments',
+        description = 'dnpLab - A NMR Processing Library for ODNP Experiments',
         author = 'Timothy Keller',
         author_email = 'tkeller@bridge12.com',
         url = '',
         download_url = '',
-        keywords = ['ODNP','NMR'],
+        keywords = ['ODNP','DNP','NMR'],
         install_requires = [
             'numpy',
             'scipy',
