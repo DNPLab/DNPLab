@@ -1,6 +1,6 @@
 import numpy as _np
 
-from .. import odnpData as _odnpData
+from .. import dnpData as _dnpData
 
 import os as _os
 
@@ -249,7 +249,7 @@ def brukerFid(path,expNum,paramFilename = 'acqus'):
 
     importantParamsDict = {}
     importantParamsDict['nmrFreq'] = paramsDict['SFO1'] * 1e6
-    output = _odnpData(data,[t],['t'],importantParamsDict)
+    output = _dnpData(data,[t],['t'],importantParamsDict)
 
     return output
 
@@ -319,7 +319,7 @@ def brukerSer(path,expNum,paramFilename = 'acqus'):
 
     importantParamsDict = {}
     importantParamsDict['nmrFreq'] = paramsDict['SFO1'] * 1e6
-    output = _odnpData(data,[t,vdList],['t','t1'],importantParamsDict)
+    output = _dnpData(data,[t,vdList],['t','t1'],importantParamsDict)
 
     return output
 
@@ -363,7 +363,7 @@ def brukerSerPhaseCycle(path,expNum,paramFilename = 'acqus'):
     importantParamsDict = {}
     importantParamsDict['nmrFreq'] = paramsDict['SFO1'] * 1e6
 
-    output = _odnpData(data,[t],['t'],importantParamsDict)
+    output = _dnpData(data,[t],['t'],importantParamsDict)
     return output
 
 

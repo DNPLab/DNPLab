@@ -1,4 +1,4 @@
-from . import odnpData as _odnpData
+from . import dnpData as _dnpData
 import numpy as _np
 
 
@@ -35,7 +35,7 @@ def returnData(allData):
     '''
 
     isDict = False
-    if isinstance(allData,_odnpData):
+    if isinstance(allData,_dnpData):
         data = allData.copy()
     elif isinstance(allData,dict):
         isDict = True
@@ -85,7 +85,7 @@ def removeOffset(allData,procParameters):
     '''Remove DC offset from FID by averaging the last few data points and subtracting the average
 
     Args:
-        allData (odnpData, dict): Data container for data
+        allData (dnpData, dict): Data container for data
         procParameters (dict,procParam): Processing Parameters
 
     .. code-block:: python
@@ -93,12 +93,12 @@ def removeOffset(allData,procParameters):
        procParameters['axes'] = 't'
        procParameters['offsetPoints'] = 10
 
-       outData = odnpLab.odnpNMR.removeOffset(allData,procParameters)
+       outData = dnpLab.dnpNMR.removeOffset(allData,procParameters)
 
     Returns:
-        allData (odnpData, dict)
+        allData (dnpData, dict)
     '''
-    # Determine if data is dictionary or odnpData object
+    # Determine if data is dictionary or dnpData object
     data, isDict = returnData(allData)
 
     requiredList = ['axes','offsetPoints']
@@ -130,11 +130,11 @@ def fourierTransform(allData, procParameters):
         Assumes dt = t[1] - t[0]
 
     Args:
-        allData (odnpData, dict): Data container
+        allData (dnpData, dict): Data container
         procParameters (dict, procParam): Processing parameters
 
     Returns:
-        allData (odnpData, dict): Processed data in container
+        allData (dnpData, dict): Processed data in container
         
     Example:
 
@@ -145,10 +145,10 @@ def fourierTransform(allData, procParameters):
         procParameters['shift'] = True
         procParameters['convert2ppm'] = True
 
-        allData = odnpLab.odnpNMR.fourierTransform(allData, procParameters)
+        allData = dnpLab.dnpNMR.fourierTransform(allData, procParameters)
     '''
 
-    # Determine if data is dictionary or odnpData object
+    # Determine if data is dictionary or dnpData object
     data, isDict = returnData(allData)
 
     requiredList = ['axes','zeroFillFactor','shift','convert2ppm']
@@ -190,7 +190,7 @@ def window(allData,procParameters):
     '''Apply Apodization to data down given dimension
     
     Args:
-        allData (odnpData, dict): data container
+        allData (dnpData, dict): data container
         procParameters (dict, procParam): parameter values
 
     .. note::
@@ -204,7 +204,7 @@ def window(allData,procParameters):
                 'linewidth' : 10,
                 'axes' : 't',
                 }
-        allData = odnpLab.odnpNMR.window(allData,procParameters)
+        allData = dnpLab.dnpNMR.window(allData,procParameters)
         
     '''
 
@@ -242,7 +242,7 @@ def integrate(allData,procParameters):
     '''Integrate data down given dimension
     
     Args:
-        allData (odnpData,dict): Data container
+        allData (dnpData,dict): Data container
         procParameters (dict, procParam): Processing Parameters
             axes_label: str
                 dimension to integrate
@@ -252,7 +252,7 @@ def integrate(allData,procParameters):
                 width of integration window
 
     Returns:
-        allData (odnpData,dict): Processed data
+        allData (dnpData,dict): Processed data
 
     Exampe:
     .. code-block:: python
@@ -262,7 +262,7 @@ def integrate(allData,procParameters):
                     'integrateCenter' : 0,
                     'integrateWidth' : 100,
                     }
-        odnpLab.odnpNMR.integrate(allData,procParameters)
+        dnpLab.dnpNMR.integrate(allData,procParameters)
     '''
 
     data, isDict = returnData(allData)

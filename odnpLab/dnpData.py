@@ -1,4 +1,3 @@
-# Tim Keller
 # Bridge12 Technologies, Inc
 # Python Class for Handling ODNP Data
 import numpy as np
@@ -8,15 +7,15 @@ from copy import deepcopy
 version = '1.0'
 
 #TODO:
-# Fix Dictionary not being empty when odnp_data is initialized, problem with add_power function
+# Fix Dictionary not being empty when dnp_data is initialized, problem with add_power function
 # Force all axes to be nddata arrays, so that indexing is easier
 # Add Alignment
 # Add Fit down dimension
 
-class odnpData:
-    '''odnpData Class for handling odnp data
+class dnpData:
+    '''dnpData Class for handling dnp data
 
-    The odnpData class is inspired by pyspecdata nddata object which handles n-dimensional data, axes, and other relevant information together. 
+    The dnpData class is inspired by pyspecdata nddata object which handles n-dimensional data, axes, and other relevant information together. 
     
     This class is designed to handle data and axes together so that performing NMR processing can be performed easily.
 
@@ -29,7 +28,7 @@ class odnpData:
     '''
 
     def __abs__(self):
-        '''return absolute value of odnpData object
+        '''return absolute value of dnpData object
         Example::
            >> data = abs(data)
         '''
@@ -43,7 +42,7 @@ class odnpData:
             newData.data += data
         elif isinstance(data,np.ndarray):
             newData.data = newData.data + data
-        elif isinstance(data,odnpData):
+        elif isinstance(data,dnpData):
             newData.data = newData.data + data.data
         else:
             print('Cannot add, type not supported:')
@@ -55,7 +54,7 @@ class odnpData:
         return deepcopy(self)
 
     def __getitem__(self,index):
-        '''Indexing odnpData function
+        '''Indexing dnpData function
         '''
 #        return self.data[index]
 #        print index
@@ -93,7 +92,7 @@ class odnpData:
         return out
 
     def __init__(self,data = np.r_[[]],axes = [],axesLabels = [],params = {},procList = []):
-        '''odnpData Class __init__ method
+        '''dnpData Class __init__ method
 
         Args:
             data (numpy.ndarray): 
@@ -119,7 +118,7 @@ class odnpData:
             newData.data *= data
         elif isinstance(data,np.ndarray):
             newData.data = newData.data * data
-        elif isinstance(data,odnpData):
+        elif isinstance(data,dnpData):
             newData.data = newData.data * data.data
         else:
             print('Cannot add, type not supported:')
@@ -142,7 +141,7 @@ class odnpData:
             newData.data = newData.data**data
         elif isinstance(data,np.ndarray):
             newData.data = newData.data**data
-        elif isinstance(data,odnpData):
+        elif isinstance(data,dnpData):
             newData.data = newData.data**data.data
         else:
             print('Cannot add, type not supported:')
@@ -154,7 +153,7 @@ class odnpData:
         return self.__add__(data)
 
     def __repr__(self):
-        ''' Representation of odnpData object
+        ''' Representation of dnpData object
         '''
         string = 'Data Shape:' + repr(np.shape(self.data)) + '\n'
         string += 'Data Axes:' + repr(self.axesLabels) + '\n'
@@ -187,7 +186,7 @@ class odnpData:
             newData.data = data - newData.data
         elif isinstance(data,np.ndarray):
             newData.data = data - newData.data
-        elif isinstance(data,odnpData):
+        elif isinstance(data,dnpData):
             newData.data = data.data - newData.data
         else:
             print('Cannot add, type not supported:')
@@ -196,10 +195,10 @@ class odnpData:
         return newData
 
     def __str__(self):
-        ''' String representation of odnpData object
+        ''' String representation of dnpData object
 
         Returns:
-            string (str): string representation of odnpData object
+            string (str): string representation of dnpData object
         '''
         string = 'Data Shape:' + repr(np.shape(self.data)) + '\n'
         string += 'Data Axes:' + repr(self.axesLabels) + '\n'
@@ -229,7 +228,7 @@ class odnpData:
             newData.data -= data
         elif isinstance(data,np.ndarray):
             newData.data = newData.data - data
-        elif isinstance(data,odnpData):
+        elif isinstance(data,dnpData):
             newData.data = newData.data - data.data
         else:
             print('Cannot add, type not supported:')
@@ -245,9 +244,9 @@ class odnpData:
         return out
 
     def addAxes(self,axesLabel,axesValue):
-        '''Add new axesLabel to odnpData object with ax
+        '''Add new axesLabel to dnpData object with ax
 
-        This function increases the dimension of the odnpData object by 1 with the axesValue parameter giving the axes
+        This function increases the dimension of the dnpData object by 1 with the axesValue parameter giving the axes
 
         Args:
             axesLabel (str): Name of new axis
@@ -273,10 +272,10 @@ class odnpData:
             self.data *= -1.
 
     def concatenateAlong(self,newData,axesLabel):
-        '''Concatenate new odnp data to original data along given axes label
+        '''Concatenate new dnp data to original data along given axes label
 
         Args:
-            newData (odnpData): data to be concatenated to odnp_data object
+            newData (dnpData): data to be concatenated to dnp_data object
             axesLabel (str): axis to concatenate down
         '''
         reorderLabels = self.axesLabels
@@ -298,7 +297,7 @@ class odnpData:
         return deepcopy(self)
 
     def getAxes(self,axesLabel):
-        '''Return given axes of odnpData object
+        '''Return given axes of dnpData object
 
         Args:
             axes_label (str): Axes to retrieve
@@ -342,7 +341,7 @@ class odnpData:
         return maxValue
 
     def phase(self,):
-        '''Return phase of odnpData object
+        '''Return phase of dnpData object
 
         Returns:
             phase (float,int): phase of data calculated from sum of imaginary divided by sum of real components
@@ -358,7 +357,7 @@ class odnpData:
             maxValue (float): Maximum axes value for indexing
 
         Returns:
-            odnpData
+            dnpData
         '''
 
         out = deepcopy(self)

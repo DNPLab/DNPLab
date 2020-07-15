@@ -1,4 +1,4 @@
-from .. import odnpData
+from .. import dnpData
 import numpy as np
 import h5py
 
@@ -6,7 +6,7 @@ import h5py
 def saveh5(dataDict, path, overwrite = False):
     '''
     Save All Data in .h5 format
-    Requires a dictionary of odnpData objects
+    Requires a dictionary of dnpData objects
 
     '''
 
@@ -19,37 +19,37 @@ def saveh5(dataDict, path, overwrite = False):
 
     f = h5py.File(path, mode)
 
-#    f.attrs['odnpLab_version'] = version
+#    f.attrs['dnpLab_version'] = version
 
     for key in keysList:
-        odnpDataObject = dataDict[key]
+        dnpDataObject = dataDict[key]
         
-        odnpDataGroup = f.create_group(key,track_order = True)
-        odnpDataGroup.attrs['dnpLab_version'] = dataDict[key].version
-        dims_group = odnpDataGroup.create_group('dims') # dimension names e.g. x,y,z
-        attrs_group = odnpDataGroup.create_group('attrs') # dictionary information
-        odnp_dataset = odnpDataGroup.create_dataset('values',data = odnpDataObject.data)
+        dnpDataGroup = f.create_group(key,track_order = True)
+        dnpDataGroup.attrs['dnpLab_version'] = dataDict[key].version
+        dims_group = dnpDataGroup.create_group('dims') # dimension names e.g. x,y,z
+        attrs_group = dnpDataGroup.create_group('attrs') # dictionary information
+        dnp_dataset = dnpDataGroup.create_dataset('values',data = dnpDataObject.data)
 
         # Save axes information
-        for ix in range(len(odnpDataObject.axes)):
-            label = odnpDataObject.axesLabels[ix]
-            this_axes = odnpDataObject.axes[ix]
+        for ix in range(len(dnpDataObject.axes)):
+            label = dnpDataObject.axesLabels[ix]
+            this_axes = dnpDataObject.axes[ix]
             dims_group.create_dataset(label,data = this_axes)
             dims_group[label].make_scale(label)
 
-            odnp_dataset.dims[ix].attach_scale(dims_group[label])
+            dnp_dataset.dims[ix].attach_scale(dims_group[label])
 
         # Save Parameters
-        for key in odnpDataObject.params:
-            attrs_group.attrs[key] = odnpDataObject.params[key]
+        for key in dnpDataObject.params:
+            attrs_group.attrs[key] = dnpDataObject.params[key]
     f.close()
 
 def loadh5(path):
     '''
-    Returns Dictionary of odnpDataObjects
+    Returns Dictionary of dnpDataObjects
     '''
 
-    odnpDict = {}
+    dnpDict = {}
 
     f = h5py.File(path,'r')
     keysList = f.keys()
@@ -72,8 +72,8 @@ def loadh5(path):
             print(k)
             print(f[key]['attrs'].attrs[k])
             params[k] = f[key]['attrs'].attrs[k]
-        odnpDict[key] = odnpData(data,axes,axesLabels,params)
-        odnpDict[key].version = version
+        dnpDict[key] = dnpData(data,axes,axesLabels,params)
+        dnpDict[key].version = version
 
-    return odnpDict
+    return dnpDict
 

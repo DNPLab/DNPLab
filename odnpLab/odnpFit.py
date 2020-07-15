@@ -1,4 +1,4 @@
-from . import odnpData as _odnpData
+from . import dnpData as _dnpData
 import numpy as _np
 
 from scipy.optimize import least_squares
@@ -24,7 +24,7 @@ def t1Fit(dataDict):
     if isinstance(dataDict,dict):
         data = dataDict['proc'].copy()
         isDict = True
-    elif isinstance(dataDict,_odnpData):
+    elif isinstance(dataDict,_dnpData):
         data = dataDict.copy()
     else:
         print('Incompatible data type:')
@@ -42,7 +42,7 @@ def t1Fit(dataDict):
     new_axes = _np.r_[_np.min(t1_axes):_np.max(t1_axes):100j]
     fit = t1Function(new_axes,out['x'])
 
-    fitData = _odnpData(fit,[new_axes],['t1'])
+    fitData = _dnpData(fit,[new_axes],['t1'])
     fitData.params['t1'] = out['x'][0]
     fitData.params['M_0'] = out['x'][1]
     fitData.params['M_inf'] = out['x'][2]
@@ -76,7 +76,7 @@ def enhancementFit(dataDict):
     if isinstance(dataDict,dict):
         data = dataDict['proc'].copy()
         isDict = True
-    elif isinstance(dataDict,_odnpData):
+    elif isinstance(dataDict,_dnpData):
         data = dataDict.copy()
     else:
         print('Incompatible data type:')
@@ -94,7 +94,7 @@ def enhancementFit(dataDict):
     new_axes = _np.r_[_np.min(power_axes):_np.max(power_axes):100j]
     fit = enhancementFunction(new_axes,out['x'])
 
-    fitData = _odnpData(fit,[new_axes],['power'])
+    fitData = _dnpData(fit,[new_axes],['power'])
     fitData.params['E_max'] = out['x'][0]
     fitData.params['power_half'] = out['x'][1]
 

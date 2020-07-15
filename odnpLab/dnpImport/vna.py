@@ -3,16 +3,16 @@ import os
 import re
 from matplotlib.pylab import *
 
-from .. import odnpData as _odnpData
+from .. import dnpData as _dnpData
 
 def import_vna(path):
-    ''' Import VNA data and return odnpData object
+    ''' Import VNA data and return dnpData object
     '''
     x, data = import_snp(path)
     # Not General
-    odnpDataObject = _odnpData(data,[x],['f'],{})
+    dnpDataObject = _dnpData(data,[x],['f'],{})
 
-    return odnpDataObject
+    return dnpDataObject
 
 def import_snp(path):
     '''Import sNp file and return numpy array

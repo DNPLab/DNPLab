@@ -1,7 +1,7 @@
 import numpy as _np
 import os
 
-from .. import odnpData as _odnpData
+from .. import dnpData as _dnpData
 
 from struct import unpack
 
@@ -169,7 +169,7 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
         paramFilename(str): process parameter filename
 
     Returns:
-        odnpData: data
+        dnpData: data
 
     """
 
@@ -190,11 +190,11 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
 
     if arraydim == 1:
         data = data.reshape(-1)
-        output = _odnpData(data,[t],['t'],{})
+        output = _dnpData(data,[t],['t'],{})
     else:
 #        data = data.T
 #        data = data.reshape(-1,arraydim)
-        output = _odnpData(data,[t,_np.array(range(arraydim))],['t','x'],{})
+        output = _dnpData(data,[t,_np.array(range(arraydim))],['t','x'],{})
 
     importantParamsDict = {}
     importantParamsDict['nmrFreq'] = nmrFreq

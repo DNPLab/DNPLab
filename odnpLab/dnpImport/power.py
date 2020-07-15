@@ -2,7 +2,7 @@ import numpy as _np
 
 from scipy.io import loadmat as _loadmat
 
-from .. import odnpData as _odnpData
+from .. import dnpData as _dnpData
 
 def importPower(path,filename = ''):
     '''
@@ -66,7 +66,7 @@ def chopPower(t,p,threshold = 0.1):
 
 def assignPower(dataDict,expNumList,powersList):
     '''
-    Given a dictionary of odnpData objects with key being folder string,
+    Given a dictionary of dnpData objects with key being folder string,
     return the data with power values assigned to a new axis dimension
     '''
 

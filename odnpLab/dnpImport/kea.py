@@ -1,4 +1,4 @@
-from .. import odnpData
+from .. import dnpData
 import numpy as np
 from struct import unpack
 import os
@@ -14,7 +14,7 @@ def importKea(path, parameters_filename = None, verbose = False):
         verbose (bool): If true, prints additional information for troubleshooting
     
     Returns:
-        odnpData object with Kea data
+        dnpData object with Kea data
     '''
 
     if parameters_filename == None:
@@ -67,7 +67,7 @@ def importKea(path, parameters_filename = None, verbose = False):
         dims[0] = 't'
         coords[0] = x
 
-    kea_data = odnpData(data, coords, dims, attrs)
+    kea_data = dnpData(data, coords, dims, attrs)
 
     return kea_data
 
