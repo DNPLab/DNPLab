@@ -8,7 +8,7 @@ This module calculates hydration related quantities using processed ODNP data.
 import numpy as np
 from scipy import interpolate
 from scipy import optimize
-from odnpLab.parameter import AttrDict, Parameter
+from dnpLab.parameter import AttrDict, Parameter
 
 
 class FitError(Exception):
