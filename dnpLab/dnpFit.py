@@ -43,9 +43,9 @@ def t1Fit(dataDict):
     fit = t1Function(new_axes,out['x'])
 
     fitData = _dnpData(fit,[new_axes],['t1'])
-    fitData.params['t1'] = out['x'][0]
-    fitData.params['M_0'] = out['x'][1]
-    fitData.params['M_inf'] = out['x'][2]
+    fitData.attrs['t1'] = out['x'][0]
+    fitData.attrs['M_0'] = out['x'][1]
+    fitData.attrs['M_inf'] = out['x'][2]
 
     if isDict:
         dataDict['fit'] = fitData
@@ -95,8 +95,8 @@ def enhancementFit(dataDict):
     fit = enhancementFunction(new_axes,out['x'])
 
     fitData = _dnpData(fit,[new_axes],['power'])
-    fitData.params['E_max'] = out['x'][0]
-    fitData.params['power_half'] = out['x'][1]
+    fitData.attrs['E_max'] = out['x'][0]
+    fitData.attrs['power_half'] = out['x'][1]
 
     if isDict:
         dataDict['fit'] = fitData

@@ -75,10 +75,10 @@ def procString(name,procParameters,requiredList):
 def stampProcStep(data,procStepString):
     '''
     '''
-    if '*proc*' in data.params:
-        data.params['*proc*'].append(procStepString)
+    if '*proc*' in data.attrs:
+        data.attrs['*proc*'].append(procStepString)
     else:
-        data.params['*proc*'] = [procStepString]
+        data.attrs['*proc*'] = [procStepString]
     return data
 
 def removeOffset(allData,procParameters):
@@ -168,7 +168,7 @@ def fourierTransform(allData, procParameters):
         f -= (1./(2*dt))
 
     if convert2ppm:
-        nmrFrequency = data.params['nmrFreq']
+        nmrFrequency = data.attrs['nmrFreq']
         f /= (nmrFrequency / 1.e6)
 
     data.values = _np.fft.fft(data.values,n=n_pts,axis=index)
@@ -344,8 +344,8 @@ def steps(allData):
     string += '----------------\n'
     string += 'PROCESSING STEPS:\n'
     ix = 1
-    if '*proc*' in data.params:
-        for procStep in data.params['*proc*']:
+    if '*proc*' in data.attrs:
+        for procStep in data.attrs['*proc*']:
 #            string += '%i.)'%ix + '\n'
             procStep = procStep.split(':')
             string += '----------------\n'

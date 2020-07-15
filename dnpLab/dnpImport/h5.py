@@ -40,8 +40,8 @@ def saveh5(dataDict, path, overwrite = False):
             dnp_dataset.dims[ix].attach_scale(dims_group[label])
 
         # Save Parameters
-        for key in dnpDataObject.params:
-            attrs_group.attrs[key] = dnpDataObject.params[key]
+        for key in dnpDataObject.attrs:
+            attrs_group.attrs[key] = dnpDataObject.attrs[key]
     f.close()
 
 def loadh5(path):
@@ -59,7 +59,7 @@ def loadh5(path):
     for key in keysList:
         axes = []
         dims = []
-        params = {}
+        attrs = {}
         data = f[key]['values'][:]
         version = f[key].attrs['dnpLab_version']
 
@@ -71,8 +71,8 @@ def loadh5(path):
         for k in f[key]['attrs'].attrs.keys():
             print(k)
             print(f[key]['attrs'].attrs[k])
-            params[k] = f[key]['attrs'].attrs[k]
-        dnpDict[key] = dnpData(data,axes,dims,params)
+            attrs[k] = f[key]['attrs'].attrs[k]
+        dnpDict[key] = dnpData(data,axes,dims,attrs)
         dnpDict[key].version = version
 
     return dnpDict

@@ -198,7 +198,7 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
 
     importantParamsDict = {}
     importantParamsDict['nmrFreq'] = nmrFreq
-    output.params = importantParamsDict
+    output.attrs = importantParamsDict
 #    print(_np.shape(data))
 #    print(len(t))
     return output

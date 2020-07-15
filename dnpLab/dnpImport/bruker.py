@@ -135,18 +135,18 @@ def loadAcqu(path, expNum = 1, paramFilename = 'acqus'):
 
     # Split parameters by line
     lines = rawParams.strip('\n').split('\n')
-    paramsDict = {}
+    attrsDict = {}
 
     # Parse Parameters
     for line in lines:
         if line[0:3] == '##$':
             lineSplit = line[3:].split('= ')
             try:
-                paramsDict[lineSplit[0]] = float(lineSplit[1])
+                attrsDict[lineSplit[0]] = float(lineSplit[1])
             except:
-                paramsDict[lineSplit[0]] = lineSplit[1]
+                attrsDict[lineSplit[0]] = lineSplit[1]
 
-    return paramsDict
+    return attrsDict
 
 def loadProc(path, expNum = 1, procNum = 1, paramFilename = 'procs'):
     '''
@@ -160,18 +160,18 @@ def loadProc(path, expNum = 1, procNum = 1, paramFilename = 'procs'):
 
     # Split parameters by line
     lines = rawParams.strip('\n').split('\n')
-    paramsDict = {}
+    attrsDict = {}
 
     # Parse Parameters
     for line in lines:
         if line[0:3] == '##$':
             lineSplit = line[3:].split('= ')
             try:
-                paramsDict[lineSplit[0]] = float(lineSplit[1])
+                attrsDict[lineSplit[0]] = float(lineSplit[1])
             except:
-                paramsDict[lineSplit[0]] = lineSplit[1]
+                attrsDict[lineSplit[0]] = lineSplit[1]
 
-    return paramsDict
+    return attrsDict
 
 
 
@@ -219,15 +219,15 @@ def importBruker(path,expNum,paramFilename = 'acqus'):
 def brukerFid(path,expNum,paramFilename = 'acqus'):
     '''
     '''
-    paramsDict = loadAcqu(path, expNum, paramFilename)
+    attrsDict = loadAcqu(path, expNum, paramFilename)
 
-    sw_h = paramsDict['SW_h'] # Spectral Width in Hz
+    sw_h = attrsDict['SW_h'] # Spectral Width in Hz
 
-    rg = paramsDict['RG'] # reciever gain
-    decim = paramsDict['DECIM'] # Decimation factor of the digital filter
-    dspfvs = paramsDict['DSPFVS'] # Digital signal processor firmware version
-    bytorda = paramsDict['BYTORDA'] # 1 for big endian, 0 for little endian
-    td = int(paramsDict['TD'])# points in time axes
+    rg = attrsDict['RG'] # reciever gain
+    decim = attrsDict['DECIM'] # Decimation factor of the digital filter
+    dspfvs = attrsDict['DSPFVS'] # Digital signal processor firmware version
+    bytorda = attrsDict['BYTORDA'] # 1 for big endian, 0 for little endian
+    td = int(attrsDict['TD'])# points in time axes
 
 
     if bytorda == 0:
@@ -248,7 +248,7 @@ def brukerFid(path,expNum,paramFilename = 'acqus'):
     data = data / rg
 
     importantParamsDict = {}
-    importantParamsDict['nmrFreq'] = paramsDict['SFO1'] * 1e6
+    importantParamsDict['nmrFreq'] = attrsDict['SFO1'] * 1e6
     output = _dnpData(data,[t],['t'],importantParamsDict)
 
     return output
@@ -286,15 +286,15 @@ def brukervdList(path,expNum):
 def brukerSer(path,expNum,paramFilename = 'acqus'):
     '''
     '''
-    paramsDict = loadAcqu(path, expNum, paramFilename)
+    attrsDict = loadAcqu(path, expNum, paramFilename)
 
-    sw_h = paramsDict['SW_h'] # Spectral Width in Hz
+    sw_h = attrsDict['SW_h'] # Spectral Width in Hz
 
-    rg = paramsDict['RG'] # reciever gain
-    decim = paramsDict['DECIM'] # Decimation factor of the digital filter
-    dspfvs = paramsDict['DSPFVS'] # Digital signal processor firmware version
-    bytorda = paramsDict['BYTORDA'] # 1 for big endian, 0 for little endian
-    td = int(paramsDict['TD'])# points in time axes
+    rg = attrsDict['RG'] # reciever gain
+    decim = attrsDict['DECIM'] # Decimation factor of the digital filter
+    dspfvs = attrsDict['DSPFVS'] # Digital signal processor firmware version
+    bytorda = attrsDict['BYTORDA'] # 1 for big endian, 0 for little endian
+    td = int(attrsDict['TD'])# points in time axes
 
     if bytorda == 0:
         endian = '<'
@@ -318,7 +318,7 @@ def brukerSer(path,expNum,paramFilename = 'acqus'):
     data = data / rg
 
     importantParamsDict = {}
-    importantParamsDict['nmrFreq'] = paramsDict['SFO1'] * 1e6
+    importantParamsDict['nmrFreq'] = attrsDict['SFO1'] * 1e6
     output = _dnpData(data,[t,vdList],['t','t1'],importantParamsDict)
 
     return output
@@ -326,15 +326,15 @@ def brukerSer(path,expNum,paramFilename = 'acqus'):
 def brukerSerPhaseCycle(path,expNum,paramFilename = 'acqus'):
     '''
     '''
-    paramsDict = loadAcqu(path, expNum, paramFilename)
+    attrsDict = loadAcqu(path, expNum, paramFilename)
 
-    sw_h = paramsDict['SW_h'] # Spectral Width in Hz
+    sw_h = attrsDict['SW_h'] # Spectral Width in Hz
 
-    rg = paramsDict['RG'] # reciever gain
-    decim = paramsDict['DECIM'] # Decimation factor of the digital filter
-    dspfvs = paramsDict['DSPFVS'] # Digital signal processor firmware version
-    bytorda = paramsDict['BYTORDA'] # 1 for big endian, 0 for little endian
-    td = int(paramsDict['TD'])# points in time axes
+    rg = attrsDict['RG'] # reciever gain
+    decim = attrsDict['DECIM'] # Decimation factor of the digital filter
+    dspfvs = attrsDict['DSPFVS'] # Digital signal processor firmware version
+    bytorda = attrsDict['BYTORDA'] # 1 for big endian, 0 for little endian
+    td = int(attrsDict['TD'])# points in time axes
 
     if bytorda == 0:
         endian = '<'
@@ -361,7 +361,7 @@ def brukerSerPhaseCycle(path,expNum,paramFilename = 'acqus'):
     data = data / rg
 
     importantParamsDict = {}
-    importantParamsDict['nmrFreq'] = paramsDict['SFO1'] * 1e6
+    importantParamsDict['nmrFreq'] = attrsDict['SFO1'] * 1e6
 
     output = _dnpData(data,[t],['t'],importantParamsDict)
     return output

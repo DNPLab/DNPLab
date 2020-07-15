@@ -23,7 +23,7 @@ class dnpData:
     values (numpy.ndarray): Numpy Array containing data
     coords (list): List of numpy arrays containing axes of data
     dims (list): List of axes labels for data
-    params (dict): Dictionary of parameters for data
+    attrs (dict): Dictionary of parameters for data
 
     '''
 
@@ -91,14 +91,14 @@ class dnpData:
 
         return out
 
-    def __init__(self,values = np.r_[[]],coords = [],dims = [],params = {},procList = []):
+    def __init__(self,values = np.r_[[]],coords = [],dims = [],attrs = {},procList = []):
         '''dnpData Class __init__ method
 
         Args:
             data (numpy.ndarray): 
             coords (list): list of axes
             dims (list): list of strings which are names of axes
-            params (dict): dictionary of parameters
+            attrs (dict): dictionary of parameters
 
 
         '''
@@ -107,7 +107,7 @@ class dnpData:
         self.values = values
         self.coords = coords
         self.dims = dims
-        self.params = params
+        self.attrs = attrs
 
     def __len__(self):
         return np.size(self.values)
@@ -157,15 +157,15 @@ class dnpData:
         '''
         string = 'Data Shape:' + repr(np.shape(self.values)) + '\n'
         string += 'Data Axes:' + repr(self.dims) + '\n'
-        string += 'Parameters:\n'# + repr(self.params)
-        for key in self.params:
+        string += 'Parameters:\n'# + repr(self.attrs)
+        for key in self.attrs:
             if key != '*proc*':
-                string += str(key) + ': ' + str(self.params[key]) + '\n'
+                string += str(key) + ': ' + str(self.attrs[key]) + '\n'
 
-        if '*proc*' in self.params:
+        if '*proc*' in self.attrs:
             string += '*PROCESSING*\n'
             ix = 1
-            for procStep in self.params['*proc*']:
+            for procStep in self.attrs['*proc*']:
                 procStep = procStep.split(':')
                 string += '%i.) '%ix + procStep[0] + ':\n'
                 line = procStep[1].strip('\n').split('\n')
@@ -202,15 +202,15 @@ class dnpData:
         '''
         string = 'Data Shape:' + repr(np.shape(self.values)) + '\n'
         string += 'Data Axes:' + repr(self.dims) + '\n'
-        string += 'Parameters:\n'# + repr(self.params)
-        for key in self.params:
+        string += 'Parameters:\n'# + repr(self.attrs)
+        for key in self.attrs:
             if key != '*proc*':
-                string += str(key) + ': ' + str(self.params[key]) + '\n'
+                string += str(key) + ': ' + str(self.attrs[key]) + '\n'
 
-        if '*proc*' in self.params:
+        if '*proc*' in self.attrs:
             string += '*PROCESSING*\n'
             ix = 1
-            for procStep in self.params['*proc*']:
+            for procStep in self.attrs['*proc*']:
                 procStep = procStep.split(':')
                 string += '%i.) '%ix + procStep[0] + ':\n'
                 line = procStep[1].strip('\n').split('\n')
