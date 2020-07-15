@@ -10,10 +10,10 @@
     :target: https://han.chem.ucsb.edu/
 
 ===================================
-Welcome to odnpLab's documentation!
+Welcome to dnp_lab's documentation!
 ===================================
 
-odnpLab is an open source python package for importing and processing Overhauser dynamic nuclear polarization (ODNP) data.
+dnp_lab is an open source python package for importing and processing dynamic nuclear polarization (DNP) data.
 
 * Version: |version|
 * Current Release: |release|
@@ -33,13 +33,13 @@ Features
 
    install
    quick-start
-   odnpData
-   odnpImport
-   odnpNMR
-   odnpFit
-   odnpHydration
-   odnpPlot
-   odnpGUI
+   dnp_data
+   io
+   nmr
+   dnp_fit
+   hydration
+   plot
+   gui
 
 Index
 ==================
