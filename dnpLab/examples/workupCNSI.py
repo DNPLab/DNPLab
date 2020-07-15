@@ -1,13 +1,13 @@
 import numpy as np
 from matplotlib.pylab import *
 from scipy.io import loadmat, savemat
-import odnpLab
-from odnpLab.hydration import HydrationParameter, HydrationCalculator
-from odnpLab.parameter import Parameter
+import dnpLab
+from dnpLab.hydration import HydrationParameter, HydrationCalculator
+from dnpLab.parameter import Parameter
 import sys
 
 
-# sys.path.append('/Users/thomascasey/odnplab')
+# sys.path.append('/Users/thomascasey/dnplab')
 
 class ProcParameter(Parameter):
     """Processing Parameters
@@ -47,13 +47,13 @@ def process_cnsi(path: str, par: ProcParameter):
     # Extract power settings from the experiment titles and later use them to make the power arrays
     Eplist = []
     for k in list(range(6, 27, 1)):
-        title = odnpLab.odnpImport.bruker.loadTitle(path, expNum=k)
+        title = dnpLab.dnpImport.bruker.loadTitle(path, expNum=k)
         splitTitle = title.split(' ')
         Eplist.append(float(splitTitle[-1]))
 
     T1plist = []
     for k in list(range(28, 33, 1)):
-        title = odnpLab.odnpImport.bruker.loadTitle(path, expNum=k)
+        title = dnpLab.dnpImport.bruker.loadTitle(path, expNum=k)
         splitTitle = title.split(' ')
         T1plist.append(float(splitTitle[-1]))
 
@@ -90,28 +90,28 @@ def process_cnsi(path: str, par: ProcParameter):
     EpNumList = list(range(5, 27, 1))
     print('ExpNumList = ', EpNumList) if par.verbose else None
 
-    dataDir = odnpLab.odnpImport.bruker.importBrukerDir(path)
+    dataDir = dnpLab.dnpImport.bruker.importBrukerDir(path)
 
-    power_t, power = odnpLab.odnpImport.power.importPower(path + 'power.mat')
-    power_t, power = odnpLab.odnpImport.power.chopPower(power_t, power)
+    power_t, power = dnpLab.dnpImport.power.importPower(path + 'power.mat')
+    power_t, power = dnpLab.dnpImport.power.chopPower(power_t, power)
     expPowerList = power
     expPowerList = np.hstack(([0], expPowerList))
 
-    data = odnpLab.odnpImport.power.assignPower(dataDir, EpNumList,
+    data = dnpLab.dnpImport.power.assignPower(dataDir, EpNumList,
                                                 expPowerList)
 
     dataDict = {'raw': data}
 
-    dataDict = odnpLab.odnpNMR.removeOffset(dataDict, {})
-    dataDict = odnpLab.odnpNMR.window(dataDict, {})
-    dataDict = odnpLab.odnpNMR.fourierTransform(dataDict, {})
+    dataDict = dnpLab.dnpNMR.removeOffset(dataDict, {})
+    dataDict = dnpLab.dnpNMR.window(dataDict, {})
+    dataDict = dnpLab.dnpNMR.fourierTransform(dataDict, {})
 
     # dataDict['proc'].data = dataDict['proc'].data * 1j
 
     phase = dataDict['proc']['t1', 1].phase()
     dataDict['proc'] *= np.exp(-1j * phase)
 
-    dataDict = odnpLab.odnpNMR.integrate(dataDict, {'integrateCenter': eic,
+    dataDict = dnpLab.dnpNMR.integrate(dataDict, {'integrateCenter': eic,
                                                     'integrateWidth': eiw})
 
     # Normalize to first point
@@ -130,9 +130,9 @@ def process_cnsi(path: str, par: ProcParameter):
 
     print('Started T1 processing...') if par.verbose else None
 
-    T1power_t, T1power = odnpLab.odnpImport.power.importPower(
+    T1power_t, T1power = dnpLab.dnpImport.power.importPower(
         path + 't1_powers.mat')
-    T1power_t, T1power = odnpLab.odnpImport.power.chopPower(T1power_t, T1power)
+    T1power_t, T1power = dnpLab.dnpImport.power.chopPower(T1power_t, T1power)
 
     T1pNumList = list(range(28, 33, 1))
     T1pNumList.append(304)
@@ -141,24 +141,24 @@ def process_cnsi(path: str, par: ProcParameter):
     T1pows = []
     for i in T1pNumList:
 
-        data = odnpLab.odnpImport.bruker.importBruker(path, i)
+        data = dnpLab.dnpImport.bruker.importBruker(path, i)
 
         dataDict = {'raw': data}
 
-        dataDict = odnpLab.odnpNMR.removeOffset(dataDict, {})
-        dataDict = odnpLab.odnpNMR.window(dataDict, {})
-        dataDict = odnpLab.odnpNMR.fourierTransform(dataDict, {})
+        dataDict = dnpLab.dnpNMR.removeOffset(dataDict, {})
+        dataDict = dnpLab.dnpNMR.window(dataDict, {})
+        dataDict = dnpLab.dnpNMR.fourierTransform(dataDict, {})
 
         phase = dataDict['proc']['t1', 1].phase()
         dataDict['proc'] *= np.exp(-1j * phase)
 
-        dataDict = odnpLab.odnpNMR.integrate(dataDict, {'integrateCenter': tic,
+        dataDict = dnpLab.dnpNMR.integrate(dataDict, {'integrateCenter': tic,
                                                         'integrateWidth': tiw})
 
         if dataDict['proc']['t1', -1].data < 0:
             dataDict['proc'] *= -1.
 
-        dataDict = odnpLab.odnpFit.t1Fit(dataDict)
+        dataDict = dnpLab.dnpFit.t1Fit(dataDict)
 
         T1s.append(dataDict['fit'].params['t1'])
 
@@ -203,4 +203,4 @@ if __name__ == '__main__':
                              hp=hpar)
     print(hc.results)
 
-# savemat('/Users/thomascasey/Documents/MATLAB/' + 'test.mat', {'odnp' : odnpData}, oned_as='column')
+# savemat('/Users/thomascasey/Documents/MATLAB/' + 'test.mat', {'dnp' : dnpData}, oned_as='column')

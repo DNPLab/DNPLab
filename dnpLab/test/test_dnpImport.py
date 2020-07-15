@@ -1,7 +1,7 @@
 import unittest
-import odnpLab.odnpImport.bruker as bruker
-import odnpLab.odnpImport.kea as kea
-import odnpLab.odnpImport.varian as varian
+import dnpLab.dnpImport.bruker as bruker
+import dnpLab.dnpImport.kea as kea
+import dnpLab.dnpImport.varian as varian
 
 
 class ImportBrukerTester(unittest.TestCase):

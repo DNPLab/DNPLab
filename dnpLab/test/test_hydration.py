@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from odnpLab.hydration import HydrationCalculator, HydrationParameter
+from dnpLab.hydration import HydrationCalculator, HydrationParameter
 
 
 class TestHydration(unittest.TestCase):
