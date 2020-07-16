@@ -24,11 +24,11 @@ def saveh5(dataDict, path, overwrite = False):
     for key in keysList:
         dnpDataObject = dataDict[key]
         
-        dnpDataGroup = f.create_group(key,track_order = True)
+        dnpDataGroup = f.create_group(key, track_order = True)
         dnpDataGroup.attrs['dnpLab_version'] = dataDict[key].version
         dims_group = dnpDataGroup.create_group('dims') # dimension names e.g. x,y,z
         attrs_group = dnpDataGroup.create_group('attrs') # dictionary information
-        dnp_dataset = dnpDataGroup.create_dataset('values',data = dnpDataObject.values)
+        dnp_dataset = dnpDataGroup.create_dataset('values', data = dnpDataObject.values)
 
         # Save axes information
         for ix in range(len(dnpDataObject.coords)):
@@ -42,6 +42,20 @@ def saveh5(dataDict, path, overwrite = False):
         # Save Parameters
         for key in dnpDataObject.attrs:
             attrs_group.attrs[key] = dnpDataObject.attrs[key]
+
+        # Save proc_steps
+        if 'proc_steps' in dnpDataObject.__dict__:
+            proc_steps = dnpDataObject.proc_steps
+            proc_steps_group = dnpDataGroup.create_group('proc_steps', track_order = True)
+            for ix in range(len(proc_steps)):
+                proc_step_name = proc_steps[ix][0]
+                proc_dict = proc_steps[ix][1]
+                proc_steps_group_subgroup = proc_steps_group.create_group('%i:%s'%(ix,proc_step_name))
+                for key in proc_dict:
+                    value = proc_dict[key]
+                    proc_steps_group_subgroup.attrs[key] = value
+#            proc_steps_group.attrs['proc_steps'] = dnpDataObject.proc_steps
+
     f.close()
 
 def loadh5(path):
@@ -53,8 +67,8 @@ def loadh5(path):
 
     f = h5py.File(path,'r')
     keysList = f.keys()
-    print('keys:')
-    print(keysList)
+#    print('keys:')
+#    print(keysList)
 
     for key in keysList:
         axes = []
@@ -69,11 +83,20 @@ def loadh5(path):
             dims.append(dimKey)
 
         for k in f[key]['attrs'].attrs.keys():
-            print(k)
-            print(f[key]['attrs'].attrs[k])
+#            print(k)
+#            print(f[key]['attrs'].attrs[k])
             attrs[k] = f[key]['attrs'].attrs[k]
+
         dnpDict[key] = dnpData(data,axes,dims,attrs)
-        dnpDict[key].version = version
+
+        if 'proc_steps' in f[key].keys():
+            proc_steps = []
+            for k in f[key]['proc_steps'].keys():
+                proc_step_name = k.split(':', 1)[1]
+                proc_step_dict = dict(f[key]['proc_steps'][k].attrs)
+                dnpDict[key].add_proc_step(proc_step_name, proc_step_dict)
+
+
 
     return dnpDict
 

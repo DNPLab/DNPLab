@@ -11,20 +11,20 @@ class OdnpDataTester(unittest.TestCase):
 
     def test_dnpdata(self):
         assertArrayEqual(self.dnpdata.getAxes('x'), self.x)
-        assertArrayEqual(self.dnpdata.axesLabels, ['x', 'y', 'z'])
+        assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z'])
 
-    def test_axes_get_set(self):
+    def test_coords_get_set(self):
         self.dnpdata.addAxes('r', range(10))
-        assertArrayEqual(self.dnpdata.axesLabels, ['x', 'y', 'z', 'r'])
+        assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z', 'r'])
         self.dnpdata.rename('r', 's')
-        assertArrayEqual(self.dnpdata.axesLabels, ['x', 'y', 'z', 's'])
+        assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z', 's'])
 
-    def test_axes_sort_reorder(self):
+    def test_coords_sort_reorder(self):
         self.dnpdata.reorder(['y', 'z', 'x'])
-        assertArrayEqual(self.dnpdata.axesLabels, ['y', 'z', 'x'])
+        assertArrayEqual(self.dnpdata.dims, ['y', 'z', 'x'])
         assertArrayEqual(self.dnpdata.getAxes('z'), self.z)
         self.dnpdata.sort()
-        assertArrayEqual(self.dnpdata.axesLabels, ['x', 'y', 'z'])
+        assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z'])
         assertArrayEqual(self.dnpdata.getAxes('z'), self.z)
 
 

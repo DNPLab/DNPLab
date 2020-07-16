@@ -108,6 +108,7 @@ class dnpData:
         self.coords = coords
         self.dims = dims
         self.attrs = attrs
+        self.proc_steps = []
 
     def __len__(self):
         return np.size(self.values)
@@ -242,6 +243,16 @@ class dnpData:
         out = deepcopy(self)
         out.values = np.abs(out.values)
         return out
+
+    def add_proc_step(self,proc_step_name,proc_dict):
+        '''
+        '''
+        if not isinstance(proc_step_name,str):
+            raise ValueError('Processing step name must be string')
+        if not isinstance(proc_dict,dict):
+            raise ValueError('Processing dictionary must be dictionary')
+
+        self.proc_steps.append((proc_step_name,proc_dict))
 
     def addAxes(self,axesLabel,axesValue):
         '''Add new axesLabel to dnpData object with ax
