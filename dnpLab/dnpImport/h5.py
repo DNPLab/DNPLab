@@ -63,14 +63,14 @@ def loadh5(path):
     Returns Dictionary of dnpDataObjects
     '''
 
-    dnpDict = {}
+    dnp_dict = {}
 
     f = h5py.File(path,'r')
-    keysList = f.keys()
+    keys_list = f.keys()
 #    print('keys:')
 #    print(keysList)
 
-    for key in keysList:
+    for key in keys_list:
         axes = []
         dims = []
         attrs = {}
@@ -78,25 +78,25 @@ def loadh5(path):
         version = f[key].attrs['dnpLab_version']
 
         for index in range(len(np.shape(data))):
-            dimKey = f[key]['values'].dims[index].keys()[0] # assumes 1 key only
-            axes.append(f[key]['values'].dims[index][dimKey][:])
-            dims.append(dimKey)
+            dim_key = f[key]['values'].dims[index].keys()[0] # assumes 1 key only
+            axes.append(f[key]['values'].dims[index][dim_key][:])
+            dims.append(dim_key)
 
         for k in f[key]['attrs'].attrs.keys():
 #            print(k)
 #            print(f[key]['attrs'].attrs[k])
             attrs[k] = f[key]['attrs'].attrs[k]
 
-        dnpDict[key] = dnpData(data,axes,dims,attrs)
+        dnp_dict[key] = dnpData(data,axes,dims,attrs)
 
         if 'proc_steps' in f[key].keys():
             proc_steps = []
             for k in f[key]['proc_steps'].keys():
                 proc_step_name = k.split(':', 1)[1]
                 proc_step_dict = dict(f[key]['proc_steps'][k].attrs)
-                dnpDict[key].add_proc_step(proc_step_name, proc_step_dict)
+                dnp_dict[key].add_proc_step(proc_step_name, proc_step_dict)
 
 
 
-    return dnpDict
+    return dnp_dict
 
