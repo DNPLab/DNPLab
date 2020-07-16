@@ -51,7 +51,7 @@ def importKea(path, parameters_filename = None, verbose = False):
     except:
         nmrFrequency = float(nmrFrequency.replace('d',''))
 
-    attrs['nmrFrequency'] = nmrFrequency
+    attrs['nmrFreq'] = nmrFrequency * 1e6
 
     # Assume direct dimension is 1st dimension
     data_shape = np.shape(np.squeeze(data))
