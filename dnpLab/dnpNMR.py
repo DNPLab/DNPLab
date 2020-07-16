@@ -173,7 +173,7 @@ def fourierTransform(allData, procParameters):
 
     data.values = _np.fft.fft(data.values,n=n_pts,axis=index)
     if shift:
-        data.values = _np.fft.fftshift(data.values,dim=index)
+        data.values = _np.fft.fftshift(data.values,axes=index)
     data.coords[index] = f
 
     procStepName = 'Fourier Transform:'
