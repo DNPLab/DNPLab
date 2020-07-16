@@ -175,7 +175,7 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
 
     paramDict = importProcpar(path,paramFilename)
 
-    nmrFreq = paramDict['H1reffrq'].value*1.e6
+    nmr_frequency = paramDict['H1reffrq'].value*1.e6
     sw = paramDict['sw'].value
     npts = int(paramDict['np'].value/2)
 
@@ -197,7 +197,7 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
         output = _dnpData(data,[t,_np.array(range(arraydim))],['t','x'],{})
 
     importantParamsDict = {}
-    importantParamsDict['nmrFreq'] = nmrFreq
+    importantParamsDict['nmr_frequency'] = nmr_frequency
     output.attrs = importantParamsDict
 #    print(_np.shape(data))
 #    print(len(t))

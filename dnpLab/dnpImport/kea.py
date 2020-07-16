@@ -43,15 +43,14 @@ def importKea(path, parameters_filename = None, verbose = False):
         x, data = import_nd(os.path.join(path, filename + extension))
 
     if 'b1Freq' in attrs:
-        nmrFrequency = attrs['b1Freq']
-    else:
-        nmrFrequency = 14.5
-    try:
-        nmrFrequency = float(nmrFrequency)
-    except:
-        nmrFrequency = float(nmrFrequency.replace('d',''))
+        nmr_frequency = attrs['b1Freq']
+        try:
+            nmr_frequency = float(nmr_frequency)
+        except:
+            nmr_frequency = float(nmr_frequency.replace('d',''))
 
-    attrs['nmrFreq'] = nmrFrequency * 1e6
+        attrs['nmr_frequency'] = nmr_frequency * 1e6
+
 
     # Assume direct dimension is 1st dimension
     data_shape = np.shape(np.squeeze(data))

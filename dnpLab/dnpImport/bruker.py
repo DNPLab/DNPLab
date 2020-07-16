@@ -248,7 +248,7 @@ def brukerFid(path,expNum,paramFilename = 'acqus'):
     data = data / rg
 
     importantParamsDict = {}
-    importantParamsDict['nmrFreq'] = attrsDict['SFO1'] * 1e6
+    importantParamsDict['nmr_frequency'] = attrsDict['SFO1'] * 1e6
     output = _dnpData(data,[t],['t'],importantParamsDict)
 
     return output
@@ -318,7 +318,7 @@ def brukerSer(path,expNum,paramFilename = 'acqus'):
     data = data / rg
 
     importantParamsDict = {}
-    importantParamsDict['nmrFreq'] = attrsDict['SFO1'] * 1e6
+    importantParamsDict['nmr_frequency'] = attrsDict['SFO1'] * 1e6
     output = _dnpData(data,[t,vdList],['t','t1'],importantParamsDict)
 
     return output
@@ -361,7 +361,7 @@ def brukerSerPhaseCycle(path,expNum,paramFilename = 'acqus'):
     data = data / rg
 
     importantParamsDict = {}
-    importantParamsDict['nmrFreq'] = attrsDict['SFO1'] * 1e6
+    importantParamsDict['nmr_frequency'] = attrsDict['SFO1'] * 1e6
 
     output = _dnpData(data,[t],['t'],importantParamsDict)
     return output

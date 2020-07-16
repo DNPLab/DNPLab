@@ -3,30 +3,30 @@ import numpy as _np
 
 
 _defaultFourierTransformParameters = {
-        'axes': 't',
-        'zeroFillFactor' : 2, # zero fill axes to 
-        'shift' : True, # shift axes to center zero frequency
-        'convert2ppm' : True, # convert axes to ppm
+        'dim': 't',
+        'zero_fill_factor' : 2, # zero fill dim to 
+        'shift' : True, # shift dim to center zero frequency
+        'convert_to_ppm' : True, # convert dim to ppm
         }
 
 _defaultAlignParameters = {
-        'axes': 't',
+        'dim': 't',
         }
 
 _defaultWindowParameters = {
         'linewidth' : 10,
-        'axes' : 't',
+        'dim' : 't',
         }
 
 _defaultIntegrateParameters = {
-        'axes' : 't',
-        'integrateCenter' : 0,
-        'integrateWidth' : 100,
+        'dim' : 't',
+        'integrate_center' : 0,
+        'integrate_width' : 100,
         }
 
 _defaultRemoveOffsetParameters = {
-        'axes' : 't',
-        'offsetPoints' : 10,
+        'dim' : 't',
+        'offset_points' : 10,
         }
 
 def returnData(allData):
@@ -90,8 +90,8 @@ def removeOffset(allData,procParameters):
 
     .. code-block:: python
 
-       procParameters['axes'] = 't'
-       procParameters['offsetPoints'] = 10
+       procParameters['dim'] = 't'
+       procParameters['offset_points'] = 10
 
        outData = dnpLab.dnpNMR.removeOffset(allData,procParameters)
 
@@ -101,12 +101,12 @@ def removeOffset(allData,procParameters):
     # Determine if data is dictionary or dnpData object
     data, isDict = returnData(allData)
 
-    requiredList = ['axes','offsetPoints']
+    requiredList = ['dim','offset_points']
     procParameters = updateParameters(procParameters,requiredList,_defaultRemoveOffsetParameters)
-    axes = procParameters['axes']
-    offsetPoints = int(procParameters['offsetPoints'])
+    dim = procParameters['dim']
+    offset_points = int(procParameters['offset_points'])
 
-    offsetData = data['t',-1*offsetPoints:].values
+    offsetData = data['t',-1*offset_points:].values
     offsetData = offsetData.reshape(-1)
     offset = _np.mean(offsetData)
 
@@ -124,7 +124,7 @@ def removeOffset(allData,procParameters):
 
 
 def fourierTransform(allData, procParameters):
-    '''Perform Fourier Transform down axes dimension given in procParameters
+    '''Perform Fourier Transform down dim dimension given in procParameters
 
     .. Note::
         Assumes dt = t[1] - t[0]
@@ -140,10 +140,10 @@ def fourierTransform(allData, procParameters):
 
     .. code-block:: python
     
-        procParameters['axes'] = 't'
-        procParameters['zeroFillFactor'] = 2
+        procParameters['dim'] = 't'
+        procParameters['zero_fill_factor'] = 2
         procParameters['shift'] = True
-        procParameters['convert2ppm'] = True
+        procParameters['convert_to_ppm'] = True
 
         allData = dnpLab.dnpNMR.fourierTransform(allData, procParameters)
     '''
@@ -151,29 +151,29 @@ def fourierTransform(allData, procParameters):
     # Determine if data is dictionary or dnpData object
     data, isDict = returnData(allData)
 
-    requiredList = ['axes','zeroFillFactor','shift','convert2ppm']
+    requiredList = ['dim','zero_fill_factor','shift','convert_to_ppm']
 
     procParameters = updateParameters(procParameters,requiredList,_defaultFourierTransformParameters)
 
-    axesLabel = procParameters['axes']
-    zeroFillFactor = procParameters['zeroFillFactor']
+    dimLabel = procParameters['dim']
+    zero_fill_factor = procParameters['zero_fill_factor']
     shift = procParameters['shift']
-    convert2ppm = procParameters['convert2ppm']
+    convert_to_ppm = procParameters['convert_to_ppm']
 
-    index = data.dims.index(axesLabel)
+    index = data.dims.index(dimLabel)
     dt = data.coords[index][1] - data.coords[index][0]
-    n_pts = zeroFillFactor*len(data.coords[index])
+    n_pts = zero_fill_factor*len(data.coords[index])
     f = (1./(n_pts*dt))*_np.r_[0:n_pts]
     if shift == True:
         f -= (1./(2*dt))
 
-    if convert2ppm:
-        nmrFrequency = data.attrs['nmrFreq']
-        f /= (nmrFrequency / 1.e6)
+    if convert_to_ppm:
+        nmr_frequency = data.attrs['nmr_frequency']
+        f /= (nmr_frequency / 1.e6)
 
     data.values = _np.fft.fft(data.values,n=n_pts,axis=index)
     if shift:
-        data.values = _np.fft.fftshift(data.values,axes=index)
+        data.values = _np.fft.fftshift(data.values,dim=index)
     data.coords[index] = f
 
     procStepName = 'Fourier Transform:'
@@ -202,7 +202,7 @@ def window(allData,procParameters):
 
         procParameters = {
                 'linewidth' : 10,
-                'axes' : 't',
+                'dim' : 't',
                 }
         allData = dnpLab.dnpNMR.window(allData,procParameters)
         
@@ -210,14 +210,14 @@ def window(allData,procParameters):
 
     data, isDict = returnData(allData)
 
-    requiredList = ['axes','linewidth']
+    requiredList = ['dim','linewidth']
 
     procParameters = updateParameters(procParameters,requiredList,_defaultWindowParameters)
 
-    axesLabel = procParameters['axes']
+    dimLabel = procParameters['dim']
     linewidth = procParameters['linewidth']
 
-    index = data.dims.index(axesLabel)
+    index = data.dims.index(dimLabel)
 
     reshape_size = [1 for k in data.dims]
     reshape_size[index] = len(data.coords[index])
@@ -244,11 +244,11 @@ def integrate(allData,procParameters):
     Args:
         allData (dnpData,dict): Data container
         procParameters (dict, procParam): Processing Parameters
-            axes_label: str
+            dim_label: str
                 dimension to integrate
-            integrateCenter:
+            integrate_center:
                 center for width of integration
-            integrateWidth: 
+            integrate_width: 
                 width of integration window
 
     Returns:
@@ -258,29 +258,29 @@ def integrate(allData,procParameters):
     .. code-block:: python
 
         procParameters = {
-                    'axes' : 't',
-                    'integrateCenter' : 0,
-                    'integrateWidth' : 100,
+                    'dim' : 't',
+                    'integrate_center' : 0,
+                    'integrate_width' : 100,
                     }
         dnpLab.dnpNMR.integrate(allData,procParameters)
     '''
 
     data, isDict = returnData(allData)
 
-    requiredList = ['axes','integrateCenter','integrateWidth']
+    requiredList = ['dim','integrate_center','integrate_width']
 
     procParameters = updateParameters(procParameters,requiredList,_defaultIntegrateParameters)
 
-    axes = procParameters['axes']
-    integrateCenter = procParameters['integrateCenter']
-    integrateWidth = procParameters['integrateWidth']
+    dim = procParameters['dim']
+    integrate_center = procParameters['integrate_center']
+    integrate_width = procParameters['integrate_width']
 
-    integrateMin = integrateCenter - _np.abs(integrateWidth)/2.
-    integrateMax = integrateCenter + _np.abs(integrateWidth)/2.
+    integrateMin = integrate_center - _np.abs(integrate_width)/2.
+    integrateMax = integrate_center + _np.abs(integrate_width)/2.
 
-    data = data.range(axes,integrateMin,integrateMax)
+    data = data.range(dim,integrateMin,integrateMax)
 
-    data.sum(axes)
+    data.sum(dim)
 
     procStepName = 'Integrate:'
     procStepString = procString(procStepName,procParameters,requiredList)
@@ -295,7 +295,7 @@ def integrate(allData,procParameters):
 
 def align(allData,procParameters):
     '''
-    Alignment of NMR spectra down given axes dimension
+    Alignment of NMR spectra down given dim dimension
     '''
 
     data, isDict = returnData(allData)
@@ -304,18 +304,18 @@ def align(allData,procParameters):
         print('Only 2-dimensional data supported')
         return
 
-    requiredList = ['axes']
+    requiredList = ['dim']
 
     procParameters = updateParameters(procParameters,requiredList,_defaultAlignParameters)
 
-    alignAxesLabel = procParameters['axes']
+    alignAxesLabel = procParameters['dim']
     originalAxesOrder = data.dims
     data.reorder(alignAxesLabel)
-    axesIter = data.dims[-1]
+    dimIter = data.dims[-1]
 
-    refData = data[axesIter,0].data.reshape(-1)
-    for ix in range(data.len(axesIter)):
-        tempData = data[axesIter,ix].values.reshape(-1)
+    refData = data[dimIter,0].data.reshape(-1)
+    for ix in range(data.len(dimIter)):
+        tempData = data[dimIter,ix].values.reshape(-1)
 
         corrData = _np.correlate(_np.abs(tempData),_np.abs(refData),mode='same')
         shiftIx = _np.argmax(corrData) - (len(corrData)/2) # subtract half length so spectrum is shifted relative to center, not edge
