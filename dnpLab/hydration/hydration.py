@@ -47,7 +47,7 @@ class HydrationParameter(Parameter):
         self.tcorr_bulk = 54
         """float: (section 2.5), "corrected" bulk tcorr, unit is ps"""
 
-        self.dH2O = 2.3e-9
+        self.D_H2O = 2.3e-9
         """float: (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is 
         distance in meters. *didnt use m to avoid confusion with mass"""
 
@@ -320,7 +320,7 @@ class HydrationCalculator:
 
         tcorr_bulk = self.hp.tcorr_bulk  # (section 2.5), "corrected" bulk tcorr, unit is ps
 
-        dH2O = self.hp.dH2O
+        dH2O = self.hp.D_H2O
         # (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is distance in
         # meters. *didnt use m to avoid confusion with mass
 
