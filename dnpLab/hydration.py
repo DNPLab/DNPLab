@@ -16,57 +16,59 @@ class FitError(Exception):
 
 
 class HydrationParameter(Parameter):
-    """Hydration Parameters Getting and Setting"""
+    """Hydration Parameters
+
+        Franck, JM, et. al.; "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023.
+    """
+
+    field = None
+    """float: Static magnetic field in mT, needed to find omega_e and _H"""
+
+    spin_C = None
+    """float: (Eq. 1-2) unit is microM, spin label concentration for scaling
+    relaxations to get "relaxivities" """
+
+    __smax_model = 'tethered'  # either 'tethered' or 'free'
+    """str: Method used to determine smax"""
+
+    T10 = None
+    """float: T1 with spin label but at 0 mw E_power, unit is sec"""
+
+    T100 = None
+    """float: T1 without spin label and without mw E_power, unit is sec"""
+
+    ksigma_bulk = 95.4
+    """float: unit is s^-1 M^-1 (Figure 3 caption)"""
+
+    klow_bulk = 366
+    """float: unit is s^-1 M^-1 (Figure 3 caption)"""
+
+    tcorr_bulk = 54
+    """float: Corrected bulk tcorr, unit is ps, (section 2.5)"""
+
+    D_H2O = 2.3e-9
+    """float: (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is 
+    distance in meters."""
+
+    D_SL = 4.1e-10
+    """float: (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is 
+    distance in meters."""
+
+    __t1_interp_method = 'second_order'
+    """str: Method used to interpolate T1, either linear or 'second_order'"""
 
     def __init__(self):
         """"""
         super().__init__()
-
+        # Fixme: Remove the default field, spin concentration etc. Set them as required arguments
         self.field = 348.5
-        """float: Static magnetic field in mT, needed to find omega_e and _H"""
-
         self.spin_C = 100
-        """float: (Eq. 1-2) unit is microM, spin label concentration for scaling
-        relaxations to get "relaxivities" """
-
-        self.__smax_model = 'tethered'  # either 'tethered' or 'free'
-        """str: Method used to determine smax"""
-
-        self.ksigma_bulk = 95.4
-        """float: unit is s^-1 M^-1
-
-        Franck, JM, et. al.; "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023. Figure 3 caption
-        """
-
         self.T10 = 1.5
-        """float: T1 with spin label but at 0 mw E_power, unit is sec"""
-
         self.T100 = 2.5
-        """float: T1 without spin label and without mw E_power, unit is sec"""
 
-        self.tcorr_bulk = 54
-        """float: (section 2.5), "corrected" bulk tcorr, unit is ps"""
-
-        self.D_H2O = 2.3e-9
-        """float: (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is 
-        distance in meters. *didnt use m to avoid confusion with mass"""
-
-        self.D_SL = 4.1e-10
-        """float: (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is distance in
-        meters. *didnt use m to avoid confusion with mass"""
-
-        self.klow_bulk = 366
-        """float: unit is s^-1 M^-1
-
-        "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc.
-        2015, 137, 12013−12023. Figure 3 caption"""
-
-        self.__t1_interp_method = 'second_order'
-        """str: Method used to interpolate T1, either linear or 2nd order"""
-    
     @property
     def t1_interp_method(self):
-        """str: Method used to interpolate T1, either linear or 2nd order"""
+        """str: Method used to interpolate T1, either `linear` or `second_order`"""
         return self.__t1_interp_method
 
     @t1_interp_method.setter
@@ -78,7 +80,7 @@ class HydrationParameter(Parameter):
             
     @property
     def smax_model(self):
-        """str: Method used to determine smax"""
+        """str: Method used to determine smax. Either `tethered` or `free`"""
         return self.__smax_model
 
     @smax_model.setter
