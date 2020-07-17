@@ -188,6 +188,7 @@ class HydrationCalculator:
         self.results = HydrationResults()
 
     def run(self):
+        """Run calculator"""
         interpolated_T1 = self.interpolate_T1(self.E_power, self.T1_power, self.T1)
         results = self.__calculateODNP(self.E_power, self.E, interpolated_T1)
         self.results = results
@@ -395,7 +396,7 @@ class HydrationCalculator:
             omega_H (float):
 
         Returns:
-            tcorr (float): correlation time in pico second
+            float: correlation time in pico second
 
         Raises:
             FitError: If no available root is found.
