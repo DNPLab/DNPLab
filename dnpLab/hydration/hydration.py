@@ -39,10 +39,10 @@ class HydrationParameter(Parameter):
         """
 
         self.T10 = 1.5
-        """float: T1 with spin label but at 0 mw power, unit is sec"""
+        """float: T1 with spin label but at 0 mw E_power, unit is sec"""
 
         self.T100 = 2.5
-        """float: T1 without spin label and without mw power, unit is sec"""
+        """float: T1 without spin label and without mw E_power, unit is sec"""
 
         self.tcorr_bulk = 54
         """float: (section 2.5), "corrected" bulk tcorr, unit is ps"""
@@ -154,9 +154,9 @@ class HydrationCalculator:
 
     Attributes:
         T1 (numpy.array): T1 array. Unit: second.
-        T1_power (numpy.array): power in Watt unit, same length as T1.
+        T1_power (numpy.array): E_power in Watt unit, same length as T1.
         E (numpy.array): Enhancements.
-        E_power (numpy.array): power in Watt unit, same length as E.
+        E_power (numpy.array): E_power in Watt unit, same length as E.
         hp (HydrationParameter): Parameters for calculation, including default
             values.
         results (HydrationResults): Hydration results.
@@ -168,9 +168,9 @@ class HydrationCalculator:
 
         Args:
             T1 (numpy.array): T1 array. Unit: second.
-            T1_power (numpy.array): power in Watt unit, same length as T1.
+            T1_power (numpy.array): E_power in Watt unit, same length as T1.
             E (numpy.array): Enhancements.
-            E_power (numpy.array): power in Watt unit, same length as E.
+            E_power (numpy.array): E_power in Watt unit, same length as E.
             hp (HydrationParameter): Parameters for calculation, including
                 default values.
         """
@@ -192,20 +192,20 @@ class HydrationCalculator:
         results = self._calcODNP(self.E_power, self.E, interpolated_T1)
         self.results = results
 
-    def interpT1(self, power: np.array, T1power: np.array, T1p: np.array):
+    def interpT1(self, E_power: np.array, T1_power: np.array, T1: np.array):
         """Returns the one-dimensional piecewise interpolant to a function with
-        given discrete data points (T1power, T1p), evaluated at power.
+        given discrete data points (T1_power, T1), evaluated at E_power.
 
         Points outside the data range will be extrapolated
 
         Args:
-            power: The x-coordinates at which to evaluate.
-            T1power: The x-coordinates of the data points, must be increasing.
-                Otherwise, T1power is internally sorted.
-            T1p: The y-coordinates of the data points, same length as T1power.
+            E_power: The x-coordinates at which to evaluate.
+            T1_power: The x-coordinates of the data points, must be increasing.
+                Otherwise, T1_power is internally sorted.
+            T1: The y-coordinates of the data points, same length as T1_power.
 
         Returns:
-            interplatedT1 (np.array): The evaluated values, same shape as power.
+            interplatedT1 (np.array): The evaluated values, same shape as E_power.
 
         """
         T10, T100 = self.hp.T10, self.hp.T100
@@ -213,33 +213,35 @@ class HydrationCalculator:
         
         t1_interp_method = self.hp.t1_interp_method
 
-        if t1_interp_method=='second_order': # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
+        # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
+        if t1_interp_method == 'second_order':
 
-            delT1w=T1p[-1]-T1p[0]
-            T1w=T100
-            macroC=spin_C
+            delta_T1_water = T1[-1] - T1[0]
+            T1_water = T100
+            macro_C = spin_C
 
-            kHH = ((1./T10) - (1./(T1w))) / (macroC)
-            krp=((1./T1p)-(1./(T1w + delT1w * T1power))-(kHH*(macroC))) / (spin_C)
+            kHH = (1. / T10 - 1. / T1_water) / macro_C
+            krp = ((1. / T1) - (1. / (T1_water + delta_T1_water * T1_power)) - (kHH * (macro_C))) / (spin_C)
 
-            p = np.polyfit(T1power, krp, 2)
-            flinear = np.polyval(p, power)
+            p = np.polyfit(T1_power, krp, 2)
+            T1_fit_2order = np.polyval(p, E_power)
 
-            intT1 = 1./(((spin_C) * flinear)+(1./(T1w + delT1w * power))+(kHH * (macroC)))
+            interp_T1 = 1./(((spin_C) * T1_fit_2order) + (1. / (T1_water + delta_T1_water * E_power)) + (kHH * (macro_C)))
 
-        elif t1_interp_method=='linear': # linear fit, Franck et al. PNMRS (Eq. 39)
+        # linear fit, Franck et al. PNMRS (Eq. 39)
+        elif t1_interp_method == 'linear':
 
-            linearT1=1./((1./T1p)-(1./T10)+(1./T100))
+            linear_t1=1./((1. / T1) - (1. / T10) + (1. / T100))
 
-            p = np.polyfit(T1power, linearT1, 1)
-            flinear = np.polyval(p, power)
+            p = np.polyfit(T1_power, linear_t1, 1)
+            T1_fit_linear = np.polyval(p, E_power)
 
-            intT1=flinear/(1.+(flinear/T10)-(flinear/T100))
+            interp_T1=T1_fit_linear/(1.+(T1_fit_linear/T10)-(T1_fit_linear/T100))
 
         else:
             raise Exception('Error in T1 interpolation')
         
-        return intT1
+        return interp_T1
 
     def _calcODNP(self, power:np.array, Ep:np.array, T1p:np.array):
         """Returns a HydrationResults object that contains all calculated ODNP values
@@ -250,15 +252,15 @@ class HydrationCalculator:
         Args:
             power (numpy.array): Sequence of powers in Watts. Will be internally
                 sorted to be ascending.
-            Ep (numpy.array): Array of enhancements. Must be same length as power
-            T1p (numpy.array): Array of T1. Must be same length as power.
+            Ep (numpy.array): Array of enhancements. Must be same length as E_power
+            T1p (numpy.array): Array of T1. Must be same length as E_power.
         """
         # field and spin label concentration are defined in Hydration Parameter
         field = self.hp.field
         spin_C = self.hp.spin_C / 1e6
         
-        T10 = self.hp.T10  # this is the T1 with spin label but at 0 mw power, unit is sec
-        T100 = self.hp.T100  # this is the T1 without spin label and without mw power, unit is sec
+        T10 = self.hp.T10  # this is the T1 with spin label but at 0 mw E_power, unit is sec
+        T100 = self.hp.T100  # this is the T1 without spin label and without mw E_power, unit is sec
 
         if self.hp.smax_model == 'tethered':
             # Option 1, tether spin label
@@ -287,10 +289,10 @@ class HydrationCalculator:
 
         ksig_sp = ((1 - Ep) / (spin_C * wRatio * T1p))
         # (Eq. 41) this calculates the array of k_sigma*s(p) from the enhancement array,
-        # dividing by the T1p array for the "corrected" analysis
+        # dividing by the T1 array for the "corrected" analysis
 
         popt, pcov = self.getksig(ksig_sp, power)
-        # fit to the right side of Eq. 42 to get (k_sigma*smax) and half of the power at s_max, called p_12 here
+        # fit to the right side of Eq. 42 to get (k_sigma*smax) and half of the E_power at s_max, called p_12 here
         k_sigma_smax = popt[0]
         p_12 = popt[1]
         stdd_ksig = np.sqrt(np.diag(pcov))
@@ -306,7 +308,7 @@ class HydrationCalculator:
         # ksig_uncorr = ((1 - Ep) / (spin_C * wRatio * T10)) / s_max
         # (Eq. 44) the "uncorrected" model, this can also be plotted with the corrected
         # curve to determine the severity of heating effects, as in Figure 9.
-        # Notice the division by T10 instead of the T1p array
+        # Notice the division by T10 instead of the T1 array
         #################
 
         ksigma_bulk = self.hp.ksigma_bulk  # unit is s^-1 M^-1
@@ -444,11 +446,11 @@ class HydrationCalculator:
 
     @staticmethod
     def getksig(ksig_sp: np.array, power: np.array):
-        """Get k_sigma and power at half max of ksig
+        """Get k_sigma and E_power at half max of ksig
 
         Args:
             ksig (numpy.array): Array of k_sigma.
-            power (numpy.array): Array of power.
+            power (numpy.array): Array of E_power.
 
         Returns:
             popt: fit results
@@ -463,7 +465,7 @@ class HydrationCalculator:
             """Function to calcualte ksig array for any given ksigma and p_12
 
             Args:
-                power (numpy.array): Array of power.
+                power (numpy.array): Array of E_power.
 
             Returns:
                 fit to ksig array
@@ -487,11 +489,11 @@ class HydrationCalculator:
 
     @staticmethod
     def getxiunc(Ep: np.array, power: np.array, T10: float, T100: float, wRatio: float, s_max: float):
-        """Get coupling_factor and power at half saturation
+        """Get coupling_factor and E_power at half saturation
 
         Args:
             Ep (numpy.array): Array of enhancements.
-            power (numpy.array): Array of power.
+            power (numpy.array): Array of E_power.
             T10 (float): T10
             T100 (float): T100
             wRatio (float): ratio of electron & proton Larmor frequencies
@@ -511,7 +513,7 @@ class HydrationCalculator:
             Args:
                 x (tuple): length of 2
                 Ep (numpy.array): Array of enhancements.
-                power (numpy.array): Array of power.
+                power (numpy.array): Array of E_power.
                 T10 (float): T10
                 T100 (float): T100
                 wRatio (float): ratio of electron & proton Larmor frequencies
