@@ -188,11 +188,11 @@ class HydrationCalculator:
         self.results = HydrationResults()
 
     def run(self):
-        interpolated_T1 = self.interpT1(self.E_power, self.T1_power, self.T1)
-        results = self._calcODNP(self.E_power, self.E, interpolated_T1)
+        interpolated_T1 = self.interpolate_T1(self.E_power, self.T1_power, self.T1)
+        results = self.__calculateODNP(self.E_power, self.E, interpolated_T1)
         self.results = results
 
-    def interpT1(self, E_power: np.array, T1_power: np.array, T1: np.array):
+    def interpolate_T1(self, E_power: np.array, T1_power: np.array, T1: np.array):
         """Returns the one-dimensional piecewise interpolant to a function with
         given discrete data points (T1_power, T1), evaluated at E_power.
 
@@ -243,7 +243,7 @@ class HydrationCalculator:
         
         return interp_T1
 
-    def _calcODNP(self, power:np.array, Ep:np.array, T1p:np.array):
+    def __calculateODNP(self, power:np.array, Ep:np.array, T1p:np.array):
         """Returns a HydrationResults object that contains all calculated ODNP values
 
         Following: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
@@ -291,7 +291,7 @@ class HydrationCalculator:
         # (Eq. 41) this calculates the array of k_sigma*s(p) from the enhancement array,
         # dividing by the T1 array for the "corrected" analysis
 
-        popt, pcov = self.getksig(ksigma_array, power)
+        popt, pcov = self.get_ksigma(ksigma_array, power)
         # fit to the right side of Eq. 42 to get (k_sigma*smax) and half of the E_power at s_max, called p_12 here
         ksigma_smax = popt[0]
         p_12 = popt[1]
@@ -318,7 +318,7 @@ class HydrationCalculator:
 
         coupling_factor = k_sigma / krho  # (Eq. 3) this is the coupling factor, unitless
 
-        tcorr = self.getTcorr(coupling_factor, omega_e, omega_H)
+        tcorr = self.get_tcorr(coupling_factor, omega_e, omega_H)
         # (Eq. 21-23) this calls the fit to the spectral density functions. The fit
         # optimizes the value of tcorr in the calculation of coupling_factor, the correct tcorr
         # is the one for which the calculation of coupling_factor from the spectral density
@@ -354,7 +354,7 @@ class HydrationCalculator:
         klow_bulk = self.hp.klow_bulk  # unit is s^-1 M^-1
         # "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023. Figure 3 caption
         
-        results = self.getxiunc(Ep, power, T10, T100, omega_ratio, s_max)
+        results = self.get_uncorrected_xi(Ep, power, T10, T100, omega_ratio, s_max)
         xi_unc = results.x[0]
         p_12_unc = results.x[1]
         
@@ -386,7 +386,7 @@ class HydrationCalculator:
         })
 
     @staticmethod
-    def getTcorr(coupling_factor: float, omega_e: float, omega_H: float):
+    def get_tcorr(coupling_factor: float, omega_e: float, omega_H: float):
         """Returns correlation time tcorr in pico second
 
         Args:
@@ -402,7 +402,7 @@ class HydrationCalculator:
 
         """
 
-        def f_xi(tcorr: float, omega_e: float, omega_H: float):
+        def calc_xi(tcorr: float, omega_e: float, omega_H: float):
             '''Returns coupling_factor for any given tcorr
 
             Args:
@@ -436,7 +436,7 @@ class HydrationCalculator:
         # root finding
         # see https://docs.scipy.org/doc/scipy/reference/optimize.html
         result = optimize.root_scalar(
-            lambda tcorr: f_xi(tcorr, omega_e=omega_e, omega_H=omega_H) - coupling_factor,
+            lambda tcorr: calc_xi(tcorr, omega_e=omega_e, omega_H=omega_H) - coupling_factor,
             method='brentq',
             bracket=[1, 1e5])
 
@@ -445,7 +445,7 @@ class HydrationCalculator:
         return result.root
 
     @staticmethod
-    def getksig(ksig_sp: np.array, power: np.array):
+    def get_ksigma(ksig_sp: np.array, power: np.array):
         """Get k_sigma and E_power at half max of ksig
 
         Args:
@@ -461,7 +461,7 @@ class HydrationCalculator:
 
         """
 
-        def f_ksig(power: np.array, ksigma_smax: float, p_12: float):
+        def calc_ksigma(power: np.array, ksigma_smax: float, p_12: float):
             """Function to calcualte ksig array for any given ksigma and p_12
 
             Args:
@@ -481,14 +481,14 @@ class HydrationCalculator:
 
         # curve fitting
         # see https://docs.scipy.org/doc/scipy/reference/optimize.html
-        popt, pcov = optimize.curve_fit(f_ksig, power, ksig_sp,
+        popt, pcov = optimize.curve_fit(calc_ksigma, power, ksig_sp,
                                          p0=[50, (max(power) / 2)], method='lm')
 
         assert popt[0] > 0, 'Unexpected ksigma value: %d < 0' % popt[0]
         return popt, pcov
 
     @staticmethod
-    def getxiunc(Ep: np.array, power: np.array, T10: float, T100: float, wRatio: float, s_max: float):
+    def get_uncorrected_xi(Ep: np.array, power: np.array, T10: float, T100: float, wRatio: float, s_max: float):
         """Get coupling_factor and E_power at half saturation
 
         Args:
