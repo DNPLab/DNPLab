@@ -1,0 +1,18 @@
+##TITLE= Audit trail, TOPSPIN		Version 1.3
+##JCAMPDX= 5.01
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= mtesanovic
+$$ C:/Bruker/TOPSPIN/data/mTesanovic/nmr/20191101_TW_PEG-SL_100uM_1/19/audita.txt
+##AUDIT TRAIL=  $$ (NUMBER, WHEN, WHO, WHERE, VERSION, WHAT)
+(   1,<2019-11-01 11:44:31.968 -0700>,<mtesanovic>,<EPR1>,<TOPSPIN 1.3>,
+      <created by zg
+	started at 2019-11-01 11:43:14.437 -0700,
+	POWCHK disabled, PULCHK disabled
+       configuration hash MD5:
+       D9 F1 5D 64 2C 45 2E 5B 87 82 1F 12 B5 66 1A 3A
+       data hash MD5: 23946 * 4
+       56 E5 C1 4B CB 84 C6 B8 CF AB C2 2F AC BB 8A 8C>)
+##END=
+
+$$ hash MD5
+$$ CD 79 07 C3 6B 08 DB 7F 77 57 89 88 11 88 BE 42

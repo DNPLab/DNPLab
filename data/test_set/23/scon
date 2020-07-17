@@ -1,0 +1,23 @@
+##TITLE= Parameter file, TOPSPIN		Version 1.3
+##JCAMPDX= 5.0
+##DATATYPE= Parameter Values
+##ORIGIN= Bruker BioSpin GmbH
+##OWNER= mtesanovic
+$$ 2019-11-01 11:49:13.359 -0700  mtesanovic@EPR1
+$$ C:/Bruker/TOPSPIN/data/mTesanovic/nmr/20191101_TW_PEG-SL_100uM_1/23/scon
+##$BLKPA= (0..15)
+3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+##$BLKTR= (0..15)
+3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+##$DE1= 3
+##$DE2= 3
+##$DEADC= 5
+##$DEPA= 0.5
+##$DERX= 4
+##$PHASP4= (0..15)
+0.5 0.35 0.35 0.35 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 
+##$PHASPR= (0..15)
+3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 
+##$SHAPPR= (0..15)
+1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 1.6 
+##END=
