@@ -112,36 +112,40 @@ class HydrationResults(AttrDict):
     """Class for handling hydration related quantities
 
     Attributes:
-        uncorrected_Ep (numpy.array)    : Fit of Ep array,
+        uncorrected_Ep (numpy.array)    : Fit of Ep array
         interpolated_T1 (numpy.array)   : T1 values interpolated on E_power,
-        k_sigma_array (numpy.array)     : ksig,
-        k_sigma_fit (numpy.array)       : ksig_fit,
+        ksigma_array (numpy.array)      :
+            numpy array that is the result of ~(1-E) / [ (constants*T1) ],
+            used in ksigma(E_power) fit,
+        ksigma_fit (numpy.array)        : ksig_fit,
         k_sigma (float)                 : k_sigma,
-        k_sigma_error (float)           : k_sigma_error,
+        ksigma_error (float)            : ksigma_error,
         ksigma_bulk_ratio (float)       : k_sigma/ksigma_bulk,
-        k_rho (float)                   : k_rho,
-        k_low (float)                   : k_low,
-        klow_bulk_ratio (float)         : k_low / klow_bulk,
+        krho (float)                    : krho,
+        klow (float)                    : klow,
+        klow_bulk_ratio (float)         : klow / klow_bulk,
         coupling_factor (float)         : coupling_factor,
         tcorr (float)                   : tcorr,
         tcorr_bulk_ratio (float)        : tcorr / tcorr_bulk,
-        d_local (float)                 : d_local
+        D_local (float)                 : D_local
 
     """
     def __init__(self, *args, **kwargs):
         super().__init__()
+        self.uncorrected_Ep = None
         self.interpolated_T1 = None
-        self.k_sigma_array = None
+        self.ksigma_array = None
+        self.ksigma_fit = None
         self.k_sigma = None
-        self.k_sigma_error = None
+        self.ksigma_error = None
         self.ksigma_bulk_ratio = None
-        self.k_rho = None
-        self.k_low = None
+        self.krho = None
+        self.klow = None
         self.klow_bulk_ratio = None
         self.coupling_factor = None
         self.tcorr = None
         self.tcorr_bulk_ratio = None
-        self.d_local = None
+        self.D_local = None
         self.update(*args, **kwargs)
 
 
@@ -365,18 +369,18 @@ class HydrationCalculator:
         return HydrationResults({
             'uncorrected_Ep'    : uncorrected_Ep,
             'interpolated_T1'   : T1p,
-            'k_sigma_array'     : ksig_sp,
-            'k_sigma_fit'       : ksig_fit,
+            'ksigma_array'      : ksig_sp,
+            'ksigma_fit'        : ksig_fit,
             'k_sigma'           : k_sigma,
-            'k_sigma_error'     : k_sigma_error,
+            'ksigma_error'      : k_sigma_error,
             'ksigma_bulk_ratio' : k_sigma/ksigma_bulk,
-            'k_rho'             : k_rho,
-            'k_low'             : k_low,
+            'krho'              : k_rho,
+            'klow'              : k_low,
             'klow_bulk_ratio'   : k_low / klow_bulk,
             'coupling_factor'   : coupling_factor,
             'tcorr'             : tcorr,
             'tcorr_bulk_ratio'  : tcorr / tcorr_bulk,
-            'd_local'           : d_local
+            'D_local'           : d_local
         })
 
     @staticmethod
