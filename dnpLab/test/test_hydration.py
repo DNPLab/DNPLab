@@ -114,13 +114,13 @@ class TestHydration(unittest.TestCase):
     #tethered
     def test_2ord_krho(self):
         self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.k_rho, 1333.33, places=2)
+        self.assertAlmostEqual(self.hc.results.krho, 1333.33, places=2)
     
     def test_2ord_ksigma(self):
         self._run_tethered_2ord()
         self.assertAlmostEqual(self.hc.results.k_sigma, 20.18, places=2)
-        self.assertAlmostEqual(self.hc.results.k_sigma_array[0], 2.50, places=2)
-        self.assertAlmostEqual(self.hc.results.k_sigma_array[len(self.hc.results.k_sigma_array)-1], 19.57, places=2)
+        self.assertAlmostEqual(self.hc.results.ksigma_array[0], 2.50, places=2)
+        self.assertAlmostEqual(self.hc.results.ksigma_array[len(self.hc.results.ksigma_array) - 1], 19.57, places=2)
     
     def test_2ord_xi(self):
         self._run_tethered_2ord()
@@ -128,7 +128,7 @@ class TestHydration(unittest.TestCase):
     
     def test_2ord_klow(self):
         self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.k_low, 2175.14, places=2)
+        self.assertAlmostEqual(self.hc.results.klow, 2175.14, places=2)
 
     def test_2ord_tcorr(self):
         self._run_tethered_2ord()
@@ -136,17 +136,17 @@ class TestHydration(unittest.TestCase):
 
     def test_2ord_Dlocal(self):
         self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.d_local, 2.19e-10, places=12)
+        self.assertAlmostEqual(self.hc.results.D_local, 2.19e-10, places=12)
         
     def test_linear_krho(self):
         self._run_tethered_linear()
-        self.assertAlmostEqual(self.hc.results.k_rho, 1333.33, places=2)
+        self.assertAlmostEqual(self.hc.results.krho, 1333.33, places=2)
     
     def test_linear_ksigma(self):
         self._run_tethered_linear()
         self.assertAlmostEqual(self.hc.results.k_sigma, 20.48, places=2)
-        self.assertAlmostEqual(self.hc.results.k_sigma_array[0], 2.45, places=2)
-        self.assertAlmostEqual(self.hc.results.k_sigma_array[len(self.hc.results.k_sigma_array)-1], 19.26, places=2)
+        self.assertAlmostEqual(self.hc.results.ksigma_array[0], 2.45, places=2)
+        self.assertAlmostEqual(self.hc.results.ksigma_array[len(self.hc.results.ksigma_array) - 1], 19.26, places=2)
     
     def test_linear_xi(self):
         self._run_tethered_linear()
@@ -154,7 +154,7 @@ class TestHydration(unittest.TestCase):
 
     def test_linear_klow(self):
         self._run_tethered_linear()
-        self.assertAlmostEqual(self.hc.results.k_low, 2174.44, places=2)
+        self.assertAlmostEqual(self.hc.results.klow, 2174.44, places=2)
 
     def test_linear_tcorr(self):
         self._run_tethered_linear()
@@ -162,18 +162,18 @@ class TestHydration(unittest.TestCase):
 
     def test_linear_Dlocal(self):
         self._run_tethered_linear()
-        self.assertAlmostEqual(self.hc.results.d_local, 2.21e-10, places=12)
+        self.assertAlmostEqual(self.hc.results.D_local, 2.21e-10, places=12)
         
     # free
     def test_2ord_krho(self):
         self._run_free_2ord()
-        self.assertAlmostEqual(self.hc.results.k_rho, 1333.33, places=2)
+        self.assertAlmostEqual(self.hc.results.krho, 1333.33, places=2)
     
     def test_2ord_ksigma(self):
         self._run_free_2ord()
         self.assertAlmostEqual(self.hc.results.k_sigma, 57.74, places=2)
-        self.assertAlmostEqual(self.hc.results.k_sigma_array[0], 2.50, places=2)
-        self.assertAlmostEqual(self.hc.results.k_sigma_array[len(self.hc.results.k_sigma_array)-1], 19.57, places=2)
+        self.assertAlmostEqual(self.hc.results.ksigma_array[0], 2.50, places=2)
+        self.assertAlmostEqual(self.hc.results.ksigma_array[len(self.hc.results.ksigma_array) - 1], 19.57, places=2)
     
     def test_2ord_xi(self):
         self._run_free_2ord()
@@ -181,7 +181,7 @@ class TestHydration(unittest.TestCase):
 
     def test_2ord_klow(self):
         self._run_free_2ord()
-        self.assertAlmostEqual(self.hc.results.k_low, 2087.51, places=2)
+        self.assertAlmostEqual(self.hc.results.klow, 2087.51, places=2)
 
     def test_2ord_tcorr(self):
         self._run_free_2ord()
@@ -189,17 +189,17 @@ class TestHydration(unittest.TestCase):
 
     def test_2ord_Dlocal(self):
         self._run_free_2ord()
-        self.assertAlmostEqual(self.hc.results.d_local, 4.30e-10, places=12)
+        self.assertAlmostEqual(self.hc.results.D_local, 4.30e-10, places=12)
         
     def test_linear_krho(self):
         self._run_free_linear()
-        self.assertAlmostEqual(self.hc.results.k_rho, 1333.33, places=2)
+        self.assertAlmostEqual(self.hc.results.krho, 1333.33, places=2)
     
     def test_linear_ksigma(self):
         self._run_free_linear()
         self.assertAlmostEqual(self.hc.results.k_sigma, 58.59, places=2)
-        self.assertAlmostEqual(self.hc.results.k_sigma_array[0], 2.45, places=2)
-        self.assertAlmostEqual(self.hc.results.k_sigma_array[len(self.hc.results.k_sigma_array)-1], 19.26, places=2)
+        self.assertAlmostEqual(self.hc.results.ksigma_array[0], 2.45, places=2)
+        self.assertAlmostEqual(self.hc.results.ksigma_array[len(self.hc.results.ksigma_array) - 1], 19.26, places=2)
     
     def test_linear_xi(self):
         self._run_free_linear()
@@ -207,7 +207,7 @@ class TestHydration(unittest.TestCase):
 
     def test_linear_klow(self):
         self._run_free_linear()
-        self.assertAlmostEqual(self.hc.results.k_low, 2085.51, places=2)
+        self.assertAlmostEqual(self.hc.results.klow, 2085.51, places=2)
 
     def test_linear_tcorr(self):
         self._run_free_linear()
@@ -215,7 +215,7 @@ class TestHydration(unittest.TestCase):
 
     def test_linear_Dlocal(self):
         self._run_free_linear()
-        self.assertAlmostEqual(self.hc.results.d_local, 4.34e-10, places=12)
+        self.assertAlmostEqual(self.hc.results.D_local, 4.34e-10, places=12)
 
 
 if __name__ == '__main__':

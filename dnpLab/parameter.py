@@ -38,8 +38,12 @@ class AttrDict(object):
 
     def update(self, init=None, **kwargs):
         """Update existing parameters
-        If E is present and has a .keys() method, then does:  for k in E: D[k] = E[k]
-        If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
+
+        Args:
+            init: If init is present and has a .keys() method,
+                then does: for k in init: D[k] = E[k].
+                If init is present and lacks a .keys() method,
+                then does: for k, v in init: D[k] = v
         """
         if isinstance(init, dict):
             self.__dict__.update(init)
