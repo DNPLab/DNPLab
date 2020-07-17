@@ -51,7 +51,7 @@ class HydrationParameter(Parameter):
         """float: (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is 
         distance in meters. *didnt use m to avoid confusion with mass"""
 
-        self.dSL = 4.1e-10
+        self.D_SL = 4.1e-10
         """float: (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is distance in
         meters. *didnt use m to avoid confusion with mass"""
 
@@ -324,7 +324,7 @@ class HydrationCalculator:
         # (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is distance in
         # meters. *didnt use m to avoid confusion with mass
 
-        dSL = self.hp.dSL
+        dSL = self.hp.D_SL
         # (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is distance in
         # meters. *didnt use m to avoid confusion with mass
 

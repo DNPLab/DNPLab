@@ -18,7 +18,7 @@ class TestHydrationParameter(unittest.TestCase):
         self.assertEqual(hp.T100, 2.5)
         self.assertEqual(hp.tcorr_bulk, 54)
         self.assertEqual(hp.dH2O, 2.3e-9)
-        self.assertEqual(hp.dSL, 4.1e-10)
+        self.assertEqual(hp.D_SL, 4.1e-10)
         self.assertEqual(hp.klow_bulk, 366)
         self.assertEqual(hp.t1_interp_method, 'second_order')
         
@@ -33,7 +33,7 @@ class TestHydrationParameter(unittest.TestCase):
         hp.T100 = 2
         hp.tcorr_bulk = 50
         hp.dH2O = 3e-10
-        hp.dSL = 5e-10
+        hp.D_SL = 5e-10
         hp.klow_bulk = 350
         hp.smax_model = 'free'
         hp.t1_interp_method = 'second_order'
@@ -45,7 +45,7 @@ class TestHydrationParameter(unittest.TestCase):
         self.assertEqual(hp['T100'], hp.T100)
         self.assertEqual(hp['tcorr_bulk'], hp.tcorr_bulk)
         self.assertEqual(hp['dH2O'], hp.dH2O)
-        self.assertEqual(hp['dSL'], hp.dSL)
+        self.assertEqual(hp['dSL'], hp.D_SL)
         self.assertEqual(hp['klow_bulk'], hp.klow_bulk)
         self.assertEqual(hp['smax_model'], hp.smax_model)
         self.assertEqual(hp['t1_interp_method'], hp.t1_interp_method)
@@ -78,7 +78,7 @@ class TestHydrationParameter(unittest.TestCase):
         self.assertEqual(hp['T100'], hp.T100)
         self.assertEqual(hp['tcorr_bulk'], hp.tcorr_bulk)
         self.assertEqual(hp['dH2O'], hp.dH2O)
-        self.assertEqual(hp['dSL'], hp.dSL)
+        self.assertEqual(hp['dSL'], hp.D_SL)
         self.assertEqual(hp['klow_bulk'], hp.klow_bulk)
         self.assertEqual(hp['smax_model'], hp.smax_model)
         self.assertEqual(hp['t1_interp_method'], hp.t1_interp_method)
