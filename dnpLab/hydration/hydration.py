@@ -274,38 +274,38 @@ class HydrationCalculator:
 
         omega_e = (1.76085963023e-1) * (field / 1000)
         # gamma_e in 1/ps for the tcorr unit, then correct by field in T.
-        # gamma_e is from NIST. The field cancels in the following wRatio but you
+        # gamma_e is from NIST. The field cancels in the following omega_ratio but you
         # need these individually for the spectral density functions later.
 
         omega_H = (2.6752218744e-4) * (field / 1000)
         # gamma_H in 1/ps for the tcorr unit, then correct by field in T.
-        # gamma_H is from NIST. The field cancels in the following wRatio but you
+        # gamma_H is from NIST. The field cancels in the following omega_ratio but you
         # need these individually for the spectral density functions later.
 
-        wRatio = ((omega_e / (2 * np.pi)) / (omega_H / (2 * np.pi)))
+        omega_ratio = ((omega_e / (2 * np.pi)) / (omega_H / (2 * np.pi)))
         # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular
         # frequency units in order to correspond to S_0/I_0, this is also ~= to the
         # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
 
-        ksig_sp = ((1 - Ep) / (spin_C * wRatio * T1p))
+        ksigma_array = ((1 - Ep) / (spin_C * omega_ratio * T1p))
         # (Eq. 41) this calculates the array of k_sigma*s(p) from the enhancement array,
         # dividing by the T1 array for the "corrected" analysis
 
-        popt, pcov = self.getksig(ksig_sp, power)
+        popt, pcov = self.getksig(ksigma_array, power)
         # fit to the right side of Eq. 42 to get (k_sigma*smax) and half of the E_power at s_max, called p_12 here
-        k_sigma_smax = popt[0]
+        ksigma_smax = popt[0]
         p_12 = popt[1]
-        stdd_ksig = np.sqrt(np.diag(pcov))
-        k_sigma_error = stdd_ksig[0] / s_max
+        ksigma_std = np.sqrt(np.diag(pcov))
+        ksigma_error = ksigma_std[0] / s_max
 
-        ksig_fit = (k_sigma_smax * power) / (p_12 + power)
+        ksigma_fit = (ksigma_smax * power) / (p_12 + power)
         # (Eq. 42) calculate the "corrected" k_sigma*s(p) array using the fit parameters,
-        # this can be used to plot over the data ksig_sp array to assess the quality of fit.
+        # this can be used to plot over the data ksigma_array array to assess the quality of fit.
         # This would correspond to the corrected curves in Figure 9
         
-        k_sigma = k_sigma_smax / s_max
+        k_sigma = ksigma_smax / s_max
         
-        # ksig_uncorr = ((1 - Ep) / (spin_C * wRatio * T10)) / s_max
+        # ksig_uncorr = ((1 - Ep) / (spin_C * omega_ratio * T10)) / s_max
         # (Eq. 44) the "uncorrected" model, this can also be plotted with the corrected
         # curve to determine the severity of heating effects, as in Figure 9.
         # Notice the division by T10 instead of the T1 array
@@ -314,9 +314,9 @@ class HydrationCalculator:
         ksigma_bulk = self.hp.ksigma_bulk  # unit is s^-1 M^-1
         # "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023. Figure 3 caption
 
-        k_rho = ((1/T10) - (1/T100)) / spin_C  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
+        krho = ((1/T10) - (1/T100)) / spin_C  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
 
-        coupling_factor = k_sigma / k_rho  # (Eq. 3) this is the coupling factor, unitless
+        coupling_factor = k_sigma / krho  # (Eq. 3) this is the coupling factor, unitless
 
         tcorr = self.getTcorr(coupling_factor, omega_e, omega_H)
         # (Eq. 21-23) this calls the fit to the spectral density functions. The fit
@@ -326,15 +326,15 @@ class HydrationCalculator:
 
         tcorr_bulk = self.hp.tcorr_bulk  # (section 2.5), "corrected" bulk tcorr, unit is ps
 
-        dH2O = self.hp.D_H2O
+        D_H2O = self.hp.D_H2O
         # (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is distance in
         # meters. *didnt use m to avoid confusion with mass
 
-        dSL = self.hp.D_SL
+        D_SL = self.hp.D_SL
         # (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is distance in
         # meters. *didnt use m to avoid confusion with mass
 
-        d_local = (tcorr_bulk / tcorr) * (dH2O + dSL)
+        D_local = (tcorr_bulk / tcorr) * (D_H2O + D_SL)
         # (Eq. 19-20) local diffusivity, i.e. diffusivity of the water near the spin label
 
         ############################################################################
@@ -346,7 +346,7 @@ class HydrationCalculator:
         # Franck, JM, et. al.; "Anomalously Rapid Hydration Water Diffusion Dynamics
         # Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023.
 
-        k_low = ((5 * k_rho) - (7 * k_sigma)) / 3
+        klow = ((5 * krho) - (7 * k_sigma)) / 3
         # section 6, (Eq. 13). this describes the relatively slowly diffusing water
         # near the spin label, sometimes called "bound" water
         ############################################################################
@@ -354,7 +354,7 @@ class HydrationCalculator:
         klow_bulk = self.hp.klow_bulk  # unit is s^-1 M^-1
         # "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023. Figure 3 caption
         
-        results = self.getxiunc(Ep, power, T10, T100, wRatio, s_max)
+        results = self.getxiunc(Ep, power, T10, T100, omega_ratio, s_max)
         xi_unc = results.x[0]
         p_12_unc = results.x[1]
         
@@ -366,23 +366,23 @@ class HydrationCalculator:
         xi_unc_error = results_std[0]
         """
         
-        uncorrected_Ep = 1-((xi_unc*(1-(T10/T100))*wRatio)*((power*s_max)/(p_12_unc+power)))
+        uncorrected_Ep = 1-((xi_unc*(1-(T10/T100))*omega_ratio)*((power*s_max)/(p_12_unc+power)))
         
         return HydrationResults({
             'uncorrected_Ep'    : uncorrected_Ep,
             'interpolated_T1'   : T1p,
-            'ksigma_array'      : ksig_sp,
-            'ksigma_fit'        : ksig_fit,
+            'ksigma_array'      : ksigma_array,
+            'ksigma_fit'        : ksigma_fit,
             'k_sigma'           : k_sigma,
-            'ksigma_error'      : k_sigma_error,
+            'ksigma_error'      : ksigma_error,
             'ksigma_bulk_ratio' : k_sigma/ksigma_bulk,
-            'krho'              : k_rho,
-            'klow'              : k_low,
-            'klow_bulk_ratio'   : k_low / klow_bulk,
+            'krho'              : krho,
+            'klow'              : klow,
+            'klow_bulk_ratio'   : klow / klow_bulk,
             'coupling_factor'   : coupling_factor,
             'tcorr'             : tcorr,
             'tcorr_bulk_ratio'  : tcorr / tcorr_bulk,
-            'D_local'           : d_local
+            'D_local'           : D_local
         })
 
     @staticmethod
