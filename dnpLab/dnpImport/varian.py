@@ -49,7 +49,17 @@ def array_coords(attrs):
 
     return dim, coord
 
-def importfid(path,filename):
+def importfid(path, filename = 'fid'):
+    '''Import VnmrJ fid file
+
+    Args:
+        path (str): Directory of fid file
+        filename (str): Name of fid file. "fid" by default
+
+    Returns:
+        numpy.ndarray: Array of data
+
+    '''
     with open(os.path.join(path, filename),'rb') as f:
         headerString = f.read(headerSize)
         header = unpack(header_fmt,headerString)
@@ -100,7 +110,16 @@ def importfid(path,filename):
     return dataArray
 
 
-def importProcpar(path,filename):
+def import_procpar(path, filename = 'procpar'):
+    '''Import VnmrJ procpar parameters file
+
+    Args:
+        path (str): Directory of file
+
+    Returns:
+        dict: Dictionary of procpar parameters
+
+    '''
     paramDict = {}
     with open(os.path.join(path, filename),'r') as f:
         while True:
@@ -169,8 +188,8 @@ def importProcpar(path,filename):
                 paramDict[name] = value
 
 
-def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
-    """
+def importVarian(path, fidFilename = 'fid', paramFilename = 'procpar'):
+    """Import VnmrJ Data
 
     Args:
         path(str): path to experiment folder
@@ -178,11 +197,11 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
         paramFilename(str): process parameter filename
 
     Returns:
-        dnpData: data
+        dnpData: data in dnpData object
 
     """
 
-    attrs = importProcpar(path,paramFilename)
+    attrs = import_procpar(path,paramFilename)
 
     nmr_frequency = attrs['H1reffrq']*1.e6
     sw = attrs['sw']
