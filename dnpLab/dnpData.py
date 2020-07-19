@@ -156,27 +156,7 @@ class dnpData:
     def __repr__(self):
         ''' Representation of dnpData object
         '''
-        string = 'Data Shape:' + repr(np.shape(self.values)) + '\n'
-        string += 'Data Axes:' + repr(self.dims) + '\n'
-        string += 'Parameters:\n'# + repr(self.attrs)
-        for key in self.attrs:
-            if key != '*proc*':
-                string += str(key) + ': ' + str(self.attrs[key]) + '\n'
-
-        if '*proc*' in self.attrs:
-            string += '*PROCESSING*\n'
-            ix = 1
-            for procStep in self.attrs['*proc*']:
-                procStep = procStep.split(':')
-                string += '%i.) '%ix + procStep[0] + ':\n'
-                line = procStep[1].strip('\n').split('\n')
-                for info in line:
-                    param_value = info.split(',')
-                    param = param_value[0]
-                    value = param_value[1]
-                    string += param + ', ' + value + '\n'
-                ix += 1
-        return string
+        return 'nddata(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self.values), repr(self.dims), repr(self.coords), repr(self.attrs))
 
     def __rmul__(self,data):
         return self.__mul__(data)
@@ -196,32 +176,7 @@ class dnpData:
         return newData
 
     def __str__(self):
-        ''' String representation of dnpData object
-
-        Returns:
-            string (str): string representation of dnpData object
-        '''
-        string = 'Data Shape:' + repr(np.shape(self.values)) + '\n'
-        string += 'Data Axes:' + repr(self.dims) + '\n'
-        string += 'Parameters:\n'# + repr(self.attrs)
-        for key in self.attrs:
-            if key != '*proc*':
-                string += str(key) + ': ' + str(self.attrs[key]) + '\n'
-
-        if '*proc*' in self.attrs:
-            string += '*PROCESSING*\n'
-            ix = 1
-            for procStep in self.attrs['*proc*']:
-                procStep = procStep.split(':')
-                string += '%i.) '%ix + procStep[0] + ':\n'
-                line = procStep[1].strip('\n').split('\n')
-                for info in line:
-                    param_value = info.split(',')
-                    param = param_value[0]
-                    value = param_value[1]
-                    string += param + ', ' + value + '\n'
-                ix += 1
-        return string
+        return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs)
 
     def __sub__(self,data):
         newData = deepcopy(self)
