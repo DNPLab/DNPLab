@@ -104,7 +104,7 @@ class VNMRJImportTester(unittest.TestCase):
         datas = [varian.importVarian(path=path) for path in self.test_data2Ds]
         for i, data in enumerate(datas):
             self.assertEqual(data.values.shape, (131072, 5))
-            self.assertEqual(data.dims, ['t', 'x'])
+            self.assertEqual(data.dims, ['t', 'array'])
             self.assertAlmostEqual(data.attrs['nmr_frequency'], 14244283.4231)
         self.assertAlmostEqual(datas[0].values[365, 3], (-1263136+1063328.5j))
 
