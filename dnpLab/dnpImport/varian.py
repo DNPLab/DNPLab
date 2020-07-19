@@ -11,6 +11,38 @@ blockHeaderSize = 28
 header_fmt = '>llllllhhl'
 blockHeader_fmt = '>hhhhlffff'
 
+def array_coords(attrs):
+    '''Return array dimension coords from parameters dictionary
+
+    Args:
+        attrs (dict): Dictionary of procpar parameters
+
+    Returns:
+        tuple: dim and coord for array
+
+    '''
+
+    dim = attrs['array'].value
+
+    if dim == '':
+        dim = 'array'
+
+    array_delta = attrs['arraydelta'].value
+
+
+    array_max = attrs['arraymax'].value
+    array_flip = attrs['arrayflip'].value
+
+    array_start = attrs['arraystart'].value
+    array_stop = attrs['arraystop'].value
+
+    array_elements = attrs['arrayelemts'].value
+    array_d_scale = attrs['arraydscale'].value
+    array_dodc = attrs['arraydodc'].value
+
+    coord = _np.r_[array_start:array_stop:array_delta]
+
+    return dim, coord
 
 def importfid(path,filename):
     with open(os.path.join(path, filename),'rb') as f:
@@ -179,8 +211,8 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
     sw = paramDict['sw'].value
     npts = int(paramDict['np'].value/2)
 
-    arraydim = int(paramDict['arraydim'].value)
-    print(arraydim)
+#    arraydim = int(paramDict['arraydim'].value)
+    dim, coord = array_coords(paramDict)
 
     dwellTime = 1./sw
 
@@ -188,13 +220,14 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
     
     data = importfid(path, fidFilename)
 
-    if arraydim == 1:
+    if coord.size == 1:
         data = data.reshape(-1)
         output = _dnpData(data,[t],['t'],{})
     else:
 #        data = data.T
 #        data = data.reshape(-1,arraydim)
-        output = _dnpData(data,[t,_np.array(range(arraydim))],['t','x'],{})
+#        output = _dnpData(data,[t,_np.array(range(arraydim))],['t','x'],{})
+        output = _dnpData(data,[t,coord],['t',dim],{})
 
     importantParamsDict = {}
     importantParamsDict['nmr_frequency'] = nmr_frequency
