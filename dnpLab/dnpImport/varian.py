@@ -22,23 +22,23 @@ def array_coords(attrs):
 
     '''
 
-    dim = attrs['array'].value
+    dim = attrs['array']
 
     if dim == '':
         dim = 'array'
 
-    array_delta = attrs['arraydelta'].value
+    array_delta = attrs['arraydelta']
 
 
-    array_max = attrs['arraymax'].value
-    array_flip = attrs['arrayflip'].value
+    array_max = attrs['arraymax']
+    array_flip = attrs['arrayflip']
 
-    array_start = attrs['arraystart'].value
-    array_stop = attrs['arraystop'].value
+    array_start = attrs['arraystart']
+    array_stop = attrs['arraystop']
 
-    array_elements = attrs['arrayelemts'].value
-    array_d_scale = attrs['arraydscale'].value
-    array_dodc = attrs['arraydodc'].value
+    array_elements = attrs['arrayelemts']
+    array_d_scale = attrs['arraydscale']
+    array_dodc = attrs['arraydodc']
 
     coord = _np.r_[array_start:array_stop:array_delta]
 
@@ -106,19 +106,17 @@ def importProcpar(path,filename):
                 # Line 1: Name & Type Line
                 splitLine = line.rstrip().split(' ')
 
-                varName = splitLine[0]
-                variable = procparVariable(varName)
-
-                variable.subtype = splitLine[1]
-                variable.basictype = int(splitLine[2])
-                variable.maxvalue = float(splitLine[3])
-                variable.minvalue = float(splitLine[4])
-                variable.stepsize = float(splitLine[5])
-                variable.Ggroup = int(splitLine[6])
-                variable.Dgroup = int(splitLine[7])
-                variable.protection = int(splitLine[8])
-                variable.active = int(splitLine[9])
-                variable.intptr = int(splitLine[10])
+                name = splitLine[0]
+                subtype = splitLine[1]
+                basictype = int(splitLine[2])
+                maxvalue = float(splitLine[3])
+                minvalue = float(splitLine[4])
+                stepsize = float(splitLine[5])
+                Ggroup = int(splitLine[6])
+                Dgroup = int(splitLine[7])
+                protection = int(splitLine[8])
+                active = int(splitLine[9])
+                intptr = int(splitLine[10])
 
                 # 3 Cases:
                 # basictype is 1 (real) -> Line 2 separated by spaces
@@ -130,66 +128,40 @@ def importProcpar(path,filename):
                 valueLine = firstValueLine.rstrip().split(' ')
                 numValues = int(valueLine[0])
 
-                variable.numValues = numValues
-
-                if variable.basictype == 1:
-                    if variable.numValues == 1:
-                        variable.value = float(valueLine[1])
+                if basictype == 1:
+                    if numValues == 1:
+                        value = float(valueLine[1])
                     else:
                         listFloats = []
                         for number in valueLine[1:]:
                             listFloats.append(float(number))
 
-                        variable.value = listFloats
+                        value = listFloats
 
-                elif variable.basictype == 2:
-                    if variable.numValues == 1:
-                        variable.value = valueLine[1].replace('"','')
+                elif basictype == 2:
+                    if numValues == 1:
+                        value = valueLine[1].replace('"','')
                     else:
                         listStrings = []
                         listStrings.append(valueLine[1].replace('"',''))
 
-                        for ix in range(variable.numValues - 1):
+                        for ix in range(numValues - 1):
                             nextValueLine = f.readline()
                             nextValue = nextValueLine.strip()
                             listStrings.append(nextValue.replace('"',''))
 
-                        variable.value = listStrings
-
-
-
-
-
-#                if numValues == '1':
-#                    try:
-#                        value = float(valueLine[1])
-#                    except:
-#                        value = valueLine[1]
-#                else:
-#                    # determine if value line is number
-#                    try:
-#                        valueLineNumberCheck = firstValueLine.rstrip().split(' ')
-#                        value = []
-#                        for eachValue in valueLineNumberCheck[1:]:
-#                            value.append(float(eachValue))
-#
-#                    except:
-#                        value = [valueLine[1]]
-#                        for ix in range(int(numValues)-1):
-#                            otherValueLine = f.readline()
-#                            valueLine = otherValueLine.rstrip()
-#                            value.append(valueLine)
+                        value = listStrings
 
                 finalLine = f.readline()
                 enumValuesLine = finalLine.rstrip().split(' ')
                 numEnumValues = enumValuesLine[0]
-                variable.numEnumValues = numEnumValues
-                if int(numEnumValues) == 1:
-                    variable.enumValues = enumValuesLine[1]
-                else:
-                    variable.enumValues = enumValuesLine[1:]
 
-                paramDict[variable.name] = variable
+                if int(numEnumValues) == 1:
+                    enumValues = enumValuesLine[1]
+                else:
+                    enumValues = enumValuesLine[1:]
+
+                paramDict[name] = value
 
 
 def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
@@ -207,11 +179,10 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
 
     paramDict = importProcpar(path,paramFilename)
 
-    nmr_frequency = paramDict['H1reffrq'].value*1.e6
-    sw = paramDict['sw'].value
-    npts = int(paramDict['np'].value/2)
+    nmr_frequency = paramDict['H1reffrq']*1.e6
+    sw = paramDict['sw']
+    npts = int(paramDict['np']/2)
 
-#    arraydim = int(paramDict['arraydim'].value)
     dim, coord = array_coords(paramDict)
 
     dwellTime = 1./sw
@@ -224,61 +195,10 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
         data = data.reshape(-1)
         output = _dnpData(data,[t],['t'],{})
     else:
-#        data = data.T
-#        data = data.reshape(-1,arraydim)
-#        output = _dnpData(data,[t,_np.array(range(arraydim))],['t','x'],{})
         output = _dnpData(data,[t,coord],['t',dim],{})
 
     importantParamsDict = {}
     importantParamsDict['nmr_frequency'] = nmr_frequency
     output.attrs = importantParamsDict
-#    print(_np.shape(data))
-#    print(len(t))
     return output
 
-
-class procparVariable():
-    '''
-    Storage container for procpar varibles
-    Line 1:
-    name, subtype, basictype, naxvalue, minvalue, stepsizei, Ggroup, Dgroup, protection, active, intptr
-    '''
-    def __init__(self,variableName):
-        self.name = variableName
-
-    def __repr__(self):
-        string = str(self.name)
-        string += ' ' + str(self.subtype)
-        string += ' ' + str(self.basictype)
-        string += ' ' + str(self.maxvalue)
-        string += ' ' + str(self.minvalue)
-        string += ' ' + str(self.stepsize)
-        string += ' ' + str(self.Ggroup)
-        string += ' ' + str(self.Dgroup)
-        string += ' ' + str(self.protection)
-        string += ' ' + str(self.active)
-        string += ' ' + str(self.intptr) + '\n'
-
-        string += str(self.numValues)
-        if self.basictype == 1:
-            if self.numValues == 1:
-                string += ' ' + str(self.value) + '\n'
-            else:
-                for each in self.value:
-                    string += ' ' + str(each)
-                string += '\n'
-        else:
-            if self.numValues == 1:
-                string += ' "' + self.value + '"\n'
-            else:
-                for value in self.value:
-                    string += ' "' + value + '"\n'
-        string += str(self.numEnumValues)
-
-        if self.numEnumValues == 1:
-            string += ' ' + str(self.enumValues)
-        else:
-            for enumValues in self.enumValues:
-                string += ' ' + str(enumValues)
-
-        return string
