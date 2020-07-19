@@ -29,6 +29,7 @@ def array_coords(attrs):
 
     array_delta = attrs['arraydelta']
 
+    array_dim = attrs['arraydim']
 
     array_max = attrs['arraymax']
     array_flip = attrs['arrayflip']
@@ -40,7 +41,11 @@ def array_coords(attrs):
     array_d_scale = attrs['arraydscale']
     array_dodc = attrs['arraydodc']
 
-    coord = _np.r_[array_start:array_stop:array_delta]
+    if array_dim != 1:
+        coord = _np.r_[array_start:array_stop:array_delta]
+    else:
+        coord = None
+        dim = None
 
     return dim, coord
 
@@ -190,14 +195,16 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
     dwellTime = 1./sw
 
     t = _np.r_[0.:int(npts)] * dwellTime
+    dims = ['t']
+    coords = [t]
     
     data = importfid(path, fidFilename)
 
-    if coord.size == 1:
-        data = data.reshape(-1)
-        output = _dnpData(data,[t],['t'],{})
+    if coord is not None:
+        dims.append(dim)
+        coords.append(coord)
     else:
-        output = _dnpData(data,[t,coord],['t',dim], attrs)
+        data = data.reshape(-1)
 
-    return output
+    return _dnpData(data, coords, dims, attrs)
 

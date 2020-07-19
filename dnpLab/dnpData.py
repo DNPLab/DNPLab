@@ -6,6 +6,8 @@ from copy import deepcopy
 
 version = '1.0'
 
+core_attrs_list = ['nmr_frequency']
+
 #TODO:
 # Fix Dictionary not being empty when dnp_data is initialized, problem with add_power function
 # Force all axes to be nddata arrays, so that indexing is easier
@@ -176,7 +178,12 @@ class dnpData:
         return newData
 
     def __str__(self):
-        return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs)
+        if len(self.attrs) < 20:
+            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs)
+        else:
+            core_attrs = {k:self.attrs[k] for k in core_attrs_list if k in core_attrs_list}
+            num_additional_attrs = len(self.attrs) - len(core_attrs)
+            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\n + {} attrs'.format(self.values, self.dims, self.coords, core_attrs, num_additional_attrs)
 
     def __sub__(self,data):
         newData = deepcopy(self)
