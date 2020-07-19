@@ -177,13 +177,15 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
 
     """
 
-    paramDict = importProcpar(path,paramFilename)
+    attrs = importProcpar(path,paramFilename)
 
-    nmr_frequency = paramDict['H1reffrq']*1.e6
-    sw = paramDict['sw']
-    npts = int(paramDict['np']/2)
+    nmr_frequency = attrs['H1reffrq']*1.e6
+    sw = attrs['sw']
+    npts = int(attrs['np']/2)
 
-    dim, coord = array_coords(paramDict)
+    attrs['nmr_frequency'] = nmr_frequency
+
+    dim, coord = array_coords(attrs)
 
     dwellTime = 1./sw
 
@@ -195,10 +197,7 @@ def importVarian(path, fidFilename='fid', paramFilename ='procpar'):
         data = data.reshape(-1)
         output = _dnpData(data,[t],['t'],{})
     else:
-        output = _dnpData(data,[t,coord],['t',dim],{})
+        output = _dnpData(data,[t,coord],['t',dim], attrs)
 
-    importantParamsDict = {}
-    importantParamsDict['nmr_frequency'] = nmr_frequency
-    output.attrs = importantParamsDict
     return output
 
