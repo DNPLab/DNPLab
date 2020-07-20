@@ -32,6 +32,7 @@ def importKea(path, parameters_filename = None, verbose = False):
             raise ValueError('More than one binary data file in directory:',fileList)
         else:
             data_filename = filesList[0]
+            filename, extension = os.path.splitext(os.path.split(data_filename)[-1])
 
     attrs = import_par(os.path.join(path, parameters_filename))
 
