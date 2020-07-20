@@ -58,14 +58,18 @@ def importKea(path, parameters_filename = None, verbose = False):
 
     dims = []
     coords = []
+    dims_list = ['x','y','z','q']
     for ix in range(len(data_shape)):
-        dims.append(str(ix))
-        coords.append(np.arange(data_shape[ix]))
+        dims.append(dims_list[ix]) # call dimensions in order: x, y, z, q
+        coords.append(np.arange(data_shape[ix])) # set coords to index for now
 
     # If axes information is give, assume it is the first dimension
     if x is not None:
         dims[0] = 't'
-        coords[0] = x
+        # Assume units in us, convert to seconds
+        coords[0] = x / 1e6
+
+
 
     kea_data = dnpData(data, coords, dims, attrs)
 
