@@ -110,7 +110,7 @@ class dnpData:
         self.coords = coords
         self.dims = dims
         self.attrs = attrs
-        self.proc_steps = []
+        self.proc_attrs = []
 
     def __len__(self):
         return np.size(self.values)
@@ -206,15 +206,15 @@ class dnpData:
         out.values = np.abs(out.values)
         return out
 
-    def add_proc_step(self,proc_step_name,proc_dict):
+    def add_proc_attrs(self,proc_attr_name,proc_dict):
         '''
         '''
-        if not isinstance(proc_step_name,str):
+        if not isinstance(proc_attr_name,str):
             raise ValueError('Processing step name must be string')
         if not isinstance(proc_dict,dict):
             raise ValueError('Processing dictionary must be dictionary')
 
-        self.proc_steps.append((proc_step_name,proc_dict))
+        self.proc_attrs.append((proc_attr_name,proc_dict))
 
     def addAxes(self,axesLabel,axesValue):
         '''Add new axesLabel to dnpData object with ax
@@ -475,11 +475,34 @@ class dnpdata_collection:
     '''
     '''
 
-    def __init__(self):
+    def __init__(self,*args):
+
+        self._processing_buffer = 'proc'
 
         self.__data_dict = {}
 
-        self._processing_buffer = 'proc'
+        if len(args) == 0:
+            return
+        elif len(args) == 1:
+            if isinstance(args[0], dnpData):
+                self.__data_dict['raw'] == dnpData
+            elif isinstance(args[0], dict):
+                data_dict = args[0]
+                for key in data_dict:
+                    if isinstance(data_dict[key], (dnpData, dict)):
+                        self.__data_dict[key] = data_dict[key]
+                    else:
+                        raise TypeError('Each type in dict must be dnpData or dict')
+            else:
+                raise TypeError('Argument must be type dnpData')
+        elif len(args) == 2:
+            if isinstance(args[0], str) and isinstance(args[1], (dnpData, dict)):
+                self.__data_dict[args[0]] = args[1]
+            else:
+                raise TypeError('If two arguments, first argument must be str and 2nd argument must be dnpData or dict')
+        else:
+            raise TypeError('Arguments not understood')
+
 
     @property
     def processing_buffer(self):
@@ -502,7 +525,10 @@ class dnpdata_collection:
     def __setitem__(self, a, b):
         '''
         '''
-        self.__data_dict[a] = b
+        if isinstance(a, str) and isinstance(b, (dict, dnpData)):
+            self.__data_dict[a] = b
+        else:
+            raise TypeError('Key must be string and value must be dnpdata or dict')
 
     def copy(self, a, b):
         '''Copy data
@@ -556,8 +582,8 @@ class dnpdata_collection:
 
 
 
-def create_workspace():
-    return dnpdata_collection()
+def create_workspace(*args):
+    return dnpdata_collection(*args)
 
 
 if __name__ == '__main__':

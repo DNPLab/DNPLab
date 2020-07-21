@@ -1,6 +1,5 @@
-from . import dnpData as _dnpData
+from . import dnpData, dnpdata_collection
 import numpy as _np
-
 
 _defaultFourierTransformParameters = {
         'dim': 't',
@@ -35,18 +34,23 @@ def returnData(allData):
     '''
 
     isDict = False
-    if isinstance(allData,_dnpData):
+    if isinstance(allData,dnpData):
         data = allData.copy()
-    elif isinstance(allData,dict):
+    elif isinstance(allData, dict):
         isDict = True
         if 'proc' in allData:
             data = allData['proc'].copy()
         elif 'raw' in allData:
             data = allData['raw'].copy()
+    elif isinstance(allData, dnpdata_collection):
+        isDict = True
+        if allData.processing_buffer in allData.keys():
+            data = allData[allData.processing_buffer]
+        else:
+            raise ValueError('No data in processing buffer')
     else:
-        print('Type not supported')
-        raise ValueError()
-    dataType = 'dataDict'
+        raise ValueError('Data type not supported')
+
     return data, isDict
 
 def updateParameters(procParameters, requiredList, defaultParameters):
@@ -62,24 +66,6 @@ def updateParameters(procParameters, requiredList, defaultParameters):
             print(defaultParameters[requiredParameter])
 
     return updatedProcParameters
-
-def procString(name,procParameters,requiredList):
-    '''
-    '''
-    procStepString = name
-    for requiredParameter in requiredList:
-        procStepString += requiredParameter + ',' + str(procParameters[requiredParameter]) + '\n'
-
-    return procStepString
-
-def stampProcStep(data,procStepString):
-    '''
-    '''
-    if '*proc*' in data.attrs:
-        data.attrs['*proc*'].append(procStepString)
-    else:
-        data.attrs['*proc*'] = [procStepString]
-    return data
 
 def removeOffset(allData, procParameters):
     '''Remove DC offset from FID by averaging the last few data points and subtracting the average
@@ -101,7 +87,6 @@ def removeOffset(allData, procParameters):
     # Determine if data is dictionary or dnpData object
     data, isDict = returnData(allData)
 
-    #requiredList = ['dim','offset_points']
     requiredList = _defaultRemoveOffsetParameters.keys()
     procParameters = updateParameters(procParameters,requiredList,_defaultRemoveOffsetParameters)
     dim = procParameters['dim']
@@ -113,9 +98,9 @@ def removeOffset(allData, procParameters):
 
     data -= offset
 
-    procStepName = 'Remove Offset:'
-    procStepString = procString(procStepName,procParameters,requiredList)
-    data = stampProcStep(data,procStepString)
+    proc_attr_name = 'remove_offset'
+    proc_dict = {k:procParameters[k] for k in procParameters if k in requiredList}
+    data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
         allData['proc'] = data
@@ -152,8 +137,7 @@ def fourierTransform(allData, procParameters):
     # Determine if data is dictionary or dnpData object
     data, isDict = returnData(allData)
 
-    requiredList = ['dim','zero_fill_factor','shift','convert_to_ppm']
-
+    requiredList = _defaultFourierTransformParameters.keys()
     procParameters = updateParameters(procParameters,requiredList,_defaultFourierTransformParameters)
 
     dimLabel = procParameters['dim']
@@ -177,9 +161,9 @@ def fourierTransform(allData, procParameters):
         data.values = _np.fft.fftshift(data.values,axes=index)
     data.coords[index] = f
 
-    procStepName = 'Fourier Transform:'
-    procStepString = procString(procStepName,procParameters,requiredList)
-    data = stampProcStep(data,procStepString)
+    proc_attr_name = 'fourier_transform'
+    proc_dict = {k:procParameters[k] for k in procParameters if k in requiredList}
+    data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
         allData['proc'] = data
@@ -211,8 +195,7 @@ def window(allData,procParameters):
 
     data, isDict = returnData(allData)
 
-    requiredList = ['dim','linewidth']
-
+    requiredList = _defaultWindowParameters.keys()
     procParameters = updateParameters(procParameters,requiredList,_defaultWindowParameters)
 
     dimLabel = procParameters['dim']
@@ -228,10 +211,9 @@ def window(allData,procParameters):
     window_array = _np.ones_like(data.values) * window_array
     data.values *= window_array
 
-    procStepName = 'window:'
-    procStepString = procString(procStepName,procParameters,requiredList)
-
-    data = stampProcStep(data,procStepString)
+    proc_attr_name = 'window'
+    proc_dict = {k:procParameters[k] for k in procParameters if k in requiredList}
+    data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
         allData['proc'] = data
@@ -268,8 +250,7 @@ def integrate(allData,procParameters):
 
     data, isDict = returnData(allData)
 
-    requiredList = ['dim','integrate_center','integrate_width']
-
+    requiredList = _defaultIntegrateParameters.keys()
     procParameters = updateParameters(procParameters,requiredList,_defaultIntegrateParameters)
 
     dim = procParameters['dim']
@@ -283,9 +264,9 @@ def integrate(allData,procParameters):
 
     data.sum(dim)
 
-    procStepName = 'Integrate:'
-    procStepString = procString(procStepName,procParameters,requiredList)
-    data = stampProcStep(data,procStepString)
+    proc_attr_name = 'integrate'
+    proc_dict = {k:procParameters[k] for k in procParameters if k in requiredList}
+    data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
         allData['proc'] = data
@@ -305,8 +286,7 @@ def align(allData,procParameters):
         print('Only 2-dimensional data supported')
         return
 
-    requiredList = ['dim']
-
+    requiredList = _defaultAlignParameters.keys()
     procParameters = updateParameters(procParameters,requiredList,_defaultAlignParameters)
 
     alignAxesLabel = procParameters['dim']
@@ -324,42 +304,12 @@ def align(allData,procParameters):
         data.values[:,ix] = shiftData
     data.reorder(originalAxesOrder)
 
-    procStepName = 'Align:'
-    procStepString = procString(procStepName,procParameters,requiredList)
-    data = stampProcStep(data,procStepString)
+    proc_attr_name = 'align'
+    proc_dict = {k:procParameters[k] for k in procParameters if k in requiredList}
+    data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
         allData['proc'] = data
         return allData
     else:
         return data
-
-
-def steps(allData):
-    '''
-    print processing steps
-    '''
-
-    string = ''
-    data,isDict = returnData(allData)
-    string += '----------------\n'
-    string += 'PROCESSING STEPS:\n'
-    ix = 1
-    if '*proc*' in data.attrs:
-        for procStep in data.attrs['*proc*']:
-#            string += '%i.)'%ix + '\n'
-            procStep = procStep.split(':')
-            string += '----------------\n'
-            string += '%i.) '%ix + procStep[0] + ':\n'
-            line = procStep[1].strip('\n').split('\n')
-            for info in line:
-                param_value = info.split(',')
-                param = param_value[0]
-                value = param_value[1]
-                string += param + ', ' + value + '\n'
-            ix += 1
-        return string
-    else:
-        return 'No Processing Steps Found'
-
-
