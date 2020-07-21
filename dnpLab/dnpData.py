@@ -179,7 +179,7 @@ class dnpData:
 
     def __str__(self):
         if len(self.attrs) < 20:
-            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs)
+            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\nproc_attrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs,self.proc_attrs)
         else:
             core_attrs = {k:self.attrs[k] for k in core_attrs_list if k in core_attrs_list}
             num_additional_attrs = len(self.attrs) - len(core_attrs)
@@ -577,8 +577,8 @@ class dnpdata_collection:
     def __repr__(self):
         return 'dnpdata_collection({})'.format(self.__data_dict)
 
-    def __print__(self):
-        return '{}'.format(self.dict().keys())
+    def __str__(self):
+        return '{}\n'.format([(key,self[key].__str__()) for key in self.keys()])
 
 
 
