@@ -81,7 +81,7 @@ def stampProcStep(data,procStepString):
         data.attrs['*proc*'] = [procStepString]
     return data
 
-def removeOffset(allData,procParameters):
+def removeOffset(allData, procParameters):
     '''Remove DC offset from FID by averaging the last few data points and subtracting the average
 
     Args:
@@ -101,7 +101,8 @@ def removeOffset(allData,procParameters):
     # Determine if data is dictionary or dnpData object
     data, isDict = returnData(allData)
 
-    requiredList = ['dim','offset_points']
+    #requiredList = ['dim','offset_points']
+    requiredList = _defaultRemoveOffsetParameters.keys()
     procParameters = updateParameters(procParameters,requiredList,_defaultRemoveOffsetParameters)
     dim = procParameters['dim']
     offset_points = int(procParameters['offset_points'])

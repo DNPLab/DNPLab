@@ -470,5 +470,95 @@ class dnpData:
         removedAxesLabel = self.dims.pop(index)
         removedAxes = self.coords.pop(index)
 
+
+class dnpdata_collection:
+    '''
+    '''
+
+    def __init__(self):
+
+        self.__data_dict = {}
+
+        self._processing_buffer = 'proc'
+
+    @property
+    def processing_buffer(self):
+        return self._processing_buffer
+
+    @processing_buffer.setter
+    def processing_buffer(self, new_processing_buffer):
+        '''
+        '''
+        if isinstance(new_processing_buffer, str):
+            self._processing_buffer = new_processing_buffer
+        else:
+            raise TypeError('Processing buffer must be type str, not %s'%str(type(new_processing_buffer)))
+
+    def __getitem__(self, a):
+        '''
+        '''
+        return self.__data_dict[a]
+
+    def __setitem__(self, a, b):
+        '''
+        '''
+        self.__data_dict[a] = b
+
+    def copy(self, a, b):
+        '''Copy data
+        '''
+
+        self[b] = self[a].copy()
+
+    def move(self, a, b):
+        '''Move data 
+        '''
+
+        self[b] = self.pop(a)
+
+    def pop(self, b):
+        return self.__data_dict.pop(b)
+
+    def dict(self):
+        return self.__data_dict
+
+    def clear(self):
+        '''
+        '''
+        self.__data_dict.clear()
+
+    get = __getitem__
+
+    def items(self):
+        return self.__data_dict.items()
+
+    def keys(self):
+        return self.__data_dict.keys()
+
+    def popitem(self):
+        return self.__data_dict.popitem()
+
+    def values(self):
+        return self.__data_dict.values()
+
+    def add(self, name, data):
+        '''
+        '''
+        if isinstance(name, str) and isinstance(data, dnpData):
+            self.__data_dict[name] = data
+        else:
+            raise TypeError('add takes two arguments, a string and dnpLab.odnpData type')
+    def __repr__(self):
+        return 'dnpdata_collection({})'.format(self.__data_dict)
+
+    def __print__(self):
+        return '{}'.format(self.dict().keys())
+
+
+
+def create_workspace():
+    return dnpdata_collection()
+
+
 if __name__ == '__main__':
     pass
