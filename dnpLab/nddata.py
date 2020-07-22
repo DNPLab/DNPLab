@@ -5,7 +5,7 @@ import warnings
 from copy import deepcopy
 from collections import OrderedDict
 
-class nddata:
+class nddata_core(object):
     '''nddata class
     '''
 
@@ -170,7 +170,7 @@ class nddata:
             raise ValueError('%s not in %s'%(dim, self.dims))
 
     def __truediv__(self, b):
-        if isinstance(b, nddata):
+        if isinstance(b, nddata_core):
             # reorder 
             old_order = b.dims
             b.reorder(self.dims)
@@ -198,23 +198,23 @@ class nddata:
             # return b to original order
             b.reorder(old_order)
 
-            return nddata(result, self.dims, self.coords, attrs, error)
+            return nddata_core(result, self.dims, self.coords, attrs, error)
 
         elif isinstance(b, (np.ndarray, int, float)):
             result = self.values.__truediv__(b)
-            return nddata(result, self.dims, self.coords, self.attrs, self.error)
+            return nddata_core(result, self.dims, self.coords, self.attrs, self.error)
         else:
             raise TypeError('Cannot add type: {}'.format(type(b)))
 
     def __rtruediv__(self, b):
         if isinstance(b, (np.ndarray, int, float)):
             result = self.values.__rtruediv__(b)
-            return nddata(result, self.dims, self.coords, self.attrs, self.error)
+            return nddata_core(result, self.dims, self.coords, self.attrs, self.error)
         else:
             raise TypeError('Cannot add type: {}'.format(type(b)))
 
     def __mul__(self, b):
-        if isinstance(b, nddata):
+        if isinstance(b, nddata_core):
             # reorder 
             old_order = b.dims
             b.reorder(self.dims)
@@ -242,29 +242,38 @@ class nddata:
             # return b to original order
             b.reorder(old_order)
 
-            return nddata(result, self.dims, self.coords, attrs, error)
+            return nddata_core(result, self.dims, self.coords, attrs, error)
 
         elif isinstance(b, (np.ndarray, int, float)):
             result = self.values.__mul__(b)
-            return nddata(result, self.dims, self.coords, self.attrs, self.error)
+            return nddata_core(result, self.dims, self.coords, self.attrs, self.error)
         else:
             raise TypeError('Cannot add type: {}'.format(type(b)))
 
     __rmul__ = __mul__
 
     def __add__(self, b):
-        if isinstance(b, nddata):
-            # reorder 
-            old_order = b.dims
-            b.reorder(self.dims)
+        if isinstance(b, nddata_core):
+
+            all_dims = list(OrderedDict.fromkeys(self.dims + b.dims))
+
+            values = self.values[tuple(slice(None) if dim in self.dims else None for dim in all_dims)]
+
+            values_b = b.values[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
+
+            if self.error is not None:
+                error = self.error[tuple(slice(None) if dim in self.dims else None for dim in all_dims)]
+            if b.error is not None:
+                error_b = b.error[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
 
             # check coords
-            for ix in range(len(self.coords)):
-                if not np.allclose(self.coords[ix],b.coords[ix]):
-                    raise ValueError('Coords do not match')
+            for dim in all_dims:
+                if (dim in self.dims) and (dim in b.dims):
+                    if not np.allclose(self.get_coord(dim), b.get_coord(dim)):
+                        raise ValueError('Coords do not match for dim: %s'%dim)
 
             # add result
-            result = self.values + b.values
+            result = values + values_b
 
             # merge attrs
             attrs = self.merge_attrs(self.attrs, b.attrs)
@@ -272,27 +281,27 @@ class nddata:
             # error propagation
             if self._check_error(b.error):
                 if self._error is not None:
-                    error = np.sqrt(self.error**2. + b.error**2.)
+                    error = np.sqrt(error**2. + error_b**2.)
                 else:
                     error = None
             else:
                 error = self.error
 
-            # return b to original order
-            b.reorder(old_order)
+            coords = self.coords
+            coords += [b.coords[ix] for ix in range(len(b.coords)) if b.dims[ix] not in self.dims]
 
-            return nddata(result, self.dims, self.coords, attrs, error)
+            return nddata_core(result, all_dims, coords, attrs, error)
 
         elif isinstance(b, (np.ndarray, int, float)):
             result = self.values + b
-            return nddata(result, self.dims, self.coords, self.attrs, self.error)
+            return nddata_core(result, self.dims, self.coords, self.attrs, self.error)
         else:
             raise TypeError('Cannot add type: {}'.format(type(b)))
 
     __radd__ = __add__
 
     def __sub__(self, b):
-        if isinstance(b, nddata):
+        if isinstance(b, nddata_core):
             # reorder 
             old_order = b.dims
             b.reorder(self.dims)
@@ -320,18 +329,18 @@ class nddata:
             # return b to original order
             b.reorder(old_order)
 
-            return nddata(result, self.dims, self.coords, attrs, error)
+            return nddata_core(result, self.dims, self.coords, attrs, error)
 
         elif isinstance(b, (np.ndarray, int, float)):
             result = self.values.__sub__(b)
-            return nddata(result, self.dims, self.coords, self.attrs, self.error)
+            return nddata_core(result, self.dims, self.coords, self.attrs, self.error)
         else:
             raise TypeError('Cannot add type: {}'.format(type(b)))
 
     def __rsub__(self, b):
         if isinstance(b, (np.ndarray, int, float)):
             result = self.values.__rsub__(b)
-            return nddata(result, self.dims, self.coords, self.attrs, self.error)
+            return nddata_core(result, self.dims, self.coords, self.attrs, self.error)
         else:
             raise TypeError('Cannot add type: {}'.format(type(b)))
 
@@ -406,45 +415,49 @@ class nddata:
             a (nddata): First nddata object, these dimensions are given first
             b (nddata): Second nddata object
         '''
-        if not isinstance(self, nddata):
+        if not isinstance(self, nddata_core):
             raise ValueError('Must be type nddata not %s'%str(type(self)))
-        if not isinstance(b, nddata):
+        if not isinstance(b, nddata_core):
             raise ValueError('Must be type nddata not %s'%str(type(b)))
 
 #        all_dims = list(set(self.dims + b.dims)) # does not keep order
+        # slow method
         all_dims = list(OrderedDict.fromkeys(self.dims+b.dims))
+        # fast method here: https://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-whilst-preserving-order
+
 
         # Make sure coords match when dims match
         for dim in all_dims:
             if (dim in self.dims) and (dim in b.dims):
                 if not np.allclose(self.get_coord(dim), b.get_coord(dim)):
-                    raise ValueError('Axes')
+                    raise ValueError('Coords do not match for dim %s'%dim)
 
         dims = all_dims
         coords = self.coords
         coords += [b.get_coord(dim) for dim in b.dims if dim not in self.dims]
 
-        print(all_dims)
-        print(dims)
-        print(coords)
+        b_dims = all_dims
+        b_coords = coords
+
+#        print(b.values[(slice(None) if dim in b.dims else None for dim in all_dims)])
+
+#        print(all_dims)
+#        print(dims)
+#        print(coords)
 
         new_shape = tuple(self.get_coord(dim).shape[0] if dim in self.dims else 1 for dim in all_dims)
-        print(new_shape)
+
+        # Must re-order not reshape
+
+#        b_new_shape = tuple(b.get_coord(dim).shape[0] if dim in b.dims else 1 for dim in all_dims)
+#        print(new_shape)
 
         values = self.values.reshape(new_shape)
         if self.error is not None:
             error = self.error.reshape(new_shape)
 #        add_axis = (ix for range()
 
-        return nddata(values, dims, coords)
-#        new_a = a.copy()
-#        new_b = b.copy()
-#
-#        new_a = new_a.reorder(all_dims)
-#        new_b = new_b.reorder(all_dims)
-#
-#        return new_a, new_b
-
+        return nddata_core(values, dims, coords)
 
     def operate(self, a, b, operation):
         '''
@@ -453,27 +466,44 @@ class nddata:
         return operation(a, b)
 
 
-    def reorder(self, new_dims):
+    def reorder(self, new_dims, force_new_dims = False):
         '''
         '''
 
-        if not self._check_dims(new_dims):
-            raise TypeError('New dims must be list of str with no duplicates')
-        if not len(self._dims) == len(new_dims):
-            raise ValueError('Number of dims do not match')
+        if not force_new_dims:
+            if not self._check_dims(new_dims):
+                raise TypeError('New dims must be list of str with no duplicates')
+            if not len(self._dims) == len(new_dims):
+                raise ValueError('Number of dims do not match')
 
-        new_order = [new_dims.index(dim) for dim in self._dims]
+        # old method, no force new dims
+#        new_order = [new_dims.index(dim) for dim in self._dims]
+
+        new_order = [new_dims.index(dim) for dim in self.dims if new_dims in self.dims]
+
+        # reshape 
         print(new_order)
 
         self._dims = new_dims#[self._dims[x] for x in new_order]
-        self._coords = [self._coords[x] for x in new_order]
+
+        # not forced
+#        self._coords = [self.coords[x] for x in new_order]
+        #forced
+        self._coords = [self.coords.index(new_dims[x]) if new_dims[x] in self.dims else np.r_[[]] for x in range(len(new_dims))]
+
+#        self._values
+
+        # reorder axes if they exist
         self._values = np.moveaxis(self._values,range(len(new_order)),new_order)
+
+        # add new dimensions if forced values
+        self._values[(slice(None) if dim in b.dims else None for dim in all_dims)]
 
     def __str__(self):
         return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}'.format(self._values, self._dims, self._coords, self._attrs)
 
     def __repr__(self):
-        return 'nddata(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self._values), repr(self._dims), repr(self._coords), repr(self._attrs))
+        return 'nddata_core(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self._values), repr(self._dims), repr(self._coords), repr(self._attrs))
 
     def squeeze(self):
         '''Remove length 1 axes
@@ -497,7 +527,7 @@ class nddata:
             else:
                 warnings.warn('Attribute lost {}:{}'.format(lost_dims[ix],lost_coords[ix]))
 
-        return nddata(values, dims, coords, attrs, error)
+        return nddata_core(values, dims, coords, attrs, error)
 
     def chunk(self, dim, new_dim, new_coord):
         '''
@@ -510,7 +540,7 @@ class nddata:
         values = np.stack(np.split(self.values, num_chunks))
         error = np.stack(np.split(self.error, num_chunks))
 
-        return nddata(values, dims, coords, attrs, error)
+        return nddata_core(values, dims, coords, attrs, error)
 
 
     def get_coord(self, dim):
@@ -531,20 +561,94 @@ class nddata:
     def shape(self):
         return self.values.shape
 
+    def sum(self, dim):
+        '''Perform sum down given dimension
+        '''
+
+        index = self.index(dim)
+
+        values = self.values.sum(index)
+
+        if self.error is not None:
+            error = self.error.std(index)
+        else:
+            error = self.error
+
+        dims = list(self.dims)
+        dims.pop(index)
+        coords = list(self.coords)
+        coords.pop(index)
+
+        attrs = self.attrs
+
+        return nddata_core(values, dims, coords, attrs, error)
+
+
+    def einsum(self, b):
+        '''
+        '''
+
+        all_dims = list(OrderedDict.fromkeys(self.dims+b.dims))
+
+#        ein_dims = [ix for ix in range(len(self.dims)) if self.dims[ix] in all_dims]
+#        ein_dims_b = [ix for ix in range(len(b.dims)) if b.dims[ix] in all_dims]
+
+        ein_dims = [all_dims.index(dim) for dim in all_dims if dim in self.dims]
+        ein_dims_b = [all_dims.index(dim) for dim in all_dims if dim in b.dims]
+        print(ein_dims)
+        print(ein_dims_b)
+
+        values = np.einsum(self.values, ein_dims, b.values, ein_dims_b)
+
+        dims = all_dims
+        coords = self.coords
+        coords += [b.coords[ix] for ix in range(len(b.coords)) if b.dims[ix] not in self.dims]
+
+        attrs = self.attrs
+        error = self.error
+
+        return nddata_core(values, dims, coords, attrs, error)
+
+#    def new_dims(self, b, all_dims):
+    def new_dims(self, b):
+        '''
+        '''
+
+
+        all_dims = list(OrderedDict.fromkeys(self.dims + b.dims))
+
+        new_shape = tuple(slice(None) if dim in self.dims else None for dim in all_dims)
+
+        values = self.values[new_shape]
+        new_shape_b = tuple(slice(None) if dim in b.dims else None for dim in all_dims)
+        values_b = b.values[new_shape_b]
+
+        return values
+
+
 if __name__ == '__main__':
 #    a = np.array(range(9)).reshape(3,3)
 #    b = ['x','y']
 #    c = [np.r_[[1,2,3]],np.r_[[4,5,6]]]
-#    data = nddata(np.array(range(27)).reshape(3,3,3), [np.r_[1,2,3],np.r_[4,5,6], np.r_[7,8,9]], ['x','y','z'])
-#    data = nddata(np.array(range(27)).reshape(3,3,3), ['x','y','z'], [np.r_[1,2,3],np.r_[4,5,6], np.r_[7,8,9]])
+#    data = nddata_core(np.array(range(27)).reshape(3,3,3), [np.r_[1,2,3],np.r_[4,5,6], np.r_[7,8,9]], ['x','y','z'])
+#    data = nddata_core(np.array(range(27)).reshape(3,3,3), ['x','y','z'], [np.r_[1,2,3],np.r_[4,5,6], np.r_[7,8,9]])
 
-    x = np.r_[1:10]
-    y = np.r_[1:20]
-    z = np.r_[1:11]
-    q = np.r_[1:3]
-    data = nddata(np.array(range(len(x)*len(y)*len(z))).reshape(len(x),len(y),len(z)), ['x','y','z'], [x, y, z])
+    x = np.r_[0:10]
+    y = np.r_[0:20]
+    z = np.r_[0:15]
+    q = np.r_[0:5]
+    r = np.r_[0:17]
+    p = np.r_[0:13]
+    data = nddata_core(np.array(range(len(x)*len(y)*len(z))).reshape(len(x),len(y),len(z)), ['x','y','z'], [x, y, z])
 
-    data2 = nddata(np.array(range(len(x)*len(y)*len(q))).reshape(len(x),len(y),len(q)), ['x','y','q'], [x, y, q])
-    print(data)
+    data2 = nddata_core(np.array(range(len(x)*len(y)*len(q))).reshape(len(x),len(y),len(q)), ['x','y','q'], [x, y, q])
 
-    data._align(data2)
+    data3 = nddata_core(np.array(range(len(r)*len(p)*len(q))).reshape(len(r),len(p),len(q)), ['r','p','q'], [r, p, q])
+#    print(data)
+
+#    data._align(data2)
+#    data.einsum(data2)
+#    data.new_dims(['blue','foo'])
+#    data.new_dims(data2)
+#    print(data + data2)
+
