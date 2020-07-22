@@ -256,10 +256,15 @@ class nddata_core(object):
         if isinstance(b, nddata_core):
 
             all_dims = list(OrderedDict.fromkeys(self.dims + b.dims))
+            new_b_order = [dim for dim in all_dims if dim in b.dims]
+            new_order = [b.index(dim) for dim in new_b_order] # here is how to re-order
 
             values = self.values[tuple(slice(None) if dim in self.dims else None for dim in all_dims)]
 
-            values_b = b.values[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
+            # re-order
+            old_order = list(range(len(new_order)))
+            values_b = np.moveaxis(b.values, new_order, old_order)
+            values_b = values_b[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
 
             if self.error is not None:
                 error = self.error[tuple(slice(None) if dim in self.dims else None for dim in all_dims)]
@@ -287,8 +292,8 @@ class nddata_core(object):
             else:
                 error = self.error
 
-            coords = self.coords
-            coords += [b.coords[ix] for ix in range(len(b.coords)) if b.dims[ix] not in self.dims]
+            coords = list(self.coords)
+            coords += [b.coords[ix] for ix in new_order if b.dims[ix] not in self.dims]
 
             return nddata_core(result, all_dims, coords, attrs, error)
 
@@ -639,11 +644,22 @@ if __name__ == '__main__':
     q = np.r_[0:5]
     r = np.r_[0:17]
     p = np.r_[0:13]
-    data = nddata_core(np.array(range(len(x)*len(y)*len(z))).reshape(len(x),len(y),len(z)), ['x','y','z'], [x, y, z])
+    data = nddata_core(np.array(range(len(x)*len(y)*len(p))).reshape(len(x),len(y),len(p)), ['x','y','p'], [x, y, p])
 
     data2 = nddata_core(np.array(range(len(x)*len(y)*len(q))).reshape(len(x),len(y),len(q)), ['x','y','q'], [x, y, q])
 
     data3 = nddata_core(np.array(range(len(r)*len(p)*len(q))).reshape(len(r),len(p),len(q)), ['r','p','q'], [r, p, q])
+
+    d = data + data
+    d = data + data2
+    d = data + data3
+
+    d = data2 + data2
+    print('-'*50)
+    d = data2 + data3
+
+
+#    d = data + data3
 #    print(data)
 
 #    data._align(data2)
