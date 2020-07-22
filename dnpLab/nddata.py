@@ -3,6 +3,7 @@ import operator
 import numpy as np
 import warnings
 from copy import deepcopy
+from collections import OrderedDict
 
 class nddata:
     '''nddata class
@@ -43,7 +44,8 @@ class nddata:
                 raise TypeError
 
         if not self._self_consistent():
-            raise ValueError('Dimensions not consistent')
+            warnings.warn('Dimensions not consistent')
+#            raise ValueError('Dimensions not consistent')
 
     def _check_dims(self, dims):
         '''Check that list is a list of strings with no duplicates
@@ -143,6 +145,7 @@ class nddata:
         '''
         return len(self._values)
 
+    @property
     def size(self):
         '''Return size of values
         '''
@@ -396,33 +399,52 @@ class nddata:
         else:
             raise ValueError('Dimension name %s is not in dims'%dim)
     
-    def align(self, a, b):
+    def _align(self, b):
         '''Align two nddata objects
 
         Args:
             a (nddata): First nddata object, these dimensions are given first
             b (nddata): Second nddata object
         '''
-        if not isinstance(a, nddata):
-            raise ValueError('Must be type nddata not %s'%str(type(a)))
+        if not isinstance(self, nddata):
+            raise ValueError('Must be type nddata not %s'%str(type(self)))
         if not isinstance(b, nddata):
             raise ValueError('Must be type nddata not %s'%str(type(b)))
 
-        all_dims = list(set(a.dims + b.dims))
+#        all_dims = list(set(self.dims + b.dims)) # does not keep order
+        all_dims = list(OrderedDict.fromkeys(self.dims+b.dims))
 
         # Make sure coords match when dims match
         for dim in all_dims:
-            if (dim in a.dims) and (dim in b.dims):
-                if not np.allclose(a.get_coord[dim], b.get_coord[dim]):
+            if (dim in self.dims) and (dim in b.dims):
+                if not np.allclose(self.get_coord(dim), b.get_coord(dim)):
                     raise ValueError('Axes')
 
-        new_a = a.copy()
-        new_b = b.copy()
+        dims = all_dims
+        coords = self.coords
+        coords += [b.get_coord(dim) for dim in b.dims if dim not in self.dims]
 
-        new_a = new_a.reorder(all_dims)
-        new_b = new_b.reorder(all_dims)
+        print(all_dims)
+        print(dims)
+        print(coords)
 
-        return new_a, new_b
+        new_shape = tuple(self.get_coord(dim).shape[0] if dim in self.dims else 1 for dim in all_dims)
+        print(new_shape)
+
+        values = self.values.reshape(new_shape)
+        if self.error is not None:
+            error = self.error.reshape(new_shape)
+#        add_axis = (ix for range()
+
+        return nddata(values, dims, coords)
+#        new_a = a.copy()
+#        new_b = b.copy()
+#
+#        new_a = new_a.reorder(all_dims)
+#        new_b = new_b.reorder(all_dims)
+#
+#        return new_a, new_b
+
 
     def operate(self, a, b, operation):
         '''
@@ -516,8 +538,13 @@ if __name__ == '__main__':
 #    data = nddata(np.array(range(27)).reshape(3,3,3), [np.r_[1,2,3],np.r_[4,5,6], np.r_[7,8,9]], ['x','y','z'])
 #    data = nddata(np.array(range(27)).reshape(3,3,3), ['x','y','z'], [np.r_[1,2,3],np.r_[4,5,6], np.r_[7,8,9]])
 
-    x = np.r_[1:3]
-    y = np.r_[1:4]
-    z = np.r_[1]
+    x = np.r_[1:10]
+    y = np.r_[1:20]
+    z = np.r_[1:11]
+    q = np.r_[1:3]
     data = nddata(np.array(range(len(x)*len(y)*len(z))).reshape(len(x),len(y),len(z)), ['x','y','z'], [x, y, z])
+
+    data2 = nddata(np.array(range(len(x)*len(y)*len(q))).reshape(len(x),len(y),len(q)), ['x','y','q'], [x, y, q])
     print(data)
+
+    data._align(data2)
