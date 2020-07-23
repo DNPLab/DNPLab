@@ -683,9 +683,42 @@ class nddata_core(object):
         # create new dims where necessary
         values_b = values_b[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
 
-        result = o(values, values_b)
+        # Handle Error 
+        if self.error is not None:
+            error = self.error[tuple(slice(None) if dim in self.dims else None for dim in all_dims)]
+        if b.error is not None:
+            error_b = np.moveaxis(b.values, new_order, old_order)
+            error_b = error_b[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
+
+        # check coords
+        for dim in all_dims:
+            if (dim in self.dims) and (dim in b.dims):
+                if not np.allclose(self.get_coord(dim), b.get_coord(dim)):
+                    raise ValueError('Coords do not match for dim: %s'%dim)
+
+        # add result
+        result = values + values_b
+
+        # merge attrs
+        attrs = self.merge_attrs(self.attrs, b.attrs)
+
+        # error propagation
+        if self._check_error(b.error):
+            if self._error is not None:
+                error = np.sqrt(error**2. + error_b**2.)
+            else:
+                error = None
+        else:
+            error = self.error
+
+        coords = list(self.coords)
+        coords += [b.coords[ix] for ix in new_order if b.dims[ix] not in self.dims]
+
 
         return values, values_b, error, error_b, dims, coords, attrs
+
+    def __array__(self):
+        return self.values
 
 
 if __name__ == '__main__':
@@ -717,16 +750,4 @@ if __name__ == '__main__':
 
     print(data._operate_on_values(data3,operator.__add__))
     print(data._operate_on_values(data3,operator.__add__).shape)
-
-
-
-
-#    d = data + data3
-#    print(data)
-
-#    data._align(data2)
-#    data.einsum(data2)
-#    data.new_dims(['blue','foo'])
-#    data.new_dims(data2)
-#    print(data + data2)
 
