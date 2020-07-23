@@ -257,7 +257,7 @@ class nddata_core(object):
 
             all_dims = list(OrderedDict.fromkeys(self.dims + b.dims))
             new_b_order = [dim for dim in all_dims if dim in b.dims]
-            new_order = [b.index(dim) for dim in new_b_order] # here is how to re-order
+            new_order = [b.index(dim) for dim in new_b_order]
 
             values = self.values[tuple(slice(None) if dim in self.dims else None for dim in all_dims)]
 
@@ -269,7 +269,8 @@ class nddata_core(object):
             if self.error is not None:
                 error = self.error[tuple(slice(None) if dim in self.dims else None for dim in all_dims)]
             if b.error is not None:
-                error_b = b.error[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
+                error_b = np.moveaxis(b.values, new_order, old_order)
+                error_b = error_b[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
 
             # check coords
             for dim in all_dims:
