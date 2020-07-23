@@ -1,4 +1,5 @@
 from .. import dnpData, create_workspace
+import warnings
 import numpy as np
 import h5py
 
@@ -19,21 +20,24 @@ def saveh5(dataDict, path, overwrite = False):
 
     f = h5py.File(path, mode)
 
-#    f.attrs['dnpLab_version'] = version
-
     for key in keysList:
         dnpDataObject = dataDict[key]
-        dnpDataGroup = f.create_group(key, track_order = True)
 
-        write_dnpdata(dnpDataGroup, dnpDataObject)
+        dnpDataGroup = f.create_group(key, track_order = True)
+        if isinstance(dnpDataObject, dnpData):
+            write_dnpdata(dnpDataGroup, dnpDataObject)
+        elif isinstance(dnpDataObject, dict):
+            write_dict(dnpDataGroup, dnpDataObject)
+        else:
+            warnings.warn('Could not write key: %s'%str(key))
         
     f.close()
 
 def write_dnpdata(dnpDataGroup, dnpDataObject):
     '''Takes file/group and writes dnpData object to it
     '''
-#    dnpDataGroup.attrs['dnpLab_version'] = dataDict[key].version
     dnpDataGroup.attrs['dnpLab_version'] = dnpDataObject.version
+    dnpDataGroup.attrs['dnpLab_data_type'] = 'dnpdata'
     dims_group = dnpDataGroup.create_group('dims') # dimension names e.g. x,y,z
     attrs_group = dnpDataGroup.create_group('attrs') # dictionary information
     dnp_dataset = dnpDataGroup.create_dataset('values', data = dnpDataObject.values)
@@ -52,7 +56,7 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
         attrs_group.attrs[key] = dnpDataObject.attrs[key]
 
     # Save proc_steps
-    if 'proc_attrs' in dnpDataObject.__dict__:
+    if hasattr(dnpDataObject, 'proc_attrs'):
         proc_attrs = dnpDataObject.proc_attrs
         proc_attrs_group = dnpDataGroup.create_group('proc_attrs', track_order = True)
         for ix in range(len(proc_attrs)):
@@ -63,6 +67,18 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
                 value = proc_dict[key]
                 proc_attrs_group_subgroup.attrs[key] = value
 
+def write_dict(dnpDataGroup, dnpDataObject):
+    '''Writes dictionary to h5 file
+    '''
+#    dnpDataGroup.attrs['dnpLab_version'] = dnpDataObject.version
+    dnpDataGroup.attrs['dnpLab_data_type'] = 'dict'
+#    dnpDataGroup.attrs['dnpLab_version'] = dnpDataObject.version
+    attrs_group = dnpDataGroup.create_group('attrs')
+
+    for key in dnpDataObject.keys():
+        attrs_group.attrs[key] = dnpDataObject[key]
+
+
 def loadh5(path):
     '''
     Returns Dictionary of dnpDataObjects
@@ -72,36 +88,47 @@ def loadh5(path):
 
     f = h5py.File(path,'r')
     keys_list = f.keys()
-#    print('keys:')
-#    print(keysList)
 
     for key in keys_list:
-        axes = []
-        dims = []
-        attrs = {}
-        data = f[key]['values'][:]
-        version = f[key].attrs['dnpLab_version']
 
-        for index in range(len(np.shape(data))):
-            dim_key = f[key]['values'].dims[index].keys()[0] # assumes 1 key only
-            axes.append(f[key]['values'].dims[index][dim_key][:])
-            dims.append(dim_key)
+        if f[key].attrs['dnpLab_data_type'] == 'dnpdata':
+            data = read_dnpdata(f[key])
+        elif f[key].attrs['dnpLab_data_type'] == 'dict':
+            data = read_dict(f[key])
+        else:
+            warnings.warn('could not import key: %s'%str(key))
 
-        for k in f[key]['attrs'].attrs.keys():
-#            print(k)
-#            print(f[key]['attrs'].attrs[k])
-            attrs[k] = f[key]['attrs'].attrs[k]
-
-        dnp_dict[key] = dnpData(data,axes,dims,attrs)
-
-        if 'proc_attrs' in f[key].keys():
-            proc_attrs = []
-            for k in f[key]['proc_attrs'].keys():
-                proc_attrs_name = k.split(':', 1)[1]
-                proc_attrs_dict = dict(f[key]['proc_attrs'][k].attrs)
-                dnp_dict[key].add_proc_attrs(proc_attrs_name, proc_attrs_dict)
-
-
-
+        dnp_dict[key] = data
     return create_workspace(dnp_dict)
 
+def read_dnpdata(dnpdata_group):
+    axes = []
+    dims = []
+    attrs = {}
+    values = dnpdata_group['values'][:]
+    version = dnpdata_group.attrs['dnpLab_version']
+
+    for index in range(len(np.shape(values))):
+        dim_key = dnpdata_group['values'].dims[index].keys()[0] # assumes 1 key only
+        axes.append(dnpdata_group['values'].dims[index][dim_key][:])
+        dims.append(dim_key)
+
+    for k in dnpdata_group['attrs'].attrs.keys():
+        attrs[k] = dnpdata_group['attrs'].attrs[k]
+
+    data = dnpData(values, axes, dims, attrs)
+
+    if 'proc_attrs' in dnpdata_group.keys():
+        proc_attrs = []
+        for k in dnpdata_group['proc_attrs'].keys():
+            proc_attrs_name = k.split(':', 1)[1]
+            proc_attrs_dict = dict(dnpdata_group['proc_attrs'][k].attrs)
+            data.add_proc_attrs(proc_attrs_name, proc_attrs_dict)
+    return data
+
+def read_dict(dnpdata_group):
+    data = dict(dnpdata_group['attrs'].attrs)
+    return data
+
+if __name__ == '__main__':
+    pass
