@@ -200,7 +200,8 @@ class nddata_axis(object):
 
         return nddata_axis(self.dim, slice(start, stop, step))
 
-
+    def __array__(self):
+        return self.array
 
 if __name__ == '__main__':
 
