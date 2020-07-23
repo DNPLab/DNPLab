@@ -297,6 +297,9 @@ class nddata_axis(object):
     def __len__(self):
         return len(self.array)
 
+    def __matmul__(self, b):
+        return self.start + self.step * b
+
 class nddata_axis_collection(MutableMapping):
 
     def __init__(self, *args, **kwargs):
