@@ -657,6 +657,37 @@ class nddata_core(object):
 
         return result
 
+    def _prepare_operation(self, b):
+        '''
+
+        Returns:
+            values
+            values_b
+            error
+            error_b
+            dims
+            coords
+            attrs
+        '''
+        all_dims = list(OrderedDict.fromkeys(self.dims + b.dims))
+        new_b_order = [dim for dim in all_dims if dim in b.dims]
+        new_order = [b.index(dim) for dim in new_b_order]
+
+        # create new dims where necessary
+        values = self.values[tuple(slice(None) if dim in self.dims else None for dim in all_dims)]
+
+        # re-order
+        old_order = list(range(len(new_order)))
+        # re-order b values so they match order of all_dims
+        values_b = np.moveaxis(b.values, new_order, old_order)
+        # create new dims where necessary
+        values_b = values_b[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
+
+        result = o(values, values_b)
+
+        return values, values_b, error, error_b, dims, coords, attrs
+
+
 if __name__ == '__main__':
 #    a = np.array(range(9)).reshape(3,3)
 #    b = ['x','y']
