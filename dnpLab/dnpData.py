@@ -1,6 +1,7 @@
 # Bridge12 Technologies, Inc
 # Python Class for Handling ODNP Data
 import numpy as np
+from collections.abc import MutableMapping
 #from matplotlib.pylab import *
 from copy import deepcopy
 
@@ -471,12 +472,11 @@ class dnpData:
         removedAxes = self.coords.pop(index)
 
 
-class dnpdata_collection:
-    '''
-    '''
+class dnpdata_collection(MutableMapping):
+    """A dictionary that applies an arbitrary key-altering
+       function before accessing the keys"""
 
-    def __init__(self,*args):
-
+    def __init__(self, *args, **kwargs):
         self._processing_buffer = 'proc'
 
         self.__data_dict = {}
@@ -503,6 +503,22 @@ class dnpdata_collection:
         else:
             raise TypeError('Arguments not understood')
 
+    def __getitem__(self, key):
+        return self.__data_dict[key]
+
+    def __setitem__(self, key, value):
+        if (not isinstance(key, str)) or (not isinstance(value, (dict, dnpData))):
+            raise TypeError('Key must be string and value must be dnpdata or dict')
+        self.__data_dict[key] = value
+
+    def __delitem__(self, key):
+        del self.__data_dict[key]
+
+    def __iter__(self):
+        return iter(self.__data_dict)
+
+    def __len__(self):
+        return len(self.__data_dict)
 
     @property
     def processing_buffer(self):
@@ -516,19 +532,6 @@ class dnpdata_collection:
             self._processing_buffer = new_processing_buffer
         else:
             raise TypeError('Processing buffer must be type str, not %s'%str(type(new_processing_buffer)))
-
-    def __getitem__(self, a):
-        '''
-        '''
-        return self.__data_dict[a]
-
-    def __setitem__(self, a, b):
-        '''
-        '''
-        if isinstance(a, str) and isinstance(b, (dict, dnpData)):
-            self.__data_dict[a] = b
-        else:
-            raise TypeError('Key must be string and value must be dnpdata or dict')
 
     def copy(self, a, b):
         '''Copy data
@@ -570,10 +573,10 @@ class dnpdata_collection:
     def add(self, name, data):
         '''
         '''
-        if isinstance(name, str) and isinstance(data, dnpData):
-            self.__data_dict[name] = data
-        else:
+        if (not isinstance(name, str)) or (not isinstance(data, (dnpData,dict))):
             raise TypeError('add takes two arguments, a string and dnpLab.odnpData type')
+        self.__data_dict[name] = data
+
     def __repr__(self):
         return 'dnpdata_collection({})'.format(self.__data_dict)
 

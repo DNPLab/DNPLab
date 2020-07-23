@@ -85,7 +85,7 @@ def remove_offset(all_data, proc_parameters):
         all_data (dnpData, dict)
     '''
     # Determine if data is dictionary or dnpData object
-    data, isDict = returnData(all_data)
+    data, isDict = return_data(all_data)
 
     requiredList = _default_remove_offset_parameters.keys()
     proc_parameters = update_parameters(proc_parameters,requiredList,_default_remove_offset_parameters)
@@ -135,7 +135,7 @@ def fourier_transform(all_data, proc_parameters):
     '''
 
     # Determine if data is dictionary or dnpData object
-    data, isDict = returnData(all_data)
+    data, isDict = return_data(all_data)
 
     requiredList = _default_fourier_transform_parameters.keys()
     proc_parameters = update_parameters(proc_parameters,requiredList,_default_fourier_transform_parameters)
@@ -193,7 +193,7 @@ def window(all_data,proc_parameters):
         
     '''
 
-    data, isDict = returnData(all_data)
+    data, isDict = return_data(all_data)
 
     requiredList = _default_window_parameters.keys()
     proc_parameters = update_parameters(proc_parameters,requiredList,_default_window_parameters)
@@ -248,7 +248,7 @@ def integrate(all_data,proc_parameters):
         dnpLab.dnpNMR.integrate(all_data,proc_parameters)
     '''
 
-    data, isDict = returnData(all_data)
+    data, isDict = return_data(all_data)
 
     requiredList = _default_integrate_parameters.keys()
     proc_parameters = update_parameters(proc_parameters,requiredList,_default_integrate_parameters)
@@ -280,7 +280,7 @@ def align(all_data,proc_parameters):
     Alignment of NMR spectra down given dim dimension
     '''
 
-    data, isDict = returnData(all_data)
+    data, isDict = return_data(all_data)
 
     if len(_np.shape(data.values)) != 2:
         print('Only 2-dimensional data supported')
