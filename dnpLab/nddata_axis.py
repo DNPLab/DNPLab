@@ -4,7 +4,7 @@ class nddata_axis(object):
     '''
     '''
 
-    def __init__(self, dim, coord):
+    def __init__(self, dim, *args):
         '''
 
         Args:
@@ -12,15 +12,48 @@ class nddata_axis(object):
         '''
 
         self.dim = dim
+        if len(args) == 0:
+            self.__start = None
+            self.__stop = None
+            self.__step = None
 
-        if isinstance(coord, np.ndarray):
-            self.__coord = coord
-        elif isinstance(coord, slice):
-            self.__start = coord.start
-            self.__stop = coord.stop
-            self.__step = coord.step
-
-#        self.__size = self.array.size
+        if len(args) == 1:
+            coord = args[0]
+            if isinstance(coord, np.ndarray):
+                self._axis = coord
+                try:
+                    self.reduce()
+                except:
+                    self._type = 'ndarray'
+            elif isinstance(coord, slice):
+                self.__start = coord.start
+                self.__stop = coord.stop
+                self.__step = coord.step
+            elif isinstance(coord, (int,float)):
+                self.__start = None
+                self.__stop = coord
+                self.__step = None
+            else:
+                raise ValueError('coord not understood')
+        if len(args) == 2:
+            start = args[0]
+            stop = args[1]
+            if isinstance(start, (int, float)) and isinstance(stop, (int,float)):
+                self.__start = start
+                self.__stop = stop
+                self.__step = None
+            else:
+                raise TypeError('coord not understood')
+        if len(args) == 3:
+            start = args[0]
+            stop = args[1]
+            step = args[2]
+            if isinstance(start, (int,float)) and isinstance(stop, (int, float)) and isinstance(step, (int, float)):
+                self.__start = start
+                self.__stop = stop
+                self.__step = step
+            else:
+                raise TypeError('coord not understood')
     
     def reduce(self):
         '''
