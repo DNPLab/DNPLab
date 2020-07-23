@@ -1,3 +1,6 @@
+from __future__ import division
+from collections.abc import MutableMapping
+from collections import OrderedDict
 import numpy as np
 
 class nddata_axis(object):
@@ -188,7 +191,7 @@ class nddata_axis(object):
         return 'nddata_axis(\'{}\', {})'.format(self.dim,self.array)
 
     def __str__(self):
-        return '\'{}\':\n{}'.format(self.dim,str(self.array))
+        return '\'{}\':{}'.format(self.dim,str(self.array))
     
     def __add__(self, b):
         start = self.start + b
@@ -200,12 +203,110 @@ class nddata_axis(object):
 
         return nddata_axis(self.dim, slice(start, stop, step))
 
+    __radd__ = __add__
+
+    def __sub__(self, b):
+        start = self.start - b
+        stop = self.stop - b
+        step = self.step
+
+        if hasattr(self, '_array'):
+            del self.array
+
+        return nddata_axis(self.dim, slice(start, stop, step))
+
+    def __rsub__(self, b):
+        # switch start and stop
+        start = b - self.stop
+        stop = b - self.start 
+        step = self.step
+
+        if hasattr(self, '_array'):
+            del self.array
+
+        return nddata_axis(self.dim, slice(start, stop, step))
+
+    def __mul__(self, b):
+        start = b * self.start
+        stop = b * self.stop
+        step = b * self.step
+
+        if hasattr(self, '_array'):
+            del self.array
+
+        return nddata_axis(self.dim, slice(start, stop, step))
+
+    __rmul__ = __mul__
+
+    def __truediv__(self, b):
+        start = self.start / b
+        stop = self.stop / b
+        step = self.step / b
+
+        if hasattr(self, '_array'):
+            del self.array
+
+        return nddata_axis(self.dim, slice(start, stop, step))
+
+    def __rtruediv__(self, b):
+        start = b / self.start
+        stop = b / self.stop
+        step = b / self.step
+
+        if hasattr(self, '_array'):
+            del self.array
+
+        return nddata_axis(self.dim, slice(start, stop, step))
+
     def __array__(self):
         return self.array
+
+    def __len__(self):
+        return len(self.array)
+
+class nddata_axis_collection(MutableMapping):
+
+    def __init__(self, *args, **kwargs):
+        self.store = OrderedDict()
+        for arg in args:
+            self.__setitem__(arg)
+
+    def __getitem__(self, key):
+        return self.store[key]
+
+    def __setitem__(self, value):
+        if not isinstance(value, nddata_axis):
+            raise TypeError('argument must be type nddata_axis not %s'%str(type(b)))
+
+        self.store[value.dim] = value
+
+    def __delitem__(self, key):
+        del self.store[key]
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
+
+    def __repr__(self):
+        return 'nddata_axis_collection({})'.format(self.store)
+
+    def __str__(self):
+        return '{}'.format(self.store)
+
+    def index(self, key):
+        return list(self.store).index(key)
+
+    @property
+    def coords(self):
+        return [coord.array for coord in self.store.values()]
 
 if __name__ == '__main__':
 
     coord = nddata_axis('x',slice(0,10,1))
 
     a = nddata_axis('x',slice(0,1,1e-3))
+
+    d = nddata_axis_collection(*[a])
 
