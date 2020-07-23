@@ -3,13 +3,15 @@ from collections.abc import MutableMapping
 from collections import OrderedDict
 import numpy as np
 
+#allowed_domains = ['FT','IFT','LT','ILT','Wavelet','IWavelet']
+allowed_domains = ['FT','IFT']
+
 class nddata_axis(object):
     '''
     '''
 
     def __init__(self, dim, *args):
         '''
-
         Args:
             dim (str): name of dimension
         '''
@@ -58,6 +60,28 @@ class nddata_axis(object):
             else:
                 raise TypeError('coord not understood')
     
+    def transform(self, new_domain, shift = False):
+        '''
+        '''
+
+        if new_domain not in allowed_domains:
+            raise ValueError('domain not supported')
+
+        if new_domain == 'FT' or new_domain == 'IFT':
+            step = 1. / (self.size * self.step) # Does this reduce performance? size calculates array
+
+            if shift == True:
+                start = -0.5/self.step
+                stop = 0.5/self.step
+            else:
+                start = 0
+                stop = 1./self.step
+
+        if hasattr(self, '_array'):
+            del self._array
+
+        return nddata_axis(self.dim, slice(start, stop, step))
+        
     def reduce(self):
         '''
         '''
@@ -102,6 +126,8 @@ class nddata_axis(object):
         '''
         if isinstance(b, (int, float)):
             self.__start = b
+        if hasattr(self, '_array'):
+            del self._array
 
     @property
     def stop(self):
@@ -115,6 +141,8 @@ class nddata_axis(object):
         '''
         if isinstance(b, (int, float)):
             self.__stop = b
+        if hasattr(self, '_array'):
+            del self._array
 
     @property
     def step(self):
@@ -128,6 +156,8 @@ class nddata_axis(object):
         '''
         if isinstance(b, (int, float)):
             self.__step = b
+        if hasattr(self, '_array'):
+            del self._array
 
     @property
     def array(self):
@@ -185,8 +215,11 @@ class nddata_axis(object):
     def size(self):
         '''
         '''
-        return self.array.size # 3 times faster when array is stored in object
-#        return max(int((self.stop - self.start) / self.step),0) # Take max for case when direction is reversed
+        if hasattr(self, '_array'):
+            return self.array.size # 3 times faster when array is stored in object
+        else:
+            return max(int((self.stop - self.start) / self.step),0) # Take max for case when direction is reversed
+
     def __repr__(self):
         return 'nddata_axis(\'{}\', {})'.format(self.dim,self.array)
 
