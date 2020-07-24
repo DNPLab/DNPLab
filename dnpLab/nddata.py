@@ -265,7 +265,8 @@ class nddata_core(object):
             # re-order
             old_order = list(range(len(new_order)))
             # re-order b values so they match order of all_dims
-            values_b = np.moveaxis(b.values, new_order, old_order)
+#            values_b = np.moveaxis(b.values, new_order, old_order) # this works
+            values_b = np.transpose(b.values, axes = new_order)
             # create new dims where necessary
             values_b = values_b[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
 
