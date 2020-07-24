@@ -6,11 +6,12 @@ import numpy as np
 #allowed_domains = ['FT','IFT','LT','ILT','Wavelet','IWavelet']
 allowed_domains = ['FT','IFT']
 
+
 class nddata_axis(object):
     '''
     '''
 
-    def __init__(self, dim, *args):
+    def __init__(self, dim, *args, step_type = 'linear', endpoint = False,**kwargs):
         '''
         Args:
             dim (str): name of dimension
@@ -28,6 +29,7 @@ class nddata_axis(object):
                 self._axis = coord
                 try:
                     self.reduce()
+                    self._type = 'linear'
                 except:
                     self._type = 'ndarray'
             elif isinstance(coord, slice):
@@ -59,6 +61,12 @@ class nddata_axis(object):
                 self.__step = step
             else:
                 raise TypeError('coord not understood')
+
+        # set up other variables
+        if 'type' in kwargs:
+            self._type = kwargs['type']
+        else:
+            self._type = 'linear'
     
     def transform(self, new_domain, shift = False):
         '''
@@ -337,6 +345,10 @@ class nddata_axis_collection(MutableMapping):
     @property
     def coords(self):
         return [coord.array for coord in self.store.values()]
+
+    def reorder(self, new_order):
+        return OrderedDict((k, self.store) for k in new_order)
+
 
 if __name__ == '__main__':
 
