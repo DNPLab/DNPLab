@@ -91,7 +91,8 @@ class HydrationParameter(Parameter):
         elif value == 'free':
             self.__smax_model = value
         else:
-            raise ValueError('smax_model should be either `tethered` or `free`')
+            raise ValueError(f'smax_model must be either `tethered` or `free`. '
+                             f'Got {value}')
     
     # These two function enable dictionary-like getting and setting properties.
     def __getitem__(self, key):
@@ -568,4 +569,4 @@ def hydration(ws):
     hc = HydrationCalculator(T1, T1_power, E, E_power, hp)
     hc.run()
 
-    return
+    return {key:hc.results[key] for key in hc.results.keys()}
