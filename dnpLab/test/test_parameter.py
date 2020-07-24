@@ -2,7 +2,7 @@
 
 from unittest import TestCase
 
-from dnpLab.parameter import AttrDict, Parameter
+from dnpLab.utils import AttrDict, Parameter
 
 
 class TestAttrDict(TestCase):

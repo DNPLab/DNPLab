@@ -7,7 +7,7 @@ This module calculates hydration related quantities using processed ODNP data.
 import numpy as np
 from scipy import interpolate
 from scipy import optimize
-from dnpLab.parameter import AttrDict, Parameter
+from dnpLab.utils import AttrDict, Parameter
 
 
 class FitError(Exception):
@@ -149,6 +149,12 @@ class HydrationResults(AttrDict):
         self.tcorr_bulk_ratio = None
         self.D_local = None
         self.update(*args, **kwargs)
+
+    def keys(self):
+        return self.__dict__.keys()
+
+    def values(self):
+        return self.__dict__.values()
 
 
 class HydrationCalculator:
@@ -545,3 +551,21 @@ class HydrationCalculator:
             raise FitError('Could not fit Ep')
         assert results.x[0] > 0, 'Unexpected coupling_factor value: %d < 0' % results.x[0]
         return results
+
+
+def hydration(ws):
+
+    # Hydration required data
+    hyd = ws['hydration']
+    T1, T1_power, E, E_power = [hyd[k] for k in ['T1', 'T1_power', 'E', 'E_power']]
+
+    # Create hydration parameter
+    hp = HydrationParameter()
+    hp.T10, hp.T100, hp.spin_C, hp.field, hp.smax_model, hp.t1_interp_method = \
+        [hyd[k] for k in ['T10', 'T100', 'spin_C', 'field', 'smax_model', 't1_interp_method']]
+
+    # compute
+    hc = HydrationCalculator(T1, T1_power, E, E_power, hp)
+    hc.run()
+
+    return
