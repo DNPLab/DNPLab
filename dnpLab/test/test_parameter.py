@@ -2,16 +2,16 @@
 
 from unittest import TestCase
 
-from dnpLab.parameter import AttrDict, Parameter
+from dnpLab.utils import AttrDict, Parameter
 
 
 class TestAttrDict(TestCase):
     def test_should_init_with_one_dict(self):
         my_dict = AttrDict({'eggs': 42, 'spam': 'ham'})
-        self.assertEquals(my_dict.eggs, 42)
-        self.assertEquals(my_dict['eggs'], 42)
-        self.assertEquals(my_dict.spam, 'ham')
-        self.assertEquals(my_dict['spam'], 'ham')
+        self.assertEqual(my_dict.eggs, 42)
+        self.assertEqual(my_dict['eggs'], 42)
+        self.assertEqual(my_dict.spam, 'ham')
+        self.assertEqual(my_dict['spam'], 'ham')
 
     def test_should_init_with_another_attrdict(self):
         one_dict = AttrDict({'eggs': 42, 'spam': 'ham'})
@@ -22,10 +22,10 @@ class TestAttrDict(TestCase):
         base = {'eggs': 42, 'spam': 'ham'}
         my_dict = AttrDict(base)
         base['eggs'] = 123
-        self.assertEquals(my_dict.eggs, 42)
-        self.assertEquals(my_dict['eggs'], 42)
-        self.assertEquals(my_dict.spam, 'ham')
-        self.assertEquals(my_dict['spam'], 'ham')
+        self.assertEqual(my_dict.eggs, 42)
+        self.assertEqual(my_dict['eggs'], 42)
+        self.assertEqual(my_dict.spam, 'ham')
+        self.assertEqual(my_dict['spam'], 'ham')
 
     def test_should_not_change_values_by_update(self):
         base = {'eggs': 42, 'spam': 'ham'}
