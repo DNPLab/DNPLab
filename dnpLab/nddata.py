@@ -572,6 +572,10 @@ class nddata_core(object):
     def shape(self):
         return self.values.shape
 
+    @property
+    def dtype(self):
+        return self.values.dtype
+
     def sum(self, dim):
         '''Perform sum down given dimension
         '''
