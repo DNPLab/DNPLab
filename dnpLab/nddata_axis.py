@@ -1,7 +1,8 @@
 from __future__ import division
-from collections.abc import MutableMapping
-from collections import OrderedDict
 import numpy as np
+import operator
+import functools
+
 
 #allowed_domains = ['FT','IFT','LT','ILT','Wavelet','IWavelet']
 allowed_domains = ['FT','IFT']
@@ -308,53 +309,108 @@ class nddata_axis(object):
     def __matmul__(self, b):
         return self.start + self.step * b
 
-class nddata_axis_collection(MutableMapping):
-
+#class nddata_axis_collection(MutableMapping):
+class nddata_axis_collection(object):
     def __init__(self, *args, **kwargs):
-        self.store = OrderedDict()
+
+        self.__dims = []
+        self.__coords = []
+
         for arg in args:
-            self.__setitem__(arg)
+            if isinstance(arg, nddata_axis):
+                self.__dims.append(arg.dim)
+                self.__coords.append(arg)
+            elif isinstance(arg, np.ndarray):
+                raise ValueError('No dim given for numpy ndarray')
 
-    def __getitem__(self, key):
-        return self.store[key]
-
-    def __setitem__(self, value):
-        if not isinstance(value, nddata_axis):
-            raise TypeError('argument must be type nddata_axis not %s'%str(type(b)))
-
-        self.store[value.dim] = value
-
-    def __delitem__(self, key):
-        del self.store[key]
-
-    def __iter__(self):
-        return iter(self.store)
-
-    def __len__(self):
-        return len(self.store)
-
-    def __repr__(self):
-        return 'nddata_axis_collection({})'.format(self.store)
-
-    def __str__(self):
-        return '{}'.format(self.store)
+        for kwarg in kwargs: #key, value pairs only in order for python >=3.6
+            dim = kwarg
+            coord = kwarg[dim]
+            if isinstance(coord, nddata_axis):
+                self.__dims.append(dim)
+                arg.dim = dim
+                self.__coords.append(coord)
+            if isinstance(coord, np.ndarray):
+                self.__dims.append(kwarg)
+                self.__coords.append(nddata_axis(dim,coord))
+            else:
+                raise TypeError('kwarg not understood')
 
     def index(self, key):
-        return list(self.store).index(key)
+        return self.__dims.index(key)
+
+    def __getitem__(self, key):
+        return self.coords[self.index(key)]
+
+    def __setitem__(self, key, value):
+        if not isinstance(key, str):
+            raise TypeError('key must be type str not %s'%str(type(key)))
+        if not isinstance(value, (nddata_axis, np.ndarray)):
+            raise TypeError('argument must be type nddata_axis or numpy ndarray not %s'%str(type(value)))
+
+        if isinstance(value, np.ndarray):
+            value = nddata_axis(key, value)
+
+        # if key already in dims, overwrite
+        if key in self.dims:
+            index = self.index(key)
+            self.__coord[index] = value
+        else:
+            self.__dims.append(key)
+            self.__coords.append(value)
+
+    def __delitem__(self, key):
+        index = self.index(key)
+        del self.__dims[index]
+        del self.__coords[index]
 
     @property
+    def dims(self):
+        return self.__dims
+    @property
     def coords(self):
-        return [coord.array for coord in self.store.values()]
+        return self.__coords
 
-    def reorder(self, new_order):
-        return OrderedDict((k, self.store) for k in new_order)
+    def __repr__(self):
+        return 'nddata_axis_collection({})'.format(self.coords)
 
+    def __str__(self):
+        return '{}'.format(self.coords)
+
+    def __iter__(self):
+        return iter(self.coords)
+
+    def __len__(self):
+        return len(self.coords)
+
+    @property
+    def shape(self):
+        return tuple(len(k) for k in self.coords)
+
+    @property
+    def size(self):
+        return functools.reduce(operator.mul, [len(k) for k in self.coords], 1)
+
+    def reorder(self, dims):
+        if len(dims) != len(self.dims):
+            raise ValueError('Length of dims do not match')
+        for dim in dims:
+            if dim not in self.dims:
+                raise ValueError('%s not in dims'%str(dim))
+
+#        new_order = [dims.index(dim) for dim in self.dims if dims in self.dims]
+
+#        new_order = [dims.index(dim) for dim in self.dims]
+#        self.__dims = dims
+#        self.__coords = [self.coords.index(dims[x]) if dims[x] in self.dims else np.r_[[]] for x in range(len(dims))]
+
+#    def transpose(self, axis):
 
 if __name__ == '__main__':
 
     coord = nddata_axis('x',slice(0,10,1))
 
-    a = nddata_axis('x',slice(0,1,1e-3))
+    a = nddata_axis('a',slice(0,1,50e-3))
 
-    d = nddata_axis_collection(*[a])
+    d = nddata_axis_collection(a,coord)
 
