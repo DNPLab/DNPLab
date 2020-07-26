@@ -252,6 +252,7 @@ class nddata_core(object):
 
     __rmul__ = __mul__
 
+#    def return_(cls):
     def __add__(self, b):
         if isinstance(b, nddata_core):
 
@@ -313,38 +314,22 @@ class nddata_core(object):
 
     def __sub__(self, b):
         if isinstance(b, nddata_core):
-            # reorder 
-            old_order = b.dims
-            b.reorder(self.dims)
+            a, b = self.align(b)
 
-            # check coords
-            for ix in range(len(self.coords)):
-                if not np.allclose(self.coords[ix],b.coords[ix]):
-                    raise ValueError('Coords do not match')
-
-            # add result
-            result = self.values.__sub__(b.values)
-
-            # merge attrs
-            attrs = self.merge_attrs(self.attrs, b.attrs)
+            a.values = a.values - b.values
 
             # error propagation
-            if self._check_error(b.error):
-                if self._error is not None:
-                    error = np.sqrt(self.error**2. + b.error**2.)
-                else:
-                    error = None
-            else:
-                error = self.error
+            if a.error is not None and b.error is not None:
+                a.error = np.sqrt(a.error**2. + b.error**2.)
+            elif b.error is not None:
+                a.error = b.error
 
-            # return b to original order
-            b.reorder(old_order)
-
-            return nddata_core(result, self.dims, self.coords, attrs, error)
+            return a
 
         elif isinstance(b, (np.ndarray, int, float)):
-            result = self.values.__sub__(b)
-            return nddata_core(result, self.dims, self.coords, self.attrs, self.error)
+            a = self.copy()
+            a.values = a.values.__sub__(b)
+            return a
         else:
             raise TypeError('Cannot add type: {}'.format(type(b)))
 
@@ -387,6 +372,12 @@ class nddata_core(object):
     def coords(self):
         return self._coords
 
+    @coords.setter
+    def coords(self, b):
+        if not self._check_coords(b):
+            raise TypeError('invalid coords')
+        self._coords = b
+
     @property
     def attrs(self):
         return self._attrs
@@ -404,7 +395,7 @@ class nddata_core(object):
 
     @error.setter
     def error(self, b):
-        if isinstance(b, np.ndarray):
+        if isinstance(b, (np.ndarray, type(None))):
             self._error = b
         else:
             raise ValueError('error must be type "numpy.ndarray"')
@@ -719,8 +710,71 @@ class nddata_core(object):
         coords = list(self.coords)
         coords += [b.coords[ix] for ix in new_order if b.dims[ix] not in self.dims]
 
-
         return values, values_b, error, error_b, dims, coords, attrs
+    def align(self, b):
+        '''
+        '''
+        a = self.copy()
+        b = b.copy()
+
+        all_dims = list(OrderedDict.fromkeys(a.dims + b.dims))
+        new_b_order = [dim for dim in all_dims if dim in b.dims]
+        new_order = [b.index(dim) for dim in new_b_order]
+
+        # create new dims where necessary
+        values = a.values[tuple(slice(None) if dim in a.dims else None for dim in all_dims)]
+
+        # re-order
+        old_order = list(range(len(new_order)))
+        # re-order b values so they match order of all_dims
+        values_b = np.moveaxis(b.values, new_order, old_order)
+        # create new dims where necessary
+        values_b = values_b[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
+
+        # Handle Error 
+        if a.error is not None:
+            error = a.error[tuple(slice(None) if dim in a.dims else None for dim in all_dims)]
+        else: error = a.error
+        if b.error is not None:
+            error_b = np.moveaxis(b.values, new_order, old_order)
+            error_b = error_b[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
+        else: error_b = b.error
+
+        # check coords
+        for dim in all_dims:
+            if (dim in a.dims) and (dim in b.dims):
+                if not np.allclose(a.get_coord(dim), b.get_coord(dim)):
+                    raise ValueError('Coords do not match for dim: %s'%dim)
+
+        # merge attrs
+        attrs = a.merge_attrs(a.attrs, b.attrs)
+
+        # error propagation
+#        if a._check_error(b.error):
+#            if a._error is not None:
+#                error = np.sqrt(error**2. + error_b**2.)
+#            else:
+#                error = None
+#        else:
+#            error = a.error
+
+        coords = list(a.coords)
+        coords += [b.coords[ix] for ix in new_order if b.dims[ix] not in a.dims]
+
+        a.values = values
+        a.dims = all_dims
+        a.coords = coords
+        a.error = error
+        a.attrs = attrs
+
+        a.values = values_b
+        a.dims = all_dims
+        a.coords = coords
+        a.error = error_b
+        a.attrs = attrs
+
+        return a, b
+
 
     def __array__(self):
         return self.values
