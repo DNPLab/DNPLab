@@ -662,7 +662,7 @@ class nddata_core(object):
 
         return result
 
-    def _prepare_operation(self, b):
+    def __prepare_operation(self, b):
         '''
 
         Returns:
