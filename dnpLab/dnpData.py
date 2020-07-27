@@ -328,6 +328,19 @@ class dnpData:
 
         return a
 
+    def argmax(self, dim):
+        '''Return maximum value of data
+        '''
+        a = self.copy()
+        index = a.dims.index(dim)
+
+        a.dims.pop(index)
+
+        a.values = a.coords[index][np.argmax(a.values, axis = index)]
+        a.coords.pop(index)
+
+        return a
+
     def phase(self,):
         '''Return phase of dnpData object
 
