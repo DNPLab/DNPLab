@@ -315,6 +315,19 @@ class dnpData:
         maxValue = np.max(out.values)
         return maxValue
 
+    def amax(self, dim):
+        '''Return maximum value of data
+        '''
+        a = self.copy()
+        index = a.dims.index(dim)
+
+        a.dims.pop(index)
+        a.coords.pop(index)
+
+        a.values = np.amax(a.values, axis = index)
+
+        return a
+
     def phase(self,):
         '''Return phase of dnpData object
 
