@@ -1,6 +1,7 @@
 from .. import dnpData
 import numpy as np
 from struct import unpack
+import warnings
 import os
 import glob
 
@@ -34,7 +35,11 @@ def importKea(path, parameters_filename = None, verbose = False):
             data_filename = filesList[0]
             filename, extension = os.path.splitext(os.path.split(data_filename)[-1])
 
-    attrs = import_par(os.path.join(path, parameters_filename))
+    try:
+        attrs = import_par(os.path.join(path, parameters_filename))
+    except:
+        warnings.warn('No parameters file in directory')
+        attrs = {}
 
     if extension == '.csv':
         # Import csv data

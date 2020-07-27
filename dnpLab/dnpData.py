@@ -259,7 +259,8 @@ class dnpData:
 
         if self.dims != newData.dims:
 #            print 'ERROR' # NOTE determine how error handling will work
-            return
+            raise ValueError('dims do not match')
+#            return
         index = self.dims.index(axesLabel)
 
         self.values = np.concatenate((self.values,newData.values),axis = index)
