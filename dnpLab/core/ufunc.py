@@ -60,15 +60,6 @@ def fourier_transform(data, proc_parameters):
     data.coords[index] = f
 
     return data
-#    proc_attr_name = 'fourier_transform'
-#    proc_dict = {k:proc_parameters[k] for k in proc_parameters if k in requiredList}
-#    data.add_proc_attrs(proc_attr_name, proc_dict)
-#
-#    if isDict:
-#        all_data['proc'] = data
-#        return all_data
-#    else:
-#        return data
 
 
 if __name__ == '__main__':
@@ -79,5 +70,4 @@ if __name__ == '__main__':
 
     out = fourier_transform(data,{'dim':'x'})
     print(out)
-
 
