@@ -147,7 +147,7 @@ class nddata_core(object):
         # check slices
         for slice_ in index_slice:
             # type must be slice or tuple
-            if not isinstance(slice_, (slice, tuple)):
+            if not isinstance(slice_, (slice, tuple, float)):
                 raise ValueError()
             # if tuple, length must be two: (start, stop)
             if isinstance(slice_, tuple) and not len(slice_) in (1, 2):
@@ -159,24 +159,21 @@ class nddata_core(object):
             if isinstance(slice_, tuple):
                 index = a.index(dim)
                 if len(slice_) == 1:
-#                    start = np.argmin(np.abs(slice_[0] - np.get_coord[index]))
-                    start = np.argmin(np.abs(slice_[0] - np.get_coord(dim)))
-                    updated_index_slice.append(slice(start))
+                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
+                    updated_index_slice.append(slice(start,start+1))
                 else:
-#                    start = np.argmin(np.abs(slice_[0] - a.get_coord[index]))
-#                    stop = np.argmin(np.abs(slice_[1] - a.get_coord[index]))
                     start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
                     stop = np.argmin(np.abs(slice_[1] - a.get_coord(dim)))
                     updated_index_slice.append(slice(start, stop))
+            elif isinstance(slice_, float):
+                start = np.argmin(np.abs(slice_ - a.get_coord(dim)))
+                updated_index_slice.append(slice(start,start+1))
             else:
                 updated_index_slice.append(slice_)
 
         my_dict = dict(zip(index_dims, updated_index_slice))
-#        [slice() if self.dims[x] not in index_dims else my_dict[self.dims[x]] for x in range(len(self.dims))]
-        print(my_dict)
         new_slices = [slice(None) if dim not in index_dims else my_dict[dim] for dim in a.dims]
 
-        print(new_slices)
         for ix in range(len(new_slices)):
             a.coords[ix] = a.coords[ix][new_slices[ix]]
 
