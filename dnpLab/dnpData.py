@@ -5,6 +5,8 @@ from collections.abc import MutableMapping
 #from matplotlib.pylab import *
 from copy import deepcopy
 
+from .core import nddata
+
 version = '1.0'
 
 core_attrs_list = ['nmr_frequency']
@@ -15,7 +17,8 @@ core_attrs_list = ['nmr_frequency']
 # Add Alignment
 # Add Fit down dimension
 
-class dnpData:
+#class dnpData:
+class dnpData(nddata.nddata_core):
     '''dnpData Class for handling dnp data
 
     The dnpData class is inspired by pyspecdata nddata object which handles n-dimensional data, axes, and other relevant information together. 
@@ -30,32 +33,32 @@ class dnpData:
 
     '''
 
-    def __abs__(self):
-        '''return absolute value of dnpData object
-        Example::
-           >> data = abs(data)
-        '''
-        out = deepcopy(self)
-        out.values = np.abs(out.values)
-        return out
-
-    def __add__(self,data):
-        newData = deepcopy(self)
-        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.values += data
-        elif isinstance(data,np.ndarray):
-            newData.values = newData.values + data
-        elif isinstance(data,dnpData):
-            newData.values = newData.values + data.values
-        else:
-            print('Cannot add, type not supported:')
-            print(type(data))
-            return
-        return newData
-
-    def __copy__(self):
-        return deepcopy(self)
-
+#    def __abs__(self):
+#        '''return absolute value of dnpData object
+#        Example::
+#           >> data = abs(data)
+#        '''
+#        out = deepcopy(self)
+#        out.values = np.abs(out.values)
+#        return out
+#
+#    def __add__(self,data):
+#        newData = deepcopy(self)
+#        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+#            newData.values += data
+#        elif isinstance(data,np.ndarray):
+#            newData.values = newData.values + data
+#        elif isinstance(data,dnpData):
+#            newData.values = newData.values + data.values
+#        else:
+#            print('Cannot add, type not supported:')
+#            print(type(data))
+#            return
+#        return newData
+#
+#    def __copy__(self):
+#        return deepcopy(self)
+#
     def __getitem__(self,index):
         '''Indexing dnpData function
         '''
@@ -93,7 +96,7 @@ class dnpData:
             out.coords[ix] = out.coords[ix][indices[ix]]
 
         return out
-
+#
     def __init__(self,values = np.r_[[]],coords = [],dims = [],attrs = {},procList = []):
         '''dnpData Class __init__ method
 
@@ -105,107 +108,108 @@ class dnpData:
 
 
         '''
+        super().__init__(values,coords,dims,attrs)
         self.version = version
 
-        self.values = values
-        self.coords = coords
-        self.dims = dims
-        self.attrs = attrs
-        self.proc_attrs = []
-
-    def __len__(self):
-        return np.size(self.values)
-
-    def __mul__(self,data):
-        newData = deepcopy(self)
-        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.values *= data
-        elif isinstance(data,np.ndarray):
-            newData.values = newData.values * data
-        elif isinstance(data,dnpData):
-            newData.values = newData.values * data.values
-        else:
-            print('Cannot add, type not supported:')
-            print(type(data))
-            return
-
-        return newData
-
-    def __max__(self):
-        ''' Return maximum value of numpy array
-        '''
-        #NOTE Not working
-        out = deepcopy(self)
-        out.values = np.max(out.values)
-        return out
-
-    def __pow__(self,data):
-        newData = deepcopy(self)
-        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.values = newData.values**data
-        elif isinstance(data,np.ndarray):
-            newData.values = newData.values**data
-        elif isinstance(data,dnpData):
-            newData.values = newData.values**data.values
-        else:
-            print('Cannot add, type not supported:')
-            print(type(data))
-            return
-        return newData
-
-    def __radd__(self,data):
-        return self.__add__(data)
-
-    def __repr__(self):
-        ''' Representation of dnpData object
-        '''
-        return 'nddata(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self.values), repr(self.dims), repr(self.coords), repr(self.attrs))
-
-    def __rmul__(self,data):
-        return self.__mul__(data)
-
-    def __rsub__(self,data):
-        newData = deepcopy(self)
-        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.values = data - newData.data
-        elif isinstance(data,np.ndarray):
-            newData.values = data - newData.values
-        elif isinstance(data,dnpData):
-            newData.values = data.values - newData.values
-        else:
-            print('Cannot add, type not supported:')
-            print(type(data))
-            return
-        return newData
-
-    def __str__(self):
-        if len(self.attrs) < 20:
-            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\nproc_attrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs,self.proc_attrs)
-        else:
-            core_attrs = {k:self.attrs[k] for k in core_attrs_list if k in core_attrs_list}
-            num_additional_attrs = len(self.attrs) - len(core_attrs)
-            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\n + {} attrs'.format(self.values, self.dims, self.coords, core_attrs, num_additional_attrs)
-
-    def __sub__(self,data):
-        newData = deepcopy(self)
-        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-            newData.values -= data
-        elif isinstance(data,np.ndarray):
-            newData.values = newData.values - data
-        elif isinstance(data,dnpData):
-            newData.values = newData.values - data.values
-        else:
-            print('Cannot add, type not supported:')
-            print(type(data))
-            return
-        return newData
-        
-    def abs(self):
-        '''Return absolute value of data
-        '''
-        out = deepcopy(self)
-        out.values = np.abs(out.values)
-        return out
+#        self.values = values
+#        self.coords = coords
+#        self.dims = dims
+#        self.attrs = attrs
+#        self.proc_attrs = []
+#
+#    def __len__(self):
+#        return np.size(self.values)
+#
+#    def __mul__(self,data):
+#        newData = deepcopy(self)
+#        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+#            newData.values *= data
+#        elif isinstance(data,np.ndarray):
+#            newData.values = newData.values * data
+#        elif isinstance(data,dnpData):
+#            newData.values = newData.values * data.values
+#        else:
+#            print('Cannot add, type not supported:')
+#            print(type(data))
+#            return
+#
+#        return newData
+#
+#    def __max__(self):
+#        ''' Return maximum value of numpy array
+#        '''
+#        #NOTE Not working
+#        out = deepcopy(self)
+#        out.values = np.max(out.values)
+#        return out
+#
+#    def __pow__(self,data):
+#        newData = deepcopy(self)
+#        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+#            newData.values = newData.values**data
+#        elif isinstance(data,np.ndarray):
+#            newData.values = newData.values**data
+#        elif isinstance(data,dnpData):
+#            newData.values = newData.values**data.values
+#        else:
+#            print('Cannot add, type not supported:')
+#            print(type(data))
+#            return
+#        return newData
+#
+#    def __radd__(self,data):
+#        return self.__add__(data)
+#
+#    def __repr__(self):
+#        ''' Representation of dnpData object
+#        '''
+#        return 'nddata(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self.values), repr(self.dims), repr(self.coords), repr(self.attrs))
+#
+#    def __rmul__(self,data):
+#        return self.__mul__(data)
+#
+#    def __rsub__(self,data):
+#        newData = deepcopy(self)
+#        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+#            newData.values = data - newData.data
+#        elif isinstance(data,np.ndarray):
+#            newData.values = data - newData.values
+#        elif isinstance(data,dnpData):
+#            newData.values = data.values - newData.values
+#        else:
+#            print('Cannot add, type not supported:')
+#            print(type(data))
+#            return
+#        return newData
+#
+#    def __str__(self):
+#        if len(self.attrs) < 20:
+#            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\nproc_attrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs,self.proc_attrs)
+#        else:
+#            core_attrs = {k:self.attrs[k] for k in core_attrs_list if k in core_attrs_list}
+#            num_additional_attrs = len(self.attrs) - len(core_attrs)
+#            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\n + {} attrs'.format(self.values, self.dims, self.coords, core_attrs, num_additional_attrs)
+#
+#    def __sub__(self,data):
+#        newData = deepcopy(self)
+#        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
+#            newData.values -= data
+#        elif isinstance(data,np.ndarray):
+#            newData.values = newData.values - data
+#        elif isinstance(data,dnpData):
+#            newData.values = newData.values - data.values
+#        else:
+#            print('Cannot add, type not supported:')
+#            print(type(data))
+#            return
+#        return newData
+#        
+#    def abs(self):
+#        '''Return absolute value of data
+#        '''
+#        out = deepcopy(self)
+#        out.values = np.abs(out.values)
+#        return out
 
     def add_proc_attrs(self,proc_attr_name,proc_dict):
         '''
@@ -268,9 +272,9 @@ class dnpData:
 
         self.reorder(reorderLabels)
 
-    def copy(self):
-        return deepcopy(self)
-
+#    def copy(self):
+#        return deepcopy(self)
+#
     def getAxes(self,axesLabel):
         '''Return given axes of dnpData object
 

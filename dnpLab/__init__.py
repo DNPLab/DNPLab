@@ -4,3 +4,4 @@ from . import dnpNMR
 from . import dnpImport
 from . import dnpFit
 from . import hydration
+from . import core

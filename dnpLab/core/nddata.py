@@ -20,6 +20,7 @@ class nddata_core(object):
         else:
             raise TypeError('values must be type "numpy.ndarray" not %s'%str(type(values)))
 
+        
         if isinstance(coords, list):
             coords = list(coords)
 
