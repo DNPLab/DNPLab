@@ -463,128 +463,6 @@ class nddata_core(object):
         return a
 
 
-    def einsum(self, b):
-        '''
-        '''
-
-        all_dims = list(OrderedDict.fromkeys(self.dims+b.dims))
-
-#        ein_dims = [ix for ix in range(len(self.dims)) if self.dims[ix] in all_dims]
-#        ein_dims_b = [ix for ix in range(len(b.dims)) if b.dims[ix] in all_dims]
-
-        ein_dims = [all_dims.index(dim) for dim in all_dims if dim in self.dims]
-        ein_dims_b = [all_dims.index(dim) for dim in all_dims if dim in b.dims]
-        print(ein_dims)
-        print(ein_dims_b)
-
-        values = np.einsum(self.values, ein_dims, b.values, ein_dims_b)
-
-        dims = all_dims
-        coords = self.coords
-        coords += [b.coords[ix] for ix in range(len(b.coords)) if b.dims[ix] not in self.dims]
-
-        attrs = self.attrs
-        error = self.error
-
-        return nddata_core(values, dims, coords, attrs, error)
-
-#    def new_dims(self, b, all_dims):
-    def new_dims(self, b):
-        '''
-        '''
-
-
-        all_dims = list(OrderedDict.fromkeys(self.dims + b.dims))
-
-        new_shape = tuple(slice(None) if dim in self.dims else None for dim in all_dims)
-
-        values = self.values[new_shape]
-        new_shape_b = tuple(slice(None) if dim in b.dims else None for dim in all_dims)
-        values_b = b.values[new_shape_b]
-
-        return values
-
-    def _operate_on_values(self, b, o):
-        '''
-        '''
-
-        all_dims = list(OrderedDict.fromkeys(self.dims + b.dims))
-        new_b_order = [dim for dim in all_dims if dim in b.dims]
-        new_order = [b.index(dim) for dim in new_b_order]
-
-        # create new dims where necessary
-        values = self.values[tuple(slice(None) if dim in self.dims else None for dim in all_dims)]
-
-        # re-order
-        old_order = list(range(len(new_order)))
-        # re-order b values so they match order of all_dims
-        values_b = np.moveaxis(b.values, new_order, old_order)
-        # create new dims where necessary
-        values_b = values_b[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
-
-        result = o(values, values_b)
-
-        return result
-
-    def __prepare_operation(self, b):
-        '''
-
-        Returns:
-            values
-            values_b
-            error
-            error_b
-            dims
-            coords
-            attrs
-        '''
-        all_dims = list(OrderedDict.fromkeys(self.dims + b.dims))
-        new_b_order = [dim for dim in all_dims if dim in b.dims]
-        new_order = [b.index(dim) for dim in new_b_order]
-
-        # create new dims where necessary
-        values = self.values[tuple(slice(None) if dim in self.dims else None for dim in all_dims)]
-
-        # re-order
-        old_order = list(range(len(new_order)))
-        # re-order b values so they match order of all_dims
-        values_b = np.moveaxis(b.values, new_order, old_order)
-        # create new dims where necessary
-        values_b = values_b[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
-
-        # Handle Error 
-        if self.error is not None:
-            error = self.error[tuple(slice(None) if dim in self.dims else None for dim in all_dims)]
-        if b.error is not None:
-            error_b = np.moveaxis(b.values, new_order, old_order)
-            error_b = error_b[tuple(slice(None) if dim in b.dims else None for dim in all_dims)]
-
-        # check coords
-        for dim in all_dims:
-            if (dim in self.dims) and (dim in b.dims):
-                if not np.allclose(self.get_coord(dim), b.get_coord(dim)):
-                    raise ValueError('Coords do not match for dim: %s'%dim)
-
-        # add result
-        result = values + values_b
-
-        # merge attrs
-        attrs = self.merge_attrs(self.attrs, b.attrs)
-
-        # error propagation
-        if self._check_error(b.error):
-            if self._error is not None:
-                error = np.sqrt(error**2. + error_b**2.)
-            else:
-                error = None
-        else:
-            error = self.error
-
-        coords = list(self.coords)
-        coords += [b.coords[ix] for ix in new_order if b.dims[ix] not in self.dims]
-
-        return values, values_b, error, error_b, dims, coords, attrs
-
     def align(self, b):
         '''
         '''
@@ -623,15 +501,7 @@ class nddata_core(object):
         # merge attrs
         a.merge_attrs(b)
 
-        # error propagation
-#        if a._check_error(b.error):
-#            if a._error is not None:
-#                error = np.sqrt(error**2. + error_b**2.)
-#            else:
-#                error = None
-#        else:
-#            error = a.error
-
+        # coords
         coords = list(a.coords)
         coords += [b.coords[ix] for ix in new_order if b.dims[ix] not in a.dims]
 
@@ -646,7 +516,6 @@ class nddata_core(object):
         b.error = error_b
 
         return a, b
-
 
     def __array__(self):
         return self.values
