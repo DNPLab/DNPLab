@@ -343,38 +343,29 @@ class nddata_core(object):
             raise ValueError('Dimension name %s is not in dims'%dim)
     
 
-    def reorder(self, new_dims, force_new_dims = False):
+    def reorder(self, new_dims):
         '''
         '''
 
-        if not force_new_dims:
-            if not self._check_dims(new_dims):
-                raise TypeError('New dims must be list of str with no duplicates')
-            if not len(self._dims) == len(new_dims):
-                raise ValueError('Number of dims do not match')
+        if not self._check_dims(new_dims):
+            raise TypeError('New dims must be list of str with no duplicates')
+        for dim in new_dims:
+            if dim not in self.dims:
+                raise ValueError('no such dimension: %s'%dim)
 
-        # old method, no force new dims
-#        new_order = [new_dims.index(dim) for dim in self._dims]
+        # Add original dims to end, remove duplicates
+        new_dims = list(set(new_dims + self.dims))
 
-        new_order = [new_dims.index(dim) for dim in self.dims if new_dims in self.dims]
+        new_order = [new_dims.index(dim) for dim in self.dims]
 
-        # reshape 
-        print(new_order)
+        # dims
+        self.dims = new_dims
 
-        self._dims = new_dims#[self._dims[x] for x in new_order]
+        # coords
+        self.coords = [self.coords[x] for x in new_order]
 
-        # not forced
-#        self._coords = [self.coords[x] for x in new_order]
-        #forced
-        self._coords = [self.coords.index(new_dims[x]) if new_dims[x] in self.dims else np.r_[[]] for x in range(len(new_dims))]
-
-#        self._values
-
-        # reorder axes if they exist
-        self._values = np.moveaxis(self._values,range(len(new_order)),new_order)
-
-        # add new dimensions if forced values
-        self._values[(slice(None) if dim in b.dims else None for dim in all_dims)]
+        # Transpose values
+        self.values = np.transpose(self.values,new_order)
 
     def __str__(self):
         return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}'.format(self._values, self._dims, self._coords, self._attrs)
@@ -602,3 +593,4 @@ if __name__ == '__main__':
     d = data.values / data
 
     
+    data.reorder(['x','y','p'])
