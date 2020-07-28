@@ -161,10 +161,10 @@ class dnpData(nddata.nddata_core):
 #    def __radd__(self,data):
 #        return self.__add__(data)
 #
-#    def __repr__(self):
-#        ''' Representation of dnpData object
-#        '''
-#        return 'nddata(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self.values), repr(self.dims), repr(self.coords), repr(self.attrs))
+    def __repr__(self):
+        ''' Representation of dnpData object
+        '''
+        return 'nddata(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self.values), repr(self.coords), repr(self.dims), repr(self.attrs))
 #
 #    def __rmul__(self,data):
 #        return self.__mul__(data)
@@ -183,13 +183,13 @@ class dnpData(nddata.nddata_core):
 #            return
 #        return newData
 #
-#    def __str__(self):
-#        if len(self.attrs) < 20:
-#            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\nproc_attrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs,self.proc_attrs)
-#        else:
-#            core_attrs = {k:self.attrs[k] for k in core_attrs_list if k in core_attrs_list}
-#            num_additional_attrs = len(self.attrs) - len(core_attrs)
-#            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\n + {} attrs'.format(self.values, self.dims, self.coords, core_attrs, num_additional_attrs)
+    def __str__(self):
+        if len(self.attrs) < 20:
+            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\nproc_attrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs,self.proc_attrs)
+        else:
+            core_attrs = {k:self.attrs[k] for k in core_attrs_list if k in core_attrs_list}
+            num_additional_attrs = len(self.attrs) - len(core_attrs)
+            return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\n + {} attrs'.format(self.values, self.dims, self.coords, core_attrs, num_additional_attrs)
 #
 #    def __sub__(self,data):
 #        newData = deepcopy(self)
