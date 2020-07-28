@@ -5,9 +5,12 @@ import warnings
 from copy import deepcopy
 from collections import OrderedDict
 
+_numerical_types = (np.ndarray, int, float, complex)
+
 class nddata_core(object):
     '''nddata class
     '''
+    __array_priority__ = 1000 # radd, rsub, ... should return nddata object
 
     def __init__(self, values = np.r_[[]], dims = [], coords = [], attrs = {}, error = None, **kwargs):
 
@@ -122,23 +125,19 @@ class nddata_core(object):
     def copy(self):
         return deepcopy(self)
 
-    def merge_attrs(self, a, b):
+    def merge_attrs(self, b):
         '''Merge the given dictionaries
 
         Args:
-            a (dict): Starting Dictionary
-            b (dict): Dictionary to merge into attributes
+            b (nddata_core): attributes to merge into object
         '''
-        if not isinstance(b, dict):
-            raise ValueError('Must be dict')
 
-        for key in b:
-            if key not in a:
-                a[key] = b[key]
+        for key in b.attrs:
+            if key not in self.attrs:
+                self.attrs[key] = b.attrs[key]
             else:
-                if a[key] != b[key]:
-                    warnings.warn('attrs in two dictionarys contain different values, leaving original value:\n{}:{}'.format(key, self._attrs[key]))
-        return a
+                if self.attrs[key] != b.attrs[key]:
+                    warnings.warn('attrs in two dictionarys contain different values, leaving original value:\n{}:{}'.format(key, self.attrs[key]))
 
     def __len__(self):
         '''Returns total number of dims in values
@@ -183,7 +182,7 @@ class nddata_core(object):
 
             return a
 
-        elif isinstance(b, (np.ndarray, int, float)):
+        elif isinstance(b, _numerical_types):
             a = self.copy()
             a = a.values.__truediv__(b)
             return a
@@ -191,7 +190,7 @@ class nddata_core(object):
             raise TypeError('Cannot add type: {}'.format(type(b)))
 
     def __rtruediv__(self, b):
-        if isinstance(b, (np.ndarray, int, float)):
+        if isinstance(b, _numerical_types):
             a = self.copy()
             a.values = self.values.__rtruediv__(b)
             return a
@@ -212,7 +211,7 @@ class nddata_core(object):
 
             return a
 
-        elif isinstance(b, (np.ndarray, int, float)):
+        elif isinstance(b, _numerical_types):
             a = self.copy()
             a.values = a.values.__mul__(b)
             return a
@@ -235,7 +234,7 @@ class nddata_core(object):
 
             return a
 
-        elif isinstance(b, (np.ndarray, int, float)):
+        elif isinstance(b, _numerical_types):
             a = self.copy()
             a.values = a.values.__add__(b)
             return a
@@ -258,7 +257,7 @@ class nddata_core(object):
 
             return a
 
-        elif isinstance(b, (np.ndarray, int, float)):
+        elif isinstance(b, _numerical_types):
             a = self.copy()
             a.values = a.values.__sub__(b)
             return a
@@ -266,7 +265,7 @@ class nddata_core(object):
             raise TypeError('Cannot add type: {}'.format(type(b)))
 
     def __rsub__(self, b):
-        if isinstance(b, (np.ndarray, int, float)):
+        if isinstance(b, _numerical_types):
             a = self.copy()
             a.values = a.values.__rsub__(b)
             return a
@@ -622,7 +621,7 @@ class nddata_core(object):
                     raise ValueError('Coords do not match for dim: %s'%dim)
 
         # merge attrs
-        attrs = a.merge_attrs(a.attrs, b.attrs)
+        a.merge_attrs(b)
 
         # error propagation
 #        if a._check_error(b.error):
@@ -640,13 +639,11 @@ class nddata_core(object):
         a.dims = all_dims
         a.coords = coords
         a.error = error
-        a.attrs = attrs
 
         b.values = values_b
         b.dims = all_dims
         b.coords = coords
         b.error = error_b
-        b.attrs = attrs
 
         return a, b
 
@@ -674,14 +671,65 @@ if __name__ == '__main__':
 
     data3 = nddata_core(np.array(range(len(r)*len(p)*len(q))).reshape(len(r),len(p),len(q)), ['r','p','q'], [r, p, q])
 
+    
+    # Test Addition
     d = data + data
     d = data + data2
     d = data + data3
-
     d = data2 + data2
-    print('-'*50)
     d = data2 + data3
+    d = data + 1
+    d = 1 + data
+    d = data + 1.
+    d = 1. + data
+    d = data + 1j
+    d = 1j + data
+    d = data + data.values
+    d = data.values + data
 
-    print(data._operate_on_values(data3,operator.__add__))
-    print(data._operate_on_values(data3,operator.__add__).shape)
+    # Test Subtraction
+    d = data - data
+    d = data - data2
+    d = data - data3
+    d = data2 - data2
+    d = data2 - data3
+    d = data - 1
+    d = 1 - data
+    d = data - 1.
+    d = 1. - data
+    d = data - 1j
+    d = 1j - data
+    d = data - data.values
+    d = data.values - data
 
+    # Test Multiplication
+    d = data * data
+    d = data * data2
+    d = data * data3
+    d = data2 * data2
+    d = data2 * data3
+    d = data * 1
+    d = 1 * data
+    d = data * 1.
+    d = 1. * data
+    d = data * 1j
+    d = 1j * data
+    d = data * data.values
+    d = data.values * data
+
+    # Test Division
+    d = data / data
+    d = data / data2
+    d = data / data3
+    d = data2 / data2
+    d = data2 / data3
+    d = data / 1
+    d = 1 / data
+    d = data / 1.
+    d = 1. / data
+    d = data / 1j
+    d = 1j / data
+    d = data / data.values
+    d = data.values / data
+
+    
