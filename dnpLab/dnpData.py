@@ -97,7 +97,7 @@ class dnpData(nddata.nddata_core):
 
         return out
 #
-    def __init__(self,values = np.r_[[]],coords = [],dims = [],attrs = {},procList = []):
+    def __init__(self, values = np.r_[[]], coords = [], dims = [], attrs = {}, procList = []):
         '''dnpData Class __init__ method
 
         Args:
@@ -108,8 +108,9 @@ class dnpData(nddata.nddata_core):
 
 
         '''
-        super().__init__(values,coords,dims,attrs)
+        super().__init__(values, dims, coords, attrs)
         self.version = version
+        self.proc_attrs = []
 
 #        self.values = values
 #        self.coords = coords

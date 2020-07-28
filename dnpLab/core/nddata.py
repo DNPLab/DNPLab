@@ -128,6 +128,69 @@ class nddata_core(object):
 
         return True
 
+    def __getitem__(self, args):
+        '''
+        '''
+        a = self.copy()
+        if len(args) % 2 == 1:
+            raise ValueError('Cannot index with odd number of arguments')
+
+        index_dims = args[0::2]
+        print(index_dims)
+        for dim in index_dims:
+            if dim not in a.dims:
+                raise ValueError('dim not in dims')
+
+        index_slice = args[1::2]
+        print(index_slice)
+
+        # check slices
+        for slice_ in index_slice:
+            # type must be slice or tuple
+            if not isinstance(slice_, (slice, tuple)):
+                raise ValueError()
+            # if tuple, length must be two: (start, stop)
+            if isinstance(slice_, tuple) and not len(slice_) in (1, 2):
+                raise ValueError('tuple index must have one or two values')
+
+        # convert tuple to slice
+        updated_index_slice = []
+        for dim, slice_ in zip(index_dims, index_slice):
+            if isinstance(slice_, tuple):
+                index = a.index(dim)
+                if len(slice_) == 1:
+#                    start = np.argmin(np.abs(slice_[0] - np.get_coord[index]))
+                    start = np.argmin(np.abs(slice_[0] - np.get_coord(dim)))
+                    updated_index_slice.append(slice(start))
+                else:
+#                    start = np.argmin(np.abs(slice_[0] - a.get_coord[index]))
+#                    stop = np.argmin(np.abs(slice_[1] - a.get_coord[index]))
+                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
+                    stop = np.argmin(np.abs(slice_[1] - a.get_coord(dim)))
+                    updated_index_slice.append(slice(start, stop))
+            else:
+                updated_index_slice.append(slice_)
+
+        my_dict = dict(zip(index_dims, updated_index_slice))
+#        [slice() if self.dims[x] not in index_dims else my_dict[self.dims[x]] for x in range(len(self.dims))]
+        print(my_dict)
+        new_slices = [slice(None) if dim not in index_dims else my_dict[dim] for dim in a.dims]
+
+        print(new_slices)
+        for ix in range(len(new_slices)):
+            a.coords[ix] = a.coords[ix][new_slices[ix]]
+
+        a.values = a.values[new_slices]
+        return a
+#        for dim, slice_ in zip(index_dims, index_slice):
+#            index = a.index(dim)
+#            if isinstance(slice_, slice):
+#                a.values[]
+#
+#        a.coords = 
+
+
+
     def copy(self):
         return deepcopy(self)
 
@@ -360,7 +423,7 @@ class nddata_core(object):
                 raise ValueError('no such dimension: %s'%dim)
 
         # Add original dims to end, remove duplicates
-        new_dims = list(set(new_dims + self.dims))
+        new_dims = list(OrderedDict.fromkeys(new_dims + self.dims))
 
         new_order = [new_dims.index(dim) for dim in self.dims]
 
@@ -369,6 +432,8 @@ class nddata_core(object):
 
         # coords
         self.coords = [self.coords[x] for x in new_order]
+#        self.coords = [self.coords[x] for x in new_order]
+#        self.coords = [self.coords[new_order[x]] for x in range(len(new_order))]
 
         # Transpose values
         self.values = np.transpose(self.values,new_order)
@@ -525,78 +590,79 @@ if __name__ == '__main__':
 #    data = nddata_core(np.array(range(27)).reshape(3,3,3), [np.r_[1,2,3],np.r_[4,5,6], np.r_[7,8,9]], ['x','y','z'])
 #    data = nddata_core(np.array(range(27)).reshape(3,3,3), ['x','y','z'], [np.r_[1,2,3],np.r_[4,5,6], np.r_[7,8,9]])
 
-    x = np.r_[0:10]
+    x = np.r_[0:10:.1]
     y = np.r_[0:20]
     z = np.r_[0:15]
-    q = np.r_[0:5]
-    r = np.r_[0:17]
-    p = np.r_[0:13]
-    data = nddata_core(np.array(range(len(x)*len(y)*len(p))).reshape(len(x),len(y),len(p)), ['x','y','p'], [x, y, p])
+#    q = np.r_[0:5]
+#    r = np.r_[0:17]
+#    p = np.r_[0:13]
+#    data = nddata_core(np.array(range(len(x)*len(y)*len(p))).reshape(len(x),len(y),len(p)), ['x','y','p'], [x, y, p])
+    data = nddata_core(np.array(range(len(x)*len(y)*len(z))).reshape(len(x),len(y),len(z)), ['x','y','z'], [x, y, z])
+    data.reorder(['x','y','z'])
 
-    data2 = nddata_core(np.array(range(len(x)*len(y)*len(q))).reshape(len(x),len(y),len(q)), ['x','y','q'], [x, y, q])
-
-    data3 = nddata_core(np.array(range(len(r)*len(p)*len(q))).reshape(len(r),len(p),len(q)), ['r','p','q'], [r, p, q])
+#    data2 = nddata_core(np.array(range(len(x)*len(y)*len(q))).reshape(len(x),len(y),len(q)), ['x','y','q'], [x, y, q])
+#
+#    data3 = nddata_core(np.array(range(len(r)*len(p)*len(q))).reshape(len(r),len(p),len(q)), ['r','p','q'], [r, p, q])
 
     
     # Test Addition
-    d = data + data
-    d = data + data2
-    d = data + data3
-    d = data2 + data2
-    d = data2 + data3
-    d = data + 1
-    d = 1 + data
-    d = data + 1.
-    d = 1. + data
-    d = data + 1j
-    d = 1j + data
-    d = data + data.values
-    d = data.values + data
+#    d = data + data
+#    d = data + data2
+#    d = data + data3
+#    d = data2 + data2
+#    d = data2 + data3
+#    d = data + 1
+#    d = 1 + data
+#    d = data + 1.
+#    d = 1. + data
+#    d = data + 1j
+#    d = 1j + data
+#    d = data + data.values
+#    d = data.values + data
 
     # Test Subtraction
-    d = data - data
-    d = data - data2
-    d = data - data3
-    d = data2 - data2
-    d = data2 - data3
-    d = data - 1
-    d = 1 - data
-    d = data - 1.
-    d = 1. - data
-    d = data - 1j
-    d = 1j - data
-    d = data - data.values
-    d = data.values - data
+#    d = data - data
+#    d = data - data2
+#    d = data - data3
+#    d = data2 - data2
+#    d = data2 - data3
+#    d = data - 1
+#    d = 1 - data
+#    d = data - 1.
+#    d = 1. - data
+#    d = data - 1j
+#    d = 1j - data
+#    d = data - data.values
+#    d = data.values - data
 
     # Test Multiplication
-    d = data * data
-    d = data * data2
-    d = data * data3
-    d = data2 * data2
-    d = data2 * data3
-    d = data * 1
-    d = 1 * data
-    d = data * 1.
-    d = 1. * data
-    d = data * 1j
-    d = 1j * data
-    d = data * data.values
-    d = data.values * data
+#    d = data * data
+#    d = data * data2
+#    d = data * data3
+#    d = data2 * data2
+#    d = data2 * data3
+#    d = data * 1
+#    d = 1 * data
+#    d = data * 1.
+#    d = 1. * data
+#    d = data * 1j
+#    d = 1j * data
+#    d = data * data.values
+#    d = data.values * data
 
     # Test Division
-    d = data / data
-    d = data / data2
-    d = data / data3
-    d = data2 / data2
-    d = data2 / data3
-    d = data / 1
-    d = 1 / data
-    d = data / 1.
-    d = 1. / data
-    d = data / 1j
-    d = 1j / data
-    d = data / data.values
-    d = data.values / data
+#    d = data / data
+#    d = data / data2
+#    d = data / data3
+#    d = data2 / data2
+#    d = data2 / data3
+#    d = data / 1
+#    d = 1 / data
+#    d = data / 1.
+#    d = 1. / data
+#    d = data / 1j
+#    d = 1j / data
+#    d = data / data.values
+#    d = data.values / data
 
     
-    data.reorder(['x','y','p'])
