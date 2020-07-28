@@ -14,11 +14,16 @@ class nddata_core(object):
 
     def __init__(self, values = np.r_[[]], dims = [], coords = [], attrs = {}, error = None, **kwargs):
 
+        # verify values are numpy array
         if isinstance(values, np.ndarray):
             self._values = values
         else:
             raise TypeError('values must be type "numpy.ndarray" not %s'%str(type(values)))
 
+        if isinstance(coords, list):
+            coords = list(coords)
+
+        # verify coords are list of 1d numpy arrays
         if self._check_coords(coords):
             self._coords = coords
         else:
