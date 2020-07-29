@@ -164,13 +164,16 @@ class nddata_core(object):
                 else:
                     start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
                     stop = np.argmin(np.abs(slice_[1] - a.get_coord(dim)))
+                    if start == stop:
+                        stop = start + 1
+                    if stop < start:
+                        start, stop = stop, start
                     updated_index_slice.append(slice(start, stop))
             elif isinstance(slice_, int):
                 start = slice_
                 if slice_ != -1:
                     updated_index_slice.append(slice(start, start+1))
                 else:
-#                    updated_index_slice.append(slice(None,slice_))
                     updated_index_slice.append(slice(slice_, None))
             elif isinstance(slice_, float):
                 start = np.argmin(np.abs(slice_ - a.get_coord(dim)))
@@ -185,7 +188,7 @@ class nddata_core(object):
         for ix in range(len(new_slices)):
             a.coords[ix] = a.coords[ix][new_slices[ix]]
 
-        a.values = a.values[new_slices]
+        a.values = a.values[tuple(new_slices)]
         return a
 
     def copy(self):
