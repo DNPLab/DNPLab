@@ -136,13 +136,11 @@ class nddata_core(object):
             raise ValueError('Cannot index with odd number of arguments')
 
         index_dims = args[0::2]
-        print(index_dims)
         for dim in index_dims:
             if dim not in a.dims:
                 raise ValueError('dim not in dims')
 
         index_slice = args[1::2]
-        print(index_slice)
 
         # check slices
         for slice_ in index_slice:
@@ -181,14 +179,14 @@ class nddata_core(object):
             else:
                 updated_index_slice.append(slice_)
 
-        print(updated_index_slice)
-        my_dict = dict(zip(index_dims, updated_index_slice))
-        new_slices = [slice(None) if dim not in index_dims else my_dict[dim] for dim in a.dims]
+        index_slice_dict = dict(zip(index_dims, updated_index_slice))
+        new_slices = [slice(None) if dim not in index_dims else index_slice_dict[dim] for dim in a.dims]
 
         for ix in range(len(new_slices)):
             a.coords[ix] = a.coords[ix][new_slices[ix]]
 
         a.values = a.values[tuple(new_slices)]
+
         return a
 
     def copy(self):
@@ -582,6 +580,27 @@ class nddata_core(object):
     def __array__(self):
         return self.values
 
+    def sort(self, dim):
+        '''
+        '''
+        index = self.index(dim)
+
+        sort_array = np.argsort(self.coords[index])
+
+        self.coords[index] = self.coords[index][sort_array]
+
+        new_order = tuple([slice(None) if dim != this_dim else sort_array for this_dim in self.dims])
+
+        self.values = self.values[new_order]
+
+    def is_sorted(self, dim):
+        '''
+        '''
+        index = self.index(dim)
+
+        return np.all(self.coords[index][:-1] <= self.coords[index][1:])
+
+
 
 if __name__ == '__main__':
 #    a = np.array(range(9)).reshape(3,3)
@@ -593,6 +612,8 @@ if __name__ == '__main__':
     x = np.r_[0:10:.1]
     y = np.r_[0:20]
     z = np.r_[0:15]
+    random_order = np.argsort(np.random.randn(len(x)))
+    x = x[random_order]
 #    q = np.r_[0:5]
 #    r = np.r_[0:17]
 #    p = np.r_[0:13]
