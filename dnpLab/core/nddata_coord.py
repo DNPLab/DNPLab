@@ -2,13 +2,14 @@ from __future__ import division
 import numpy as np
 import operator
 import functools
+from collections import OrderedDict
 
 
 #allowed_domains = ['FT','IFT','LT','ILT','Wavelet','IWavelet']
 allowed_domains = ['FT','IFT']
 
 
-class nddata_axis(object):
+class nddata_coord(object):
     '''
     '''
 
@@ -89,7 +90,7 @@ class nddata_axis(object):
         if hasattr(self, '_array'):
             del self._array
 
-        return nddata_axis(self.dim, slice(start, stop, step))
+        return nddata_coord(self.dim, slice(start, stop, step))
         
     def reduce(self):
         '''
@@ -230,7 +231,7 @@ class nddata_axis(object):
             return max(int((self.stop - self.start) / self.step),0) # Take max for case when direction is reversed
 
     def __repr__(self):
-        return 'nddata_axis(\'{}\', {})'.format(self.dim,self.array)
+        return 'nddata_coord(\'{}\', {})'.format(self.dim,self.array)
 
     def __str__(self):
         return '\'{}\':{}'.format(self.dim,str(self.array))
@@ -243,7 +244,7 @@ class nddata_axis(object):
         if hasattr(self, '_array'):
             del self.array
 
-        return nddata_axis(self.dim, slice(start, stop, step))
+        return nddata_coord(self.dim, slice(start, stop, step))
 
     __radd__ = __add__
 
@@ -255,7 +256,7 @@ class nddata_axis(object):
         if hasattr(self, '_array'):
             del self.array
 
-        return nddata_axis(self.dim, slice(start, stop, step))
+        return nddata_coord(self.dim, slice(start, stop, step))
 
     def __rsub__(self, b):
         # switch start and stop
@@ -266,7 +267,7 @@ class nddata_axis(object):
         if hasattr(self, '_array'):
             del self.array
 
-        return nddata_axis(self.dim, slice(start, stop, step))
+        return nddata_coord(self.dim, slice(start, stop, step))
 
     def __mul__(self, b):
         start = b * self.start
@@ -276,7 +277,7 @@ class nddata_axis(object):
         if hasattr(self, '_array'):
             del self.array
 
-        return nddata_axis(self.dim, slice(start, stop, step))
+        return nddata_coord(self.dim, slice(start, stop, step))
 
     __rmul__ = __mul__
 
@@ -288,7 +289,7 @@ class nddata_axis(object):
         if hasattr(self, '_array'):
             del self.array
 
-        return nddata_axis(self.dim, slice(start, stop, step))
+        return nddata_coord(self.dim, slice(start, stop, step))
 
     def __rtruediv__(self, b):
         start = b / self.start
@@ -298,7 +299,7 @@ class nddata_axis(object):
         if hasattr(self, '_array'):
             del self.array
 
-        return nddata_axis(self.dim, slice(start, stop, step))
+        return nddata_coord(self.dim, slice(start, stop, step))
 
     def __array__(self):
         return self.array
@@ -309,73 +310,145 @@ class nddata_axis(object):
     def __matmul__(self, b):
         return self.start + self.step * b
 
-#class nddata_axis_collection(MutableMapping):
-class nddata_axis_collection(object):
-    def __init__(self, *args, **kwargs):
+    @property
+    def shape(self):
+        return self.array.shape
 
-        self.__dims = []
-        self.__coords = []
+#class nddata_coord_collection(MutableMapping):
+class nddata_coord_collection(object):
+    def __init__(self, dims, coords):
 
-        for arg in args:
-            if isinstance(arg, nddata_axis):
-                self.__dims.append(arg.dim)
-                self.__coords.append(arg)
-            elif isinstance(arg, np.ndarray):
-                raise ValueError('No dim given for numpy ndarray')
-
-        for kwarg in kwargs: #key, value pairs only in order for python >=3.6
-            dim = kwarg
-            coord = kwarg[dim]
-            if isinstance(coord, nddata_axis):
-                self.__dims.append(dim)
-                arg.dim = dim
-                self.__coords.append(coord)
-            if isinstance(coord, np.ndarray):
-                self.__dims.append(kwarg)
-                self.__coords.append(nddata_axis(dim,coord))
-            else:
-                raise TypeError('kwarg not understood')
-
-    def index(self, key):
-        return self.__dims.index(key)
-
-    def __getitem__(self, key):
-        return self.coords[self.index(key)]
-
-    def __setitem__(self, key, value):
-        if not isinstance(key, str):
-            raise TypeError('key must be type str not %s'%str(type(key)))
-        if not isinstance(value, (nddata_axis, np.ndarray)):
-            raise TypeError('argument must be type nddata_axis or numpy ndarray not %s'%str(type(value)))
-
-        if isinstance(value, np.ndarray):
-            value = nddata_axis(key, value)
-
-        # if key already in dims, overwrite
-        if key in self.dims:
-            index = self.index(key)
-            self.__coord[index] = value
+        if self._check_dims:
+            self._dims = dims
         else:
-            self.__dims.append(key)
-            self.__coords.append(value)
+            raise TypeError('dims must be list of str')
 
-    def __delitem__(self, key):
-        index = self.index(key)
-        del self.__dims[index]
-        del self.__coords[index]
+        if self._check_coords:
+            self._coords = coords
+        else:
+            raise TypeError('coords must be list of 1d numpy arrays')
+
+#        for arg in args:
+#            if isinstance(arg, nddata_coord):
+#                self.__dims.append(arg.dim)
+#                self.__coords.append(arg)
+#            elif isinstance(arg, np.ndarray):
+#                raise ValueError('No dim given for numpy ndarray')
+#
+#        for kwarg in kwargs: #key, value pairs only in order for python >=3.6
+#            dim = kwarg
+#            coord = kwarg[dim]
+#            if isinstance(coord, np.ndarray):
+#                self.__dims.append(kwarg)
+#                self.__coords.append(nddata_coord(dim,coord))
+#            else:
+#                raise TypeError('kwarg not understood')
+
+    def _check_dims(self, dims):
+        '''Verify dims is a list of str
+
+        Args:
+            dims: Object to test for valid dims
+
+        Returns:
+            bool: True if valid dims, False otherwise
+        '''
+        # Check if dims is list
+        if not isinstance(dims, list):
+            return False
+        
+        # Check if all members are str
+        for dim in dims:
+            if not isinstance(dim, str):
+                return False
+
+        # Check for duplicates
+        if len(dims) != len(set(dims)):
+            return False
+
+        return True
+
+    def _check_coords(self, coords):
+        '''Check if valid coords
+
+        Args:
+            coords: Object to test
+
+        Returns:
+            bool: True if list of 1d numpy arrays, False otherwise
+        '''
+
+        # Verify coords is a list
+        if not isinstance(coords, list):
+            return False
+
+        # Verify each member is 1d numpy array (and not empty)
+        for coord in coords:
+            if not isinstance(coord, (nddata_coord, np.ndarray)):
+                return False
+            if (not (len(coord.shape) == 1)) or (coord.size == 0):
+                return False
+
+        return True
+
+    def _self_consistent(self):
+        return NotImplemented
+
+    def index(self, dim):
+        return self._dims.index(dim)
+
+    def __getitem__(self, dim):
+        return self.coords[self.index(dim)]
+
+    def __setitem__(self, dim, coord):
+        if not isinstance(dim, str):
+            raise TypeError('dim must be type str not %s'%str(type(dim)))
+        if not isinstance(coord, (nddata_coord, np.ndarray)):
+            raise TypeError('argument must be type nddata_coord or numpy ndarray not %s'%str(type(coord)))
+
+#        if isinstance(coord, np.ndarray):
+#            coord = nddata_coord(dim, coord)
+
+        # if dim already in dims, overwrite
+        if dim in self.dims:
+            index = self.index(dim)
+            self._coord[index] = coord
+        else:
+            self._dims.append(dim)
+            self._coords.append(coord)
+
+    def __delitem__(self, dim):
+        index = self.index(dim)
+        del self._dims[index]
+        del self._coords[index]
 
     @property
     def dims(self):
-        return self.__dims
+        return self._dims
+
+    @dims.setter
+    def dims(self, dims):
+        if self._check_dims(dims):
+            self._dims = dims
+        else:
+            raise TypeError('Invalid dims. Cannot set dims to {}'.format(dims))
+
     @property
     def coords(self):
-        return self.__coords
+        return self._coords
+
+    @coords.setter
+    def coords(self, coords):
+        if self._check_coords(coords):
+            self._coords = coords
+        else:
+            raise TypeError('Invalid coords. Cannot set coords to {}'.format(coords))
 
     def __repr__(self):
-        return 'nddata_axis_collection({})'.format(self.coords)
+        return 'nddata_coord_collection({})'.format(self.coords)
 
     def __str__(self):
-        return '{}'.format(self.coords)
+        return 'dims:\n{}\ncoords:\n{}'.format(self.dims, self.coords)
 
     def __iter__(self):
         return iter(self.coords)
@@ -385,32 +458,45 @@ class nddata_axis_collection(object):
 
     @property
     def shape(self):
-        return tuple(len(k) for k in self.coords)
+        return tuple(k.size for k in self.coords)
 
     @property
     def size(self):
         return functools.reduce(operator.mul, [len(k) for k in self.coords], 1)
 
     def reorder(self, dims):
-        if len(dims) != len(self.dims):
-            raise ValueError('Length of dims do not match')
+
+        if not self._check_dims(dims):
+            raise TypeError('New dims must be list of str with no duplicates')
         for dim in dims:
             if dim not in self.dims:
-                raise ValueError('%s not in dims'%str(dim))
+                raise ValueError('no such dimension: %s'%dim)
 
-#        new_order = [dims.index(dim) for dim in self.dims if dims in self.dims]
+        # Add original dims to end, remove duplicates
+        dims = list(OrderedDict.fromkeys(dims + self.dims))
 
-#        new_order = [dims.index(dim) for dim in self.dims]
-#        self.__dims = dims
-#        self.__coords = [self.coords.index(dims[x]) if dims[x] in self.dims else np.r_[[]] for x in range(len(dims))]
+        # New indices for dims
+        new_order = [dims.index(dim) for dim in self.dims]
 
-#    def transpose(self, axis):
+        self.dims = dims
+
+        self.coords = [self.coords[x] for x in new_order]
+
+    def pop(self, dim):
+        index = self.index(dim)
+        
+        self.coords.pop(index)
+
+        self.dims.pop(index)
 
 if __name__ == '__main__':
 
-    coord = nddata_axis('x',slice(0,10,1))
+    coord = nddata_coord('x',slice(0,10,1))
 
-    a = nddata_axis('a',slice(0,1,50e-3))
+    a = nddata_coord('a',slice(0,1,50e-3))
+    b = np.r_[1:2:0.25]
 
-    d = nddata_axis_collection(a,coord)
+#    d = nddata_coord_collection(a,coord)
+    d = nddata_coord_collection(['a', 'x', 'b'],[a, coord, b])
+    d.reorder(['x','a'])
 
