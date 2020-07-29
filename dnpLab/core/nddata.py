@@ -262,7 +262,7 @@ class nddata_core(object):
 
         elif isinstance(b, _numerical_types):
             a = self.copy()
-            a = a.values.__truediv__(b)
+            a.values = a.values.__truediv__(b)
             return a
         else:
             raise TypeError('Cannot add type: {}'.format(type(b)))
