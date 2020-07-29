@@ -147,8 +147,8 @@ class nddata_core(object):
         # check slices
         for slice_ in index_slice:
             # type must be slice or tuple
-            if not isinstance(slice_, (slice, tuple, float)):
-                raise ValueError()
+            if not isinstance(slice_, (slice, tuple, float, int)):
+                raise ValueError('Invalid slice type')
             # if tuple, length must be two: (start, stop)
             if isinstance(slice_, tuple) and not len(slice_) in (1, 2):
                 raise ValueError('tuple index must have one or two values')
@@ -165,12 +165,20 @@ class nddata_core(object):
                     start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
                     stop = np.argmin(np.abs(slice_[1] - a.get_coord(dim)))
                     updated_index_slice.append(slice(start, stop))
+            elif isinstance(slice_, int):
+                start = slice_
+                if slice_ != -1:
+                    updated_index_slice.append(slice(start, start+1))
+                else:
+#                    updated_index_slice.append(slice(None,slice_))
+                    updated_index_slice.append(slice(slice_, None))
             elif isinstance(slice_, float):
                 start = np.argmin(np.abs(slice_ - a.get_coord(dim)))
-                updated_index_slice.append(slice(start,start+1))
+                updated_index_slice.append(slice(start, start+1))
             else:
                 updated_index_slice.append(slice_)
 
+        print(updated_index_slice)
         my_dict = dict(zip(index_dims, updated_index_slice))
         new_slices = [slice(None) if dim not in index_dims else my_dict[dim] for dim in a.dims]
 
@@ -179,14 +187,6 @@ class nddata_core(object):
 
         a.values = a.values[new_slices]
         return a
-#        for dim, slice_ in zip(index_dims, index_slice):
-#            index = a.index(dim)
-#            if isinstance(slice_, slice):
-#                a.values[]
-#
-#        a.coords = 
-
-
 
     def copy(self):
         return deepcopy(self)
