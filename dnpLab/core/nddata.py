@@ -7,22 +7,29 @@ from collections import OrderedDict
 
 _numerical_types = (np.ndarray, int, float, complex)
 
+_nddata_core_version = '1.0'
+
 class nddata_core(object):
     '''nddata class
     '''
+
     __array_priority__ = 1000 # radd, rsub, ... should return nddata object
 
     def __init__(self, values = np.r_[[]], dims = [], coords = [], attrs = {}, error = None, **kwargs):
+
+        self._nddata_core_version = _nddata_core_version
 
         # verify values are numpy array
         if isinstance(values, np.ndarray):
             self._values = values
         else:
             raise TypeError('values must be type "numpy.ndarray" not %s'%str(type(values)))
-
         
-        if isinstance(coords, list):
-            coords = list(coords)
+        if not isinstance(coords, list):
+            coords = [coords]
+
+        if not isinstance(dims, list):
+            dims = [dims]
 
         # verify coords are list of 1d numpy arrays
         if self._check_coords(coords):
@@ -55,6 +62,10 @@ class nddata_core(object):
         if not self._self_consistent():
             warnings.warn('Dimensions not consistent')
 #            raise ValueError('Dimensions not consistent')
+
+    @property
+    def __version__(self):
+        return self._nddata_core_version
 
     def _check_dims(self, dims):
         '''Check that list is a list of strings with no duplicates
@@ -217,7 +228,7 @@ class nddata_core(object):
         '''
         return self._values.size
 
-    def sort(self):
+    def sort_dims(self):
         '''
         '''
         sorted_order = sorted(range(len(self._dims)), key=lambda x: self._dims[x])
@@ -291,7 +302,7 @@ class nddata_core(object):
         if isinstance(b, nddata_core):
             a, b = self.align(b)
 
-            a.values = a.values - b.values
+            a.values = a.values + b.values
 
             # error propagation
             if a.error is not None and b.error is not None:
@@ -455,7 +466,9 @@ class nddata_core(object):
         lost_coords = [a.coords[x] for x in range(len(shape)) if shape[x] == 1]
 
         values = np.squeeze(a.values)
-        error = np.squeeze(a.error)
+
+        if a.error is not None:
+            a.error = np.squeeze(a.error)
 
         attrs = a.attrs
 
@@ -600,6 +613,24 @@ class nddata_core(object):
 
         return np.all(self.coords[index][:-1] <= self.coords[index][1:])
 
+    @property
+    def real(self):
+        a = self.copy()
+        a.values = np.real(a.values)
+        return a
+
+    @property
+    def imag(self):
+        a = self.copy()
+        a.values = np.imag(a.values)
+        return a
+
+    @property
+    def abs(self):
+        a = self.copy()
+        a.values = np.abs(a.values)
+        return a
+
 
 
 if __name__ == '__main__':
@@ -620,6 +651,9 @@ if __name__ == '__main__':
 #    data = nddata_core(np.array(range(len(x)*len(y)*len(p))).reshape(len(x),len(y),len(p)), ['x','y','p'], [x, y, p])
     data = nddata_core(np.array(range(len(x)*len(y)*len(z))).reshape(len(x),len(y),len(z)), ['x','y','z'], [x, y, z])
     data.reorder(['x','y','z'])
+
+    d = nddata_core(x, 'x', x)
+    a = nddata_core(x, 'a', x)
 
 #    data2 = nddata_core(np.array(range(len(x)*len(y)*len(q))).reshape(len(x),len(y),len(q)), ['x','y','q'], [x, y, q])
 #
