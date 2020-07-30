@@ -76,7 +76,7 @@ ws.add('hydration', hydration)
 # Run hydration calculation
 res = dnpLab.hydration.hydration(ws)
 
-# Observe results, k_sigma, etc
-print(''.join([f'{k} = {res[k]}\n' for k in ['k_sigma', 'krho', 'klow', 'tcorr']]))
+# Observe results, ksigma, etc
+print(''.join([f'{k} = {res[k]}\n' for k in ['ksigma', 'krho', 'klow', 'tcorr']]))
 
-assert abs(res['k_sigma'] - 20.18) < 0.01
+assert abs(res['ksigma'] - 20.18) < 0.01
