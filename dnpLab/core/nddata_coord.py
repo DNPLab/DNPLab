@@ -3,6 +3,7 @@ import numpy as np
 import operator
 import functools
 from collections import OrderedDict
+from copy import deepcopy
 
 
 #allowed_domains = ['FT','IFT','LT','ILT','Wavelet','IWavelet']
@@ -318,6 +319,11 @@ class nddata_coord(object):
 class nddata_coord_collection(object):
     def __init__(self, dims, coords):
 
+        if not isinstance(dims, list):
+            raise ValueError('dims must be a list')
+        if not isinstance(coords, list):
+            raise ValueError('coords must be a list')
+
         if self._check_dims:
             self._dims = dims
         else:
@@ -412,7 +418,7 @@ class nddata_coord_collection(object):
         # if dim already in dims, overwrite
         if dim in self.dims:
             index = self.index(dim)
-            self._coord[index] = coord
+            self._coords[index] = coord
         else:
             self._dims.append(dim)
             self._coords.append(coord)
@@ -485,9 +491,31 @@ class nddata_coord_collection(object):
     def pop(self, dim):
         index = self.index(dim)
         
-        self.coords.pop(index)
+        out = self.coords.pop(index)
 
         self.dims.pop(index)
+        return out
+
+    def copy(self):
+        '''
+        '''
+        return deepcopy(self)
+    def reorder_index(self, new_order):
+        '''Reorder based on index
+        '''
+
+        self._coords = [self._coords[x] for x in new_order]
+        self._dims = [self._dims[x] for x in new_order]
+
+    def rename(self, dim, new_dim):
+        '''
+        '''
+
+        if isinstance(self[dim], nddata_coord):
+            self[dim].dim = new_dim
+            self.dims[self.index(dim)] = new_dim
+        else:
+            self.dims[self.index(dim)] = new_dim
 
 if __name__ == '__main__':
 
@@ -499,4 +527,6 @@ if __name__ == '__main__':
 #    d = nddata_coord_collection(a,coord)
     d = nddata_coord_collection(['a', 'x', 'b'],[a, coord, b])
     d.reorder(['x','a'])
+
+    d.rename('a','test')
 

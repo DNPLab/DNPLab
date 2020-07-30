@@ -4,6 +4,7 @@ import numpy as np
 import warnings
 from copy import deepcopy
 from collections import OrderedDict
+import nddata_coord
 
 _numerical_types = (np.ndarray, int, float, complex)
 
@@ -25,22 +26,7 @@ class nddata_core(object):
         else:
             raise TypeError('values must be type "numpy.ndarray" not %s'%str(type(values)))
         
-        if not isinstance(coords, list):
-            coords = [coords]
-
-        if not isinstance(dims, list):
-            dims = [dims]
-
-        # verify coords are list of 1d numpy arrays
-        if self._check_coords(coords):
-            self._coords = coords
-        else:
-            raise TypeError('Invalid coords. Must be list of numpy.ndarray')
-
-        if self._check_dims(dims):
-            self._dims = dims
-        else:
-            raise TypeError('Invalid dims. Must be list of str with no duplicates')
+        self._coords = nddata_coord.nddata_coord_collection(dims, coords)
 
         if isinstance(attrs, dict):
             self._attrs = attrs
@@ -61,7 +47,6 @@ class nddata_core(object):
 
         if not self._self_consistent():
             warnings.warn('Dimensions not consistent')
-#            raise ValueError('Dimensions not consistent')
 
     @property
     def __version__(self):
@@ -123,7 +108,7 @@ class nddata_core(object):
         if self._values.size == 0:
             coords_check = len(self._coords) == 0
         else:
-            coords_check = list(self._values.shape) == [len(self._coords[x]) for x in range(len(self._coords))]
+            coords_check = list(self._values.shape) == list(self.coords.shape)
 
         dims_check = len(self.values.shape) == len(self.dims)
 
@@ -193,8 +178,8 @@ class nddata_core(object):
         index_slice_dict = dict(zip(index_dims, updated_index_slice))
         new_slices = [slice(None) if dim not in index_dims else index_slice_dict[dim] for dim in a.dims]
 
-        for ix in range(len(new_slices)):
-            a.coords[ix] = a.coords[ix][new_slices[ix]]
+        for ix, dim in enumerate(a.dims):
+            a.coords[dim] = a.coords[dim][new_slices[ix]]
 
         a.values = a.values[tuple(new_slices)]
 
@@ -231,17 +216,18 @@ class nddata_core(object):
     def sort_dims(self):
         '''
         '''
-        sorted_order = sorted(range(len(self._dims)), key=lambda x: self._dims[x])
+        sorted_order = sorted(range(len(self.dims)), key=lambda x: self.dims[x])
 
-        self._dims = [self._dims[x] for x in sorted_order]
-        self._coords = [self._coords[x] for x in sorted_order]
+#        self._dims = [self._dims[x] for x in sorted_order]
+#        self._coords = [self._coords[x] for x in sorted_order]
+        self.coords.reorder_index(sorted_order)
         self._values = np.moveaxis(self._values,range(len(sorted_order)),sorted_order)
 
     def index(self, dim):
         '''Find index of given dimension name
         '''
         if dim in self.dims:
-            return self.dims.index(dim)
+            return self.coords.index(dim)
         else:
             raise ValueError('%s not in %s'%(dim, self.dims))
 
@@ -366,26 +352,28 @@ class nddata_core(object):
 
     @property
     def dims(self):
-        return self._dims
+        return self._coords.dims
+#        return self._dims
 
     @dims.setter
     def dims(self, b):
-        if not self._check_dims(b):
-            raise TypeError('dims must be list of strings')
-        self._dims = b
+#        if not self._check_dims(b):
+#            raise TypeError('dims must be list of strings')
+#        self._dims = b
+        self.coords.dims = b
 
     @property
     def coords(self):
         return self._coords
 
-    @coords.getter
-    def coords(self):
-        return self._coords
-
+#    @coords.getter
+#    def coords(self):
+#        return self._coords
+#
     @coords.setter
     def coords(self, b):
-        if not self._check_coords(b):
-            raise TypeError('invalid coords')
+#        if not self._check_coords(b):
+#            raise TypeError('invalid coords')
         self._coords = b
 
     @property
@@ -411,47 +399,50 @@ class nddata_core(object):
             raise ValueError('error must be type "numpy.ndarray"')
 
     def rename(self, dim, new_name):
-        if dim in self._dims:
+        if dim in self.dims:
             if isinstance(new_name, str):
-                index = self.index(dim)
-                self._dims[index] = new_name
+                self.coords.rename(dim, new_name)
+#                index = self.index(dim)
+#                self._dims[index] = new_name
             else:
                 raise TypeError('New dimension name must be type "str" not %s'%type(new_name))
         else:
             raise ValueError('Dimension name %s is not in dims'%dim)
     
 
-    def reorder(self, new_dims):
+    def reorder(self, dims):
         '''
         '''
 
-        if not self._check_dims(new_dims):
+        if not self._check_dims(dims):
             raise TypeError('New dims must be list of str with no duplicates')
-        for dim in new_dims:
+        for dim in dims:
             if dim not in self.dims:
                 raise ValueError('no such dimension: %s'%dim)
 
         # Add original dims to end, remove duplicates
-        new_dims = list(OrderedDict.fromkeys(new_dims + self.dims))
+        dims = list(OrderedDict.fromkeys(dims + self.dims))
 
-        new_order = [new_dims.index(dim) for dim in self.dims]
+        new_order = [dims.index(dim) for dim in self.dims]
 
+        self.coords.reorder(dims)
         # dims
-        self.dims = new_dims
+#        self.dims = dims
 
         # coords
-        self.coords = [self.coords[x] for x in new_order]
+#        self.coords = [self.coords[x] for x in new_order]
+#        self.coords = [self.coords[dim] for dim in dims]
 #        self.coords = [self.coords[x] for x in new_order]
 #        self.coords = [self.coords[new_order[x]] for x in range(len(new_order))]
 
         # Transpose values
-        self.values = np.transpose(self.values,new_order)
+        self.values = np.transpose(self.values, new_order)
 
     def __str__(self):
-        return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}'.format(self._values, self._dims, self._coords, self._attrs)
+        return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs)
 
     def __repr__(self):
-        return 'nddata_core(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self._values), repr(self._dims), repr(self._coords), repr(self._attrs))
+        return 'nddata_core(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self.values), repr(self.dims), repr(self.coords), repr(self.attrs))
 
     def squeeze(self):
         '''Remove length 1 axes
@@ -459,12 +450,8 @@ class nddata_core(object):
         a = self.copy()
         shape = a.shape
 
-        dims = [a.dims[x] for x in range(len(shape)) if shape[x] != 1]
-        coords = [a.coords[x] for x in range(len(shape)) if shape[x] != 1]
-
-        lost_dims = [a.dims[x] for x in range(len(shape)) if shape[x] == 1]
-        lost_coords = [a.coords[x] for x in range(len(shape)) if shape[x] == 1]
-
+        remove_dims = [a.dims[x] for x in range(len(shape)) if shape[x] == 1]
+#
         values = np.squeeze(a.values)
 
         if a.error is not None:
@@ -472,11 +459,12 @@ class nddata_core(object):
 
         attrs = a.attrs
 
-        for ix in range(len(lost_dims)):
-            if lost_dims[ix] not in attrs:
-                attrs[lost_dims[ix]] = lost_coords[ix]
+        for dim in remove_dims:
+            out = a.coords.pop(dim)
+            if dim not in attrs:
+                attrs[dim] = np.array(out)
             else:
-                warnings.warn('Attribute lost {}:{}'.format(lost_dims[ix],lost_coords[ix]))
+                warnings.warn('Attribute lost {}:{}'.format(lost_dims[ix], lost_coords[ix]))
 
         return a
 
@@ -484,15 +472,16 @@ class nddata_core(object):
         '''
         '''
 
-        a = self.copy()
-        num_chunks = len(a.get_coord(dim)) / len(new_coords)
-        dims = a.dims.append(new_dim)
-        coords = a.coords.append(new_coord)
-
-        values = np.stack(np.split(a.values, num_chunks))
-        error = np.stack(np.split(a.error, num_chunks))
-
-        return a
+#        a = self.copy()
+#        num_chunks = len(a.get_coord(dim)) / len(new_coords)
+#        dims = a.dims.append(new_dim)
+#        coords = a.coords.append(new_coord)
+#
+#        values = np.stack(np.split(a.values, num_chunks))
+#        error = np.stack(np.split(a.error, num_chunks))
+#
+#        return a
+        return NotImplemented
 
 
     def get_coord(self, dim):
@@ -506,7 +495,8 @@ class nddata_core(object):
             
         '''
 
-        return self.coords[self.index(dim)]
+#        return self.coords[self.index(dim)]
+        return self.coords[dim]
 
 
     @property
@@ -530,8 +520,7 @@ class nddata_core(object):
         if a.error is not None:
             a.error = a.error.std(index)
 
-        a.dims.pop(index)
-        a.coords.pop(index)
+        a.coords.pop(dim)
 
         return a
 
@@ -575,16 +564,19 @@ class nddata_core(object):
         a.merge_attrs(b)
 
         # coords
-        coords = list(a.coords)
+        coords = a.coords.copy()
         coords += [b.coords[ix] for ix in new_order if b.dims[ix] not in a.dims]
 
+        coords = nddata_coord.nddata_coord_collection(all_dims, coords)
+
         a.values = values
-        a.dims = all_dims
+#        a.dims = all_dims
+#        a.coords = coords
         a.coords = coords
         a.error = error
 
         b.values = values_b
-        b.dims = all_dims
+#        b.dims = all_dims
         b.coords = coords
         b.error = error_b
 
@@ -596,11 +588,12 @@ class nddata_core(object):
     def sort(self, dim):
         '''
         '''
-        index = self.index(dim)
+#        index = self.index(dim)
 
-        sort_array = np.argsort(self.coords[index])
+        sort_array = np.argsort(self.coords[dim])
 
-        self.coords[index] = self.coords[index][sort_array]
+#        self.coords[index] = self.coords[index][sort_array]
+        self.coords[dim] = self.coords[dim][sort_array]
 
         new_order = tuple([slice(None) if dim != this_dim else sort_array for this_dim in self.dims])
 
@@ -609,9 +602,10 @@ class nddata_core(object):
     def is_sorted(self, dim):
         '''
         '''
-        index = self.index(dim)
+#        index = self.index(dim)
 
-        return np.all(self.coords[index][:-1] <= self.coords[index][1:])
+#        return np.all(self.coords[index][:-1] <= self.coords[index][1:])
+        return np.all(self.coords[dim][:-1] <= self.coords[dim][1:])
 
     @property
     def real(self):
@@ -652,8 +646,10 @@ if __name__ == '__main__':
     data = nddata_core(np.array(range(len(x)*len(y)*len(z))).reshape(len(x),len(y),len(z)), ['x','y','z'], [x, y, z])
     data.reorder(['x','y','z'])
 
-    d = nddata_core(x, 'x', x)
-    a = nddata_core(x, 'a', x)
+    d = nddata_core(x, ['x'], [x])
+    d2 = data['x',0]
+    d3 = d2.squeeze()
+#    a = nddata_core(x, 'a', x)
 
 #    data2 = nddata_core(np.array(range(len(x)*len(y)*len(q))).reshape(len(x),len(y),len(q)), ['x','y','q'], [x, y, q])
 #
