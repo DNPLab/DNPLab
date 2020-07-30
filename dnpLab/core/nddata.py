@@ -4,7 +4,8 @@ import numpy as np
 import warnings
 from copy import deepcopy
 from collections import OrderedDict
-import nddata_coord
+#import nddata_coord
+from . import nddata_coord
 
 _numerical_types = (np.ndarray, int, float, complex)
 

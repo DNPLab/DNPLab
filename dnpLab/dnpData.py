@@ -59,43 +59,43 @@ class dnpData(nddata.nddata_core):
 #    def __copy__(self):
 #        return deepcopy(self)
 #
-    def __getitem__(self,index):
-        '''Indexing dnpData function
-        '''
-#        return self.data[index]
-#        print index
-
-        # Make sure format is correct
-        if len(index) % 2 == 1:
-            print('invalid indexing')
-            return
-
-        indexing_labels = index[0::2]
-        indexing_list = index[1::2]
-
-        indices = []
-
-        for axes_ix, axes_label in enumerate(self.dims):
-            if axes_label in indexing_labels:
-                ix = indexing_labels.index(axes_label)
-#                indices.append(indexing_list[ix])
-                if indexing_list[ix] == -1:
-                    indices.append(slice(indexing_list[ix],None))
-                elif isinstance(indexing_list[ix],int):
-                    indices.append(slice(indexing_list[ix],indexing_list[ix]+1))
-                else:
-                    indices.append(indexing_list[ix])
-            else:
-                indices.append(slice(0,len(self.coords[axes_ix])))
-
-        indices = tuple(indices)
-
-        out = deepcopy(self)
-        out.values = out.values[indices]
-        for ix in range(len(out.coords)):
-            out.coords[ix] = out.coords[ix][indices[ix]]
-
-        return out
+#    def __getitem__(self,index):
+#        '''Indexing dnpData function
+#        '''
+##        return self.data[index]
+##        print index
+#
+#        # Make sure format is correct
+#        if len(index) % 2 == 1:
+#            print('invalid indexing')
+#            return
+#
+#        indexing_labels = index[0::2]
+#        indexing_list = index[1::2]
+#
+#        indices = []
+#
+#        for axes_ix, axes_label in enumerate(self.dims):
+#            if axes_label in indexing_labels:
+#                ix = indexing_labels.index(axes_label)
+##                indices.append(indexing_list[ix])
+#                if indexing_list[ix] == -1:
+#                    indices.append(slice(indexing_list[ix],None))
+#                elif isinstance(indexing_list[ix],int):
+#                    indices.append(slice(indexing_list[ix],indexing_list[ix]+1))
+#                else:
+#                    indices.append(indexing_list[ix])
+#            else:
+#                indices.append(slice(0,len(self.coords[axes_ix])))
+#
+#        indices = tuple(indices)
+#
+#        out = deepcopy(self)
+#        out.values = out.values[indices]
+#        for ix in range(len(out.coords)):
+#            out.coords[ix] = out.coords[ix][indices[ix]]
+#
+#        return out
 #
     def __init__(self, values = np.r_[[]], coords = [], dims = [], attrs = {}, procList = []):
         '''dnpData Class __init__ method
