@@ -5,3 +5,4 @@ from . import dnpImport
 from . import dnpFit
 from . import hydration
 from . import core
+from .plot_lib import *
