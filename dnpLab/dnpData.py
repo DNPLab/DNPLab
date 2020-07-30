@@ -222,7 +222,8 @@ class dnpData(nddata.nddata_core):
 
         self.proc_attrs.append((proc_attr_name,proc_dict))
 
-    def addAxes(self,axesLabel,axesValue):
+#    def add_coord(self, dim, coord):
+    def addAxes(self, dim, coord):
         '''Add new axesLabel to dnpData object with ax
 
         This function increases the dimension of the dnpData object by 1 with the axesValue parameter giving the axes
@@ -231,16 +232,9 @@ class dnpData(nddata.nddata_core):
             axesLabel (str): Name of new axis
             axesValue (float,int): Axes value for new dimension
         '''
-        if axesLabel in self.dims:
-            index = self.dims.index(axesLabel)
-            print('Axes %s already exists'%(str(axesLabel)))
-        elif type(axesLabel) != str:
-            index = axesLabel
-            print('Axes label must be a string')
-        else:
-            self.dims.append(axesLabel)
-            self.coords.append(np.r_[axesValue])
-            self.values = np.expand_dims(self.values,-1)
+
+        self.coords.append(dim, coord)
+        self.values = np.expand_dims(self.values, -1)
 
     def autophase(self,):
         '''Automatically phase data
@@ -259,8 +253,9 @@ class dnpData(nddata.nddata_core):
         '''
         reorderLabels = self.dims
         
-        self.sort()
-        newData.sort()
+        self.sort_dims()
+        newData.sort_dims()
+
 
         if self.dims != newData.dims:
 #            print 'ERROR' # NOTE determine how error handling will work
@@ -268,8 +263,8 @@ class dnpData(nddata.nddata_core):
 #            return
         index = self.dims.index(axesLabel)
 
-        self.values = np.concatenate((self.values,newData.values),axis = index)
-        self.coords[index] = np.concatenate((self.coords[index],newData.coords[index]))
+        self.values = np.concatenate((self.values,newData.values), axis = index)
+        self.coords[axesLabel] = np.concatenate((np.array(self.coords[axesLabel]).reshape(-1),np.array(newData.coords[axesLabel]).reshape(-1)))
 
         self.reorder(reorderLabels)
 
@@ -339,10 +334,10 @@ class dnpData(nddata.nddata_core):
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.dims.pop(index)
+#        a.dims.pop(index)
 
-        a.values = a.coords[index][np.argmax(a.values, axis = index)]
-        a.coords.pop(index)
+        a.values = a.coords[dim][np.argmax(a.values, axis = index)]
+        a.coords.pop(dim)
 
         return a
 
@@ -387,55 +382,56 @@ class dnpData(nddata.nddata_core):
         out.values = np.real(out.values)
         return out
 
-    def reorder(self,dims):
-        '''Reorder array given a list of axes labels
-
-        Args:
-            dims (list,tuple, str): Axes to reorder
-
-        .. note::
-            If not all axes are defined, they will be placed at the end of the axes labels in their original order
-        '''
-        if isinstance(dims,str):
-            dims = [dims]
-        if isinstance(dims,tuple):
-            dims = list(dims)
-        if not isinstance(dims,list):
-            print('dims must be a list')
-            return
-
-        if sorted(dims) != sorted(self.dims):
-            for label in dims:
-                if label not in self.dims:
-                    print('\'%s\' not in axes labels'%label)
-                    return
-            for label in self.dims:
-                if label not in dims:
-                    dims.append(label)
-        ix_reorder = [self.dims.index(k) for k in dims]
-        self.coords = [self.coords[ix] for ix in ix_reorder]
-        self.dims = [self.dims[ix] for ix in ix_reorder]
-        self.values = np.transpose(self.values,ix_reorder)
-
-    def rename(self, oldLabel, newLabel):
-        '''Rename axis
-        
-        Args:
-            oldLabel (str): Axis label to be changed
-            newLabel (str): New label for axes
-        '''
-        index = self.dims.index(oldLabel)
-        self.dims[index] = newLabel
-
-    def sort(self):
-        '''Sort order of axes based on python list sorting for axes labels
-
-        '''
-        ix_sort = sorted(range(len(self.dims)), key = lambda k: self.dims[k])
-        self.coords = [self.coords[ix] for ix in ix_sort]
-        self.dims = [self.dims[ix] for ix in ix_sort]
-        self.values = np.transpose(self.values,ix_sort)
-
+#    def reorder(self,dims):
+#        '''Reorder array given a list of axes labels
+#
+#        Args:
+#            dims (list,tuple, str): Axes to reorder
+#
+#        .. note::
+#            If not all axes are defined, they will be placed at the end of the axes labels in their original order
+#        '''
+#        if isinstance(dims,str):
+#            dims = [dims]
+#        if isinstance(dims,tuple):
+#            dims = list(dims)
+#        if not isinstance(dims,list):
+#            print('dims must be a list')
+#            return
+#
+#        if sorted(dims) != sorted(self.dims):
+#            for label in dims:
+#                if label not in self.dims:
+#                    print('\'%s\' not in axes labels'%label)
+#                    return
+#            for label in self.dims:
+#                if label not in dims:
+#                    dims.append(label)
+#        ix_reorder = [self.dims.index(k) for k in dims]
+#        self.coords = [self.coords[ix] for ix in ix_reorder]
+#        self.dims = [self.dims[ix] for ix in ix_reorder]
+#        self.values = np.transpose(self.values,ix_reorder)
+#
+#    def rename(self, oldLabel, newLabel):
+#        '''Rename axis
+#        
+#        Args:
+#            oldLabel (str): Axis label to be changed
+#            newLabel (str): New label for axes
+#        '''
+#        index = self.dims.index(oldLabel)
+#        self.dims[index] = newLabel
+#
+#    def sort(self):
+#        '''Sort order of axes based on python list sorting for axes labels
+#
+#        '''
+#        ix_sort = sorted(range(len(self.dims)), key = lambda k: self.dims[k])
+#
+#        dims_sort = [self.dims[ix] for ix in ix_sort]
+#        self.coords = [self.coords[dim] for dim in dims_sort]
+#        self.values = np.transpose(self.values,ix_sort)
+#
 
 
 #    def plot(self,axes_label,*args,**kwargs):

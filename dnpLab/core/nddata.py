@@ -353,7 +353,7 @@ class nddata_core(object):
 
     @property
     def dims(self):
-        return self._coords.dims
+        return self.coords.dims
 #        return self._dims
 
     @dims.setter

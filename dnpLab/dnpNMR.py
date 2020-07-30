@@ -146,8 +146,8 @@ def fourier_transform(all_data, proc_parameters):
     convert_to_ppm = proc_parameters['convert_to_ppm']
 
     index = data.dims.index(dimLabel)
-    dt = data.coords[index][1] - data.coords[index][0]
-    n_pts = zero_fill_factor*len(data.coords[index])
+    dt = data.coords[dimLabel][1] - data.coords[dimLabel][0]
+    n_pts = zero_fill_factor*len(data.coords[dimLabel])
     f = (1./(n_pts*dt))*_np.r_[0:n_pts]
     if shift == True:
         f -= (1./(2*dt))
@@ -159,7 +159,7 @@ def fourier_transform(all_data, proc_parameters):
     data.values = _np.fft.fft(data.values,n=n_pts,axis=index)
     if shift:
         data.values = _np.fft.fftshift(data.values,axes=index)
-    data.coords[index] = f
+    data.coords[dimLabel] = f
 
     proc_attr_name = 'fourier_transform'
     proc_dict = {k:proc_parameters[k] for k in proc_parameters if k in requiredList}
@@ -204,10 +204,10 @@ def window(all_data,proc_parameters):
     index = data.dims.index(dimLabel)
 
     reshape_size = [1 for k in data.dims]
-    reshape_size[index] = len(data.coords[index])
+    reshape_size[index] = len(data.coords[dimLabel])
 
     # Must include factor of 2 in exponential to get correct linewidth ->
-    window_array = _np.exp(-1.*data.coords[index]*2.*linewidth).reshape(reshape_size)
+    window_array = _np.exp(-1.*data.coords[dimLabel]*2.*linewidth).reshape(reshape_size)
     window_array = _np.ones_like(data.values) * window_array
     data.values *= window_array
 

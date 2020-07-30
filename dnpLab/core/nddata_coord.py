@@ -441,7 +441,7 @@ class nddata_coord_collection(object):
 
     @property
     def coords(self):
-        return self._coords
+        return np.array(self._coords)
 
     @coords.setter
     def coords(self, coords):
@@ -516,6 +516,24 @@ class nddata_coord_collection(object):
             self.dims[self.index(dim)] = new_dim
         else:
             self.dims[self.index(dim)] = new_dim
+
+    def append(self, dim, coord):
+        '''Append to coords
+        '''
+        if not isinstance(dim, str):
+            raise TypeError('dim must be type str not %s'%str(type(dim)))
+
+        if not isinstance(coord, (complex, float, int, np.ndarray, nddata_coord)):
+            raise TypeError('coord must be type numpy not %s'%str(type(coord)))
+
+        if isinstance(coord, (float, int, complex)):
+            coord = np.array(coord)
+
+        if dim not in self.dims:
+            self._dims.append(dim)
+            self._coords.append(coord)
+        else:
+            raise ValueError('dim already in dims, cannot append to coords')
 
 if __name__ == '__main__':
 
