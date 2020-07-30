@@ -121,16 +121,16 @@ class HydrationResults(AttrDict):
             numpy array that is the result of ~(1-E) / [ (constants*T1) ],
             used in ksigma(E_power) fit,
         ksigma_fit (numpy.array)        : ksig_fit,
-        k_sigma (float)                 : k_sigma,
+        ksigma (float)                 : ksigma,
         ksigma_error (float)            : ksigma_error,
-        ksigma_bulk_ratio (float)       : k_sigma/ksigma_bulk,
+        ksigma_bulk_ratio (float)       : ksigma/ksigma_bulk,
         krho (float)                    : krho,
         klow (float)                    : klow,
         klow_bulk_ratio (float)         : klow / klow_bulk,
         coupling_factor (float)         : coupling_factor,
         tcorr (float)                   : tcorr,
         tcorr_bulk_ratio (float)        : tcorr / tcorr_bulk,
-        D_local (float)                 : D_local
+        Dlocal (float)                 : Dlocal
 
     """
     def __init__(self, *args, **kwargs):
@@ -139,7 +139,7 @@ class HydrationResults(AttrDict):
         self.interpolated_T1 = None
         self.ksigma_array = None
         self.ksigma_fit = None
-        self.k_sigma = None
+        self.ksigma = None
         self.ksigma_error = None
         self.ksigma_bulk_ratio = None
         self.krho = None
@@ -148,7 +148,7 @@ class HydrationResults(AttrDict):
         self.coupling_factor = None
         self.tcorr = None
         self.tcorr_bulk_ratio = None
-        self.D_local = None
+        self.Dlocal = None
         self.update(*args, **kwargs)
 
     def keys(self):
@@ -298,22 +298,22 @@ class HydrationCalculator:
         # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
 
         ksigma_array = ((1 - Ep) / (spin_C * omega_ratio * T1p))
-        # (Eq. 41) this calculates the array of k_sigma*s(p) from the enhancement array,
+        # (Eq. 41) this calculates the array of ksigma*s(p) from the enhancement array,
         # dividing by the T1 array for the "corrected" analysis
 
         popt, pcov = self.get_ksigma(ksigma_array, power)
-        # fit to the right side of Eq. 42 to get (k_sigma*smax) and half of the E_power at s_max, called p_12 here
+        # fit to the right side of Eq. 42 to get (ksigma*smax) and half of the E_power at s_max, called p_12 here
         ksigma_smax = popt[0]
         p_12 = popt[1]
         ksigma_std = np.sqrt(np.diag(pcov))
         ksigma_error = ksigma_std[0] / s_max
 
         ksigma_fit = (ksigma_smax * power) / (p_12 + power)
-        # (Eq. 42) calculate the "corrected" k_sigma*s(p) array using the fit parameters,
+        # (Eq. 42) calculate the "corrected" ksigma*s(p) array using the fit parameters,
         # this can be used to plot over the data ksigma_array array to assess the quality of fit.
         # This would correspond to the corrected curves in Figure 9
         
-        k_sigma = ksigma_smax / s_max
+        ksigma = ksigma_smax / s_max
         
         # ksig_uncorr = ((1 - Ep) / (spin_C * omega_ratio * T10)) / s_max
         # (Eq. 44) the "uncorrected" model, this can also be plotted with the corrected
@@ -326,7 +326,7 @@ class HydrationCalculator:
 
         krho = ((1/T10) - (1/T100)) / spin_C  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
 
-        coupling_factor = k_sigma / krho  # (Eq. 3) this is the coupling factor, unitless
+        coupling_factor = ksigma / krho  # (Eq. 3) this is the coupling factor, unitless
 
         tcorr = self.get_tcorr(coupling_factor, omega_e, omega_H)
         # (Eq. 21-23) this calls the fit to the spectral density functions. The fit
@@ -344,7 +344,7 @@ class HydrationCalculator:
         # (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is distance in
         # meters. *didnt use m to avoid confusion with mass
 
-        D_local = (tcorr_bulk / tcorr) * (D_H2O + D_SL)
+        Dlocal = (tcorr_bulk / tcorr) * (D_H2O + D_SL)
         # (Eq. 19-20) local diffusivity, i.e. diffusivity of the water near the spin label
 
         ############################################################################
@@ -356,7 +356,7 @@ class HydrationCalculator:
         # Franck, JM, et. al.; "Anomalously Rapid Hydration Water Diffusion Dynamics
         # Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023.
 
-        klow = ((5 * krho) - (7 * k_sigma)) / 3
+        klow = ((5 * krho) - (7 * ksigma)) / 3
         # section 6, (Eq. 13). this describes the relatively slowly diffusing water
         # near the spin label, sometimes called "bound" water
         ############################################################################
@@ -383,16 +383,16 @@ class HydrationCalculator:
             'interpolated_T1'   : T1p,
             'ksigma_array'      : ksigma_array,
             'ksigma_fit'        : ksigma_fit,
-            'k_sigma'           : k_sigma,
+            'ksigma'            : ksigma,
             'ksigma_error'      : ksigma_error,
-            'ksigma_bulk_ratio' : k_sigma/ksigma_bulk,
+            'ksigma_bulk_ratio' : ksigma/ksigma_bulk,
             'krho'              : krho,
             'klow'              : klow,
             'klow_bulk_ratio'   : klow / klow_bulk,
             'coupling_factor'   : coupling_factor,
             'tcorr'             : tcorr,
             'tcorr_bulk_ratio'  : tcorr / tcorr_bulk,
-            'D_local'           : D_local
+            'Dlocal'            : Dlocal
         })
 
     @staticmethod
@@ -456,10 +456,10 @@ class HydrationCalculator:
 
     @staticmethod
     def get_ksigma(ksig_sp: np.array, power: np.array):
-        """Get k_sigma and E_power at half max of ksig
+        """Get ksigma and E_power at half max of ksig
 
         Args:
-            ksig (numpy.array): Array of k_sigma.
+            ksig (numpy.array): Array of ksigma.
             power (numpy.array): Array of E_power.
 
         Returns:
@@ -467,7 +467,7 @@ class HydrationCalculator:
             pcov: covariance matrix
 
         Asserts:
-            k_sigma (popt[0]) is greater than zero
+            ksigma (popt[0]) is greater than zero
 
         """
 
