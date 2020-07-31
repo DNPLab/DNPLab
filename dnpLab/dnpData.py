@@ -334,8 +334,6 @@ class dnpData(nddata.nddata_core):
         a = self.copy()
         index = a.dims.index(dim)
 
-#        a.dims.pop(index)
-
         a.values = a.coords[dim][np.argmax(a.values, axis = index)]
         a.coords.pop(dim)
 
