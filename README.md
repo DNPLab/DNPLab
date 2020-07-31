@@ -97,6 +97,7 @@ show()
 # Example Script for Kea Data
 
 ```python
+```python
 # Import standard packages
 import numpy as np
 from matplotlib.pylab import *
@@ -130,7 +131,7 @@ power_W_array[0] = 0 # Correct first value
 data_power = odnpLab.odnpData()
 # Import Kea data and concatenate power dimension
 for ix in range(len(exp_num_list)):
-    temp_data = odnpLab.odnpImport.kea.importKea(path,num = exp_num_list[ix])
+    temp_data = odnpLab.odnpImport.kea.importKea(path,expNum=exp_num_list[ix])
     data_power.add_power(temp_data,power_W_array[ix])
 
 allData = {'raw':data_power}

@@ -1,0 +1,163 @@
+# 1 "C:/Bruker/TOPSPIN/exp/stan/nmr/lists/pp/jf_fir"
+;avance-version (00/04/28)
+;2D homonuclear shift correlation
+;
+; trigger program, started with cosy as template
+;              -franck
+
+
+# 1 "C:/Bruker/TOPSPIN/exp/stan/nmr/lists/pp/Avance.incl" 1
+;Avance.incl
+;
+;avance-version (07/01/22)
+;
+;$CLASS=HighRes Incl
+;$COMMENT=
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;$Id: Avance1.incl,v 1.10.6.2 2007/01/22 13:54:46 ber Exp $
+# 8 "C:/Bruker/TOPSPIN/exp/stan/nmr/lists/pp/jf_fir" 2
+
+"d3 = d1 - aq"
+1 ze ; reset phase pointers such that they are at the first element after ds scans
+p1 ph1 ;excitation pulse --> to zero initial magnetization
+2       d3
+             p1*2 ph1 ;excitation pulse
+             vd ; recovery delay
+             p1 ph2 ;excitation pulse, then increment the phase
+        go=2 ph31 ;acquire and repeat
+    d11 wr #0 if #0 zd ; screw this F1QF shit
+    0.1u ivd ; change the variable delay
+lo to 2 times td1 ; td1 is just the indirect dim size
+exit
+
+ph1=0 0 0 0
+ph2=0 1 2 3
+ph31=0 1 2 3

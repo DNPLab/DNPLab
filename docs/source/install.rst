@@ -1,7 +1,7 @@
 .. install:
 
 ==================
-Installing odnpLab
+Installing dnpLab
 ==================
 
 Required Packages
@@ -11,17 +11,5 @@ Installing with pip
 ===========================
 .. code-block:: bash
 
-   $ python -m pip install odnpLab
+   $ python -m pip install dnp_lab
    $ make file
-Installing from Source
-======================
-
-Download the package from the repository and run the setup.py file.
-
-.. code-block:: bash
-
-   $ python setup.py
-
-
-
-

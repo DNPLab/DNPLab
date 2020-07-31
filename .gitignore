@@ -9,6 +9,8 @@ __pycache__/
 *.so
 
 # Distribution / packaging
+docs/html/
+docs/build/
 bin/
 build/
 develop-eggs/
