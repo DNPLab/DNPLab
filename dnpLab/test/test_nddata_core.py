@@ -54,5 +54,70 @@ class dnpLab_nddata_core_tester(unittest.TestCase):
             assert_array_equal((data1+1.).values, values1+1.)
             assert_array_equal((data1+1.j).values, values1+1.j)
 
+    def test_nddata_core_math_operators(self):
+        for ix in range(1000):
+            random_coords = [np.r_[0:random.randint(1,6)] for dim in test_dims]
+
+            random_axis = list(zip(test_dims, random_coords))
+
+            random_axis = random.sample(random_axis, 3)
+
+            dims = [axis[0] for axis in random_axis]
+            coords = [axis[1] for axis in random_axis]
+            shape = [coord.size for coord in coords]
+            values = np.random.randn(*shape)
+            data = nddata.nddata_core(values, dims, coords)
+
+            random_array = np.random.randn(*shape)
+
+            #__add__
+            assert_array_equal((data+1).values, values+1)
+            assert_array_equal((data+1.).values, values+1.)
+            assert_array_equal((data+1.j).values, values+1.j)
+            assert_array_equal((data+random_array).values, values+random_array)
+
+            #__sub__
+            assert_array_equal((data-1).values, values-1)
+            assert_array_equal((data-1.).values, values-1.)
+            assert_array_equal((data-1.j).values, values-1.j)
+            assert_array_equal((data-random_array).values, values-random_array)
+
+            #__mult__
+            assert_array_equal((data*1).values, values*1)
+            assert_array_equal((data*1.).values, values*1.)
+            assert_array_equal((data*1.j).values, values*1.j)
+            assert_array_equal((data*random_array).values, values*random_array)
+
+            #__truediv__
+            assert_array_equal((data/1).values, values/1)
+            assert_array_equal((data/1.).values, values/1.)
+            assert_array_equal((data/1.j).values, values/1.j)
+            assert_array_equal((data/random_array).values, values/random_array)
+
+            #__radd__
+            assert_array_equal((1+data).values, 1+values)
+            assert_array_equal((1.+data).values, 1.+values)
+            assert_array_equal((1.j+data).values, 1.j+values)
+            assert_array_equal((random_array+data).values, random_array+values)
+
+            #__rsub__
+            assert_array_equal((1-data).values, 1-values)
+            assert_array_equal((1.-data).values, 1.-values)
+            assert_array_equal((1.j-data).values, 1.j-values)
+            assert_array_equal((random_array-data).values, random_array-values)
+
+            #__rmult__
+            assert_array_equal((1*data).values, 1*values)
+            assert_array_equal((1.*data).values, 1.*values)
+            assert_array_equal((1.j*data).values, 1.j*values)
+            assert_array_equal((random_array*data).values, random_array*values)
+
+            #__rtruediv__
+            assert_array_equal((1/data).values, 1/values)
+            assert_array_equal((1./data).values, 1./values)
+            assert_array_equal((1.j/data).values, 1.j/values)
+            assert_array_equal((random_array/data).values, random_array/values)
+
+
 if __name__ == '__main__':
     pass

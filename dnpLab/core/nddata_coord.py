@@ -404,7 +404,12 @@ class nddata_coord_collection(object):
         return self._dims.index(dim)
 
     def __getitem__(self, dim):
-        return self.coords[self.index(dim)]
+        if isinstance(dim, str):
+            return self.coords[self.index(dim)]
+        elif isinstance(dim, int):
+            return self.coords[dim]
+        else:
+            raise TypeError('dim must be type str or int not: %s'%str(type(dim)))
 
     def __setitem__(self, dim, coord):
         if not isinstance(dim, str):

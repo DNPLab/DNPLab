@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 from numpy.testing import assert_array_equal as assertArrayEqual
 from .testing import get_gauss_3d
 from dnpLab.dnpData import dnpData
@@ -14,7 +15,7 @@ class OdnpDataTester(unittest.TestCase):
         assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z'])
 
     def test_coords_get_set(self):
-        self.dnpdata.addAxes('r', range(10))
+        self.dnpdata.addAxes('r', np.r_[0:10])
         assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z', 'r'])
         self.dnpdata.rename('r', 's')
         assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z', 's'])
@@ -23,7 +24,7 @@ class OdnpDataTester(unittest.TestCase):
         self.dnpdata.reorder(['y', 'z', 'x'])
         assertArrayEqual(self.dnpdata.dims, ['y', 'z', 'x'])
         assertArrayEqual(self.dnpdata.getAxes('z'), self.z)
-        self.dnpdata.sort()
+        self.dnpdata.sort_dims()
         assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z'])
         assertArrayEqual(self.dnpdata.getAxes('z'), self.z)
 
