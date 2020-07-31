@@ -7,15 +7,18 @@ from . import dnpData
 
 figure = plt.figure
 
-def plot(data, dim, *args, **kwargs):
+def plot(data, *args, **kwargs):
     '''
     '''
-    coord = data.coords[dim]
-    original_order = data.dims
-    data.reorder([dim])
+#    coord = data.coords[dim]
+    coord = data.coords[0]
+    dim = data.dims[0]
+
+#    original_order = data.dims
+#    data.reorder([dim])
     plt.plot(coord, data.values, *args, **kwargs)
     plt.xlabel(dim)
-    data.reorder(original_order)
+#    data.reorder(original_order)
 
 
 def imshow(data, *args, **kwargs):

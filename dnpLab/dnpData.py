@@ -561,9 +561,12 @@ class dnpdata_collection(MutableMapping):
         else:
             raise TypeError('Processing buffer must be type str, not %s'%str(type(new_processing_buffer)))
 
-    def copy(self, a, b):
+    def copy(self, a, b = None):
         '''Copy data
         '''
+
+        if b is None:
+            b = self.processing_buffer
 
         self[b] = self[a].copy()
 
