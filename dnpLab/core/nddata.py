@@ -566,18 +566,15 @@ class nddata_core(object):
 
         # coords
         coords = a.coords.copy()
-        coords += [b.coords[ix] for ix in new_order if b.dims[ix] not in a.dims]
-
-        coords = nddata_coord.nddata_coord_collection(all_dims, coords)
+        for dim in new_b_order:
+            if dim not in a.dims:
+                coords.append(dim, b.coords[dim])
 
         a.values = values
-#        a.dims = all_dims
-#        a.coords = coords
         a.coords = coords
         a.error = error
 
         b.values = values_b
-#        b.dims = all_dims
         b.coords = coords
         b.error = error_b
 
@@ -603,9 +600,6 @@ class nddata_core(object):
     def is_sorted(self, dim):
         '''
         '''
-#        index = self.index(dim)
-
-#        return np.all(self.coords[index][:-1] <= self.coords[index][1:])
         return np.all(self.coords[dim][:-1] <= self.coords[dim][1:])
 
     @property
