@@ -496,9 +496,10 @@ class nddata_coord_collection(object):
     def pop(self, dim):
         index = self.index(dim)
         
-        out = self.coords.pop(index)
+        out = self._coords.pop(index)
 
         self.dims.pop(index)
+
         return out
 
     def copy(self):

@@ -620,6 +620,52 @@ class nddata_core(object):
         a.values = np.abs(a.values)
         return a
 
+    def concatenate(self, b, dim):
+        '''
+        '''
+
+        if not dim in b.dims:
+            raise ValueError('dim does not exist')
+        if not dim in self.dims:
+            raise ValueError('dim does not exist')
+
+        index = self.dims.index(dim)
+
+        b.reorder(self.dims)
+
+        self.values = np.concatenate((self.values, b.values), axis = index)
+        
+        self.coords[dim] = np.concatenate((np.array(self.coords[dim]).reshape(-1),np.array(b.coords[dim]).reshape(-1)))
+
+    def new_dim(self, dim, coord):
+        '''
+        '''
+
+        self.coords.append(dim, np.r_[coord])
+        self.values = np.expand_dims(self.values, -1)
+
+
+    def argmax(self, dim):
+        '''Return argmax for given dim
+        '''
+        a = self.copy()
+        index = a.dims.index(dim)
+
+        a.values = a.coords[dim][np.argmax(a.values, axis = index)]
+        a.coords.pop(dim)
+
+        return a
+
+    def argmin(self, dim):
+        '''Return argmin for given dim
+        '''
+        a = self.copy()
+        index = a.dims.index(dim)
+
+        a.values = a.coords[dim][np.argmin(a.values, axis = index)]
+        a.coords.pop(dim)
+
+        return a
 
 
 if __name__ == '__main__':
@@ -644,71 +690,3 @@ if __name__ == '__main__':
     d = nddata_core(x, ['x'], [x])
     d2 = data['x',0]
     d3 = d2.squeeze()
-#    a = nddata_core(x, 'a', x)
-
-#    data2 = nddata_core(np.array(range(len(x)*len(y)*len(q))).reshape(len(x),len(y),len(q)), ['x','y','q'], [x, y, q])
-#
-#    data3 = nddata_core(np.array(range(len(r)*len(p)*len(q))).reshape(len(r),len(p),len(q)), ['r','p','q'], [r, p, q])
-
-    
-    # Test Addition
-#    d = data + data
-#    d = data + data2
-#    d = data + data3
-#    d = data2 + data2
-#    d = data2 + data3
-#    d = data + 1
-#    d = 1 + data
-#    d = data + 1.
-#    d = 1. + data
-#    d = data + 1j
-#    d = 1j + data
-#    d = data + data.values
-#    d = data.values + data
-
-    # Test Subtraction
-#    d = data - data
-#    d = data - data2
-#    d = data - data3
-#    d = data2 - data2
-#    d = data2 - data3
-#    d = data - 1
-#    d = 1 - data
-#    d = data - 1.
-#    d = 1. - data
-#    d = data - 1j
-#    d = 1j - data
-#    d = data - data.values
-#    d = data.values - data
-
-    # Test Multiplication
-#    d = data * data
-#    d = data * data2
-#    d = data * data3
-#    d = data2 * data2
-#    d = data2 * data3
-#    d = data * 1
-#    d = 1 * data
-#    d = data * 1.
-#    d = 1. * data
-#    d = data * 1j
-#    d = 1j * data
-#    d = data * data.values
-#    d = data.values * data
-
-    # Test Division
-#    d = data / data
-#    d = data / data2
-#    d = data / data3
-#    d = data2 / data2
-#    d = data2 / data3
-#    d = data / 1
-#    d = 1 / data
-#    d = data / 1.
-#    d = 1. / data
-#    d = data / 1j
-#    d = 1j / data
-#    d = data / data.values
-#    d = data.values / data
-
-    
