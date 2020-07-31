@@ -28,22 +28,27 @@ _default_remove_offset_parameters = {
         'offset_points' : 10,
         }
 
+_default_autophase_parameters = {
+        'method': 'arctan',
+        }
+
 def return_data(all_data):
     '''
     Determine what the data type is for processing
     '''
 
-    isDict = False
+    is_workspace = False
     if isinstance(all_data,dnpData):
         data = all_data.copy()
     elif isinstance(all_data, dict):
-        isDict = True
-        if 'proc' in all_data:
-            data = all_data['proc'].copy()
-        elif 'raw' in all_data:
-            data = all_data['raw'].copy()
+        raise ValueError('Type dict is not supported')
+#        isDict = True
+#        if 'proc' in all_data:
+#            data = all_data['proc'].copy()
+#        elif 'raw' in all_data:
+#            data = all_data['raw'].copy()
     elif isinstance(all_data, dnpdata_collection):
-        isDict = True
+        is_workspace = True
         if all_data.processing_buffer in all_data.keys():
             data = all_data[all_data.processing_buffer]
         else:
@@ -51,7 +56,7 @@ def return_data(all_data):
     else:
         raise ValueError('Data type not supported')
 
-    return data, isDict
+    return data, is_workspace
 
 def update_parameters(proc_parameters, requiredList, default_parameters):
     '''
@@ -311,5 +316,22 @@ def align(all_data,proc_parameters):
     if isDict:
         all_data['proc'] = data
         return all_data
+    else:
+        return data
+
+def autophase(workspace, parameters):
+    '''
+    '''
+
+    data, is_workspace = return_data(workspace)
+    phase = _np.arctan(_np.sum(_np.imag(data.values))/_np.sum(_np.real(data.values)))
+
+    data.values *= _np.exp(-1j*phase)
+    if _np.sum(_np.real(data.values)) < 0:
+        data.values *= -1.
+
+    if is_workspace:
+        workspace['proc'] = data
+        return workspace
     else:
         return data

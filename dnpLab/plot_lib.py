@@ -6,6 +6,19 @@ from . import dnpData
 #import dnpData
 
 figure = plt.figure
+legend = plt.legend
+xlim = plt.xlim
+ylim = plt.ylim
+gca = plt.gca
+
+dark_green = '#46812B'
+light_green = '#67AE3E'
+dark_grey = '#4D4D4F'
+light_grey = '#A7A9AC'
+orange = '#F37021'
+
+plt.rcParams['lines.linewidth'] = 1.5
+plt.rcParams['axes.prop_cycle'] = plt.cycler(color = [orange, dark_green, light_green, dark_grey, light_grey])
 
 def plot(data, *args, **kwargs):
     '''

@@ -280,12 +280,12 @@ class dnpData(nddata.nddata_core):
         index = self.dims.index(axesLabel)
         return self.coords[index]
 
-    def imag(self):
-        '''Return imaginary part of data
-        '''
-        out = deepcopy(self)
-        out.values = np.imag(out.values)
-        return out
+#    def imag(self):
+#        '''Return imaginary part of data
+#        '''
+#        out = deepcopy(self)
+#        out.values = np.imag(out.values)
+#        return out
 
     def index(self,axesLabel):
         '''Return index of given axes label
@@ -334,8 +334,6 @@ class dnpData(nddata.nddata_core):
         a = self.copy()
         index = a.dims.index(dim)
 
-#        a.dims.pop(index)
-
         a.values = a.coords[dim][np.argmax(a.values, axis = index)]
         a.coords.pop(dim)
 
@@ -375,12 +373,12 @@ class dnpData(nddata.nddata_core):
 
         return out
 
-    def real(self):
-        '''Return real part of data
-        '''
-        out = deepcopy(self)
-        out.values = np.real(out.values)
-        return out
+#    def real(self):
+#        '''Return real part of data
+#        '''
+#        out = deepcopy(self)
+#        out.values = np.real(out.values)
+#        return out
 
 #    def reorder(self,dims):
 #        '''Reorder array given a list of axes labels
