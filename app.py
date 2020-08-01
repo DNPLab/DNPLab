@@ -135,8 +135,10 @@ my_odnp_exp/
 - For Mac you can use 'compress'
 
 5. Upload the zip file and click run
-
 """)
+
+# 6. Download a demo (500 $\mu$M 4OH-TEMPO in water, $k_{sigma} ~= 95 s^{-1} M^{-1}$)
+# st.write(f'<a href="" download="ucsb_cnsi_odnp_demo.zip">Download Results</a>')
 # _ = st.text_input('Your Lucky Number', value='42')
 
 st.markdown("## Upload a Zip file")
