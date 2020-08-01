@@ -49,7 +49,7 @@ def array_coords(attrs):
 
     return dim, coord
 
-def importfid(path, filename = 'fid'):
+def import_fid(path, filename = 'fid'):
     '''Import VnmrJ fid file
 
     Args:
@@ -188,7 +188,7 @@ def import_procpar(path, filename = 'procpar'):
                 paramDict[name] = value
 
 
-def importVarian(path, fidFilename = 'fid', paramFilename = 'procpar'):
+def import_vnmrj(path, fidFilename = 'fid', paramFilename = 'procpar'):
     """Import VnmrJ Data
 
     Args:
@@ -217,7 +217,7 @@ def importVarian(path, fidFilename = 'fid', paramFilename = 'procpar'):
     dims = ['t']
     coords = [t]
     
-    data = importfid(path, fidFilename)
+    data = import_fid(path, fidFilename)
 
     if coord is not None:
         dims.append(dim)

@@ -88,29 +88,29 @@ _dspfvs_table_13 = {
         96  : 2.995,
         }
 
-def findGroupDelay(decim,dspfvs):
+def find_group_delay(decim,dspfvs):
     '''
     '''
-    groupDelay = 0
+    group_delay = 0
     if decim == 1:
-        groupDelay = 0
+        group_delay = 0
     else:
         if dspfvs == 10:
-            groupDelay = _dspfvs_table_10[int(decim)]
+            group_delay = _dspfvs_table_10[int(decim)]
         elif dspfvs == 11:
-            groupDelay = _dspfvs_table_11[int(decim)]
+            group_delay = _dspfvs_table_11[int(decim)]
         elif dspfvs == 12:
-            groupDelay = _dspfvs_table_12[int(decim)]
+            group_delay = _dspfvs_table_12[int(decim)]
         elif dspfvs == 13:
-            groupDelay = _dspfvs_table_13[int(decim)]
+            group_delay = _dspfvs_table_13[int(decim)]
         else:
             print('dspfvs not defined')
 
-    return groupDelay
+    return group_delay
 
-def loadTitle(path, expNum = 1, titlePath = 'pdata/1',titleFilename = 'title'):
+def load_title(path, expNum = 1, titlePath = 'pdata/1',titleFilename = 'title'):
     '''
-    Import Bruker Experiment Title File
+    Import Topspin Experiment Title File
     '''
 
     pathFilename = _os.path.join(path,str(expNum),titlePath,titleFilename) 
@@ -121,7 +121,7 @@ def loadTitle(path, expNum = 1, titlePath = 'pdata/1',titleFilename = 'title'):
 
     return title
 
-def loadAcqu(path, expNum = 1, paramFilename = 'acqus'):
+def load_acqu(path, expNum = 1, paramFilename = 'acqus'):
     '''
     JCAMPDX file
     return dictionary of parameters
@@ -148,7 +148,7 @@ def loadAcqu(path, expNum = 1, paramFilename = 'acqus'):
 
     return attrsDict
 
-def loadProc(path, expNum = 1, procNum = 1, paramFilename = 'procs'):
+def load_proc(path, expNum = 1, procNum = 1, paramFilename = 'procs'):
     '''
     '''
 
@@ -175,7 +175,7 @@ def loadProc(path, expNum = 1, procNum = 1, paramFilename = 'procs'):
 
 
 
-def dirDataType(path,expNum):
+def dir_data_type(path,expNum):
     '''
     '''
     fullPath = path + '/' + str(expNum)
@@ -192,10 +192,10 @@ def dirDataType(path,expNum):
     else:
         return ''
 
-def importBruker(path,expNum,paramFilename = 'acqus'):
+def import_topspin(path,expNum,paramFilename = 'acqus'):
     '''
     '''
-    dirType = dirDataType(path,expNum)
+    dirType = dir_data_type(path,expNum)
 
     if expNum is not None:
         fullPath = path + '/' + str(expNum)
@@ -203,23 +203,23 @@ def importBruker(path,expNum,paramFilename = 'acqus'):
         fullPath = path
 
     if dirType == 'fid':
-        data = brukerFid(path,expNum,paramFilename)
+        data = topspin_fid(path,expNum,paramFilename)
         return data
     elif dirType == 'ser':
-        data = brukerSer(path,expNum,paramFilename)
+        data = import_ser(path,expNum,paramFilename)
         return data
     elif dirType == 'serPhaseCycle':
-        data = brukerSerPhaseCycle(path,expNum,paramFilename)
+        data = topspin_ser_phase_cycle(path,expNum,paramFilename)
         return data
     else:
         raise ValueError
         Print('Could Not Identify Data Type in File')
 
 
-def brukerFid(path,expNum,paramFilename = 'acqus'):
+def topspin_fid(path,expNum,paramFilename = 'acqus'):
     '''
     '''
-    attrsDict = loadAcqu(path, expNum, paramFilename)
+    attrsDict = load_acqu(path, expNum, paramFilename)
 
     sw_h = attrsDict['SW_h'] # Spectral Width in Hz
 
@@ -238,12 +238,12 @@ def brukerFid(path,expNum,paramFilename = 'acqus'):
     raw = _np.fromfile(path + str(expNum) + '/fid',dtype = endian + 'i4')
     data = raw[0::2] + 1j * raw[1::2] # convert to complex
 
-    groupDelay = findGroupDelay(decim,dspfvs)
-    groupDelay = int(_np.ceil(groupDelay))
+    group_delay = find_group_delay(decim,dspfvs)
+    group_delay = int(_np.ceil(group_delay))
 
-    t = 1./sw_h * _np.arange(0,int(td/2)-groupDelay)
+    t = 1./sw_h * _np.arange(0,int(td/2)-group_delay)
 
-    data = data[groupDelay:int(td/2)]
+    data = data[group_delay:int(td/2)]
 
     data = data / rg
 
@@ -253,7 +253,7 @@ def brukerFid(path,expNum,paramFilename = 'acqus'):
 
     return output
 
-def brukervdList(path,expNum):
+def topspin_vdlist(path,expNum):
     '''
     '''
     fullPath = path + str(expNum) + '/vdlist'
@@ -283,10 +283,10 @@ def brukervdList(path,expNum):
     vdList = _np.array(vdList)
     return vdList
 
-def brukerSer(path,expNum,paramFilename = 'acqus'):
+def import_ser(path,expNum,paramFilename = 'acqus'):
     '''
     '''
-    attrsDict = loadAcqu(path, expNum, paramFilename)
+    attrsDict = load_acqu(path, expNum, paramFilename)
 
     sw_h = attrsDict['SW_h'] # Spectral Width in Hz
 
@@ -304,16 +304,16 @@ def brukerSer(path,expNum,paramFilename = 'acqus'):
     raw = _np.fromfile(path + str(expNum) + '/ser',dtype = endian + 'i4')
     data = raw[0::2] + 1j * raw[1::2] # convert to complex
 
-    groupDelay = findGroupDelay(decim,dspfvs)
-    groupDelay = int(_np.ceil(groupDelay))
+    group_delay = find_group_delay(decim,dspfvs)
+    group_delay = int(_np.ceil(group_delay))
 
-    t = 1./sw_h * _np.arange(0,int(td/2)-groupDelay)
+    t = 1./sw_h * _np.arange(0,int(td/2)-group_delay)
 
-    vdList = brukervdList(path,expNum)
+    vdList = topspin_vdlist(path,expNum)
 
     data = data.reshape(len(vdList),-1).T
 
-    data = data[groupDelay:int(td/2),:]
+    data = data[group_delay:int(td/2),:]
 
     data = data / rg
 
@@ -323,10 +323,10 @@ def brukerSer(path,expNum,paramFilename = 'acqus'):
 
     return output
 
-def brukerSerPhaseCycle(path,expNum,paramFilename = 'acqus'):
+def topspin_ser_phase_cycle(path,expNum,paramFilename = 'acqus'):
     '''
     '''
-    attrsDict = loadAcqu(path, expNum, paramFilename)
+    attrsDict = load_acqu(path, expNum, paramFilename)
 
     sw_h = attrsDict['SW_h'] # Spectral Width in Hz
 
@@ -344,17 +344,17 @@ def brukerSerPhaseCycle(path,expNum,paramFilename = 'acqus'):
     raw = _np.fromfile(path + str(expNum) + '/ser',dtype = endian + 'i4')
     data = raw[0::2] + 1j * raw[1::2] # convert to complex
 
-    groupDelay = findGroupDelay(decim,dspfvs)
-    groupDelay = int(_np.ceil(groupDelay))
+    group_delay = find_group_delay(decim,dspfvs)
+    group_delay = int(_np.ceil(group_delay))
 
-    t = 1./sw_h * _np.arange(0,int(td/2)-groupDelay)
+    t = 1./sw_h * _np.arange(0,int(td/2)-group_delay)
 
 
     length1d = int((_np.ceil(td/256.)*256)/2)
 #    print length1d
     data = data.reshape(-1,int(length1d)).T
 
-    data = data[groupDelay:int(td/2),:]
+    data = data[group_delay:int(td/2),:]
 
     # Assume phase cycle is 0, 90, 180, 270
     data = data[:,0] + 1j*data[:,1] - data[:,2] - 1j*data[:,3]
@@ -367,17 +367,16 @@ def brukerSerPhaseCycle(path,expNum,paramFilename = 'acqus'):
     return output
 
 
-def importBrukerDir(path):
+def import_topspin_dir(path):
     '''
     '''
 
     dirFiles = [x for x in _os.listdir(path) if _os.path.isdir(_os.path.join(path,x))]
-    print(dirFiles)
 
     dataDict = {}
     for expNum in dirFiles:
         try:
-            tempData = importBruker(path,expNum)
+            tempData = import_topspin(path,expNum)
             dataDict[expNum] = tempData
         except:
             pass
