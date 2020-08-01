@@ -13,6 +13,7 @@ print = pprint.pprint
 
 # TEMPDIR = '/tmp/odnplab/'
 TEMPDIR = None
+CNSI_EMX_LINK = 'https://www.mrl.ucsb.edu/spectroscopy-facility/instruments/7-bruker-emxplus-epr-spectrometer'
 
 
 def get_table_download_link(temp_file_path, filename='results'):
@@ -114,11 +115,10 @@ def dict_to_str(mydict):
 
 
 # =======THE APP=======
-st.title('ODNPLab \n One-step ODNP processing')
-st.markdown("""
+st.title('ODNPLab: One-Step ODNP Processing \n Powered by DNPLab')
+st.markdown(f"""
 ## How to use
-
-1. Collect your ODNP data in UCSB CNSI (talk to the facility)
+1. Collect your ODNP data on [UCSB CNSI EMXplus]({CNSI_EMX_LINK})
 2. Save your data in an experiment folder. For demo only here we use `my_odnp_exp`.
 3. Your experiment folder should look like the following:
 ```
