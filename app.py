@@ -32,12 +32,16 @@ def set_ppar(ppar:ProcParameter):
 
     """
     # Processing parameter
-    st.write("Enhancement integration")
-    ppar.eic = st.number_input("window center", value=ppar.eic, step=1, key='eic')
-    ppar.eiw = st.number_input("window width", value=ppar.eiw, step=1, key='eiw')
-    st.write("T1 integration")
-    ppar.tic = st.number_input("window center", value=ppar.tic, step=1, key='tic')
-    ppar.tiw = st.number_input("window width", value=ppar.tiw, step=1, key='tiw')
+    st.sidebar.markdown("**Enhancement integration**")
+    ppar.eic = st.sidebar.slider("Center", min_value=-100, max_value=100, value=0, step=10, key='eic')
+    ppar.eiw = st.sidebar.slider("Width", min_value=10, max_value=500, value=250, step=10, key='eiw')
+    st.sidebar.markdown("**T1 integration**")
+    if not st.sidebar.checkbox("Same as Enhancement", value=True):
+        ppar.tic = st.sidebar.slider("Center", min_value=-100, max_value=100, value=0, step=10, key='tic')
+        ppar.tiw = st.sidebar.slider("Width", min_value=10, max_value=500, value=250, step=10, key='tiw')
+    else:
+        ppar.tic = ppar.eic
+        ppar.tiw = ppar.eiw
 
     return ppar
 
@@ -49,12 +53,14 @@ def set_hpar(hpar:HydrationParameter):
 
     """
     # Processing parameter
-    st.write("Enhancement integration")
-    hpar.spin_C = st.number_input("Spin label concentration (uM)", value=500.0, step=1.0, key='spin_C')
-    hpar.field = st.number_input("Field (mT)", value=hpar.field, step=1.0, key='field')
+    st.sidebar.markdown('**Hydration**')
+    hpar.spin_C = st.sidebar.number_input("Spin label concentration (uM)", value=500.0, step=1.0, key='spin_C')
+    hpar.field = st.sidebar.number_input("Field (mT)", value=hpar.field, step=1.0, key='field')
+    hpar.smax_model = st.sidebar.radio('The spin is ', options=['tethered', 'free'], key='smax_model')
+    hpar.t1_interp_method = st.sidebar.radio('T1 interpolation method', options=['linear', 'second_order'], index=0, key='t1_interp_method')
 
-    if st.button('More'):
-        st.write("No more")
+    # if st.sidebar.button('More'):
+    #     st.write("No more")
 
     return hpar
 
