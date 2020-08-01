@@ -478,24 +478,24 @@ class dnpData(nddata.nddata_core):
             self.dims.pop(index_value)
             self.values = np.squeeze(self.values)
 
-    def sum(self,axesLabel):
-        '''Perform sum down given dimension
-
-        .. warning::
-           Axis information is lost
-
-        Args:
-            axesLabel (str): Name of Axis to perform sum down
-
-        .. code-block:: python
-
-            data.sum('t')
-        '''
-
-        index = self.dims.index(axesLabel)
-        self.values = np.sum(self.values,axis = index)
-        removedAxesLabel = self.dims.pop(index)
-        removedAxes = self.coords.pop(index)
+#    def sum(self,axesLabel):
+#        '''Perform sum down given dimension
+#
+#        .. warning::
+#           Axis information is lost
+#
+#        Args:
+#            axesLabel (str): Name of Axis to perform sum down
+#
+#        .. code-block:: python
+#
+#            data.sum('t')
+#        '''
+#
+#        index = self.dims.index(axesLabel)
+#        self.values = np.sum(self.values,axis = index)
+#        removedAxesLabel = self.dims.pop(index)
+#        removedAxes = self.coords.pop(index)
 
 
 class dnpdata_collection(MutableMapping):

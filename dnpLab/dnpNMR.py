@@ -265,9 +265,12 @@ def integrate(all_data,proc_parameters):
     integrateMin = integrate_center - _np.abs(integrate_width)/2.
     integrateMax = integrate_center + _np.abs(integrate_width)/2.
 
-    data = data.range(dim,integrateMin,integrateMax)
+#    data = data.range(dim,integrateMin,integrateMax)
+    print('here')
+    print(dim)
+    data = data[dim,(integrateMin,integrateMax)]
 
-    data.sum(dim)
+    data = data.sum(dim)
 
     proc_attr_name = 'integrate'
     proc_dict = {k:proc_parameters[k] for k in proc_parameters if k in requiredList}

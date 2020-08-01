@@ -42,7 +42,7 @@ def array_coords(attrs):
     array_dodc = attrs['arraydodc']
 
     if array_dim != 1:
-        coord = _np.r_[array_start:array_stop:array_delta]
+        coord = _np.r_[array_start:array_stop+array_delta:array_delta]
     else:
         coord = None
         dim = None
