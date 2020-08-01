@@ -27,6 +27,15 @@ class dnpLab_nddata_core_tester(unittest.TestCase):
                 assert_array_equal(data.coords[dim], random_coords[ix])
             self.assertListEqual(data.dims, random_dims)
 
+    def test_ndim(self):
+        values = np.r_[1:10].reshape(3,3)
+        x = np.r_[0:3]
+        y = np.r_[0:3]
+
+        data = nddata.nddata_core(values, ['x', 'y'], [x, y])
+
+        self.assertEqual(data.ndim, 2)
+
     def test_nddata_core_add(self):
         for ix in range(num_random_tests):
             random_coords = [np.r_[0:random.randint(1,6)] for dim in test_dims]

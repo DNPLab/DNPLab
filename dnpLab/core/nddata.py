@@ -667,6 +667,9 @@ class nddata_core(object):
 
         return a
 
+    @property
+    def ndim(self):
+        return self.values.ndim
 
 if __name__ == '__main__':
 #    a = np.array(range(9)).reshape(3,3)
@@ -680,6 +683,7 @@ if __name__ == '__main__':
     z = np.r_[0:15]
     random_order = np.argsort(np.random.randn(len(x)))
     x = x[random_order]
+
 #    q = np.r_[0:5]
 #    r = np.r_[0:17]
 #    p = np.r_[0:13]
