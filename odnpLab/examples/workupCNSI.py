@@ -192,7 +192,7 @@ if __name__ == '__main__':
     t1, t1_power, e, e_power = rest['T1p'], rest['T1powers'], rest['Ep'], rest['Epowers']
     print(t1_power)
 
-    hpar.slC = 500
+    hpar.spin_C = 500
     hpar.T10 = rest['T10']
     hpar.field = 380.4
 
@@ -201,6 +201,7 @@ if __name__ == '__main__':
                              E=e,
                              E_power=e_power,
                              hp=hpar)
+    hc.run()
     print(hc.results)
 
 # savemat('/Users/thomascasey/Documents/MATLAB/' + 'test.mat', {'odnp' : odnpData}, oned_as='column')
