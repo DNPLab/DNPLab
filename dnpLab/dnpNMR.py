@@ -108,7 +108,7 @@ def remove_offset(all_data, proc_parameters):
     data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
-        all_data['proc'] = data
+        all_data[all_data.processing_buffer] = data
         return all_data
     else:
         return data
@@ -171,7 +171,7 @@ def fourier_transform(all_data, proc_parameters):
     data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
-        all_data['proc'] = data
+        all_data[all_data.processing_buffer] = data
         return all_data
     else:
         return data
@@ -221,7 +221,7 @@ def window(all_data,proc_parameters):
     data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
-        all_data['proc'] = data
+        all_data[all_data.processing_buffer] = data
         return all_data
     else:
         return data
@@ -277,7 +277,7 @@ def integrate(all_data,proc_parameters):
     data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
-        all_data['proc'] = data
+        all_data[all_data.processing_buffer] = data
         return all_data
     else:
         return data
@@ -318,7 +318,7 @@ def align(all_data,proc_parameters):
     data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
-        all_data['proc'] = data
+        all_data[all_data.processing_buffer] = data
         return all_data
     else:
         return data
@@ -327,6 +327,9 @@ def autophase(workspace, parameters):
     '''
     '''
 
+    requiredList = _default_autophase_parameters.keys()
+    parameters = update_parameters(parameters, requiredList, _default_autophase_parameters)
+
     data, is_workspace = return_data(workspace)
     phase = _np.arctan(_np.sum(_np.imag(data.values))/_np.sum(_np.real(data.values)))
 
@@ -334,8 +337,12 @@ def autophase(workspace, parameters):
     if _np.sum(_np.real(data.values)) < 0:
         data.values *= -1.
 
+    proc_attr_name = 'autophase'
+    proc_attrs = {k:parameters[k] for k in parameters if k in requiredList}
+    data.add_proc_attrs(proc_attr_name, proc_attrs)
+
     if is_workspace:
-        workspace['proc'] = data
+        workspace[workspace.processing_buffer] = data
         return workspace
     else:
         return data
