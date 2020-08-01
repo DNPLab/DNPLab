@@ -1,7 +1,7 @@
 import unittest
 import dnpLab.dnpImport.topspin as topspin
 import dnpLab.dnpImport.prospa as prospa
-import dnpLab.dnpImport.vnmrj as varian
+import dnpLab.dnpImport.vnmrj as vnmrj
 
 
 class import_topspin_tester(unittest.TestCase):
@@ -92,7 +92,7 @@ class vnmrj_import_tester(unittest.TestCase):
         ]]
 
     def test_import_vnmrj_1d(self):
-        datas = [varian.import_vnmrj(path=path) for path in self.test_data1Ds]
+        datas = [vnmrj.import_vnmrj(path=path) for path in self.test_data1Ds]
         for i, data in enumerate(datas):
             self.assertEqual(data.values.shape, (131072, ))
             self.assertEqual(data.dims, ['t', ])
@@ -101,7 +101,7 @@ class vnmrj_import_tester(unittest.TestCase):
         self.assertAlmostEqual(datas[1].values[365], (-950662+138458j))
 
     def test_import_vnmrj_2d(self):
-        datas = [varian.import_vnmrj(path=path) for path in self.test_data2Ds]
+        datas = [vnmrj.import_vnmrj(path=path) for path in self.test_data2Ds]
         for i, data in enumerate(datas):
             self.assertEqual(data.values.shape, (131072, 5))
             self.assertEqual(data.dims, ['t', 'array'])

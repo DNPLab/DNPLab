@@ -299,11 +299,12 @@ def align(all_data,proc_parameters):
 
     alignAxesLabel = proc_parameters['dim']
     originalAxesOrder = data.dims
-    data.reorder(alignAxesLabel)
+    data.reorder([alignAxesLabel])
     dimIter = data.dims[-1]
 
-    refData = data[dimIter,0].data.reshape(-1)
-    for ix in range(data.len(dimIter)):
+    refData = data[dimIter,0].values.reshape(-1)
+#    for ix in range(data.len(dimIter)):
+    for ix in range(len(data.coords[dimIter])):
         tempData = data[dimIter,ix].values.reshape(-1)
 
         corrData = _np.correlate(_np.abs(tempData),_np.abs(refData),mode='same')
