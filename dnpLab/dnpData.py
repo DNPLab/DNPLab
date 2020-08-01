@@ -271,15 +271,15 @@ class dnpData(nddata.nddata_core):
 #    def copy(self):
 #        return deepcopy(self)
 #
-    def getAxes(self,axesLabel):
-        '''Return given axes of dnpData object
-
-        Args:
-            axes_label (str): Axes to retrieve
-        '''
-        index = self.dims.index(axesLabel)
-        return self.coords[index]
-
+#    def getAxes(self,axesLabel):
+#        '''Return given axes of dnpData object
+#
+#        Args:
+#            axes_label (str): Axes to retrieve
+#        '''
+#        index = self.dims.index(axesLabel)
+#        return self.coords[index]
+#
 #    def imag(self):
 #        '''Return imaginary part of data
 #        '''
@@ -287,57 +287,57 @@ class dnpData(nddata.nddata_core):
 #        out.values = np.imag(out.values)
 #        return out
 
-    def index(self,axesLabel):
-        '''Return index of given axes label
-
-        Args:
-            axesLabel (str): axis label to index
-        '''
-        return self.dims.index(axesLabel)
-
-    def len(self,axesLabel):
-        '''Return length of given dimension
-
-        Args:
-            axes_label (str): Axis to return length
-
-        Example:
-        data.len('t')
-        '''
-        index = self.dims.index(axesLabel)
-
-        return np.shape(self.values)[index]
-
-    def max(self):
-        '''Return maximum value of data
-        '''
-        out = deepcopy(self)
-        maxValue = np.max(out.values)
-        return maxValue
-
-    def amax(self, dim):
-        '''Return maximum value of data
-        '''
-        a = self.copy()
-        index = a.dims.index(dim)
-
-        a.dims.pop(index)
-        a.coords.pop(index)
-
-        a.values = np.amax(a.values, axis = index)
-
-        return a
-
-    def argmax(self, dim):
-        '''Return maximum value of data
-        '''
-        a = self.copy()
-        index = a.dims.index(dim)
-
-        a.values = a.coords[dim][np.argmax(a.values, axis = index)]
-        a.coords.pop(dim)
-
-        return a
+#    def index(self,axesLabel):
+#        '''Return index of given axes label
+#
+#        Args:
+#            axesLabel (str): axis label to index
+#        '''
+#        return self.dims.index(axesLabel)
+#
+#    def len(self,axesLabel):
+#        '''Return length of given dimension
+#
+#        Args:
+#            axes_label (str): Axis to return length
+#
+#        Example:
+#        data.len('t')
+#        '''
+#        index = self.dims.index(axesLabel)
+#
+#        return np.shape(self.values)[index]
+#
+#    def max(self):
+#        '''Return maximum value of data
+#        '''
+#        out = deepcopy(self)
+#        maxValue = np.max(out.values)
+#        return maxValue
+#
+#    def amax(self, dim):
+#        '''Return maximum value of data
+#        '''
+#        a = self.copy()
+#        index = a.dims.index(dim)
+#
+#        a.dims.pop(index)
+#        a.coords.pop(index)
+#
+#        a.values = np.amax(a.values, axis = index)
+#
+#        return a
+#
+#    def argmax(self, dim):
+#        '''Return maximum value of data
+#        '''
+#        a = self.copy()
+#        index = a.dims.index(dim)
+#
+#        a.values = a.coords[dim][np.argmax(a.values, axis = index)]
+#        a.coords.pop(dim)
+#
+#        return a
 
     def phase(self,):
         '''Return phase of dnpData object

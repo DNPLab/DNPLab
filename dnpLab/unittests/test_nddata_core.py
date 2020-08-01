@@ -5,6 +5,7 @@ import numpy as np
 import random
 
 test_dims = ['x', 'y', 'z', 'p', 'q', 'r']
+num_random_tests = 10
 
 class dnpLab_nddata_core_tester(unittest.TestCase):
     def setUp(self):
@@ -12,7 +13,7 @@ class dnpLab_nddata_core_tester(unittest.TestCase):
         random.sample(test_dims, random.randint(1,len(test_dims)))
 
     def test_nddata_core_init(self):
-        for ix in range(1000):
+        for ix in range(num_random_tests):
             random_dims = random.sample(test_dims, random.randint(1,len(test_dims)))
 
             random_coords = [np.r_[0:random.randint(1,6)] for dim in random_dims]
@@ -27,7 +28,7 @@ class dnpLab_nddata_core_tester(unittest.TestCase):
             self.assertListEqual(data.dims, random_dims)
 
     def test_nddata_core_add(self):
-        for ix in range(1000):
+        for ix in range(num_random_tests):
             random_coords = [np.r_[0:random.randint(1,6)] for dim in test_dims]
 
             random_axis = list(zip(test_dims, random_coords))
@@ -55,7 +56,7 @@ class dnpLab_nddata_core_tester(unittest.TestCase):
             assert_array_equal((data1+1.j).values, values1+1.j)
 
     def test_nddata_core_math_operators(self):
-        for ix in range(1000):
+        for ix in range(num_random_tests):
             random_coords = [np.r_[0:random.randint(1,6)] for dim in test_dims]
 
             random_axis = list(zip(test_dims, random_coords))

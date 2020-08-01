@@ -11,7 +11,7 @@ class OdnpDataTester(unittest.TestCase):
         self.dnpdata = dnpData(self.gauss_3d, [self.x, self.y, self.z], ['x', 'y', 'z'])
 
     def test_dnpdata(self):
-        assertArrayEqual(self.dnpdata.getAxes('x'), self.x)
+        assertArrayEqual(self.dnpdata.coords['x'], self.x)
         assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z'])
 
     def test_coords_get_set(self):
@@ -23,10 +23,10 @@ class OdnpDataTester(unittest.TestCase):
     def test_coords_sort_reorder(self):
         self.dnpdata.reorder(['y', 'z', 'x'])
         assertArrayEqual(self.dnpdata.dims, ['y', 'z', 'x'])
-        assertArrayEqual(self.dnpdata.getAxes('z'), self.z)
+        assertArrayEqual(self.dnpdata.coords['z'], self.z)
         self.dnpdata.sort_dims()
         assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z'])
-        assertArrayEqual(self.dnpdata.getAxes('z'), self.z)
+        assertArrayEqual(self.dnpdata.coords['z'], self.z)
 
 
 if __name__ == '__main__':
