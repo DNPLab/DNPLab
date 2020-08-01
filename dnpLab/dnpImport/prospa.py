@@ -6,7 +6,7 @@ import os
 import glob
 
 
-def importKea(path, parameters_filename = None, verbose = False):
+def import_prospa(path, parameters_filename = None, verbose = False):
     '''Import Kea data
 
     Args:
