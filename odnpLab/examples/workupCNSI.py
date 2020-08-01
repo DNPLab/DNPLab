@@ -182,7 +182,7 @@ def process_cnsi(path: str, par: ProcParameter):
 
 
 if __name__ == '__main__':
-    path = 'data/20190821_TW_4OH-TEMPO_500uM/'  # path to CNSI data folder
+    path = 'data/2015_08_05_AMS14_dnp2_hydrophobic/'  # path to CNSI data folder
     ppar = ProcParameter()
     hpar = HydrationParameter()
 

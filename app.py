@@ -1,9 +1,36 @@
 import streamlit as st
+import zipfile
+import tempfile
+import pprint
+import os
+from dnpLab.examples.workupCNSI import ProcParameter,
+print = pprint.pprint
 
+# TEMPDIR = '/tmp/odnplab/'
+TEMPDIR = None
 
 def run(uploaded_file):
     print(f"You just upload this file -> {uploaded_file}")
     print(f"But I am in a demo mode and not going to run it actually")
+
+    # upzip
+    with zipfile.ZipFile(uploaded_file, "r") as zip_ref:
+        # print(f"zipfile filename {zip_ref.filename}")
+        # print(f"zipfile filelist {zip_ref.filelist}")
+        # print(f"zipfile namelist {zip_ref.namelist()}")
+        odnpdir = tempfile.mkdtemp(dir = TEMPDIR)
+
+        # After extraction, a lot of OS unrelated folders will be there
+        zip_ref.extractall(odnpdir)
+
+        odnppath = os.path.join(odnpdir, zip_ref.namelist()[0])
+        print(f"odnppath= {odnppath}")
+
+
+    # process
+
+    # return
+
     pass
 
 #
