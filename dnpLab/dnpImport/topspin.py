@@ -1,4 +1,5 @@
 import numpy as _np
+import re as _re
 
 from .. import dnpData as _dnpData
 
@@ -274,7 +275,7 @@ def topspin_jcamp_dx(path):
 
                 # Test for array
                 if value[0] == '(':
-                    x = re.findall('\([0-9]+\.\.[0-9]+\)', value)
+                    x = _re.findall('\([0-9]+\.\.[0-9]+\)', value)
 
                     start, end = tuple(x[0][1:-1].split('..',1))
 

@@ -2,7 +2,8 @@ import unittest
 import dnpLab.dnpImport.topspin as topspin
 import dnpLab.dnpImport.prospa as prospa
 import dnpLab.dnpImport.vnmrj as vnmrj
-
+import os
+from numpy.testing import assert_array_equal
 
 class import_topspin_tester(unittest.TestCase):
     def setUp(self):
@@ -63,6 +64,13 @@ class import_topspin_tester(unittest.TestCase):
         self.assertEqual(data.dims, ['t2', 't1'])
         self.assertAlmostEqual(data.attrs['nmr_frequency'], 14831413.270000001)
         self.assertAlmostEqual(data.values[365, 6], -0.110595703125+0.47705078125j)
+    
+    def test_import_topspin_jcamp_dx(self):
+        attrs = topspin.topspin_jcamp_dx(os.path.join(self.testdata,'1','acqus'))
+        self.assertEqual(attrs['DIGTYP'], 9)
+        self.assertAlmostEqual(attrs['O1'], 1413.27)
+        assert_array_equal(attrs['XGAIN'], [0, 0, 0, 0])
+        assert_array_equal(attrs['TPOAL'], [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5])
 
 
 class prospa_import_tester(unittest.TestCase):
