@@ -72,7 +72,7 @@ def import_prospa(path, parameters_filename = None, verbose = False):
 
     # If axes information is give, assume it is the first dimension
     if x is not None:
-        dims[0] = 't'
+        dims[0] = 't2'
         # Assume units in us, convert to seconds
         coords[0] = x / 1e6
 

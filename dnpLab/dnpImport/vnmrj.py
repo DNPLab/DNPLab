@@ -214,7 +214,7 @@ def import_vnmrj(path, fidFilename = 'fid', paramFilename = 'procpar'):
     dwellTime = 1./sw
 
     t = _np.r_[0.:int(npts)] * dwellTime
-    dims = ['t']
+    dims = ['t2']
     coords = [t]
     
     data = import_fid(path, fidFilename)

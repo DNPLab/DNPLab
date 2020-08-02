@@ -2,29 +2,29 @@ from . import dnpData, dnpdata_collection
 import numpy as _np
 
 _default_fourier_transform_parameters = {
-        'dim': 't',
+        'dim': 't2',
         'zero_fill_factor' : 2, # zero fill dim to 
         'shift' : True, # shift dim to center zero frequency
         'convert_to_ppm' : True, # convert dim to ppm
         }
 
 _defaultAlign_parameters = {
-        'dim': 't',
+        'dim': 't2',
         }
 
 _default_window_parameters = {
         'linewidth' : 10,
-        'dim' : 't',
+        'dim' : 't2',
         }
 
 _default_integrate_parameters = {
-        'dim' : 't',
+        'dim' : 't2',
         'integrate_center' : 0,
         'integrate_width' : 100,
         }
 
 _default_remove_offset_parameters = {
-        'dim' : 't',
+        'dim' : 't2',
         'offset_points' : 10,
         }
 
@@ -81,7 +81,7 @@ def remove_offset(all_data, proc_parameters):
 
     .. code-block:: python
 
-       proc_parameters['dim'] = 't'
+       proc_parameters['dim'] = 't2'
        proc_parameters['offset_points'] = 10
 
        outData = dnpLab.dnpNMR.remove_offset(all_data,proc_parameters)
@@ -97,7 +97,7 @@ def remove_offset(all_data, proc_parameters):
     dim = proc_parameters['dim']
     offset_points = int(proc_parameters['offset_points'])
 
-    offsetData = data['t',-1*offset_points:].values
+    offsetData = data['t2',-1*offset_points:].values
     offsetData = offsetData.reshape(-1)
     offset = _np.mean(offsetData)
 
@@ -131,7 +131,7 @@ def fourier_transform(all_data, proc_parameters):
 
     .. code-block:: python
     
-        proc_parameters['dim'] = 't'
+        proc_parameters['dim'] = 't2'
         proc_parameters['zero_fill_factor'] = 2
         proc_parameters['shift'] = True
         proc_parameters['convert_to_ppm'] = True
@@ -192,7 +192,7 @@ def window(all_data,proc_parameters):
 
         proc_parameters = {
                 'linewidth' : 10,
-                'dim' : 't',
+                'dim' : 't2',
                 }
         all_data = dnpLab.dnpNMR.window(all_data,proc_parameters)
         
@@ -246,7 +246,7 @@ def integrate(all_data,proc_parameters):
     .. code-block:: python
 
         proc_parameters = {
-                    'dim' : 't',
+                    'dim' : 't2',
                     'integrate_center' : 0,
                     'integrate_width' : 100,
                     }

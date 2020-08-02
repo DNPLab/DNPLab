@@ -249,11 +249,98 @@ def topspin_fid(path,expNum,paramFilename = 'acqus'):
 
     importantParamsDict = {}
     importantParamsDict['nmr_frequency'] = attrsDict['SFO1'] * 1e6
-    output = _dnpData(data,[t],['t'],importantParamsDict)
+    output = _dnpData(data,[t],['t2'],importantParamsDict)
 
     return output
 
-def topspin_vdlist(path,expNum):
+def topspin_jcamp_dx(path):
+    '''Return the contents of
+
+    Args:
+        path: Path to file
+
+    Returns:
+        dict: Dictionary of JCAMP-DX file
+    '''
+
+    attrs = {}
+
+    with open(path, 'r') as f:
+        for line in f:
+            line = line.rstrip()
+
+            if line[0:3] == '##$':
+                key, value = tuple(line[3:].split('= ', 1))
+
+                # Test for array
+                if value[0] == '(':
+                    x = re.findall('\([0-9]+\.\.[0-9]+\)', value)
+
+                    start, end = tuple(x[0][1:-1].split('..',1))
+
+                    array_size = int(end) + 1
+
+                    same_line_array = value.split(')', 1)[-1]
+
+                    array = []
+                    if same_line_array != '':
+                        same_line_array = same_line_array.split(' ')
+                        same_line_array = [float(x) if '.' in x else int(x) for x in same_line_array]
+
+                        array += same_line_array
+
+                    while len(array) < array_size:
+                        array_line = f.readline().rstrip().split(' ')
+
+                        array_line = [float(x) if '.' in x else int(x) for x in array_line]
+
+                        array += array_line
+
+                    
+                    array = _np.array(array)
+
+                    attrs[key] = array
+
+                elif value[0] == '<':
+                    value = value[1:-1]
+                    if '.' in value:
+                        try:
+                            value = float(value)
+                        except:
+                            pass
+                    else:
+                        try:
+                            value = int(value)
+                        except:
+                            pass
+
+                    attrs[key] = value
+                else:
+                    if '.' in value:
+                        try:
+                            value = float(value)
+                        except:
+                            pass
+                    else:
+                        try:
+                            value = int(value)
+                        except:
+                            pass
+
+                    attrs[key] = value
+
+
+
+            elif line[0:2] == '##':
+                try:
+                    key, value = tuple(line[2:].split('= ', 1))
+                except:
+                    pass
+
+    return attrs
+
+
+def topspin_vdlist(path, expNum):
     '''
     '''
     fullPath = path + str(expNum) + '/vdlist'
@@ -319,7 +406,7 @@ def import_ser(path,expNum,paramFilename = 'acqus'):
 
     importantParamsDict = {}
     importantParamsDict['nmr_frequency'] = attrsDict['SFO1'] * 1e6
-    output = _dnpData(data,[t,vdList],['t','t1'],importantParamsDict)
+    output = _dnpData(data,[t,vdList],['t2','t1'],importantParamsDict)
 
     return output
 
@@ -363,7 +450,7 @@ def topspin_ser_phase_cycle(path,expNum,paramFilename = 'acqus'):
     importantParamsDict = {}
     importantParamsDict['nmr_frequency'] = attrsDict['SFO1'] * 1e6
 
-    output = _dnpData(data,[t],['t'],importantParamsDict)
+    output = _dnpData(data,[t],['t2'],importantParamsDict)
     return output
 
 

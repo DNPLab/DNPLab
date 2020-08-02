@@ -45,7 +45,7 @@ class import_topspin_tester(unittest.TestCase):
 
     def test_import_topspin_exp1_is_fid(self):
         data = topspin.import_topspin(self.testdata, expNum=1)
-        self.assertEqual(data.dims[0], 't')
+        self.assertEqual(data.dims[0], 't2')
         self.assertEqual(data.values.size, 8147)
         self.assertAlmostEqual(data.values.min(), -5-4.168734491315137j)
         self.assertAlmostEqual(data.attrs['nmr_frequency'], 14831413.270000001)
@@ -53,14 +53,14 @@ class import_topspin_tester(unittest.TestCase):
     def test_import_topspin_exp5_is_2d_phcyc(self):
         data = topspin.import_topspin(self.testdata, expNum=5)
         self.assertEqual(data.values.shape[0], 11912)
-        self.assertEqual(data.dims, ['t'])
+        self.assertEqual(data.dims, ['t2'])
         self.assertAlmostEqual(data.attrs['nmr_frequency'], 14831413.270000001)
         self.assertAlmostEqual(data.values[365], -0.182861328125-0.71875j)
 
     def test_import_topspin_exp28_is_2d(self):
         data = topspin.import_topspin(self.testdata, expNum=28)
         self.assertEqual(data.values.shape, (7922, 8))
-        self.assertEqual(data.dims, ['t', 't1'])
+        self.assertEqual(data.dims, ['t2', 't1'])
         self.assertAlmostEqual(data.attrs['nmr_frequency'], 14831413.270000001)
         self.assertAlmostEqual(data.values[365, 6], -0.110595703125+0.47705078125j)
 
@@ -74,7 +74,7 @@ class prospa_import_tester(unittest.TestCase):
                  for expNum in[1, 21, 42]]
         for i, data in enumerate(datas):
             self.assertEqual(data.values.shape, (16384, ))
-            self.assertEqual(data.dims, ['t'])
+            self.assertEqual(data.dims, ['t2'])
             self.assertAlmostEqual(data.attrs['nmr_frequency'], 14244500.0)
         self.assertAlmostEqual(datas[0].values[365], -0.217937+0.24907j)
         self.assertAlmostEqual(datas[1].values[365], 0.0400292-0.0756107j)
@@ -95,7 +95,7 @@ class vnmrj_import_tester(unittest.TestCase):
         datas = [vnmrj.import_vnmrj(path=path) for path in self.test_data1Ds]
         for i, data in enumerate(datas):
             self.assertEqual(data.values.shape, (131072, ))
-            self.assertEqual(data.dims, ['t', ])
+            self.assertEqual(data.dims, ['t2', ])
             self.assertAlmostEqual(data.attrs['nmr_frequency'], 14244283.4231)
         self.assertAlmostEqual(datas[0].values[365], (-20378767-2734659j))
         self.assertAlmostEqual(datas[1].values[365], (-950662+138458j))
@@ -104,7 +104,7 @@ class vnmrj_import_tester(unittest.TestCase):
         datas = [vnmrj.import_vnmrj(path=path) for path in self.test_data2Ds]
         for i, data in enumerate(datas):
             self.assertEqual(data.values.shape, (131072, 5))
-            self.assertEqual(data.dims, ['t', 'array'])
+            self.assertEqual(data.dims, ['t2', 'array'])
             self.assertAlmostEqual(data.attrs['nmr_frequency'], 14244283.4231)
         self.assertAlmostEqual(datas[0].values[365, 3], (-1263136+1063328.5j))
 

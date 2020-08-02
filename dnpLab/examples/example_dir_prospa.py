@@ -23,7 +23,7 @@ ws.copy('raw', 'proc')
 
 ws = dnp.dnpNMR.window(ws, {})
 ws = dnp.dnpNMR.fourier_transform(ws, {})
-ws['proc'] = ws['proc']['t',(-100,100)]
+ws['proc'] = ws['proc']['t2',(-100,100)]
 ws = dnp.dnpNMR.align(ws, {})
 ws.copy('proc', 'ft')
 ws = dnp.dnpNMR.integrate(ws, {'integrate_width': 40})
