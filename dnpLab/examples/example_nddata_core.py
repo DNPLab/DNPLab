@@ -6,7 +6,7 @@ import dnpLab as dnp
 
 import numpy as np
 
-x = np.r_[1:10]
+x = np.r_[1:100]
 values = np.random.randn(len(x))
 
 data = nddata_core(values, ['x'], [x])
