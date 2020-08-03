@@ -13,5 +13,9 @@ dnp.xlim(20,-20)
 dnp.figure()
 dnp.plot(ws['proc'], 'o')
 
+dnp.figure
+ws['ft'].reorder(['power'])
+dnp.imshow(ws['ft'].abs)
+
 dnp.show()
 

@@ -40,17 +40,17 @@ def imshow(data, *args, **kwargs):
 
     dims = data.dims
 
-    x_coord = data.coords[dims[0]]
-    y_coord = data.coords[dims[1]]
+    x_coord = data.coords[dims[1]]
+    y_coord = data.coords[dims[0]]
 
     x_min = np.min(x_coord)
     x_max = np.max(x_coord)
     y_min = np.min(y_coord)
     y_max = np.max(y_coord)
 
-    plt.imshow(data.values, aspect = 'auto', extent = [x_min, x_max, y_min, y_max])
-    plt.xlabel(dims[0])
-    plt.ylabel(dims[1])
+    plt.imshow(data.values, aspect = 'auto', extent = [x_min, x_max, y_max, y_min])
+    plt.xlabel(dims[1])
+    plt.ylabel(dims[0])
 
 
 #    return NotImplemented
