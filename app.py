@@ -14,12 +14,16 @@ print = pprint.pprint
 # TEMPDIR = '/tmp/odnplab/'
 TEMPDIR = None
 CNSI_EMX_LINK = 'https://www.mrl.ucsb.edu/spectroscopy-facility/instruments/7-bruker-emxplus-epr-spectrometer'
+DEMO_DATA_LINK = 'https://github.com/ylin00/odnplab/raw/master/20190821_TW_4OH-TEMPO_500uM_.zip'
 
 
 def get_table_download_link(temp_file_path, filename='results'):
     """Generates a link allowing a temp_file_path to be downloaded
-    in:  dataframe
-    out: href string
+    
+    Args:
+        temp_file_path(str): A string to write to a txt file and download.
+        filename(str): the txt file name to generate.
+
     """
     b64 = base64.b64encode(temp_file_path.encode()).decode()  # some strings <-> bytes conversions necessary here
     href = f'<a href="data:file/csv;base64,{b64}" download="{filename}.txt">Download Results</a>'
@@ -118,7 +122,7 @@ def dict_to_str(mydict):
 st.title('ODNPLab: One-Step ODNP Processing \n Powered by DNPLab')
 st.markdown(f"""
 ## How to use
-1. Collect your ODNP data on [UCSB CNSI EMXplus]({CNSI_EMX_LINK})
+1. Collect your ODNP data on [UCSB CNSI EMXplus]({CNSI_EMX_LINK}).
 2. Save your data in an experiment folder. For demo only here we use `my_odnp_exp`.
 3. Your experiment folder should look like the following:
 ```
@@ -131,10 +135,12 @@ my_odnp_exp/
             power.mat
 ```
 4. Right click the experiment folder `my_odnp_exp` and create a zip file:
-- For windows 7 and above you can use 'add to zip file'
-- For Mac you can use 'compress'
+- For windows 7 and above you can use 'add to zip file'.
+- For Mac you can use 'compress'.
 
-5. Upload the zip file and click run
+5. Upload the zip file and click run.
+6. For demo, click [here]({DEMO_DATA_LINK}) to download a zip file and upload. The demo data came from (500 $\mu$M 4OH-TEMPO in water, {'$k_{sigma} = 95 s^{-1} M^{-1}$'}).
+
 """)
 
 # 6. Download a demo (500 $\mu$M 4OH-TEMPO in water, $k_{sigma} ~= 95 s^{-1} M^{-1}$)
