@@ -343,8 +343,11 @@ class nddata_core(object):
 
     @values.setter
     def values(self, b):
-        if not isinstance(b, np.ndarray):
+        if not isinstance(b, (int, complex, float, np.ndarray)):
             raise TypeError('Values must be type "numpy.ndarray" not %s'%type(b))
+        if isinstance(b, (int, complex, float)):
+            b = np.r_[b]
+
         self._values = b
 
     @values.getter
