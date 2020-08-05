@@ -21,7 +21,7 @@ def t1Fit(dataDict):
     '''
     '''
     isDict = False
-    if isinstance(dataDict,dict):
+    if isinstance(dataDict, (dict, dnpdata_collection)):
         data = dataDict['proc'].copy()
         isDict = True
     elif isinstance(dataDict,_dnpData):
@@ -31,7 +31,7 @@ def t1Fit(dataDict):
         print(type(dataDict))
         return
 
-    t1_axes = data.getAxes('t1')
+    t1_axes = data.coords['t1']
 
     inputData = _np.real(data.values)
 
@@ -73,7 +73,7 @@ def enhancementFit(dataDict):
     '''
     '''
     isDict = False
-    if isinstance(dataDict,dict):
+    if isinstance(dataDict, (dict, dnpdata_collection)):
         data = dataDict['proc'].copy()
         isDict = True
     elif isinstance(dataDict,_dnpData):
@@ -83,7 +83,7 @@ def enhancementFit(dataDict):
         print(type(dataDict))
         return
 
-    power_axes = data.getAxes('power')
+    power_axes = data.coords['power']
 
     inputData = _np.real(data.values)
 
