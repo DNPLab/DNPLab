@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib.pylab import *
 from scipy.io import loadmat, savemat
 import dnpLab
+from dnpLab import create_workspace
 from dnpLab.hydration import HydrationParameter, HydrationCalculator, Parameter
 import sys
 
@@ -46,13 +47,13 @@ def process_cnsi(path: str, par: ProcParameter):
     # Extract power settings from the experiment titles and later use them to make the power arrays
     Eplist = []
     for k in list(range(6, 27, 1)):
-        title = dnpLab.dnpImport.bruker.loadTitle(path, expNum=k)
+        title = dnpLab.dnpImport.topspin.load_title(path, expNum=k)
         splitTitle = title.split(' ')
         Eplist.append(float(splitTitle[-1]))
 
     T1plist = []
     for k in list(range(28, 33, 1)):
-        title = dnpLab.dnpImport.bruker.loadTitle(path, expNum=k)
+        title = dnpLab.dnpImport.topspin.load_title(path, expNum=k)
         splitTitle = title.split(' ')
         T1plist.append(float(splitTitle[-1]))
 
@@ -89,34 +90,35 @@ def process_cnsi(path: str, par: ProcParameter):
     EpNumList = list(range(5, 27, 1))
     print('ExpNumList = ', EpNumList) if par.verbose else None
 
-    dataDir = dnpLab.dnpImport.bruker.importBrukerDir(path)
+    dataDir = dnpLab.dnpImport.topspin.import_topspin_dir(path)
 
     power_t, power = dnpLab.dnpImport.power.importPower(path + 'power.mat')
     power_t, power = dnpLab.dnpImport.power.chopPower(power_t, power)
     expPowerList = power
     expPowerList = np.hstack(([0], expPowerList))
 
-    data = dnpLab.dnpImport.power.assignPower(dataDir, EpNumList,
-                                                expPowerList)
+    data = dnpLab.dnpImport.power.assignPower(dataDir, EpNumList, expPowerList)
 
-    dataDict = {'raw': data}
+    dataDict = create_workspace()
+    dataDict.add('raw', data)
+    dataDict.copy('raw', 'proc')
 
-    dataDict = dnpLab.dnpNMR.removeOffset(dataDict, {})
+    dataDict = dnpLab.dnpNMR.remove_offset(dataDict, {})
     dataDict = dnpLab.dnpNMR.window(dataDict, {})
-    dataDict = dnpLab.dnpNMR.fourierTransform(dataDict, {})
+    dataDict = dnpLab.dnpNMR.fourier_transform(dataDict, {})
 
     # dataDict['proc'].data = dataDict['proc'].data * 1j
 
-    phase = dataDict['proc']['t1', 1].phase()
+    phase = dataDict['proc']['t2', 1].phase()
     dataDict['proc'] *= np.exp(-1j * phase)
 
-    dataDict = dnpLab.dnpNMR.integrate(dataDict, {'integrateCenter': eic,
-                                                    'integrateWidth': eiw})
+    dataDict = dnpLab.dnpNMR.integrate(dataDict, {'integrate_center': eic,
+                                                    'integrate_width': eiw})
 
     # Normalize to first point
-    dataDict['proc'].data /= dataDict['proc']['power', 0].data
+    dataDict['proc'].values /= dataDict['proc']['power', 0].values
 
-    Ep_ = real(dataDict['proc'].data)
+    Ep_ = real(dataDict['proc'].values)
     Ep = Ep_[1:len(Ep_)]
 
     print('Ep processing Successful') if par.verbose else None
@@ -129,37 +131,39 @@ def process_cnsi(path: str, par: ProcParameter):
 
     print('Started T1 processing...') if par.verbose else None
 
-    T1power_t, T1power = dnpLab.dnpImport.power.importPower(
-        path + 't1_powers.mat')
-    T1power_t, T1power = dnpLab.dnpImport.power.chopPower(T1power_t, T1power)
+    # T1power_t, T1power = dnpLab.dnpImport.power.importPower(
+    #     path + 't1_powers.mat')
+    # T1power_t, T1power = dnpLab.dnpImport.power.chopPower(T1power_t, T1power)
 
     T1pNumList = list(range(28, 33, 1))
     T1pNumList.append(304)
     print('T1Explist = ', T1pNumList) if par.verbose else None
     T1s = []
-    T1pows = []
+    # T1pows = []
     for i in T1pNumList:
 
-        data = dnpLab.dnpImport.bruker.importBruker(path, i)
+        data = dnpLab.dnpImport.topspin.import_topspin(path, i)
 
-        dataDict = {'raw': data}
+        dataDict = create_workspace()
+        dataDict.add('raw', data)
+        dataDict.copy('raw', 'proc')
 
-        dataDict = dnpLab.dnpNMR.removeOffset(dataDict, {})
+        dataDict = dnpLab.dnpNMR.remove_offset(dataDict, {})
         dataDict = dnpLab.dnpNMR.window(dataDict, {})
-        dataDict = dnpLab.dnpNMR.fourierTransform(dataDict, {})
+        dataDict = dnpLab.dnpNMR.fourier_transform(dataDict, {})
 
         phase = dataDict['proc']['t1', 1].phase()
         dataDict['proc'] *= np.exp(-1j * phase)
 
-        dataDict = dnpLab.dnpNMR.integrate(dataDict, {'integrateCenter': tic,
-                                                        'integrateWidth': tiw})
+        dataDict = dnpLab.dnpNMR.integrate(dataDict, {'integrate_center': tic,
+                                                        'integrate_width': tiw})
 
-        if dataDict['proc']['t1', -1].data < 0:
+        if dataDict['proc']['t1', -1].values < 0:
             dataDict['proc'] *= -1.
 
         dataDict = dnpLab.dnpFit.t1Fit(dataDict)
 
-        T1s.append(dataDict['fit'].params['t1'])
+        T1s.append(dataDict['fit'].attrs['t1'])
 
     print('T1p processing Successful') if par.verbose else None
 
@@ -181,25 +185,27 @@ def process_cnsi(path: str, par: ProcParameter):
 
 
 if __name__ == '__main__':
-    path = 'data/20190821_TW_4OH-TEMPO_500uM/'  # path to CNSI data folder
+    path = 'data/TEMPO_500uM/'  # path to CNSI data folder
     ppar = ProcParameter()
-    hpar = HydrationParameter()
-
     ppar.verbose = False
-
+    ppar.tic, ppar.tiw, ppar.eic, ppar.eiw = 0, 250, 0, 250
     rest = process_cnsi(path, ppar)
     t1, t1_power, e, e_power = rest['T1p'], rest['T1powers'], rest['Ep'], rest['Epowers']
     print(t1_power)
 
-    hpar.slC = 500
+    hpar = HydrationParameter()
+    hpar.smax_model = 'free'
+    hpar.t1_interp_method = 'linear'
+    hpar.spin_C = 500
     hpar.T10 = rest['T10']
-    hpar.field = 380.4
+    hpar.field = 348.5
 
     hc = HydrationCalculator(T1=t1,
                              T1_power=t1_power,
                              E=e,
                              E_power=e_power,
                              hp=hpar)
+    hc.run()
     print(hc.results)
 
 # savemat('/Users/thomascasey/Documents/MATLAB/' + 'test.mat', {'dnp' : dnpData}, oned_as='column')
