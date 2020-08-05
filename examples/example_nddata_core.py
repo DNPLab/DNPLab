@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../..')
+sys.path.append('..')
 
 from dnpLab.core.nddata import nddata_core
 import dnpLab as dnp

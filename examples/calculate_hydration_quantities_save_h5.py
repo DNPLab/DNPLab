@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../..')
+sys.path.append('..')
 import dnpLab
 from dnpLab import create_workspace
 import numpy as np

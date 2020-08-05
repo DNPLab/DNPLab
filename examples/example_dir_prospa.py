@@ -1,10 +1,10 @@
 import sys
-sys.path.append('../..')
+sys.path.append('..')
 import numpy as np
 
 import dnpLab as dnp
 
-path = '../../data/prospa/toluene_10mM_Tempone/'
+path = '../data/prospa/toluene_10mM_Tempone/'
 exp_list = [str(x) for x in range(1,43)]
 #exp_list = ['1','2','3','4']
 power_list = 10.**(np.r_[0:40:len(exp_list)*1j] / 10) / 1000.

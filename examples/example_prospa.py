@@ -1,9 +1,9 @@
 import sys
-sys.path.append('../..')
+sys.path.append('..')
 import dnpLab as dnp
 
 exp_num = 40
-path = '../../data/prospa/toluene_10mM_Tempone/%i/'
+path = '../data/prospa/toluene_10mM_Tempone/%i/'
 
 data = dnp.dnpImport.prospa.import_prospa(path%exp_num)
 
