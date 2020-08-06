@@ -1,4 +1,4 @@
-from . import dnpData as _dnpData
+from . import dnpData as _dnpData, dnpdata_collection
 import numpy as _np
 
 from scipy.optimize import least_squares
