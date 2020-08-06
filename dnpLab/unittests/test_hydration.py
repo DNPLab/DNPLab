@@ -4,7 +4,7 @@ sys.path.append('.../odnplab')
 import unittest
 import numpy as np
 from dnpLab.dnpData import create_workspace
-from dnpLab.hydration import HydrationCalculator, HydrationParameter, hydration
+from dnpLab.dnpHydration import HydrationCalculator, HydrationParameter, hydration
 
 
 TESTSET = {

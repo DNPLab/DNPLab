@@ -3,7 +3,7 @@ from matplotlib.pylab import *
 from scipy.io import loadmat, savemat
 import dnpLab
 from dnpLab import create_workspace
-from dnpLab.hydration import HydrationParameter, HydrationCalculator, Parameter
+from dnpLab.dnpHydration import HydrationParameter, HydrationCalculator, Parameter
 import sys
 
 

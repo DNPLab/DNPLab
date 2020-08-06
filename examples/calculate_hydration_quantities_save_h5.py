@@ -76,7 +76,7 @@ hydration.update({
 ws.add('hydration', hydration)
 
 # Run hydration calculation
-res = dnpLab.hydration.hydration(ws)
+res = dnpLab.dnpHydration.hydration(ws)
 
 # Observe results, ksigma, etc
 print(''.join([f'{k} = {res[k]}\n' for k in ['ksigma', 'krho', 'klow', 'tcorr']]))
