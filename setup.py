@@ -17,7 +17,7 @@ setup(
             'scipy',
             'matplotlib',
             'h5py',
-            'PyQt5'
+            'PyQt5',
             'pandas'
             ],
         classifiers = [
