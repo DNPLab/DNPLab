@@ -1472,7 +1472,7 @@ class hydrationGUI(QMainWindow):
         hyd.add('hydration', hydration)
 
         try:
-            hydresults = odnp.hydration.hydration(hyd)
+            hydresults = odnp.dnpHydration.hydration(hyd)
             self.guiDict['hydrationResults'] = copy.deepcopy(hydresults)
             self.plothydresults = copy.deepcopy(hydresults)
         except:
@@ -1523,7 +1523,7 @@ class hydrationGUI(QMainWindow):
                     whyd.add('hydration', whydration)
                     
                     try:
-                        whydresults = odnp.hydration.hydration(whyd)
+                        whydresults = odnp.dnpHydration.hydration(whyd)
                         self.guiDict['whydrationResults'] = copy.deepcopy(whydresults)
                         if self.guiDict['workupFunction']['fit']:
                             self.plothydresults = copy.deepcopy(whydresults)
@@ -1531,7 +1531,6 @@ class hydrationGUI(QMainWindow):
                         self.err = True
                         self.errorLabel.setVisible(True)
                         self.errorLabel.setText('workup data Error')
-
                     
                     self.workupt10Label.setVisible(True)
                     self.workupt10Edit.setVisible(True)
