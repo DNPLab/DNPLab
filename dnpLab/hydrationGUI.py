@@ -129,12 +129,12 @@ class hydrationGUI(QMainWindow):
         #self.phaseSlider.setStyleSheet('background-color : rgb(0, 77, 159)')
         self.phaseSlider.setGeometry(250, 595, 360, 20)
         # autophase checkbox
-        self.autophaseCheckbox = QCheckBox(self)
-        self.autophaseCheckbox.setStyleSheet('font : bold 14px')
-        self.autophaseCheckbox.move(612,595)
-        self.autophaseCheckbox.resize(100,20)
-        self.autophaseCheckbox.setText('Optimize')
-        self.autophaseCheckbox.setChecked(False)
+        self.optimizeCheckbox = QCheckBox(self)
+        self.optimizeCheckbox.setStyleSheet('font : bold 14px')
+        self.optimizeCheckbox.move(612,595)
+        self.optimizeCheckbox.resize(100,20)
+        self.optimizeCheckbox.setText('Optimize')
+        self.optimizeCheckbox.setChecked(False)
         
         # show workup checkbox
         self.show_wrkupCheckbox = QCheckBox(self)
@@ -354,7 +354,7 @@ class hydrationGUI(QMainWindow):
             self.intwindowSlider.setVisible(False)
             self.phaseLabel.setVisible(False)
             self.phaseSlider.setVisible(False)
-            self.autophaseCheckbox.setVisible(False)
+            self.optimizeCheckbox.setVisible(False)
             self.backButton.setVisible(True)
 
             if self.gui_dict['workup_function']['isWorkup'] or self.gui_dict['dnpLab_function']['isLab']:
@@ -402,7 +402,7 @@ class hydrationGUI(QMainWindow):
             self.intwindowSlider.setVisible(True)
             self.phaseLabel.setVisible(True)
             self.phaseSlider.setVisible(True)
-            self.autophaseCheckbox.setVisible(True)
+            self.optimizeCheckbox.setVisible(True)
             self.show_wrkupCheckbox.setVisible(False)
             self.fit_wrkupCheckbox.setVisible(False)
             self.backButton.setText('Back')
@@ -422,8 +422,8 @@ class hydrationGUI(QMainWindow):
         self.intcenterSlider.valueChanged[int].connect(self.Integration_Center_Slider)
         self.intwindowSlider.valueChanged[int].connect(self.Integration_Window_Slider)
         self.phaseSlider.valueChanged[int].connect(self.Spectrum_Phase_Slider)
-        self.autophaseCheckbox.clicked.connect(self.Auto_Phase_Checkbox)
-        self.autophaseCheckbox.setChecked(False)
+        self.optimizeCheckbox.clicked.connect(self.Optimize_Checkbox)
+        self.optimizeCheckbox.setChecked(False)
         self.nextButton.clicked.connect(self.Next_Button)
         self.autoButton.clicked.connect(self.Auto_Process_Button)
         self.backButton.clicked.connect(self.Back_Button)
@@ -1255,7 +1255,7 @@ class hydrationGUI(QMainWindow):
         self.processing_workspace = odnp.dnpNMR.fourier_transform(self.processing_workspace,{})
         phase_dict = copy.deepcopy(self.processing_workspace)
         self.gui_dict['processing_spec']['originalPhase'] = phase_dict['proc'].phase()
-        if self.autophaseCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
+        if self.optimizeCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
             self.gui_dict['processing_spec']['integration_width'] = 15
             self.workupPhaseOpt()
         self.optCenter()
@@ -1645,7 +1645,7 @@ class hydrationGUI(QMainWindow):
         """Slider to change the center of the spectrum integration window"""
         if self.gui_dict['gui_function']['sliders']:
             self.gui_dict['processing_spec']['integration_center'] = cvalue
-            self.autophaseCheckbox.setChecked(False)
+            self.optimizeCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
@@ -1654,7 +1654,7 @@ class hydrationGUI(QMainWindow):
         """Slider to change the width of the spectrum integration window"""
         if self.gui_dict['gui_function']['sliders']:
             self.gui_dict['processing_spec']['integration_width'] = wvalue
-            self.autophaseCheckbox.setChecked(False)
+            self.optimizeCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
@@ -1663,15 +1663,15 @@ class hydrationGUI(QMainWindow):
         """Slider to change the phase correction applied to the spectrum"""
         if self.gui_dict['gui_function']['sliders']:
             self.gui_dict['processing_spec']['phase_factor'] = pvalue/1000
-            self.autophaseCheckbox.setChecked(False)
+            self.optimizeCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
     
-    def Auto_Phase_Checkbox(self):
+    def Optimize_Checkbox(self):
         """Check this to have the GUI automatically choose the best phase"""
         if self.gui_dict['gui_function']['sliders']:
-            if self.autophaseCheckbox.isChecked():
+            if self.optimizeCheckbox.isChecked():
                 self.gui_dict['processing_spec']['phase_factor'] = 0
                 self.processData()
             else:
