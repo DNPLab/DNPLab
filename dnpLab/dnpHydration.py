@@ -1,4 +1,4 @@
-""" Hydration module
+""" dnpHydration module
 
 This module calculates hydration related quantities using processed ODNP data.
 

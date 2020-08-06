@@ -1,3 +1,8 @@
+""" hydrationGUI
+
+This is a graphical user interface for using dnpLab to process Han Lab format ODNP data and calculating hydration parameters using the dnpHydration module.
+
+"""
 import sys
 import os
 
@@ -22,16 +27,6 @@ sys.path.append('...dnpLab')
 import dnpLab as odnp
 
 class hydrationGUI(QMainWindow):
-    """Interactive tool for processing Han lab ODNP NMR data and conversion to enhancement or T1 as functions of microwave power. The processed data is used to calculate hydration parameters.
-
-    Uses the odnpImport, odnpData, odnpNMR, and odnpFit modules to import, process, integrate, and fit (T1 data) then passes the results to the hydration module for analysis. Also supplies an output of the results in .mat format for analysis in MATALB using xODNP.
-
-    Args:
-        Selected data folder: Select the base folder of Bruker format data collected using the Han lab dnp routine. Specify the folder structure using the dropdown.
-
-    Returns:
-        A GUI for interactive processing and optional *.mat output compatible with the MATLAB based xODNP App
-    """
     
     def __init__(self):
     
@@ -71,28 +66,28 @@ class hydrationGUI(QMainWindow):
         self.hanlabButton.setStyleSheet('font : bold ; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
         self.hanlabButton.move(5,5)
         self.hanlabButton.resize(80,30)
-        self.hanlabButton.clicked.connect(self.loadLab)
+        self.hanlabButton.clicked.connect(self.GUI_Result_Button)
         
         # Create a load workup button
         self.workupButton = QPushButton('Workup', self)
         self.workupButton.setStyleSheet('font : bold ; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
         self.workupButton.move(90,5)
         self.workupButton.resize(80,30)
-        self.workupButton.clicked.connect(self.loadWorkup)
+        self.workupButton.clicked.connect(self.Workup_Button)
         
         # Create a load single button
         self.singleButton = QPushButton('Bruker', self)
         self.singleButton.setStyleSheet('font : bold ; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
         self.singleButton.move(175,5)
         self.singleButton.resize(80,30)
-        self.singleButton.clicked.connect(self.loadSingle)
+        self.singleButton.clicked.connect(self.Bruker_Button)
         
         # Create a load button
         self.rawdataButton = QPushButton('Han Lab', self)
         self.rawdataButton.setStyleSheet('font : bold ; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
         self.rawdataButton.move(260,5)
         self.rawdataButton.resize(80,30)
-        self.rawdataButton.clicked.connect(self.loadRaw)
+        self.rawdataButton.clicked.connect(self.Han_Lab_Button)
 
         # Dataname label
         self.pathLabel = QLabel(self)
@@ -293,45 +288,47 @@ class hydrationGUI(QMainWindow):
         self.tetheredCheckbox.move(425,595)
         self.tetheredCheckbox.resize(100,20)
         self.tetheredCheckbox.setText('Tethered')
-        # bulk checkbox
-        self.bulkCheckbox = QCheckBox(self)
-        self.bulkCheckbox.setStyleSheet('font : bold 14px')
-        self.bulkCheckbox.move(510,595)
-        self.bulkCheckbox.resize(100,20)
-        self.bulkCheckbox.setText('Bulk-like')
+        # free checkbox
+        self.freeCheckbox = QCheckBox(self)
+        self.freeCheckbox.setStyleSheet('font : bold 14px')
+        self.freeCheckbox.move(510,595)
+        self.freeCheckbox.resize(100,20)
+        self.freeCheckbox.setText('Free')
         
         # MATLAB output button
-        self.matoutButton = QPushButton('MATLAB output', self)
+        self.matoutButton = QPushButton('Save results', self)
         self.matoutButton.setStyleSheet('font : bold 14px; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
         self.matoutButton.move(925,590)
         self.matoutButton.resize(120,30)
         
-        self.guiDict = {'guiFunction' : {}, 'folderStruct' : {}, 'rawdataFunction' : {}, 'processSpectrum' : {}, 'workupFunction' : {},  'dnpLabFunction' : {}, 'workupData' : {}, 'dnpLabData' : {}, 'hydrationResults' : {}, 'dataPlot' : {}, 'enhancementPlot' : {}, 't1Plot' : {}}
+        # Define main dictionary
+        self.gui_dict = {'gui_function' : {}, 'folder_structure' : {}, 'rawdata_function' : {}, 'processing_spec' : {}, 'workup_function' : {},  'dnpLab_function' : {}, 'workup_data' : {}, 'dnpLab_data' : {}, 'hydration_results' : {}, 'data_plot' : {}, 'enhancement_plot' : {}, 't1_plot' : {}}
         
+        # set some default parameters
         self.wrkup_smax = 1
         
         self.intwindowSlider.setMinimum(5)
         self.intwindowSlider.setMaximum(50)
-        self.guiDict['processSpectrum']['integrationWidth'] = 20
-        self.intwindowSlider.setValue(self.guiDict['processSpectrum']['integrationWidth'])
+        self.gui_dict['processing_spec']['integration_width'] = 20
+        self.intwindowSlider.setValue(self.gui_dict['processing_spec']['integration_width'])
         
-        self.guiDict['processSpectrum']['integrationCenter'] = 0
-        self.intcenterSlider.setMinimum(self.guiDict['processSpectrum']['integrationCenter']-50)
-        self.intcenterSlider.setMaximum(self.guiDict['processSpectrum']['integrationCenter']+50)
-        self.intcenterSlider.setValue(self.guiDict['processSpectrum']['integrationCenter'])
+        self.gui_dict['processing_spec']['integration_center'] = 0
+        self.intcenterSlider.setMinimum(self.gui_dict['processing_spec']['integration_center']-50)
+        self.intcenterSlider.setMaximum(self.gui_dict['processing_spec']['integration_center']+50)
+        self.intcenterSlider.setValue(self.gui_dict['processing_spec']['integration_center'])
         
         #set blank plots
         self.reset_plots()
         
-        self.guiDict['guiFunction']['buttons'] = False
-        self.guiDict['guiFunction']['sliders'] = False
+        self.gui_dict['gui_function']['buttons'] = False
+        self.gui_dict['gui_function']['sliders'] = False
         self.connect_widgets()
         
         self.show()
 
     def show_hide_components(self):
         
-        if self.guiDict['guiFunction']['calculating']:
+        if self.gui_dict['gui_function']['calculating']:
             self.t100Label.setVisible(True)
             self.t100Edit.setVisible(True)
             self.t1fitLabel.setVisible(True)
@@ -344,7 +341,7 @@ class hydrationGUI(QMainWindow):
             self.fieldEdit.setVisible(True)
             self.smaxLabel.setVisible(True)
             self.tetheredCheckbox.setVisible(True)
-            self.bulkCheckbox.setVisible(True)
+            self.freeCheckbox.setVisible(True)
             self.matoutButton.setVisible(True)
             self.nextButton.setText('Hydration')
             self.autoButton.setVisible(False)
@@ -360,23 +357,23 @@ class hydrationGUI(QMainWindow):
             self.autophaseCheckbox.setVisible(False)
             self.backButton.setVisible(True)
 
-            if self.guiDict['workupFunction']['isWorkup'] or self.guiDict['dnpLabFunction']['isLab']:
+            if self.gui_dict['workup_function']['isWorkup'] or self.gui_dict['dnpLab_function']['isLab']:
                 self.backButton.setVisible(False)
                 self.onlyT1pCheckbox.setVisible(False)
                 self.onlyT10Checkbox.setVisible(False)
                 
-            if self.guiDict['workupFunction']['isWorkup']:
+            if self.gui_dict['workup_function']['isWorkup']:
                 self.workupt10Label.setVisible(True)
                 self.workupt10Edit.setVisible(True)
             else:
                 self.t10Label.setVisible(True)
                 self.t10Edit.setVisible(True)
                 
-            if self.guiDict['workupFunction']['addWorkup']:
+            if self.gui_dict['workup_function']['addWorkup']:
                 self.show_wrkupCheckbox.setVisible(True)
                 self.fit_wrkupCheckbox.setVisible(True)
-                self.guiDict['workupFunction']['show'] = True
-                self.guiDict['workupFunction']['fit'] = False
+                self.gui_dict['workup_function']['show'] = True
+                self.gui_dict['workup_function']['fit'] = False
                 self.show_wrkupCheckbox.setChecked(True)
                 self.fit_wrkupCheckbox.setChecked(False)
                 
@@ -397,7 +394,7 @@ class hydrationGUI(QMainWindow):
             self.fieldEdit.setVisible(False)
             self.smaxLabel.setVisible(False)
             self.tetheredCheckbox.setVisible(False)
-            self.bulkCheckbox.setVisible(False)
+            self.freeCheckbox.setVisible(False)
             self.matoutButton.setVisible(False)
             self.intcenterLabel.setVisible(True)
             self.intcenterSlider.setVisible(True)
@@ -422,125 +419,125 @@ class hydrationGUI(QMainWindow):
 
     def connect_widgets(self):
         
-        self.intcenterSlider.valueChanged[int].connect(self.changeCenterValue)
-        self.intwindowSlider.valueChanged[int].connect(self.changeWindowValue)
-        self.phaseSlider.valueChanged[int].connect(self.changePhaseValue)
-        self.autophaseCheckbox.clicked.connect(self.autoPhaseCheck)
+        self.intcenterSlider.valueChanged[int].connect(self.Integration_Center_Slider)
+        self.intwindowSlider.valueChanged[int].connect(self.Integration_Window_Slider)
+        self.phaseSlider.valueChanged[int].connect(self.Spectrum_Phase_Slider)
+        self.autophaseCheckbox.clicked.connect(self.Auto_Phase_Checkbox)
         self.autophaseCheckbox.setChecked(False)
-        self.nextButton.clicked.connect(self.on_click_next)
-        self.autoButton.clicked.connect(self.autoProcess)
-        self.backButton.clicked.connect(self.on_click_back)
+        self.nextButton.clicked.connect(self.Next_Button)
+        self.autoButton.clicked.connect(self.Auto_Process_Button)
+        self.backButton.clicked.connect(self.Back_Button)
         self.show_wrkupCheckbox.setChecked(True)
-        self.show_wrkupCheckbox.clicked.connect(self.show_wrkupCheck)
+        self.show_wrkupCheckbox.clicked.connect(self.Show_Workup_Checkbox)
         self.fit_wrkupCheckbox.setChecked(False)
-        self.fit_wrkupCheckbox.clicked.connect(self.fit_wrkupCheck)
-        self.t100Edit.editingFinished.connect(self.edithydText)
-        self.t10Edit.editingFinished.connect(self.edithydText)
-        self.workupt10Edit.editingFinished.connect(self.edithydText)
-        self.linearfitCheckbox.clicked.connect(self.linearCheck)
+        self.fit_wrkupCheckbox.clicked.connect(self.Fit_Workup_Checkbox)
+        self.t100Edit.editingFinished.connect(self.Edit_Hydration_Inputs)
+        self.t10Edit.editingFinished.connect(self.Edit_Hydration_Inputs)
+        self.workupt10Edit.editingFinished.connect(self.Edit_Hydration_Inputs)
+        self.linearfitCheckbox.clicked.connect(self.Linear_Interpolation_Checkbox)
         self.linearfitCheckbox.setChecked(False)
-        self.order2fitCheckbox.clicked.connect(self.order2Check)
+        self.order2fitCheckbox.clicked.connect(self.SecondOrder_Interpolation_Checkbox)
         self.order2fitCheckbox.setChecked(True)
-        self.exclude1T1Checkbox.clicked.connect(self.exfT1pCheck)
-        self.slcEdit.editingFinished.connect(self.edithydText)
-        self.fieldEdit.editingFinished.connect(self.edithydText)
-        self.tetheredCheckbox.clicked.connect(self.tetheredCheck)
+        self.exclude1T1Checkbox.clicked.connect(self.Exclude_FirstT1_Checkbox)
+        self.slcEdit.editingFinished.connect(self.Edit_Hydration_Inputs)
+        self.fieldEdit.editingFinished.connect(self.Edit_Hydration_Inputs)
+        self.tetheredCheckbox.clicked.connect(self.Smax_Tethered_Checkbox)
         self.tetheredCheckbox.setChecked(True)
-        self.bulkCheckbox.clicked.connect(self.bulkCheck)
-        self.bulkCheckbox.setChecked(False)
-        self.matoutButton.clicked.connect(self.matoutput)
+        self.freeCheckbox.clicked.connect(self.Smax_Free_Checkbox)
+        self.freeCheckbox.setChecked(False)
+        self.matoutButton.clicked.connect(self.Save_Results_Button)
     
     def reset_plots(self):
         
-        self.guiDict['guiFunction']['autoProcess'] = False
+        self.gui_dict['gui_function']['autoProcess'] = False
         
-        self.guiDict['dataPlot']['xdata'] = []
-        self.guiDict['dataPlot']['ydata'] = []
-        self.guiDict['dataPlot']['xmin'] = -1
-        self.guiDict['dataPlot']['xmax'] = 1
-        self.guiDict['dataPlot']['plotksig'] = False
-        self.guiDict['dataPlot']['title'] = 'Spectrum'
+        self.gui_dict['data_plot']['xdata'] = []
+        self.gui_dict['data_plot']['ydata'] = []
+        self.gui_dict['data_plot']['xmin'] = -1
+        self.gui_dict['data_plot']['xmax'] = 1
+        self.gui_dict['data_plot']['plotksig'] = False
+        self.gui_dict['data_plot']['title'] = 'Spectrum'
         self.plot_data()
         
-        self.guiDict['enhancementPlot']['xdata'] = []
-        self.guiDict['enhancementPlot']['ydata'] = []
-        self.guiDict['enhancementPlot']['xmin'] = 0
-        self.guiDict['enhancementPlot']['xmax'] = 1
-        self.guiDict['enhancementPlot']['title'] = 'E[p]'
-        self.guiDict['enhancementPlot']['ytick'] = [0]
-        self.guiDict['enhancementPlot']['ytickLabel'] = ['0']
-        self.guiDict['enhancementPlot']['tau'] = []
-        self.guiDict['enhancementPlot']['tauAmps'] = []
-        self.guiDict['enhancementPlot']['t1Fit'] = []
-        self.guiDict['enhancementPlot']['plotT1fit'] = False
-        self.guiDict['enhancementPlot']['plotEpfit'] = False
+        self.gui_dict['enhancement_plot']['xdata'] = []
+        self.gui_dict['enhancement_plot']['ydata'] = []
+        self.gui_dict['enhancement_plot']['xmin'] = 0
+        self.gui_dict['enhancement_plot']['xmax'] = 1
+        self.gui_dict['enhancement_plot']['title'] = 'E[p]'
+        self.gui_dict['enhancement_plot']['ytick'] = [0]
+        self.gui_dict['enhancement_plot']['ytickLabel'] = ['0']
+        self.gui_dict['enhancement_plot']['tau'] = []
+        self.gui_dict['enhancement_plot']['t1Amps'] = []
+        self.gui_dict['enhancement_plot']['t1Fit'] = []
+        self.gui_dict['enhancement_plot']['plotT1fit'] = False
+        self.gui_dict['enhancement_plot']['plotEpfit'] = False
         self.plot_enh()
         
-        self.guiDict['t1Plot']['xdata'] = []
-        self.guiDict['t1Plot']['ydata'] = []
-        self.guiDict['t1Plot']['xmin'] = 0
-        self.guiDict['t1Plot']['xmax'] = 1
-        self.guiDict['t1Plot']['ymin'] = 0
-        self.guiDict['t1Plot']['ymax'] = 4
-        self.guiDict['t1Plot']['title'] = 'T1[p]'
-        self.guiDict['t1Plot']['ytick'] = [1,3]
-        self.guiDict['t1Plot']['ytickLabel'] = ['1','3']
-        self.guiDict['t1Plot']['plotT1interp'] = False
+        self.gui_dict['t1_plot']['xdata'] = []
+        self.gui_dict['t1_plot']['ydata'] = []
+        self.gui_dict['t1_plot']['xmin'] = 0
+        self.gui_dict['t1_plot']['xmax'] = 1
+        self.gui_dict['t1_plot']['ymin'] = 0
+        self.gui_dict['t1_plot']['ymax'] = 4
+        self.gui_dict['t1_plot']['title'] = 'T1[p]'
+        self.gui_dict['t1_plot']['ytick'] = [1,3]
+        self.gui_dict['t1_plot']['ytickLabel'] = ['1','3']
+        self.gui_dict['t1_plot']['plotT1interp'] = False
         self.plot_t1()
         
-        self.guiDict['guiFunction']['sliders'] = True
-        self.guiDict['guiFunction']['hydrationEdits'] = False
-        self.guiDict['guiFunction']['calculating'] = False
+        self.gui_dict['gui_function']['sliders'] = True
+        self.gui_dict['gui_function']['hydrationEdits'] = False
+        self.gui_dict['gui_function']['calculating'] = False
         
-        self.guiDict['folderStruct']['index'] = 0
-        self.guiDict['processSpectrum']['phaseFactor'] = 0
+        self.gui_dict['folder_structure']['index'] = 0
+        self.gui_dict['processing_spec']['phase_factor'] = 0
 
         self.show_hide_components()
     
     def plot_setter(self):
        
-        if self.guiDict['rawdataFunction']['folder'] == -1:
-            self.guiDict['dataPlot']['title'] = 'T1 Measurement, Folder # ' + self.singlefolder
-            self.guiDict['enhancementPlot']['title'] = 'T1 Fit'
+        if self.gui_dict['rawdata_function']['folder'] == -1:
+            self.gui_dict['data_plot']['title'] = 'T1 Measurement, Folder # ' + self.singlefolder
+            self.gui_dict['enhancement_plot']['title'] = 'T1 Fit'
             
-        elif self.guiDict['rawdataFunction']['folder'] == -2:
-            self.guiDict['dataPlot']['title'] = '1D Data, Folder # ' + self.singlefolder
+        elif self.gui_dict['rawdata_function']['folder'] == -2:
+            self.gui_dict['data_plot']['title'] = '1D Data, Folder # ' + self.singlefolder
         else:
         
-            if self.guiDict['rawdataFunction']['folder'] == self.guiDict['folderStruct']['p0']:
-                self.guiDict['dataPlot']['title'] = 'Signal with power=0, Folder # ' + str(self.guiDict['rawdataFunction']['folder'])
+            if self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['p0']:
+                self.gui_dict['data_plot']['title'] = 'Signal with power=0, Folder # ' + str(self.gui_dict['rawdata_function']['folder'])
                 self.backButton.setText('Back')
                 self.onlyT1pCheckbox.setVisible(False)
                 self.onlyT10Checkbox.setVisible(False)
                 
-            elif self.guiDict['rawdataFunction']['folder'] == self.guiDict['folderStruct']['T10']:
-                self.guiDict['dataPlot']['title'] = 'T1 with power=0, Folder # ' + str(self.guiDict['rawdataFunction']['folder'])
+            elif self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
+                self.gui_dict['data_plot']['title'] = 'T1 with power=0, Folder # ' + str(self.gui_dict['rawdata_function']['folder'])
                 
-            elif self.guiDict['rawdataFunction']['folder'] in self.guiDict['folderStruct']['enh']:
-                self.guiDict['dataPlot']['title'] = 'Enhanced Signal, Folder # ' + str(self.guiDict['rawdataFunction']['folder'])
+            elif self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['enh']:
+                self.gui_dict['data_plot']['title'] = 'Enhanced Signal, Folder # ' + str(self.gui_dict['rawdata_function']['folder'])
                 
-            elif self.guiDict['rawdataFunction']['folder'] in self.guiDict['folderStruct']['T1']:
-                self.guiDict['dataPlot']['title'] = 'T1 measurement, Folder # ' + str(self.guiDict['rawdataFunction']['folder'])
+            elif self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1']:
+                self.gui_dict['data_plot']['title'] = 'T1 measurement, Folder # ' + str(self.gui_dict['rawdata_function']['folder'])
                 
-            if self.guiDict['rawdataFunction']['folder'] in self.guiDict['folderStruct']['T1'] or self.guiDict['rawdataFunction']['folder'] == self.guiDict['folderStruct']['T10']:
-                self.guiDict['enhancementPlot']['title'] = 'T1 Fit'
-                self.guiDict['enhancementPlot']['ytick'] = [0]
-                self.guiDict['enhancementPlot']['ytickLabel'] = ['0']
-                self.guiDict['enhancementPlot']['plotT1fit'] = True
-                self.guiDict['enhancementPlot']['plotEpfit'] = False
-                self.guiDict['enhancementPlot']['plotT1interp'] = False
+            if self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1'] or self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
+                self.gui_dict['enhancement_plot']['title'] = 'T1 Fit'
+                self.gui_dict['enhancement_plot']['ytick'] = [0]
+                self.gui_dict['enhancement_plot']['ytickLabel'] = ['0']
+                self.gui_dict['enhancement_plot']['plotT1fit'] = True
+                self.gui_dict['enhancement_plot']['plotEpfit'] = False
+                self.gui_dict['enhancement_plot']['plotT1interp'] = False
             else:
-                self.guiDict['enhancementPlot']['title'] = 'E[p]'
-                self.guiDict['enhancementPlot']['plotT1fit'] = False
-                self.guiDict['enhancementPlot']['plotEpfit'] = False
+                self.gui_dict['enhancement_plot']['title'] = 'E[p]'
+                self.gui_dict['enhancement_plot']['plotT1fit'] = False
+                self.gui_dict['enhancement_plot']['plotEpfit'] = False
         
-            self.guiDict['processSpectrum']['phaseFactor'] = 0
-            self.guiDict['guiFunction']['sliders'] = False
+            self.gui_dict['processing_spec']['phase_factor'] = 0
+            self.gui_dict['gui_function']['sliders'] = False
             self.phaseSlider.setValue(0)
-            self.guiDict['guiFunction']['sliders'] = True
+            self.gui_dict['gui_function']['sliders'] = True
     
-    def loadLab(self):
-        
+    def GUI_Result_Button(self):
+        """Select the .mat file previously saved using the 'Save results' button"""
         try:
             if self.testmode:
                 flname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_output.mat'
@@ -555,47 +552,47 @@ class hydrationGUI(QMainWindow):
             matin = loadmat(flname)
 
             self.ksiglabel='dnpLab'
-            self.guiDict['rawdataFunction']['folder'] = -3
+            self.gui_dict['rawdata_function']['folder'] = -3
             
-            self.guiDict['dnpLabFunction']['isLab'] = True
-            self.guiDict['workupFunction']['isWorkup'] = False
-            self.guiDict['workupFunction']['addWorkup'] = False
-            self.guiDict['workupFunction']['show'] = False
-            self.guiDict['workupFunction']['fit'] = False
+            self.gui_dict['dnpLab_function']['isLab'] = True
+            self.gui_dict['workup_function']['isWorkup'] = False
+            self.gui_dict['workup_function']['addWorkup'] = False
+            self.gui_dict['workup_function']['show'] = False
+            self.gui_dict['workup_function']['fit'] = False
             
             self.reset_plots()
             self.t10Edit.setText(str(round(float(matin['odnp']['T10']),4)))
             
-            self.guiDict['dnpLabData']['T10'] = float(matin['odnp']['T10'])
-            self.guiDict['dnpLabData']['T10_error'] = float(matin['odnp']['T10_error'])
+            self.gui_dict['dnpLab_data']['T10'] = float(matin['odnp']['T10'])
+            self.gui_dict['dnpLab_data']['T10_error'] = float(matin['odnp']['T10_error'])
             epows=matin['odnp']['Epowers'][0]
-            self.guiDict['dnpLabData']['Epowers'] = np.ravel(epows[0])
+            self.gui_dict['dnpLab_data']['Epowers'] = np.ravel(epows[0])
             ep = matin['odnp']['Ep'][0]
             self.Ep = np.ravel(ep[0])
             t1pows = matin['odnp']['T1powers'][0]
-            self.guiDict['dnpLabData']['T1powers'] = np.ravel(t1pows[0])
+            self.gui_dict['dnpLab_data']['T1powers'] = np.ravel(t1pows[0])
             t1p = matin['odnp']['T1p'][0]
             self.T1p = np.ravel(t1p[0])
             t1perr = matin['odnp']['T1p_error'][0]
             self.T1p_error = np.ravel(t1perr[0])
             
-            self.guiDict['rawdataFunction']['nopowers'] = False
+            self.gui_dict['rawdata_function']['nopowers'] = False
             
             self.finishProcessing()
             
-            self.guiDict['guiFunction']['buttons'] = True
+            self.gui_dict['gui_function']['buttons'] = True
         
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('GUI DATA ERROR')
-            self.guiDict['guiFunction']['buttons'] = False
+            self.gui_dict['gui_function']['buttons'] = False
         
-    def loadSingle(self):
-        
+    def Bruker_Button(self):
+        """Select any numbered folder of a topspin dataset that contains 1D or 2D data"""
         try:
             if self.testmode:
-                dirname = dirname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + '304'
+                dirname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + '304'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
                 
@@ -608,26 +605,26 @@ class hydrationGUI(QMainWindow):
             path = dirname.replace(str(self.singlefolder) + os.sep, '')
             
             data = odnp.dnpImport.topspin.import_topspin(path,self.singlefolder)
-            self.dnpLabWS = odnp.create_workspace('raw',data)
-            self.dnpLabWS.copy('raw','proc')
+            self.dnpLab_workspace = odnp.create_workspace('raw',data)
+            self.dnpLab_workspace.copy('raw','proc')
             
-            if self.dnpLabWS['proc'].ndim == 2:
+            if self.dnpLab_workspace['proc'].ndim == 2:
                 print('T1 Measurement: ' + dirname)
-                self.guiDict['rawdataFunction']['folder'] = -1
-            elif self.dnpLabWS['proc'].ndim == 1:
+                self.gui_dict['rawdata_function']['folder'] = -1
+            elif self.dnpLab_workspace['proc'].ndim == 1:
                 print('1D Data: ' + dirname)
-                self.guiDict['rawdataFunction']['folder'] = -2
+                self.gui_dict['rawdata_function']['folder'] = -2
                 
             self.reset_plots()
             self.plot_setter()
             
-            self.guiDict['guiFunction']['buttons'] = False
-            self.guiDict['workupFunction']['isWorkup'] = False
-            self.guiDict['workupFunction']['addWorkup'] = False
-            self.guiDict['dnpLabFunction']['isLab'] = False
-            self.guiDict['workupFunction']['fit'] = False
-            self.guiDict['workupFunction']['show'] = False
-            self.guiDict['enhancementPlot']['plotT1fit'] = True
+            self.gui_dict['gui_function']['buttons'] = False
+            self.gui_dict['workup_function']['isWorkup'] = False
+            self.gui_dict['workup_function']['addWorkup'] = False
+            self.gui_dict['dnpLab_function']['isLab'] = False
+            self.gui_dict['workup_function']['fit'] = False
+            self.gui_dict['workup_function']['show'] = False
+            self.gui_dict['enhancement_plot']['plotT1fit'] = True
             self.backButton.setVisible(False)
             self.onlyT1pCheckbox.setVisible(False)
             self.onlyT10Checkbox.setVisible(False)
@@ -637,19 +634,19 @@ class hydrationGUI(QMainWindow):
             
             self.processData()
             
-            if self.guiDict['rawdataFunction']['folder'] == -2:
+            if self.gui_dict['rawdata_function']['folder'] == -2:
                 self.enhplt.setVisible(False)
-            elif self.guiDict['rawdataFunction']['folder'] == -1:
+            elif self.gui_dict['rawdata_function']['folder'] == -1:
                 self.enhplt.setVisible(True)
    
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('T1 DATA ERROR')
-            self.guiDict['guiFunction']['sliders'] = False
+            self.gui_dict['gui_function']['sliders'] = False
 
-    def loadWorkup(self):
-    
+    def Workup_Button(self):
+        """Select the "Workup" folder that is the output of workup software used by the Han Lab."""
         try:
             if self.testmode:
                 wrkname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'Workup'
@@ -657,114 +654,102 @@ class hydrationGUI(QMainWindow):
                 wrkname = QFileDialog.getExistingDirectory(self)
                 
             wrkname = os.path.join(wrkname + os.sep)
-            self.guiDict['workupFunction']['directory'] = wrkname
+            self.gui_dict['workup_function']['directory'] = wrkname
             print('Workup: ' + wrkname)
             x = wrkname.split(os.sep)
             self.pathLabel.setText('WORKUP DIRECTORY: ' + x[len(x)-3] + ' ' + os.sep + ' ' + x[len(x)-2])
             
             self.ksiglabel='workup'
-            self.guiDict['rawdataFunction']['folder'] = -3
+            self.gui_dict['rawdata_function']['folder'] = -3
 
-            self.guiDict['workupFunction']['isWorkup'] = True
-            self.guiDict['dnpLabFunction']['isLab'] = False
-            self.guiDict['workupFunction']['addWorkup'] = False
-            self.guiDict['workupFunction']['show'] = False
-            self.guiDict['workupFunction']['fit'] = False
+            self.gui_dict['workup_function']['isWorkup'] = True
+            self.gui_dict['dnpLab_function']['isLab'] = False
+            self.gui_dict['workup_function']['addWorkup'] = False
+            self.gui_dict['workup_function']['show'] = False
+            self.gui_dict['workup_function']['fit'] = False
 
             self.reset_plots()
             self.processWorkup()
-            self.guiDict['dnpLabData'] = copy.deepcopy(self.guiDict['workupData'])
-            self.Ep = self.guiDict['workupData']['Ep']
-            self.T1p = self.guiDict['workupData']['T1p']
-            self.T1p_error = self.guiDict['workupData']['T1p_error']
-            self.guiDict['dnpLabData']['T10'] = self.guiDict['workupData']['T10']
-            self.guiDict['dnpLabData']['T10_error'] = self.guiDict['workupData']['T10_error']
+            self.gui_dict['dnpLab_data'] = copy.deepcopy(self.gui_dict['workup_data'])
+            self.Ep = self.gui_dict['workup_data']['Ep']
+            self.T1p = self.gui_dict['workup_data']['T1p']
+            self.T1p_error = self.gui_dict['workup_data']['T1p_error']
+            self.gui_dict['dnpLab_data']['T10'] = self.gui_dict['workup_data']['T10']
+            self.gui_dict['dnpLab_data']['T10_error'] = self.gui_dict['workup_data']['T10_error']
             
-            self.guiDict['rawdataFunction']['nopowers'] = False
+            self.gui_dict['rawdata_function']['nopowers'] = False
             
             self.finishProcessing()
 
-            self.guiDict['guiFunction']['buttons'] = True
+            self.gui_dict['gui_function']['buttons'] = True
             
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('WORKUP ERROR')
-            self.guiDict['guiFunction']['buttons'] = False
+            self.gui_dict['gui_function']['buttons'] = False
     
     def processWorkup(self):
 
         # load enhancementPowers.csv
-        Etest = np.loadtxt(self.guiDict['workupFunction']['directory'] + 'enhancementPowers.csv', delimiter = ',', usecols = range(0,3), max_rows=22, skiprows = 1)
+        Etest = np.loadtxt(self.gui_dict['workup_function']['directory'] + 'enhancementPowers.csv', delimiter = ',', usecols = range(0,3), max_rows=22, skiprows = 1)
         if Etest[0,2] == 0:
             Eraw = Etest
         else:
             try:
-                Eraw = np.loadtxt(self.guiDict['workupFunction']['directory'] + 'enhancementPowers.csv', delimiter = ',', usecols = range(0,2), max_rows=30, skiprows = 1)
+                Eraw = np.loadtxt(self.gui_dict['workup_function']['directory'] + 'enhancementPowers.csv', delimiter = ',', usecols = range(0,2), max_rows=30, skiprows = 1)
             except IndexError:
-                Eraw = np.loadtxt(self.guiDict['workupFunction']['directory'] + 'enhancementPowers.csv', delimiter = ',', usecols = range(0,2), max_rows=22, skiprows = 1)
+                Eraw = np.loadtxt(self.gui_dict['workup_function']['directory'] + 'enhancementPowers.csv', delimiter = ',', usecols = range(0,2), max_rows=22, skiprows = 1)
         
         # load t1Powers.csv
-        T1test = np.loadtxt(self.guiDict['workupFunction']['directory'] + 't1Powers.csv', delimiter = ',', usecols = range(0,4), max_rows=6, skiprows = 1)
+        T1test = np.loadtxt(self.gui_dict['workup_function']['directory'] + 't1Powers.csv', delimiter = ',', usecols = range(0,4), max_rows=6, skiprows = 1)
         if T1test[5,3] == 304:
             T1raw = T1test
         else:
-            T1test = np.loadtxt(self.guiDict['workupFunction']['directory'] + 't1Powers.csv', delimiter = ',', usecols = range(0,4), max_rows=9, skiprows = 1)
+            T1test = np.loadtxt(self.gui_dict['workup_function']['directory'] + 't1Powers.csv', delimiter = ',', usecols = range(0,4), max_rows=9, skiprows = 1)
             if T1test[8,3] == 36:
                 T1raw = T1test
             else:
-                T1test = np.loadtxt(self.guiDict['workupFunction']['directory'] + 't1Powers.csv', delimiter = ',', usecols = range(0,4), max_rows=10, skiprows = 1)
+                T1test = np.loadtxt(self.gui_dict['workup_function']['directory'] + 't1Powers.csv', delimiter = ',', usecols = range(0,4), max_rows=10, skiprows = 1)
                 if T1test[9,3] == 37:
                     T1raw = T1test
                 else:
-                    T1test = np.loadtxt(self.guiDict['workupFunction']['directory'] + 't1Powers.csv', delimiter = ',', usecols = range(0,4), max_rows=11, skiprows = 1)
+                    T1test = np.loadtxt(self.gui_dict['workup_function']['directory'] + 't1Powers.csv', delimiter = ',', usecols = range(0,4), max_rows=11, skiprows = 1)
                     if T1test[10,3] == 304:
                         T1raw = T1test
     
         ePows = Eraw[:,0].reshape(-1)
         eP = Eraw[:,1].reshape(-1)
-        self.guiDict['workupData']['Epowers'] = ePows[1:len(ePows)]
+        self.gui_dict['workup_data']['Epowers'] = ePows[1:len(ePows)]
         # take real enhancement points
-        self.guiDict['workupData']['Ep'] = eP[1:len(ePows)]
+        self.gui_dict['workup_data']['Ep'] = eP[1:len(ePows)]
 
         t1Pows = T1raw[:,0].reshape(-1)
         t1P = T1raw[:,1].reshape(-1)
         t1P_error = T1raw[:,2].reshape(-1)
-        self.guiDict['workupData']['T1powers'] = t1Pows[0:len(t1Pows)-1]
-        self.guiDict['workupData']['T1p'] = t1P[0:len(t1P)-1]
-        self.guiDict['workupData']['T1p_error'] = t1P_error[0:len(t1P_error)-1]
-        self.guiDict['workupData']['T10'] = t1P[len(t1P)-1]
-        self.guiDict['workupData']['T10_error'] = t1P_error[len(t1P_error)-1]
-        self.workupt10Edit.setText(str(round(self.guiDict['workupData']['T10'],4)))
+        self.gui_dict['workup_data']['T1powers'] = t1Pows[0:len(t1Pows)-1]
+        self.gui_dict['workup_data']['T1p'] = t1P[0:len(t1P)-1]
+        self.gui_dict['workup_data']['T1p_error'] = t1P_error[0:len(t1P_error)-1]
+        self.gui_dict['workup_data']['T10'] = t1P[len(t1P)-1]
+        self.gui_dict['workup_data']['T10_error'] = t1P_error[len(t1P_error)-1]
+        self.workupt10Edit.setText(str(round(self.gui_dict['workup_data']['T10'],4)))
         
-        wrkupksig = np.loadtxt(self.guiDict['workupFunction']['directory'] + 'kSigma.csv', delimiter = ',', usecols = range(0,2), max_rows=1, skiprows = 1)
+        wrkupksig = np.loadtxt(self.gui_dict['workup_function']['directory'] + 'kSigma.csv', delimiter = ',', usecols = range(0,2), max_rows=1, skiprows = 1)
         
-        self.guiDict['workupData']['kSigma'] = wrkupksig[0] * 1e6
-        self.guiDict['workupData']['kSigma_error'] = wrkupksig[1] * 1e6
+        self.gui_dict['workup_data']['kSigma'] = wrkupksig[0] * 1e6
+        self.gui_dict['workup_data']['kSigma_error'] = wrkupksig[1] * 1e6
         
-        """
-        wrkupksig_array = np.loadtxt(self.guiDict['workupFunction']['directory'] + 'kSigma.csv', delimiter = ',', usecols = range(0,1), max_rows=21, skiprows = 6)
-        ksig = np.array([self.guiDict['workupData']['Epowers'],wrkupksig_array.reshape(-1)])
-        ksig = np.transpose(ksig)
-        ksig = ksig[ksig[:,0].argsort()]
-        self.workup_ksig_array = ksig[:,1]
-        """
 
-    def workupExpTimes(self):#{{{
-        """ This reads the bruker meta data file audita.txt and returns the time elapsed for the given experiment.
+        #wrkupksig_array = np.loadtxt(self.gui_dict['workup_function']['directory'] + 'kSigma.csv', delimiter = ',', usecols = range(0,1), max_rows=21, skiprows = 6)
+        #ksig = np.array([self.gui_dict['workup_data']['Epowers'],wrkupksig_array.reshape(-1)])
+        #ksig = np.transpose(ksig)
+        #ksig = ksig[ksig[:,0].argsort()]
+        #self.workup_ksig_array = ksig[:,1]
 
-        Args:
-        fullPath - (string) path to experiment file
-        exps - (array) experiment numbers
 
-        Kwargs:
-        dnpExp - True = enhancements or False = T1s
+    def workupExpTimes(self):
 
-        Returns:
-        array of experiment times, and a list of the absolute experiment start and stop times
-
-        """
-        fullPath = self.guiDict['rawdataFunction']['directory']
+        fullPath = self.gui_dict['rawdata_function']['directory']
         exps = self.ExpNums
         dnpExp = self.dnpExp
         
@@ -803,20 +788,8 @@ class hydrationGUI(QMainWindow):
                 expTime.pop(count)
     
     def workupSplitPowers(self):
-        """ Reads power file from odnp experiment and returns a list of the determined power steps.
 
-        Args:
-        fullPath - (string) 'path/to/expDirectory'
-        powerfile - (string) 'fileName', do not include extension .mat or .csv
-        absTime - (list of tuples) the absolute time values for the (start, stop) of each NMR experiment. This is returned from returnExpTimes in nmr.py
-        threshold - (double) threshold value for the power steps. Units = (d dBm / d t) - differential
-
-        Returns:
-        powerList - (array) This is an array of the average power value measured between each start and stop time of the absTimes list.
-
-        This code works by aligning the time values given in absTime to the last spike of the derivative powers spectrum. The last spike corresponds to when the amplifier is turned off and typically has the largest spike. Once the times are aligned I average the power between each start and stop time. I return the average of the power values.
-        """
-        fullPath = self.guiDict['rawdataFunction']['directory']
+        fullPath = self.gui_dict['rawdata_function']['directory']
         powerfile = self.pwrfile
         bufferVal = self.buff
         threshold = 20
@@ -876,9 +849,9 @@ class hydrationGUI(QMainWindow):
     
     def workupPhaseOpt(self):
     
-           optDict = copy.deepcopy(self.procDict)
+           opt_dict = copy.deepcopy(self.processing_workspace)
            
-           curve = optDict['proc'].values
+           curve = opt_dict['proc'].values
            #{{{ find bestindex once
            phases = np.linspace(-np.pi/2,np.pi/2,100).reshape(1,-1) # this should work w/out altering the sign
            rotated_data = (curve.reshape(-1,1))*np.exp(-1j*phases)
@@ -896,10 +869,19 @@ class hydrationGUI(QMainWindow):
                success = (np.real(rotated_data)**2).sum(axis=0)/((np.imag(rotated_data)**2).sum(axis=0)) #optimize the signal power to noise power
                bestindex = np.argmax(success)
                
-           self.guiDict['processSpectrum']['originalPhase'] = phases[0,bestindex]
+           self.gui_dict['processing_spec']['originalPhase'] = phases[0,bestindex]
              
-    def loadRaw(self):
-    
+    def Han_Lab_Button(self):
+        """Select the base folder of a dataset generated using the 'rb_dnp1' command in topspin at CNSI
+        
+        Required data:
+            Folder 5: 1D spectrum that is collected without microwave power
+            Folders 6-26: 1D spectra that are collected at different microwave powers specified in the power.mat file
+            Folders 28-32: 2D inversion recovery experiments at different microwave powers specified in the t1powers.mat file
+            Folder 304: 2D inversion recovery experiment collected without microwave power
+            Additional required files: power.mat and t1powers.mat OR power.csv and t1power.csv files that are the measurements of applied microwave powers
+            
+        """
         try:
             if self.testmode:
                 dirname = self.labpath + os.sep + 'data' + os.sep + 'topspin'
@@ -907,147 +889,159 @@ class hydrationGUI(QMainWindow):
                 dirname = QFileDialog.getExistingDirectory(self)
                 
             dirname = os.path.join(dirname + os.sep)
-            self.guiDict['rawdataFunction']['directory'] = dirname
+            self.gui_dict['rawdata_function']['directory'] = dirname
             print('Data: ' + dirname)
             x = dirname.split(os.sep)
             self.pathLabel.setText('DATA DIRECTORY: ' + x[len(x)-3] + ' ' + os.sep + ' ' + x[len(x)-2])
 
-            self.guiDict['folderStruct'] = {}
-            self.guiDict['workupFunction']['isWorkup'] = False
-            self.guiDict['dnpLabFunction']['isLab'] = False
+            self.gui_dict['folder_structure'] = {}
+            self.gui_dict['workup_function']['isWorkup'] = False
+            self.gui_dict['dnpLab_function']['isLab'] = False
 
-            if os.path.exists(self.guiDict['rawdataFunction']['directory'] + '40'):
+            if os.path.exists(self.gui_dict['rawdata_function']['directory'] + '40'):
 
-                self.guiDict['folderStruct']['p0'] = 5
-                self.guiDict['folderStruct']['enh'] = list(range(6,30))
-                self.guiDict['folderStruct']['T1'] = range(31,41)
-                self.guiDict['folderStruct']['T10'] = 304
+                self.gui_dict['folder_structure']['p0'] = 5
+                self.gui_dict['folder_structure']['enh'] = list(range(6,30))
+                self.gui_dict['folder_structure']['T1'] = range(31,41)
+                self.gui_dict['folder_structure']['T10'] = 304
 
             else:
                 
-                self.guiDict['folderStruct']['p0'] = 5
-                self.guiDict['folderStruct']['enh'] = range(6,27)
-                self.guiDict['folderStruct']['T1'] = range(28,33)
-                self.guiDict['folderStruct']['T10'] = 304
+                self.gui_dict['folder_structure']['p0'] = 5
+                self.gui_dict['folder_structure']['enh'] = range(6,27)
+                self.gui_dict['folder_structure']['T1'] = range(28,33)
+                self.gui_dict['folder_structure']['T10'] = 304
                                 
-            self.guiDict['workupFunction']['addWorkup'] = False
-            self.guiDict['workupFunction']['show'] = False
-            self.guiDict['workupFunction']['fit'] = False
+            self.gui_dict['workup_function']['addWorkup'] = False
+            self.gui_dict['workup_function']['show'] = False
+            self.gui_dict['workup_function']['fit'] = False
             
-            self.guiDict['rawdataFunction']['nopowers'] = True
+            self.gui_dict['rawdata_function']['nopowers'] = True
             
-            if os.path.exists(self.guiDict['rawdataFunction']['directory'] + 'Workup') and os.path.isfile(self.guiDict['rawdataFunction']['directory'] + 'Workup' + os.sep + 'enhancementPowers.csv') and os.path.isfile(self.guiDict['rawdataFunction']['directory'] + 'Workup' + os.sep + 'kSigma.csv') and os.path.isfile(self.guiDict['rawdataFunction']['directory'] + 'Workup' + os.sep + 't1Powers.csv'):
+            if os.path.exists(self.gui_dict['rawdata_function']['directory'] + 'Workup') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 'enhancementPowers.csv') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 'kSigma.csv') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 't1Powers.csv'):
                 
-                self.guiDict['workupFunction']['addWorkup'] = True
-                self.guiDict['workupFunction']['show'] = True
+                self.gui_dict['workup_function']['addWorkup'] = True
+                self.gui_dict['workup_function']['show'] = True
                 
-                self.guiDict['workupFunction']['directory'] = os.path.join(dirname + 'Workup' + os.sep)
+                self.gui_dict['workup_function']['directory'] = os.path.join(dirname + 'Workup' + os.sep)
                 
                 self.processWorkup()
                 
-                if len(self.guiDict['workupData']['Epowers']) == len(self.guiDict['folderStruct']['enh']) and len(self.guiDict['workupData']['T1powers']) == len(self.guiDict['folderStruct']['T1']):
+                if len(self.gui_dict['workup_data']['Epowers']) == len(self.gui_dict['folder_structure']['enh']) and len(self.gui_dict['workup_data']['T1powers']) == len(self.gui_dict['folder_structure']['T1']):
                     
-                    Epowers = self.guiDict['workupData']['Epowers']
-                    T1powers = self.guiDict['workupData']['T1powers']
+                    Epowers = self.gui_dict['workup_data']['Epowers']
+                    T1powers = self.gui_dict['workup_data']['T1powers']
                 
                     print('Found workup output, using power values from workup.')
-                    self.guiDict['rawdataFunction']['nopowers'] = False
+                    self.gui_dict['rawdata_function']['nopowers'] = False
             
-            if self.guiDict['rawdataFunction']['nopowers']:
-                if os.path.isfile(self.guiDict['rawdataFunction']['directory'] + 'power.mat') or os.path.isfile(self.guiDict['rawdataFunction']['directory'] + 'power.csv'):
+            if self.gui_dict['rawdata_function']['nopowers']:
+                if os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'power.mat') or os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'power.csv'):
                 
-                    if os.path.isfile(self.guiDict['rawdataFunction']['directory'] + 't1_powers.mat') or os.path.isfile(self.guiDict['rawdataFunction']['directory'] + 't1_powers.csv'):
+                    if os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 't1_powers.mat') or os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 't1_powers.csv'):
                         
                         print('No workup output found, using power readings files.')
                         
-                        self.ExpNums = self.guiDict['folderStruct']['enh']
+                        self.ExpNums = self.gui_dict['folder_structure']['enh']
                         self.dnpExp = True
                         self.workupExpTimes()
                         self.pwrfile = 'power'
                         self.buff = 2.5
                         self.workupSplitPowers()
                         
+                        
+                        #{{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
                         Epowers = np.add(self.powerList, 21.9992)
                         Epowers = np.divide(Epowers, 10)
                         Epowers = np.power(10, Epowers)
                         Epowers = np.multiply((1e-3),Epowers)
+                        #}}
                         
-                        self.ExpNums = self.guiDict['folderStruct']['T1']
+                        
+                        self.ExpNums = self.gui_dict['folder_structure']['T1']
                         self.dnpExp = False
                         self.workupExpTimes()
                         self.pwrfile = 't1_powers'
                         self.buff = 20*2.5
                         self.workupSplitPowers()
                         
+                        
+                        #{{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
                         T1powers = np.add(self.powerList, 21.9992)
                         T1powers = np.divide(T1powers, 10)
                         T1powers = np.power(10, T1powers)
                         T1powers = np.multiply((1e-3),T1powers)
+                        #}}
                         
-                        self.guiDict['rawdataFunction']['nopowers'] = False
+                        
+                        self.gui_dict['rawdata_function']['nopowers'] = False
                           
-            if self.guiDict['rawdataFunction']['nopowers']:
+            if self.gui_dict['rawdata_function']['nopowers']:
                 print('No power readings found.')
                 print('Trying to find power settings in experiment titles...')
                 try:
                     Eplist = []
-                    for k in self.guiDict['folderStruct']['enh']:
-                        title = odnp.dnpImport.bruker.loadTitle(self.guiDict['rawdataFunction']['directory'],expNum = k)
+                    for k in self.gui_dict['folder_structure']['enh']:
+                        title = odnp.dnpImport.bruker.loadTitle(self.gui_dict['rawdata_function']['directory'],expNum = k)
                         splitTitle = title.split(' ')
                         Eplist.append(float(splitTitle[-1]))
                         
                     T1plist = []
-                    for k in self.guiDict['folderStruct']['T1']:
-                        title = odnp.dnpImport.bruker.loadTitle(self.guiDict['rawdataFunction']['directory'],expNum = k)
+                    for k in self.gui_dict['folder_structure']['T1']:
+                        title = odnp.dnpImport.bruker.loadTitle(self.gui_dict['rawdata_function']['directory'],expNum = k)
                         splitTitle = title.split(' ')
                         T1plist.append(float(splitTitle[-1]))
-
+                    
+                    
+                    #{{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the relationship between the attenuation setting, the power meter reading, and the power delivered to the resonator.
                     Epowers = np.multiply(-1,Eplist)
                     Epowers = np.add(Epowers, 29.01525)
                     Epowers = np.divide(Epowers, 10)
                     Epowers = np.power(10, Epowers)
                     Epowers = np.multiply((1e-3),Epowers)
-
+                    
                     T1powers = np.multiply(-1,T1plist)
                     T1powers = np.add(T1powers, 29.01525)
                     T1powers = np.divide(T1powers, 10)
                     T1powers = np.power(10, T1powers)
                     T1powers = np.multiply((1e-3),T1powers)
+                    #}}
+                    
                     
                     print('Powers taken from experiment titles. *WARNING: this is not accurate!')
-                    self.guiDict['rawdataFunction']['nopowers'] = False
+                    self.gui_dict['rawdata_function']['nopowers'] = False
                     
                 except:
                     print('No power readings available. E[p] and T1[p] are indexed by folder #.')
-                    Epowers = self.guiDict['folderStruct']['enh']
-                    T1powers = self.guiDict['folderStruct']['T1']
+                    Epowers = self.gui_dict['folder_structure']['enh']
+                    T1powers = self.gui_dict['folder_structure']['T1']
             
-            self.guiDict['folderStruct']['all'] = []
-            self.guiDict['folderStruct']['all'].append(self.guiDict['folderStruct']['p0'])
-            for k in self.guiDict['folderStruct']['enh']:
-                self.guiDict['folderStruct']['all'].append(k)
-            for k in self.guiDict['folderStruct']['T1']:
-                self.guiDict['folderStruct']['all'].append(k)
-            self.guiDict['folderStruct']['all'].append(self.guiDict['folderStruct']['T10'])
+            self.gui_dict['folder_structure']['all'] = []
+            self.gui_dict['folder_structure']['all'].append(self.gui_dict['folder_structure']['p0'])
+            for k in self.gui_dict['folder_structure']['enh']:
+                self.gui_dict['folder_structure']['all'].append(k)
+            for k in self.gui_dict['folder_structure']['T1']:
+                self.gui_dict['folder_structure']['all'].append(k)
+            self.gui_dict['folder_structure']['all'].append(self.gui_dict['folder_structure']['T10'])
             
             self.Ep = []
             self.T1p = []
             self.T1p_error = []
-            self.guiDict['dnpLabData']['Epowers'] = Epowers
-            self.guiDict['dnpLabData']['T1powers'] = T1powers
-            self.originalEPowers = self.guiDict['dnpLabData']['Epowers']
-            self.originalT1Powers = self.guiDict['dnpLabData']['T1powers']
-            self.guiDict['guiFunction']['buttons'] = True
+            self.gui_dict['dnpLab_data']['Epowers'] = Epowers
+            self.gui_dict['dnpLab_data']['T1powers'] = T1powers
+            self.originalEPowers = self.gui_dict['dnpLab_data']['Epowers']
+            self.originalT1Powers = self.gui_dict['dnpLab_data']['T1powers']
+            self.gui_dict['gui_function']['buttons'] = True
             
-            self.guiDict['rawdataFunction']['folder'] = self.guiDict['folderStruct']['p0']
+            self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['p0']
             self.ksiglabel='dnpLab'
             
             self.reset_plots()
             self.plot_setter()
             
-            data = odnp.dnpImport.topspin.import_topspin(self.guiDict['rawdataFunction']['directory'],self.guiDict['rawdataFunction']['folder'])
-            self.dnpLabWS = odnp.create_workspace('raw',data)
-            self.dnpLabWS.copy('raw','proc')
+            data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'],self.gui_dict['rawdata_function']['folder'])
+            self.dnpLab_workspace = odnp.create_workspace('raw',data)
+            self.dnpLab_workspace.copy('raw','proc')
 
             self.processData()
             
@@ -1055,19 +1049,19 @@ class hydrationGUI(QMainWindow):
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('RAW DATA ERROR')
-            self.guiDict['guiFunction']['buttons'] = False
-            self.guiDict['guiFunction']['sliders'] = False
+            self.gui_dict['gui_function']['buttons'] = False
+            self.gui_dict['gui_function']['sliders'] = False
 
-    def on_click_next(self):
+    def Next_Button(self):
+        """Use the Next button to step through the data folders"""
+        if self.gui_dict['gui_function']['buttons']:
         
-        if self.guiDict['guiFunction']['buttons']:
-        
-            if self.guiDict['workupFunction']['isWorkup']:
-                self.run_hydration()
+            if self.gui_dict['workup_function']['isWorkup']:
+                self.Hydration_Button()
             else:
             
-                if self.guiDict['rawdataFunction']['folder'] == -3 or self.guiDict['folderStruct']['index'] >= len(self.guiDict['folderStruct']['all']):
-                    self.run_hydration()
+                if self.gui_dict['rawdata_function']['folder'] == -3 or self.gui_dict['folder_structure']['index'] >= len(self.gui_dict['folder_structure']['all']):
+                    self.Hydration_Button()
                 else:
                 
                     self.nextProcessing()
@@ -1079,360 +1073,388 @@ class hydrationGUI(QMainWindow):
             
     def nextProcessing(self):
         
-        nextprocDict = copy.deepcopy(self.procDict)
+        nextproc_workspace = copy.deepcopy(self.processing_workspace)
         
-        nextprocDict['proc'] *= np.exp(-1j*self.guiDict['processSpectrum']['phase'])
-        nextprocDict = odnp.dnpNMR.integrate(nextprocDict,{'integrate_center' : self.guiDict['processSpectrum']['integrationCenter'] , 'integrate_width' : self.guiDict['processSpectrum']['integrationWidth']})
+        nextproc_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['phase'])
+        nextproc_workspace = odnp.dnpNMR.integrate(nextproc_workspace,{'integrate_center' : self.gui_dict['processing_spec']['integration_center'] , 'integrate_width' : self.gui_dict['processing_spec']['integration_width']})
             
-        if self.guiDict['rawdataFunction']['folder'] == self.guiDict['folderStruct']['p0']:
-            self.guiDict['dnpLabData']['p0'] = np.real(nextprocDict['proc'].values[0])
-        elif self.guiDict['rawdataFunction']['folder'] in self.guiDict['folderStruct']['enh']:
-            Ep = np.real(nextprocDict['proc'].values[0]) / self.guiDict['dnpLabData']['p0']
+        if self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['p0']:
+            self.gui_dict['dnpLab_data']['p0'] = np.real(nextproc_workspace['proc'].values[0])
+        elif self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['enh']:
+            Ep = np.real(nextproc_workspace['proc'].values[0]) / self.gui_dict['dnpLab_data']['p0']
             self.Ep.append(np.real(Ep))
-            if self.guiDict['guiFunction']['autoProcess']:
+            if self.gui_dict['gui_function']['autoProcess']:
                 pass
             else:
-                self.guiDict['enhancementPlot']['xdata'] = self.guiDict['dnpLabData']['Epowers'][0:len(self.Ep)]
-                self.guiDict['enhancementPlot']['ydata'] = self.Ep
-                self.guiDict['enhancementPlot']['ytick'] = [0,min(self.Ep)]
+                self.gui_dict['enhancement_plot']['xdata'] = self.gui_dict['dnpLab_data']['Epowers'][0:len(self.Ep)]
+                self.gui_dict['enhancement_plot']['ydata'] = self.Ep
+                self.gui_dict['enhancement_plot']['ytick'] = [0,min(self.Ep)]
                 if min(self.Ep) <= -10:
-                    self.guiDict['enhancementPlot']['ytickLabel'] = ['0',str(int(min(self.Ep)))]
+                    self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(int(min(self.Ep)))]
                 else:
-                    self.guiDict['enhancementPlot']['ytickLabel'] = ['0',str(round(min(self.Ep),1))]
+                    self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(round(min(self.Ep),1))]
                 self.plot_enh()
-        elif self.guiDict['rawdataFunction']['folder'] in self.guiDict['folderStruct']['T1'] or self.guiDict['rawdataFunction']['folder'] == self.guiDict['folderStruct']['T10']:
+        elif self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1'] or self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
         
-            tau = np.reshape(nextprocDict['proc'].coords,-1)
-            Mdata = np.real(nextprocDict['proc'].values)
+            tau = np.reshape(nextproc_workspace['proc'].coords,-1)
+            Mdata = np.real(nextproc_workspace['proc'].values)
             popt, pcov = optimize.curve_fit(self.t1Func, tau, Mdata, p0=[1., Mdata[-1], Mdata[-1]], method='lm')
             stdd = np.sqrt(np.diag(pcov))
 
-            if self.guiDict['rawdataFunction']['folder'] in self.guiDict['folderStruct']['T1']:
+            if self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1']:
                 self.T1p.append(popt[0])
                 self.T1p_error.append(stdd[0])
-            elif self.guiDict['rawdataFunction']['folder'] == self.guiDict['folderStruct']['T10']:
-                self.guiDict['dnpLabData']['T10'] = popt[0]
-                self.guiDict['dnpLabData']['T10_error'] = stdd[0]
-                self.t10Edit.setText(str(round(self.guiDict['dnpLabData']['T10'],4)))
+            elif self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
+                self.gui_dict['dnpLab_data']['T10'] = popt[0]
+                self.gui_dict['dnpLab_data']['T10_error'] = stdd[0]
+                self.t10Edit.setText(str(round(self.gui_dict['dnpLab_data']['T10'],4)))
 
-            if self.guiDict['guiFunction']['autoProcess']:
+            if self.gui_dict['gui_function']['autoProcess']:
                 pass
             else:
-                new_tau = np.r_[np.min(self.guiDict['t1Plot']['tau']):np.max(self.guiDict['t1Plot']['tau']):100j]
-                self.guiDict['t1Plot']['t1Fit'] = self.t1Func(new_tau, popt[0],popt[1],popt[2])
-                self.guiDict['t1Plot']['t1Val'] = popt[0]
+                new_tau = np.r_[np.min(self.gui_dict['t1_plot']['tau']):np.max(self.gui_dict['t1_plot']['tau']):100j]
+                self.gui_dict['t1_plot']['t1Fit'] = self.t1Func(new_tau, popt[0],popt[1],popt[2])
+                self.gui_dict['t1_plot']['t1Val'] = popt[0]
             
-                self.guiDict['t1Plot']['xdata'] = self.guiDict['dnpLabData']['T1powers'][0:len(self.T1p)]
-                self.guiDict['t1Plot']['ydata'] = self.T1p
-                self.guiDict['t1Plot']['ymin'] = min(self.guiDict['t1Plot']['ydata'])*.9
-                self.guiDict['t1Plot']['ymax'] = max(self.guiDict['t1Plot']['ydata'])*1.1
-                self.guiDict['t1Plot']['ytick'] = [max(self.T1p)]
-                self.guiDict['t1Plot']['ytickLabel'] = [str(round(max(self.T1p),1))]
+                self.gui_dict['t1_plot']['xdata'] = self.gui_dict['dnpLab_data']['T1powers'][0:len(self.T1p)]
+                self.gui_dict['t1_plot']['ydata'] = self.T1p
+                self.gui_dict['t1_plot']['ymin'] = min(self.gui_dict['t1_plot']['ydata'])*.9
+                self.gui_dict['t1_plot']['ymax'] = max(self.gui_dict['t1_plot']['ydata'])*1.1
+                self.gui_dict['t1_plot']['ytick'] = [max(self.T1p)]
+                self.gui_dict['t1_plot']['ytickLabel'] = [str(round(max(self.T1p),1))]
                 
-                self.guiDict['t1Plot']['tau'] = tau
-                self.guiDict['t1Plot']['t1Amps'] = Mdata
+                self.gui_dict['t1_plot']['tau'] = tau
+                self.gui_dict['t1_plot']['t1Amps'] = Mdata
                 self.plot_t1()
                 self.plot_enh()
         
-        self.guiDict['folderStruct']['index'] += 1
-        if self.guiDict['guiFunction']['autoProcess']:
-            print('Finished with Folder #' + str(self.guiDict['folderStruct']['index']) + ' of ' + str(len(self.guiDict['folderStruct']['all'])))
+        self.gui_dict['folder_structure']['index'] += 1
+        if self.gui_dict['gui_function']['autoProcess']:
+            print('Finished with Folder #' + str(self.gui_dict['folder_structure']['index']) + ' of ' + str(len(self.gui_dict['folder_structure']['all'])))
         
-        if self.guiDict['folderStruct']['index'] >= len(self.guiDict['folderStruct']['all']):
+        if self.gui_dict['folder_structure']['index'] >= len(self.gui_dict['folder_structure']['all']):
             self.finishProcessing()
         else:
-            self.guiDict['rawdataFunction']['folder'] = self.guiDict['folderStruct']['all'][self.guiDict['folderStruct']['index']]
+            self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['all'][self.gui_dict['folder_structure']['index']]
             
-            if self.guiDict['guiFunction']['autoProcess']:
+            if self.gui_dict['gui_function']['autoProcess']:
                 pass
             else:
-                if self.guiDict['folderStruct']['index'] == len(self.guiDict['folderStruct']['all'])-1:
+                if self.gui_dict['folder_structure']['index'] == len(self.gui_dict['folder_structure']['all'])-1:
                     self.nextButton.setText('Finish')
                 self.plot_setter()
                 
-            data = odnp.dnpImport.topspin.import_topspin(self.guiDict['rawdataFunction']['directory'],self.guiDict['rawdataFunction']['folder'])
-            self.dnpLabWS = odnp.create_workspace('raw',data)
-            self.dnpLabWS.copy('raw','proc')
+            data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'],self.gui_dict['rawdata_function']['folder'])
+            self.dnpLab_workspace = odnp.create_workspace('raw',data)
+            self.dnpLab_workspace.copy('raw','proc')
             
             self.processData()
             
-    def on_click_back(self):
+    def Back_Button(self):
+        """Use the Back button to go backwards through the data folders"""
+        if self.gui_dict['gui_function']['buttons']:
            
-        if self.guiDict['guiFunction']['buttons']:
-           
-           self.guiDict['folderStruct']['index'] -= 1
+           self.gui_dict['folder_structure']['index'] -= 1
 
-           if self.guiDict['folderStruct']['index'] <= 0:
-               self.guiDict['folderStruct']['index'] = 0
-               self.guiDict['rawdataFunction']['folder'] = self.guiDict['folderStruct']['p0']
+           if self.gui_dict['folder_structure']['index'] <= 0:
+               self.gui_dict['folder_structure']['index'] = 0
+               self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['p0']
 
-           if self.guiDict['folderStruct']['index'] >= len(self.guiDict['folderStruct']['all'])-1:
+           if self.gui_dict['folder_structure']['index'] >= len(self.gui_dict['folder_structure']['all'])-1:
               self.reset_plots()
-              self.guiDict['dnpLabData']['Epowers'] = self.originalEPowers
-              self.guiDict['dnpLabData']['T1powers'] = self.originalT1Powers
+              self.gui_dict['dnpLab_data']['Epowers'] = self.originalEPowers
+              self.gui_dict['dnpLab_data']['T1powers'] = self.originalT1Powers
               if self.onlyT10Checkbox.isChecked():
-                 self.guiDict['rawdataFunction']['folder'] = self.guiDict['folderStruct']['T10']
-                 self.guiDict['folderStruct']['index'] = len(self.guiDict['folderStruct']['all'])-1
+                 self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['T10']
+                 self.gui_dict['folder_structure']['index'] = len(self.gui_dict['folder_structure']['all'])-1
                  self.nextButton.setText('Finish')
               else:
                   if self.onlyT1pCheckbox.isChecked():
-                     self.guiDict['rawdataFunction']['folder'] = self.guiDict['folderStruct']['T1'][0]
-                     self.guiDict['folderStruct']['index'] = len(self.guiDict['folderStruct']['all'])-1-len(self.guiDict['folderStruct']['T1'])
+                     self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['T1'][0]
+                     self.gui_dict['folder_structure']['index'] = len(self.gui_dict['folder_structure']['all'])-1-len(self.gui_dict['folder_structure']['T1'])
                      self.T1p = []
                      self.T1p_error = []
                   else:
-                     self.guiDict['rawdataFunction']['folder'] = self.guiDict['folderStruct']['p0']
+                     self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['p0']
                      self.Ep = []
                      self.T1p = []
                      self.T1p_error = []
            else:
-                self.guiDict['rawdataFunction']['folder'] = self.guiDict['folderStruct']['all'][self.guiDict['folderStruct']['index']]
+                self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['all'][self.gui_dict['folder_structure']['index']]
                 
-           if self.guiDict['folderStruct']['index'] == len(self.guiDict['folderStruct']['all'])-2:
+           if self.gui_dict['folder_structure']['index'] == len(self.gui_dict['folder_structure']['all'])-2:
                 self.nextButton.setText('Next Plot')
                 
            self.plot_setter()
-           if self.guiDict['rawdataFunction']['folder'] in self.guiDict['folderStruct']['enh']:
+           if self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['enh']:
                if len(self.Ep) < 2:
                    self.Ep =[]
-                   self.guiDict['enhancementPlot']['xdata'] = []
-                   self.guiDict['enhancementPlot']['ydata'] = []
+                   self.gui_dict['enhancement_plot']['xdata'] = []
+                   self.gui_dict['enhancement_plot']['ydata'] = []
                else:
                     self.Ep =self.Ep[0:len(self.Ep)-1]
-                    self.guiDict['enhancementPlot']['xdata'] = self.guiDict['dnpLabData']['Epowers'][0:len(self.Ep)]
-                    self.guiDict['enhancementPlot']['ydata'] = self.Ep
-                    self.guiDict['enhancementPlot']['ytick'] = [0,min(self.Ep)]
+                    self.gui_dict['enhancement_plot']['xdata'] = self.gui_dict['dnpLab_data']['Epowers'][0:len(self.Ep)]
+                    self.gui_dict['enhancement_plot']['ydata'] = self.Ep
+                    self.gui_dict['enhancement_plot']['ytick'] = [0,min(self.Ep)]
                     if min(self.Ep) <= -10:
-                       self.guiDict['enhancementPlot']['ytickLabel'] = ['0',str(int(min(self.Ep)))]
+                       self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(int(min(self.Ep)))]
                     else:
-                       self.guiDict['enhancementPlot']['ytickLabel'] = ['0',str(round(min(self.Ep),1))]
+                       self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(round(min(self.Ep),1))]
                self.plot_enh()
                    
-           elif self.guiDict['rawdataFunction']['folder'] in self.guiDict['folderStruct']['T1']:
+           elif self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1']:
                if len(self.T1p) < 2:
                    self.T1p = []
                    self.T1p_error = []
-                   self.guiDict['t1Plot']['xdata'] = []
-                   self.guiDict['t1Plot']['ydata'] = []
+                   self.gui_dict['t1_plot']['xdata'] = []
+                   self.gui_dict['t1_plot']['ydata'] = []
                else:
                     self.T1p = self.T1p[0:len(self.T1p)-1]
                     self.T1p_error = self.T1p_error[0:len(self.T1p_error)-1]
-                    self.guiDict['t1Plot']['xdata']  = self.guiDict['dnpLabData']['T1powers'][0:len(self.T1p)]
-                    self.guiDict['t1Plot']['ydata'] = self.T1p
-                    self.guiDict['t1Plot']['ytick'] = [max(self.T1p)]
-                    self.guiDict['t1Plot']['ytickLabel'] = [str(round(max(self.T1p),1))]
-                    self.guiDict['t1Plot']['ymin']  = min(self.T1p)*.85
-                    self.guiDict['t1Plot']['ymax'] = max(self.T1p)*1.15
+                    self.gui_dict['t1_plot']['xdata']  = self.gui_dict['dnpLab_data']['T1powers'][0:len(self.T1p)]
+                    self.gui_dict['t1_plot']['ydata'] = self.T1p
+                    self.gui_dict['t1_plot']['ytick'] = [max(self.T1p)]
+                    self.gui_dict['t1_plot']['ytickLabel'] = [str(round(max(self.T1p),1))]
+                    self.gui_dict['t1_plot']['ymin']  = min(self.T1p)*.85
+                    self.gui_dict['t1_plot']['ymax'] = max(self.T1p)*1.15
                self.plot_t1()
                
-           data = odnp.dnpImport.topspin.import_topspin(self.guiDict['rawdataFunction']['directory'],self.guiDict['rawdataFunction']['folder'])
-           self.dnpLabWS = odnp.create_workspace('raw',data)
-           self.dnpLabWS.copy('raw','proc')
+           data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'],self.gui_dict['rawdata_function']['folder'])
+           self.dnpLab_workspace = odnp.create_workspace('raw',data)
+           self.dnpLab_workspace.copy('raw','proc')
            
            self.processData()
                
         else:
             pass
     
-    def autoProcess(self):
-    
-        if self.guiDict['guiFunction']['buttons']:
+    def Auto_Process_Button(self):
+        """Allow the correct phase and integration window to be automatically chosen and process the full ODNP dataset"""
+        if self.gui_dict['gui_function']['buttons']:
             try:
                 print('Auto processing, please wait...')
-                self.guiDict['guiFunction']['autoProcess'] = True
+                self.gui_dict['gui_function']['autoProcess'] = True
                 #t = time.time()
-                for k in range(self.guiDict['folderStruct']['index']+1,len(self.guiDict['folderStruct']['all'])+1):
+                for k in range(self.gui_dict['folder_structure']['index']+1,len(self.gui_dict['folder_structure']['all'])+1):
                     self.nextProcessing()
                 #elapsed = time.time() - t
                 #print('AutoProcess Time = ' + str(elapsed))
             except:
-                print('Error in auto processing, resetting to folder # ' + str(self.guiDict['folderStruct']['p0']))
-                self.guiDict['folderStruct']['index'] = len(self.guiDict['folderStruct']['all'])
-                self.on_click_back()
+                print('Error in auto processing, resetting to folder # ' + str(self.gui_dict['folder_structure']['p0']))
+                self.gui_dict['folder_structure']['index'] = len(self.gui_dict['folder_structure']['all'])
+                self.Back_Button()
         else:
             pass
         
     def processData(self):
         
-        self.procDict = copy.deepcopy(self.dnpLabWS)
+        self.processing_workspace = copy.deepcopy(self.dnpLab_workspace)
         
-        self.procDict = odnp.dnpNMR.remove_offset(self.procDict,{})
-        self.procDict = odnp.dnpNMR.window(self.procDict,{})
-        self.procDict = odnp.dnpNMR.fourier_transform(self.procDict,{})
-        phsDict = copy.deepcopy(self.procDict)
-        self.guiDict['processSpectrum']['originalPhase'] = phsDict['proc'].phase()
-        if self.autophaseCheckbox.isChecked() or self.guiDict['guiFunction']['autoProcess']:
-            self.guiDict['processSpectrum']['integrationWidth'] = 15
+        self.processing_workspace = odnp.dnpNMR.remove_offset(self.processing_workspace,{})
+        self.processing_workspace = odnp.dnpNMR.window(self.processing_workspace,{})
+        self.processing_workspace = odnp.dnpNMR.fourier_transform(self.processing_workspace,{})
+        phase_dict = copy.deepcopy(self.processing_workspace)
+        self.gui_dict['processing_spec']['originalPhase'] = phase_dict['proc'].phase()
+        if self.autophaseCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
+            self.gui_dict['processing_spec']['integration_width'] = 15
             self.workupPhaseOpt()
         self.optCenter()
         
-        if self.guiDict['guiFunction']['autoProcess']:
-            self.guiDict['processSpectrum']['phase'] = self.guiDict['processSpectrum']['originalPhase']
+        if self.gui_dict['gui_function']['autoProcess']:
+            self.gui_dict['processing_spec']['phase'] = self.gui_dict['processing_spec']['originalPhase']
         else:
-            self.guiDict['guiFunction']['sliders'] = False
+            self.gui_dict['gui_function']['sliders'] = False
             
-            fac = (np.pi/self.guiDict['processSpectrum']['originalPhase'])
+            fac = (np.pi/self.gui_dict['processing_spec']['originalPhase'])
             self.phaseSlider.setMinimum(round(-1000*abs(fac)))
             self.phaseSlider.setMaximum(round(1000*abs(fac)))
-            self.phaseSlider.setValue(self.guiDict['processSpectrum']['originalPhase'])
+            self.phaseSlider.setValue(self.gui_dict['processing_spec']['originalPhase'])
             
-            self.intcenterSlider.setValue(self.guiDict['processSpectrum']['integrationCenter'])
-            self.intcenterSlider.setMinimum(self.guiDict['processSpectrum']['integrationCenter']-50)
-            self.intcenterSlider.setMaximum(self.guiDict['processSpectrum']['integrationCenter']+50)
+            self.intcenterSlider.setValue(self.gui_dict['processing_spec']['integration_center'])
+            self.intcenterSlider.setMinimum(self.gui_dict['processing_spec']['integration_center']-50)
+            self.intcenterSlider.setMaximum(self.gui_dict['processing_spec']['integration_center']+50)
             
-            self.intwindowSlider.setValue(self.guiDict['processSpectrum']['integrationWidth'])
+            self.intwindowSlider.setValue(self.gui_dict['processing_spec']['integration_width'])
             
-            self.guiDict['guiFunction']['sliders'] = True
+            self.gui_dict['gui_function']['sliders'] = True
         
-        xdata = self.procDict['proc'].coords
-        self.guiDict['dataPlot']['xdata'] = np.reshape(xdata['t2'], -1)
+        xdata = self.processing_workspace['proc'].coords
+        self.gui_dict['data_plot']['xdata'] = np.reshape(xdata['t2'], -1)
         
         self.adjustSliders()
             
     def optCenter(self):
     
-        optCentDict = copy.deepcopy(self.procDict)
+        optcenter_workspace = copy.deepcopy(self.processing_workspace)
         
-        intgrlarray = []
+        intgrl_array = []
         indx = range(-50,51)
-        optCentDict['proc'] *= np.exp(-1j*self.guiDict['processSpectrum']['originalPhase'])
+        optcenter_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['originalPhase'])
         for k in indx:
-            iteroptCentDict = copy.deepcopy(optCentDict)
-            iteroptCentDict = odnp.dnpNMR.integrate(iteroptCentDict, {'integrate_center' : k , 'integrate_width' : 10})
-            iteroptCentDict['proc'].values = np.real(iteroptCentDict['proc'].values)
-            intgrlarray.append(abs(iteroptCentDict['proc'].values[0]))
-        cent = np.argmax(intgrlarray)
-        self.guiDict['processSpectrum']['integrationCenter'] = indx[cent]
+            iterativeopt_workspace = copy.deepcopy(optcenter_workspace)
+            iterativeopt_workspace = odnp.dnpNMR.integrate(iterativeopt_workspace, {'integrate_center' : k , 'integrate_width' : 10})
+            iterativeopt_workspace['proc'].values = np.real(iterativeopt_workspace['proc'].values)
+            intgrl_array.append(abs(iterativeopt_workspace['proc'].values[0]))
+        cent = np.argmax(intgrl_array)
+        self.gui_dict['processing_spec']['integration_center'] = indx[cent]
         
     def adjustSliders(self):
         
-        adjsliderDict = copy.deepcopy(self.procDict)
+        adjslider_workspace = copy.deepcopy(self.processing_workspace)
         
-        self.guiDict['processSpectrum']['phase'] =  self.guiDict['processSpectrum']['originalPhase'] + (self.guiDict['processSpectrum']['phaseFactor'] * self.guiDict['processSpectrum']['originalPhase'])
+        self.gui_dict['processing_spec']['phase'] =  self.gui_dict['processing_spec']['originalPhase'] + (self.gui_dict['processing_spec']['phase_factor'] * self.gui_dict['processing_spec']['originalPhase'])
 
-        ydata = adjsliderDict['proc'].values * np.exp(-1j*self.guiDict['processSpectrum']['phase'])
-        self.guiDict['dataPlot']['ydata'] = np.real(ydata)
+        ydata = adjslider_workspace['proc'].values * np.exp(-1j*self.gui_dict['processing_spec']['phase'])
+        self.gui_dict['data_plot']['ydata'] = np.real(ydata)
         
-        xdata = adjsliderDict['proc'].coords
-        self.guiDict['dataPlot']['xdata'] = np.reshape(xdata['t2'], -1)
-        adjsliderDict['proc'] *= np.exp(-1j*self.guiDict['processSpectrum']['phase'])
-        adjsliderDict = odnp.dnpNMR.integrate(adjsliderDict,{'integrate_center' : self.guiDict['processSpectrum']['integrationCenter'] , 'integrate_width' : self.guiDict['processSpectrum']['integrationWidth']})
-        adjsliderDict['proc'].values = np.real(adjsliderDict['proc'].values)
+        xdata = adjslider_workspace['proc'].coords
+        self.gui_dict['data_plot']['xdata'] = np.reshape(xdata['t2'], -1)
+        adjslider_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['phase'])
+        adjslider_workspace = odnp.dnpNMR.integrate(adjslider_workspace,{'integrate_center' : self.gui_dict['processing_spec']['integration_center'] , 'integrate_width' : self.gui_dict['processing_spec']['integration_width']})
+        adjslider_workspace['proc'].values = np.real(adjslider_workspace['proc'].values)
         
-        if len(adjsliderDict['proc'].values) == 1:
+        if len(adjslider_workspace['proc'].values) == 1:
             pass
         else:
             
-            self.guiDict['t1Plot']['t1Amps'] = adjsliderDict['proc'].values
-            self.guiDict['t1Plot']['tau'] = np.reshape(adjsliderDict['proc'].coords,-1)
+            self.gui_dict['t1_plot']['t1Amps'] = adjslider_workspace['proc'].values
+            self.gui_dict['t1_plot']['tau'] = np.reshape(adjslider_workspace['proc'].coords,-1)
             
-            popt, pcov = optimize.curve_fit(self.t1Func, self.guiDict['t1Plot']['tau'], self.guiDict['t1Plot']['t1Amps'], p0=[1., self.guiDict['t1Plot']['t1Amps'][-1], self.guiDict['t1Plot']['t1Amps'][-1]], method='lm')
+            popt, pcov = optimize.curve_fit(self.t1Func, self.gui_dict['t1_plot']['tau'], self.gui_dict['t1_plot']['t1Amps'], p0=[1., self.gui_dict['t1_plot']['t1Amps'][-1], self.gui_dict['t1_plot']['t1Amps'][-1]], method='lm')
             stdd = np.sqrt(np.diag(pcov))
             
-            tau = np.r_[np.min(self.guiDict['t1Plot']['tau']):np.max(self.guiDict['t1Plot']['tau']):100j]
-            self.guiDict['t1Plot']['t1Fit'] = self.t1Func(tau, popt[0],popt[1],popt[2])
-            self.guiDict['t1Plot']['t1Val'] = popt[0]
+            tau = np.r_[np.min(self.gui_dict['t1_plot']['tau']):np.max(self.gui_dict['t1_plot']['tau']):100j]
+            self.gui_dict['t1_plot']['t1Fit'] = self.t1Func(tau, popt[0],popt[1],popt[2])
+            self.gui_dict['t1_plot']['t1Val'] = popt[0]
             self.plot_enh()
             
-            if self.guiDict['rawdataFunction']['folder'] == -1:
+            if self.gui_dict['rawdata_function']['folder'] == -1:
 
                 print('---Error in T1---')
                 print('T1: ' + str(round(popt[0],4)) + ' +/- ' + str(round(stdd[0],4)))
         
-        self.guiDict['dataPlot']['xmin'] = int(round(self.guiDict['processSpectrum']['integrationCenter'] - np.abs(self.guiDict['processSpectrum']['integrationWidth'])/2))
-        self.guiDict['dataPlot']['xmax'] = int(round(self.guiDict['processSpectrum']['integrationCenter'] + np.abs(self.guiDict['processSpectrum']['integrationWidth'])/2))
+        self.gui_dict['data_plot']['xmin'] = int(round(self.gui_dict['processing_spec']['integration_center'] - np.abs(self.gui_dict['processing_spec']['integration_width'])/2))
+        self.gui_dict['data_plot']['xmax'] = int(round(self.gui_dict['processing_spec']['integration_center'] + np.abs(self.gui_dict['processing_spec']['integration_width'])/2))
         self.plot_data()
 
     def finishProcessing(self):
         
-        self.guiDict['guiFunction']['calculating'] = True
+        self.gui_dict['gui_function']['calculating'] = True
         self.show_hide_components()
         
-        if self.guiDict['rawdataFunction']['nopowers']:
-            self.guiDict['dnpLabData']['Ep'] = self.Ep
-            self.guiDict['dnpLabData']['T1p'] = self.T1p
-            self.guiDict['dnpLabData']['T1p_error'] = self.T1p_error
+        if self.gui_dict['rawdata_function']['nopowers']:
+            self.gui_dict['dnpLab_data']['Ep'] = self.Ep
+            self.gui_dict['dnpLab_data']['T1p'] = self.T1p
+            self.gui_dict['dnpLab_data']['T1p_error'] = self.T1p_error
         else:
-            enh = np.array([self.guiDict['dnpLabData']['Epowers'], self.Ep])
+            enh = np.array([self.gui_dict['dnpLab_data']['Epowers'], self.Ep])
             enh = np.transpose(enh)
             enh = enh[enh[:,0].argsort()]
-            self.guiDict['dnpLabData']['Epowers'] = enh[:,0]
-            self.guiDict['dnpLabData']['Ep'] = enh[:,1]
+            self.gui_dict['dnpLab_data']['Epowers'] = enh[:,0]
+            self.gui_dict['dnpLab_data']['Ep'] = enh[:,1]
             
-            t1 = np.array([self.guiDict['dnpLabData']['T1powers'], self.T1p, self.T1p_error])
+            t1 = np.array([self.gui_dict['dnpLab_data']['T1powers'], self.T1p, self.T1p_error])
             t1 = np.transpose(t1)
             t1 = t1[t1[:,0].argsort()]
-            self.guiDict['dnpLabData']['T1powers'] = t1[:,0]
-            self.guiDict['dnpLabData']['T1p'] = t1[:,1]
-            self.guiDict['dnpLabData']['T1p_error'] = t1[:,2]
+            self.gui_dict['dnpLab_data']['T1powers'] = t1[:,0]
+            self.gui_dict['dnpLab_data']['T1p'] = t1[:,1]
+            self.gui_dict['dnpLab_data']['T1p_error'] = t1[:,2]
         
-        if self.guiDict['workupFunction']['isWorkup'] or self.guiDict['workupFunction']['addWorkup']:
+        if self.gui_dict['workup_function']['isWorkup'] or self.gui_dict['workup_function']['addWorkup']:
 
-            wenh = np.array([self.guiDict['workupData']['Epowers'], self.guiDict['workupData']['Ep']])
+            wenh = np.array([self.gui_dict['workup_data']['Epowers'], self.gui_dict['workup_data']['Ep']])
             wenh = np.transpose(wenh)
             wenh = wenh[wenh[:,0].argsort()]
-            self.guiDict['workupData']['Epowers'] = wenh[:,0]
-            self.guiDict['workupData']['Ep'] = wenh[:,1]
+            self.gui_dict['workup_data']['Epowers'] = wenh[:,0]
+            self.gui_dict['workup_data']['Ep'] = wenh[:,1]
             
-            wt1 = np.array([self.guiDict['workupData']['T1powers'], self.guiDict['workupData']['T1p'], self.guiDict['workupData']['T1p_error']])
+            wt1 = np.array([self.gui_dict['workup_data']['T1powers'], self.gui_dict['workup_data']['T1p'], self.gui_dict['workup_data']['T1p_error']])
             wt1 = np.transpose(wt1)
             wt1 = wt1[wt1[:,0].argsort()]
-            self.guiDict['workupData']['T1powers'] = wt1[:,0]
-            self.guiDict['workupData']['T1p'] = wt1[:,1]
-            self.guiDict['workupData']['T1p_error'] = wt1[:,2]
+            self.gui_dict['workup_data']['T1powers'] = wt1[:,0]
+            self.gui_dict['workup_data']['T1p'] = wt1[:,1]
+            self.gui_dict['workup_data']['T1p_error'] = wt1[:,2]
             
-            if self.guiDict['workupFunction']['addWorkup']:
+            if self.gui_dict['workup_function']['addWorkup']:
                 self.show_wrkupCheckbox.setVisible(True)
                 self.fit_wrkupCheckbox.setVisible(True)
 
-        self.guiDict['enhancementPlot']['xdata'] = self.guiDict['dnpLabData']['Epowers']
-        self.guiDict['enhancementPlot']['ydata'] = self.guiDict['dnpLabData']['Ep']
-        self.guiDict['enhancementPlot']['title'] = 'E[p]'
-        self.guiDict['enhancementPlot']['ytick'] = [0,min(self.guiDict['dnpLabData']['Ep'])]
+        self.gui_dict['enhancement_plot']['xdata'] = self.gui_dict['dnpLab_data']['Epowers']
+        self.gui_dict['enhancement_plot']['ydata'] = self.gui_dict['dnpLab_data']['Ep']
+        self.gui_dict['enhancement_plot']['title'] = 'E[p]'
+        self.gui_dict['enhancement_plot']['ytick'] = [0,min(self.gui_dict['dnpLab_data']['Ep'])]
 
-        if min(self.guiDict['dnpLabData']['Ep']) <= -10:
-            self.guiDict['enhancementPlot']['ytickLabel'] = ['0',str(int(min(self.guiDict['dnpLabData']['Ep'])))]
+        if min(self.gui_dict['dnpLab_data']['Ep']) <= -10:
+            self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(int(min(self.gui_dict['dnpLab_data']['Ep'])))]
         else:
-            self.guiDict['enhancementPlot']['ytickLabel'] = ['0',str(round(min(self.guiDict['dnpLabData']['Ep']),1))]
+            self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(round(min(self.gui_dict['dnpLab_data']['Ep']),1))]
         
-        self.guiDict['t1Plot']['xdata'] = self.guiDict['dnpLabData']['T1powers']
-        self.guiDict['t1Plot']['ydata'] = self.guiDict['dnpLabData']['T1p']
-        self.guiDict['t1Plot']['title'] = 'T1[p]'
-        self.guiDict['guiFunction']['sliders'] = False
+        self.gui_dict['t1_plot']['xdata'] = self.gui_dict['dnpLab_data']['T1powers']
+        self.gui_dict['t1_plot']['ydata'] = self.gui_dict['dnpLab_data']['T1p']
+        self.gui_dict['t1_plot']['title'] = 'T1[p]'
+        self.gui_dict['gui_function']['sliders'] = False
         
-        self.guiDict['dataPlot']['plotksig'] = True
-        self.guiDict['t1Plot']['plotT1interp'] = True
-        self.guiDict['enhancementPlot']['plotT1fit'] = False
-        self.guiDict['enhancementPlot']['plotEpfit'] = True
+        self.gui_dict['data_plot']['plotksig'] = True
+        self.gui_dict['t1_plot']['plotT1interp'] = True
+        self.gui_dict['enhancement_plot']['plotT1fit'] = False
+        self.gui_dict['enhancement_plot']['plotEpfit'] = True
         
-        if self.guiDict['workupFunction']['isWorkup']:
+        if self.gui_dict['workup_function']['isWorkup']:
             print('---workup Errors in T1---')
-            print('T10: ' + str(round(self.guiDict['workupData']['T10'],2)) + ' +/- ' + str(round(self.guiDict['workupData']['T10_error'],4)))
-            for k in range(0,len(self.guiDict['workupData']['T1p'])):
-                print(str(round(self.guiDict['workupData']['T1p'][k],2)) + ' +/- ' + str(round(self.guiDict['workupData']['T1p_error'][k],4)))
+            print('T10: ' + str(round(self.gui_dict['workup_data']['T10'],2)) + ' +/- ' + str(round(self.gui_dict['workup_data']['T10_error'],4)))
+            for k in range(0,len(self.gui_dict['workup_data']['T1p'])):
+                print(str(round(self.gui_dict['workup_data']['T1p'][k],2)) + ' +/- ' + str(round(self.gui_dict['workup_data']['T1p_error'][k],4)))
         else:
             print('---Errors in T1---')
-            print('T10: ' + str(round(self.guiDict['dnpLabData']['T10'],2)) + ' +/- ' + str(round(self.guiDict['dnpLabData']['T10_error'],4)))
+            print('T10: ' + str(round(self.gui_dict['dnpLab_data']['T10'],2)) + ' +/- ' + str(round(self.gui_dict['dnpLab_data']['T10_error'],4)))
             for k in range(0,len(self.T1p)):
                 print(str(round(self.T1p[k],2)) + ' +/- ' + str(round(self.T1p_error[k],4)))
             
-            if self.guiDict['workupFunction']['addWorkup']:
+            if self.gui_dict['workup_function']['addWorkup']:
                 print('---workup Errors in T1---')
-                print('T10: ' + str(round(self.guiDict['workupData']['T10'],2)) + ' +/- ' + str(round(self.guiDict['workupData']['T10_error'],4)))
-                for k in range(0,len(self.guiDict['workupData']['T1p'])):
-                    print(str(round(self.guiDict['workupData']['T1p'][k],2)) + ' +/- ' + str(round(self.guiDict['workupData']['T1p_error'][k],4)))
+                print('T10: ' + str(round(self.gui_dict['workup_data']['T10'],2)) + ' +/- ' + str(round(self.gui_dict['workup_data']['T10_error'],4)))
+                for k in range(0,len(self.gui_dict['workup_data']['T1p'])):
+                    print(str(round(self.gui_dict['workup_data']['T1p'][k],2)) + ' +/- ' + str(round(self.gui_dict['workup_data']['T1p_error'][k],4)))
                 
-        self.run_hydration()
+        self.Hydration_Button()
 
-    def run_hydration(self):
+    def Hydration_Button(self):
+        """Pass the processed data to the dnpHydration module
+        
+        The GUI builds the input structure:
+            
+           dict =   {
+                     'E' (numpy.array)        : signal enhancements,
+           
+                     'E_power' (numpy.array)  : microwave powers corresponding to                          the array 'E',
+                     
+                     'T1' (numpy.array)       : T1 times,
+                     
+                     'T1_power' (numpy.array) : microwave powers corresponding to                          the array 'T1',
+                     
+                     'T10' (float)            : T1 time collected without microwave                        power,
+                     
+                     'T100' (float)           : T1 time for a separate sample made                         without spin probe and collected                           without microwave power,
+                     
+                     'spin_C' (float)         : concentration of                                           spin probe,
+                     
+                     'field' (float)          : magnetic field setting for the                             experiment in units of mT,
+                     
+                     'smax_model' (str)       : choice of model for setting s_max.                         Allowed values are 'tethered' where                        s_max=1 OR 'free' where s_max is                           calculated using spin_C,
+                     
+                     't1_interp_method' (str) : choice of linear or second order                           interpolation of T1 onto E_power.                          Allowed values are 'linear' OR                             'second_order'.
+                     }
+        
+        """
+        
         self.err = False
         self.errorLabel.setVisible(False)
         
         spin_C = float(self.slcEdit.text())
         field = float(self.fieldEdit.text())
         T100 = float(self.t100Edit.text())
-        self.guiDict['dnpLabData']['T100'] = float(self.t100Edit.text())
-        if self.guiDict['workupFunction']['isWorkup']:
+        self.gui_dict['dnpLab_data']['T100'] = float(self.t100Edit.text())
+        if self.gui_dict['workup_function']['isWorkup']:
             T10 = float(self.workupt10Edit.text())
         else:
             T10 = float(self.t10Edit.text())
@@ -1451,18 +1473,18 @@ class hydrationGUI(QMainWindow):
 
         if self.exclude1T1Checkbox.isChecked():
         
-            T1p = self.guiDict['dnpLabData']['T1p'][1:len(self.guiDict['dnpLabData']['T1p'])]
-            T1powers = self.guiDict['dnpLabData']['T1powers'][1:len(self.guiDict['dnpLabData']['T1powers'])]
+            T1p = self.gui_dict['dnpLab_data']['T1p'][1:len(self.gui_dict['dnpLab_data']['T1p'])]
+            T1powers = self.gui_dict['dnpLab_data']['T1powers'][1:len(self.gui_dict['dnpLab_data']['T1powers'])]
         else:
             
-            T1p = self.guiDict['dnpLabData']['T1p']
-            T1powers = self.guiDict['dnpLabData']['T1powers']
+            T1p = self.gui_dict['dnpLab_data']['T1p']
+            T1powers = self.gui_dict['dnpLab_data']['T1powers']
         
         
-        hydration = {'E' : np.array(self.guiDict['dnpLabData']['Ep']), 'E_power' : np.array(self.guiDict['dnpLabData']['Epowers']), 'T1' : np.array(T1p), 'T1_power' : np.array(T1powers)}
+        hydration = {'E' : np.array(self.gui_dict['dnpLab_data']['Ep']), 'E_power' : np.array(self.gui_dict['dnpLab_data']['Epowers']), 'T1' : np.array(T1p), 'T1_power' : np.array(T1powers)}
         hydration.update({
             'T10': T10,
-            'T100': self.guiDict['dnpLabData']['T100'],
+            'T100': self.gui_dict['dnpLab_data']['T100'],
             'spin_C': spin_C,
             'field': field,
             'smax_model': smax_model,
@@ -1472,18 +1494,17 @@ class hydrationGUI(QMainWindow):
         hyd.add('hydration', hydration)
 
         try:
-            hydresults = odnp.dnpHydration.hydration(hyd)
-            self.guiDict['hydrationResults'] = copy.deepcopy(hydresults)
-            self.plothydresults = copy.deepcopy(hydresults)
+            self.gui_dict['hydration_results'] = odnp.dnpHydration.hydration(hyd)
+            self.plothydresults = copy.deepcopy(self.gui_dict['hydration_results'])
         except:
             self.err = True
             self.errorLabel.setVisible(True)
-            if self.guiDict['workupFunction']['isWorkup']:
+            if self.gui_dict['workup_function']['isWorkup']:
                 self.errorLabel.setText('workup data Error')
             else:
                 self.errorLabel.setText('dnpLab data Error')
 
-        if self.guiDict['workupFunction']['isWorkup']:
+        if self.gui_dict['workup_function']['isWorkup']:
             self.workupt10Label.setVisible(True)
             self.workupt10Edit.setVisible(True)
             self.t10Label.setVisible(False)
@@ -1494,26 +1515,26 @@ class hydrationGUI(QMainWindow):
             self.t10Label.setVisible(True)
             self.t10Edit.setVisible(True)
             
-        if self.guiDict['workupFunction']['isWorkup'] or self.guiDict['workupFunction']['addWorkup']:
+        if self.gui_dict['workup_function']['isWorkup'] or self.gui_dict['workup_function']['addWorkup']:
         
-                if self.guiDict['workupFunction']['fit'] or self.guiDict['workupFunction']['show']:
+                if self.gui_dict['workup_function']['fit'] or self.gui_dict['workup_function']['show']:
                     
                     if self.exclude1T1Checkbox.isChecked():
                     
-                        wT1p = self.guiDict['workupData']['T1p'][1:len(self.guiDict['workupData']['T1p'])]
-                        wT1powers = self.guiDict['workupData']['T1powers'][1:len(self.guiDict['workupData']['T1powers'])]
+                        wT1p = self.gui_dict['workup_data']['T1p'][1:len(self.gui_dict['workup_data']['T1p'])]
+                        wT1powers = self.gui_dict['workup_data']['T1powers'][1:len(self.gui_dict['workup_data']['T1powers'])]
                 
                     else:
                     
-                        wT1p = self.guiDict['workupData']['T1p']
-                        wT1powers = self.guiDict['workupData']['T1powers']
+                        wT1p = self.gui_dict['workup_data']['T1p']
+                        wT1powers = self.gui_dict['workup_data']['T1powers']
                     
                     wT10 = float(self.workupt10Edit.text())
                     
-                    whydration = {'E' : np.array(self.guiDict['workupData']['Ep']), 'E_power' : np.array(self.guiDict['workupData']['Epowers']), 'T1' : np.array(wT1p), 'T1_power' : np.array(wT1powers)}
+                    whydration = {'E' : np.array(self.gui_dict['workup_data']['Ep']), 'E_power' : np.array(self.gui_dict['workup_data']['Epowers']), 'T1' : np.array(wT1p), 'T1_power' : np.array(wT1powers)}
                     whydration.update({
                         'T10': wT10,
-                        'T100': self.guiDict['dnpLabData']['T100'],
+                        'T100': self.gui_dict['dnpLab_data']['T100'],
                         'spin_C': spin_C,
                         'field': field,
                         'smax_model': smax_model,
@@ -1523,10 +1544,9 @@ class hydrationGUI(QMainWindow):
                     whyd.add('hydration', whydration)
                     
                     try:
-                        whydresults = odnp.dnpHydration.hydration(whyd)
-                        self.guiDict['whydrationResults'] = copy.deepcopy(whydresults)
-                        if self.guiDict['workupFunction']['fit']:
-                            self.plothydresults = copy.deepcopy(whydresults)
+                        self.gui_dict['workup_hydration_results'] = odnp.dnpHydration.hydration(whyd)
+                        if self.gui_dict['workup_function']['fit']:
+                            self.plothydresults = copy.deepcopy(self.gui_dict['workup_hydration_results'])
                     except:
                         self.err = True
                         self.errorLabel.setVisible(True)
@@ -1535,7 +1555,7 @@ class hydrationGUI(QMainWindow):
                     self.workupt10Label.setVisible(True)
                     self.workupt10Edit.setVisible(True)
 
-        self.guiDict['guiFunction']['hydrationEdits'] = True
+        self.gui_dict['gui_function']['hydrationEdits'] = True
         
         if self.err:
             self.dataplt.axes.cla()
@@ -1543,48 +1563,49 @@ class hydrationGUI(QMainWindow):
             pass
         else:
 
-            self.guiDict['dataPlot']['title'] = r'$k_\sigma[p]$'
+            self.gui_dict['data_plot']['title'] = r'$k_\sigma[p]$'
             self.plot_data()
             
             self.plot_enh()
             
             if min(T1p)<0.1:
-                self.guiDict['t1Plot']['ymin'] = 0
+                self.gui_dict['t1_plot']['ymin'] = 0
             else:
-                self.guiDict['t1Plot']['ymin'] =  min(self.guiDict['dnpLabData']['T1p'])*.85
+                self.gui_dict['t1_plot']['ymin'] =  min(self.gui_dict['dnpLab_data']['T1p'])*.85
                 
             if max(T1p)>5:
-                self.guiDict['t1Plot']['ymax'] = 1
+                self.gui_dict['t1_plot']['ymax'] = 1
             else:
-                self.guiDict['t1Plot']['ymax'] =  max(self.guiDict['dnpLabData']['T1p'])*1.15
+                self.gui_dict['t1_plot']['ymax'] =  max(self.gui_dict['dnpLab_data']['T1p'])*1.15
             
-            self.guiDict['t1Plot']['ytick'] = [self.guiDict['t1Plot']['ymin'],self.guiDict['t1Plot']['ymax']]
-            self.guiDict['t1Plot']['ytickLabel'] = [str(round(self.guiDict['t1Plot']['ymin'],1)),str(round(self.guiDict['t1Plot']['ymax'],1))]
+            self.gui_dict['t1_plot']['ytick'] = [self.gui_dict['t1_plot']['ymin'],self.gui_dict['t1_plot']['ymax']]
+            self.gui_dict['t1_plot']['ytickLabel'] = [str(round(self.gui_dict['t1_plot']['ymin'],1)),str(round(self.gui_dict['t1_plot']['ymax'],1))]
             
             self.plot_t1()
             
             print('-----Errors in ksigma-----')
-            if self.guiDict['workupFunction']['isWorkup']:
-                print('workup (hydration): ' + str(round(hydresults['ksigma'],2)) + ' +/- ' +  str(round(hydresults['ksigma_error'],4)))
-                print('workup = ' + str(round(self.guiDict['workupData']['kSigma']/spin_C/self.wrkup_smax,2)) + ' +/- ' +  str(round(self.guiDict['workupData']['kSigma_error']/spin_C/self.wrkup_smax,4)))
+            if self.gui_dict['workup_function']['isWorkup']:
+                print('workup (hydration): ' + str(round(self.gui_dict['hydration_results']['ksigma'],2)) + ' +/- ' +  str(round(self.gui_dict['hydration_results']['ksigma_error'],4)))
+                print('workup = ' + str(round(self.gui_dict['workup_data']['kSigma']/spin_C/self.wrkup_smax,2)) + ' +/- ' +  str(round(self.gui_dict['workup_data']['kSigma_error']/spin_C/self.wrkup_smax,4)))
             else:
-                print('dnpLab (hydration): = ' + str(round(hydresults['ksigma'],2)) + ' +/- ' +  str(round(hydresults['ksigma_error'],4)))
-                if self.guiDict['workupFunction']['fit']:
-                    print('workup (hydration): ' + str(round(whydresults['ksigma'],2)) + ' +/- ' +  str(round(whydresults['ksigma_error'],4)))
-                if self.guiDict['workupFunction']['addWorkup']:
-                    print('workup = ' + str(round(self.guiDict['workupData']['kSigma']/spin_C/self.wrkup_smax,2)) + ' +/- ' +  str(round(self.guiDict['workupData']['kSigma_error']/spin_C/self.wrkup_smax,4)))
+                print('dnpLab (hydration): = ' + str(round(self.gui_dict['hydration_results']['ksigma'],2)) + ' +/- ' +  str(round(self.gui_dict['hydration_results']['ksigma_error'],4)))
+                if self.gui_dict['workup_function']['fit']:
+                    print('workup (hydration): ' + str(round(self.gui_dict['workup_hydration_results']['ksigma'],2)) + ' +/- ' +  str(round(self.gui_dict['workup_hydration_results']['ksigma_error'],4)))
+                if self.gui_dict['workup_function']['addWorkup']:
+                    print('workup = ' + str(round(self.gui_dict['workup_data']['kSigma']/spin_C/self.wrkup_smax,2)) + ' +/- ' +  str(round(self.gui_dict['workup_data']['kSigma_error']/spin_C/self.wrkup_smax,4)))
             
-    def matoutput(self):
-
+    def Save_Results_Button(self):
+        """Save the results of processing to a format that can be read by the hydrationGUI using the 'GUI Result' button or by the MATLAB App called xODNP"""
+        
         flnm1 = QFileDialog.getSaveFileName(self)
         if flnm1[0]:
             flnm = flnm1[0]
 
         if flnm:
             
-            odnpData = {'Epowers' : self.guiDict['dnpLabData']['Epowers'], 'Ep' : self.guiDict['dnpLabData']['Ep'], 'T1powers' : self.guiDict['dnpLabData']['T1powers'], 'T1p' : self.guiDict['dnpLabData']['T1p'], 'T1p_error' : self.guiDict['dnpLabData']['T1p_error'], 'T10' : self.guiDict['dnpLabData']['T10'], 'T10_error' : self.guiDict['dnpLabData']['T10_error'], 'T100' : self.guiDict['dnpLabData']['T100']}
+            odnpData = {'Epowers' : self.gui_dict['dnpLab_data']['Epowers'], 'Ep' : self.gui_dict['dnpLab_data']['Ep'], 'T1powers' : self.gui_dict['dnpLab_data']['T1powers'], 'T1p' : self.gui_dict['dnpLab_data']['T1p'], 'T1p_error' : self.gui_dict['dnpLab_data']['T1p_error'], 'T10' : self.gui_dict['dnpLab_data']['T10'], 'T10_error' : self.gui_dict['dnpLab_data']['T10_error'], 'T100' : self.gui_dict['dnpLab_data']['T100']}
             
-            odnpResults = {'kSigmas' : self.guiDict['hydrationResults']['ksigma_array'], 'kSigmas_fit' : self.guiDict['hydrationResults']['ksigma_fit']}
+            odnpResults = {'kSigmas' : self.gui_dict['hydration_results']['ksigma_array'], 'kSigmas_fit' : self.gui_dict['hydration_results']['ksigma_fit']}
 
             savemat(flnm + '.mat', {'odnp' : odnpData, 'ksig' : odnpResults}, oned_as='column')
             
@@ -1596,249 +1617,247 @@ class hydrationGUI(QMainWindow):
             ksig.append(0)
             ksig_fit = []
             ksig_fit.append(0)
-            for k in range(0,len(self.guiDict['dnpLabData']['Epowers'])):
-                e.append(self.guiDict['dnpLabData']['Ep'][k])
-                epow.append(self.guiDict['dnpLabData']['Epowers'][k])
-                ksig.append(self.guiDict['hydrationResults']['ksigma_array'][k])
-                ksig_fit.append(self.guiDict['hydrationResults']['ksigma_fit'][k])
+            for k in range(0,len(self.gui_dict['dnpLab_data']['Epowers'])):
+                e.append(self.gui_dict['dnpLab_data']['Ep'][k])
+                epow.append(self.gui_dict['dnpLab_data']['Epowers'][k])
+                ksig.append(self.gui_dict['hydration_results']['ksigma_array'][k])
+                ksig_fit.append(self.gui_dict['hydration_results']['ksigma_fit'][k])
             
             dfE = pd.DataFrame(list(zip(*[list(epow), list(e), list(ksig), list(ksig_fit)])))
             dfE.to_csv(flnm + '_E_ksig.csv', index=False, header=['Epowers','Ep','ksigma','ksigma_fit'])
             
             t = []
-            t.append(self.guiDict['dnpLabData']['T10'])
+            t.append(self.gui_dict['dnpLab_data']['T10'])
             terr = []
-            terr.append(self.guiDict['dnpLabData']['T10_error'])
+            terr.append(self.gui_dict['dnpLab_data']['T10_error'])
             tpow = []
             tpow.append(0)
-            for k in range(0,len(self.guiDict['dnpLabData']['T1powers'])):
-                t.append(self.guiDict['dnpLabData']['T1p'][k])
-                terr.append(self.guiDict['dnpLabData']['T1p_error'][k])
-                tpow.append(self.guiDict['dnpLabData']['T1powers'][k])
+            for k in range(0,len(self.gui_dict['dnpLab_data']['T1powers'])):
+                t.append(self.gui_dict['dnpLab_data']['T1p'][k])
+                terr.append(self.gui_dict['dnpLab_data']['T1p_error'][k])
+                tpow.append(self.gui_dict['dnpLab_data']['T1powers'][k])
                 
             dfT1 = pd.DataFrame(list(zip(*[list(tpow), list(t), list(terr)])))
             dfT1.to_csv(flnm + '_T1.csv', index=False, header=['T1powers','T1p','T1p error'])
         
 
-    def changeCenterValue(self, cvalue):
-        
-        if self.guiDict['guiFunction']['sliders']:
-            self.guiDict['processSpectrum']['integrationCenter'] = cvalue
+    def Integration_Center_Slider(self, cvalue):
+        """Slider to change the center of the spectrum integration window"""
+        if self.gui_dict['gui_function']['sliders']:
+            self.gui_dict['processing_spec']['integration_center'] = cvalue
             self.autophaseCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
         
-    def changeWindowValue(self, wvalue):
-    
-        if self.guiDict['guiFunction']['sliders']:
-            self.guiDict['processSpectrum']['integrationWidth'] = wvalue
+    def Integration_Window_Slider(self, wvalue):
+        """Slider to change the width of the spectrum integration window"""
+        if self.gui_dict['gui_function']['sliders']:
+            self.gui_dict['processing_spec']['integration_width'] = wvalue
             self.autophaseCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
             
-    def changePhaseValue(self, pvalue):
-        
-        if self.guiDict['guiFunction']['sliders']:
-            self.guiDict['processSpectrum']['phaseFactor'] = pvalue/1000
+    def Spectrum_Phase_Slider(self, pvalue):
+        """Slider to change the phase correction applied to the spectrum"""
+        if self.gui_dict['gui_function']['sliders']:
+            self.gui_dict['processing_spec']['phase_factor'] = pvalue/1000
             self.autophaseCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
     
-    def autoPhaseCheck(self):
-        
-        if self.guiDict['guiFunction']['sliders']:
+    def Auto_Phase_Checkbox(self):
+        """Check this to have the GUI automatically choose the best phase"""
+        if self.gui_dict['gui_function']['sliders']:
             if self.autophaseCheckbox.isChecked():
-                self.guiDict['processSpectrum']['phaseFactor'] = 0
+                self.gui_dict['processing_spec']['phase_factor'] = 0
                 self.processData()
             else:
                 pass
         else:
             pass
         
-    def linearCheck(self):
-        
+    def Linear_Interpolation_Checkbox(self):
+        """Choose a linear T1 interpolation"""
         if self.linearfitCheckbox.isChecked():
             self.order2fitCheckbox.setChecked(False)
         else:
             self.order2fitCheckbox.setChecked(True)
             
-        if self.guiDict['guiFunction']['hydrationEdits']:
-            self.run_hydration()
+        if self.gui_dict['gui_function']['hydrationEdits']:
+            self.Hydration_Button()
         else:
             pass
         
-    def order2Check(self):
-    
+    def SecondOrder_Interpolation_Checkbox(self):
+        """Choose a second order T1 interpolation"""
         if self.order2fitCheckbox.isChecked():
             self.linearfitCheckbox.setChecked(False)
         else:
             self.linearfitCheckbox.setChecked(True)
             
-        if self.guiDict['guiFunction']['hydrationEdits']:
-            self.run_hydration()
+        if self.gui_dict['gui_function']['hydrationEdits']:
+            self.Hydration_Button()
         else:
             pass
             
-    def exfT1pCheck(self):
-    
-        if self.guiDict['guiFunction']['hydrationEdits']:
-            self.run_hydration()
+    def Exclude_FirstT1_Checkbox(self):
+        """Exclude the first T1 point from the interpolation if it deviates significantly from the trend of the other points"""
+        if self.gui_dict['gui_function']['hydrationEdits']:
+            self.Hydration_Button()
         else:
             pass
             
-    def tetheredCheck(self):
-    
+    def Smax_Tethered_Checkbox(self):
+        """Choose s_max = 1"""
         if self.tetheredCheckbox.isChecked():
-            self.bulkCheckbox.setChecked(False)
+            self.freeCheckbox.setChecked(False)
         else:
-            self.bulkCheckbox.setChecked(True)
+            self.freeCheckbox.setChecked(True)
             
-        if self.guiDict['guiFunction']['hydrationEdits']:
-            self.run_hydration()
+        if self.gui_dict['gui_function']['hydrationEdits']:
+            self.Hydration_Button()
         else:
             pass
     
-    def bulkCheck(self):
-        
-        if self.bulkCheckbox.isChecked():
+    def Smax_Free_Checkbox(self):
+        """Choose to have s_max calculated based on spin probe concentration"""
+        if self.freeCheckbox.isChecked():
             self.tetheredCheckbox.setChecked(False)
         else:
             self.tetheredCheckbox.setChecked(True)
             
-        if self.guiDict['guiFunction']['hydrationEdits']:
-            self.run_hydration()
+        if self.gui_dict['gui_function']['hydrationEdits']:
+            self.Hydration_Button()
         else:
             pass
     
-    def edithydText(self):
-    
-        if self.guiDict['guiFunction']['hydrationEdits']:
-            self.run_hydration()
+    def Edit_Hydration_Inputs(self):
+        """This function passes the text from the various edit boxes to dnpHydration in order to update the calculation of hydration parameters with changing inputs"""
+        if self.gui_dict['gui_function']['hydrationEdits']:
+            self.Hydration_Button()
         else:
             pass
             
-    def show_wrkupCheck(self):
-
+    def Show_Workup_Checkbox(self):
+        """Show or hide the Workup results if they were found in the data folder"""
         if self.show_wrkupCheckbox.isChecked():
-            self.guiDict['workupFunction']['show'] = True
+            self.gui_dict['workup_function']['show'] = True
         else:
-            self.guiDict['workupFunction']['show'] = False
-            self.guiDict['workupFunction']['fit'] = False
+            self.gui_dict['workup_function']['show'] = False
+            self.gui_dict['workup_function']['fit'] = False
             self.fit_wrkupCheckbox.setChecked(False)
             
-        if self.guiDict['guiFunction']['hydrationEdits']:
-            self.run_hydration()
+        if self.gui_dict['gui_function']['hydrationEdits']:
+            self.Hydration_Button()
         else:
             pass
     
-    def fit_wrkupCheck(self):
-    
+    def Fit_Workup_Checkbox(self):
+        """Use dnpHydration to analyze the results of processing the data with the workup code"""
         if self.fit_wrkupCheckbox.isChecked() and self.show_wrkupCheckbox.isChecked():
-            self.guiDict['workupFunction']['fit'] = True
+            self.gui_dict['workup_function']['fit'] = True
         else:
-            self.guiDict['workupFunction']['fit'] = False
+            self.gui_dict['workup_function']['fit'] = False
             self.fit_wrkupCheckbox.setChecked(False)
             
-        if self.guiDict['guiFunction']['hydrationEdits']:
-            self.run_hydration()
+        if self.gui_dict['gui_function']['hydrationEdits']:
+            self.Hydration_Button()
         else:
             pass
     
-    """
-    --Plot Colors Key--
-    dark_green = '#46812B'
-    light_green = '#67AE3E'
-    dark_grey = '#4D4D4F'
-    light_grey = '#A7A9AC'
-    orange = '#F37021'
-    ucsb blue = '#004D9F'
-    color='#004D9F',marker='o',linestyle='none'
-    """
+    
+    #--Plot Colors--#
+    #dark_green = '#46812B'
+    #light_green = '#67AE3E'
+    #dark_grey = '#4D4D4F'
+    #light_grey = '#A7A9AC'
+    #orange = '#F37021'
+    #ucsb blue = '#004D9F'
     
     def plot_data(self):
 
         self.dataplt.axes.cla()
 
-        if self.guiDict['dataPlot']['plotksig']:
+        if self.gui_dict['data_plot']['plotksig']:
             
-            self.dataplt.axes.plot(self.guiDict['dnpLabData']['Epowers'],self.guiDict['hydrationResults']['ksigma_array'],color='#46812B',marker='o',linestyle='none',label= self.ksiglabel + r' $k_\sigma$[p]')
-            self.dataplt.axes.plot(self.guiDict['dnpLabData']['Epowers'],self.plothydresults['ksigma_fit'],'#F37021',label=r'hydration fit')
+            self.dataplt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.gui_dict['hydration_results']['ksigma_array'],color='#46812B',marker='o',linestyle='none',label= self.ksiglabel + r' $k_\sigma$[p]')
+            self.dataplt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.plothydresults['ksigma_fit'],'#F37021',label=r'hydration fit')
             
             indx_h = max(self.plothydresults['ksigma_array'])*.8
             self.dataplt.axes.set_ylim(0, max(self.plothydresults['ksigma_array'])*1.1)
             
-            if self.guiDict['workupFunction']['show']:
-                self.dataplt.axes.plot(self.guiDict['workupData']['Epowers'],self.guiDict['whydrationResults']['ksigma_array'],color='#004D9F',marker='o',linestyle='none',label= r'workup $k_\sigma$[p]')
-                self.dataplt.axes.plot(self.guiDict['dnpLabData']['Epowers'],self.guiDict['whydrationResults']['ksigma_fit'],color='#004D9F',linestyle=':',label = 'workup fit')
+            if self.gui_dict['workup_function']['show']:
+                self.dataplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_hydration_results']['ksigma_array'],color='#004D9F',marker='o',linestyle='none',label= r'workup $k_\sigma$[p]')
+                self.dataplt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.gui_dict['workup_hydration_results']['ksigma_fit'],color='#004D9F',linestyle=':',label = 'workup fit')
 
                 indexes = [0, .11, .31, .41, .51, .61]
-                self.dataplt.axes.text(max(self.guiDict['dnpLabData']['Epowers'])*.645, indx_h-(.21*indx_h), r'workup $k_\sigma = $' + str(round(self.guiDict['workupData']['kSigma']/float(self.slcEdit.text())/self.wrkup_smax,2)), fontsize=12)
+                self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.645, indx_h-(.21*indx_h), r'workup $k_\sigma = $' + str(round(self.gui_dict['workup_data']['kSigma']/float(self.slcEdit.text())/self.wrkup_smax,2)), fontsize=12)
             else:
                 indexes = [.11, .21, .31, .41, .51, .61]
                 
-            self.dataplt.axes.text(max(self.guiDict['dnpLabData']['Epowers'])*.75,indx_h-(indexes[0]*indx_h), r'$k_\rho = $' + str(round(self.plothydresults['krho'],2)), fontsize=12)
-            self.dataplt.axes.text(max(self.guiDict['dnpLabData']['Epowers'])*.75,indx_h-(indexes[1]*indx_h), r'$k_\sigma = $' + str(round(self.plothydresults['ksigma'],2)), fontsize=12)
-            self.dataplt.axes.text(max(self.guiDict['dnpLabData']['Epowers'])*.75,indx_h-(indexes[2]*indx_h), r'$k_{low} = $' + str(round(self.plothydresults['klow'],2)), fontsize=12)
-            self.dataplt.axes.text(max(self.guiDict['dnpLabData']['Epowers'])*.75,indx_h-(indexes[3]*indx_h), r'$\xi = $' + str(round(self.plothydresults['coupling_factor'],4)), fontsize=12)
-            self.dataplt.axes.text(max(self.guiDict['dnpLabData']['Epowers'])*.75,indx_h-(indexes[4]*indx_h), r'$t_{corr} = $' + str(round(self.plothydresults['tcorr'],2)), fontsize=12)
+            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[0]*indx_h), r'$k_\rho = $' + str(round(self.plothydresults['krho'],2)), fontsize=12)
+            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[1]*indx_h), r'$k_\sigma = $' + str(round(self.plothydresults['ksigma'],2)), fontsize=12)
+            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[2]*indx_h), r'$k_{low} = $' + str(round(self.plothydresults['klow'],2)), fontsize=12)
+            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[3]*indx_h), r'$\xi = $' + str(round(self.plothydresults['coupling_factor'],4)), fontsize=12)
+            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[4]*indx_h), r'$t_{corr} = $' + str(round(self.plothydresults['tcorr'],2)), fontsize=12)
             d_local = round(self.plothydresults['Dlocal']*1e10,2)
-            self.dataplt.axes.text(max(self.guiDict['dnpLabData']['Epowers'])*.75,indx_h-(indexes[5]*indx_h), r'$D_{local} = $' + str(d_local) + r'$e^{-10}$', fontsize=12)
+            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[5]*indx_h), r'$D_{local} = $' + str(d_local) + r'$e^{-10}$', fontsize=12)
             self.dataplt.axes.set_yticks([0 , max(self.plothydresults['ksigma_array'])])
             self.dataplt.axes.set_yticklabels(['0' , str(round(max(self.plothydresults['ksigma_array']),1))])
             self.dataplt.axes.legend()
         else:
-            self.dataplt.axes.plot(self.guiDict['dataPlot']['xdata'],self.guiDict['dataPlot']['ydata'])
-            self.dataplt.axes.set_xlim(self.guiDict['dataPlot']['xmin'],self.guiDict['dataPlot']['xmax'])
+            self.dataplt.axes.plot(self.gui_dict['data_plot']['xdata'],self.gui_dict['data_plot']['ydata'])
+            self.dataplt.axes.set_xlim(self.gui_dict['data_plot']['xmin'],self.gui_dict['data_plot']['xmax'])
             self.dataplt.axes.set_yticks([0])
             self.dataplt.axes.set_yticklabels('0')
             
-        self.dataplt.axes.set_title(self.guiDict['dataPlot']['title'])
+        self.dataplt.axes.set_title(self.gui_dict['data_plot']['title'])
         self.dataplt.axes.set_xticks([])
         self.dataplt.draw()
         
     def plot_enh(self):
 
         self.enhplt.axes.cla()
-        if self.guiDict['enhancementPlot']['plotT1fit']:
-            self.enhplt.axes.plot(self.guiDict['t1Plot']['tau'],self.guiDict['t1Plot']['t1Amps'],color='#46812B',marker='o',linestyle='none')
-            new_xax = np.r_[np.min(self.guiDict['t1Plot']['tau']):np.max(self.guiDict['t1Plot']['tau']):100j]
-            self.enhplt.axes.plot(new_xax,self.guiDict['t1Plot']['t1Fit'],'#F37021')
-            self.enhplt.axes.text(max(self.guiDict['t1Plot']['tau'])*.65, max(self.guiDict['t1Plot']['t1Amps'])*.3, 'T1 = ' + str(round(self.guiDict['t1Plot']['t1Val'], 4)), fontsize=10)
+        if self.gui_dict['enhancement_plot']['plotT1fit']:
+            self.enhplt.axes.plot(self.gui_dict['t1_plot']['tau'],self.gui_dict['t1_plot']['t1Amps'],color='#46812B',marker='o',linestyle='none')
+            new_xax = np.r_[np.min(self.gui_dict['t1_plot']['tau']):np.max(self.gui_dict['t1_plot']['tau']):100j]
+            self.enhplt.axes.plot(new_xax,self.gui_dict['t1_plot']['t1Fit'],'#F37021')
+            self.enhplt.axes.text(max(self.gui_dict['t1_plot']['tau'])*.65, max(self.gui_dict['t1_plot']['t1Amps'])*.3, 'T1 = ' + str(round(self.gui_dict['t1_plot']['t1Val'], 4)), fontsize=10)
         else:
-            if self.guiDict['enhancementPlot']['plotEpfit']:
-                self.enhplt.axes.plot(self.guiDict['enhancementPlot']['xdata'],self.guiDict['enhancementPlot']['ydata'],color='#46812B',marker='o',linestyle='none',label=self.ksiglabel)
-                self.enhplt.axes.plot(self.guiDict['enhancementPlot']['xdata'],self.plothydresults['uncorrected_Ep'],'#F37021',label='Hydration Fit')
-                if self.guiDict['workupFunction']['show']:
-                    self.enhplt.axes.plot(self.guiDict['workupData']['Epowers'],self.guiDict['workupData']['Ep'],color='#004D9F',marker='o',linestyle='none',label='workup')
+            if self.gui_dict['enhancement_plot']['plotEpfit']:
+                self.enhplt.axes.plot(self.gui_dict['enhancement_plot']['xdata'],self.gui_dict['enhancement_plot']['ydata'],color='#46812B',marker='o',linestyle='none',label=self.ksiglabel)
+                self.enhplt.axes.plot(self.gui_dict['enhancement_plot']['xdata'],self.plothydresults['uncorrected_Ep'],'#F37021',label='Hydration Fit')
+                if self.gui_dict['workup_function']['show']:
+                    self.enhplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_data']['Ep'],color='#004D9F',marker='o',linestyle='none',label='workup')
                 self.enhplt.axes.legend()
             else:
-                self.enhplt.axes.plot(self.guiDict['enhancementPlot']['xdata'],self.guiDict['enhancementPlot']['ydata'],color='#46812B',marker='o',linestyle='none')
+                self.enhplt.axes.plot(self.gui_dict['enhancement_plot']['xdata'],self.gui_dict['enhancement_plot']['ydata'],color='#46812B',marker='o',linestyle='none')
                 
-        self.enhplt.axes.set_title(self.guiDict['enhancementPlot']['title'])
+        self.enhplt.axes.set_title(self.gui_dict['enhancement_plot']['title'])
         self.enhplt.axes.set_xticks([])
-        self.enhplt.axes.set_yticks(self.guiDict['enhancementPlot']['ytick'])
-        self.enhplt.axes.set_yticklabels(self.guiDict['enhancementPlot']['ytickLabel'])
+        self.enhplt.axes.set_yticks(self.gui_dict['enhancement_plot']['ytick'])
+        self.enhplt.axes.set_yticklabels(self.gui_dict['enhancement_plot']['ytickLabel'])
         self.enhplt.draw()
         
     def plot_t1(self):
 
         self.t1plt.axes.cla()
-        if self.guiDict['t1Plot']['plotT1interp']:
-            self.t1plt.axes.plot(self.guiDict['t1Plot']['xdata'],self.guiDict['t1Plot']['ydata'],color='#46812B',marker='o',linestyle='none',label=self.ksiglabel)
-            self.t1plt.axes.plot(self.guiDict['dnpLabData']['Epowers'],self.plothydresults['interpolated_T1'],'#F37021',label='Interpolation')
-            if self.guiDict['workupFunction']['show']:
-                self.t1plt.axes.plot(self.guiDict['workupData']['T1powers'],self.guiDict['workupData']['T1p'],color='#004D9F',marker='o',linestyle='none',label='workup')
+        if self.gui_dict['t1_plot']['plotT1interp']:
+            self.t1plt.axes.plot(self.gui_dict['t1_plot']['xdata'],self.gui_dict['t1_plot']['ydata'],color='#46812B',marker='o',linestyle='none',label=self.ksiglabel)
+            self.t1plt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.plothydresults['interpolated_T1'],'#F37021',label='Interpolation')
+            if self.gui_dict['workup_function']['show']:
+                self.t1plt.axes.plot(self.gui_dict['workup_data']['T1powers'],self.gui_dict['workup_data']['T1p'],color='#004D9F',marker='o',linestyle='none',label='workup')
             self.t1plt.axes.legend()
         else:
-            self.t1plt.axes.plot(self.guiDict['t1Plot']['xdata'],self.guiDict['t1Plot']['ydata'],color='#46812B',marker='o',linestyle='none')
-        self.t1plt.axes.set_ylim(self.guiDict['t1Plot']['ymin'], self.guiDict['t1Plot']['ymax'])
-        self.t1plt.axes.set_title(self.guiDict['t1Plot']['title'])
+            self.t1plt.axes.plot(self.gui_dict['t1_plot']['xdata'],self.gui_dict['t1_plot']['ydata'],color='#46812B',marker='o',linestyle='none')
+        self.t1plt.axes.set_ylim(self.gui_dict['t1_plot']['ymin'], self.gui_dict['t1_plot']['ymax'])
+        self.t1plt.axes.set_title(self.gui_dict['t1_plot']['title'])
         self.t1plt.axes.set_xticks([])
-        self.t1plt.axes.set_yticks(self.guiDict['t1Plot']['ytick'])
-        self.t1plt.axes.set_yticklabels(self.guiDict['t1Plot']['ytickLabel'])
+        self.t1plt.axes.set_yticks(self.gui_dict['t1_plot']['ytick'])
+        self.t1plt.axes.set_yticklabels(self.gui_dict['t1_plot']['ytickLabel'])
         self.t1plt.draw()
             
 class PlotCanvas(FigureCanvas):
