@@ -1856,7 +1856,9 @@ class PlotCanvas(FigureCanvas):
                 QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-if __name__ == '__main__':
+def main_func():
     app = QApplication(sys.argv)
     ex = hydrationGUI()
     sys.exit(app.exec_())
+if __name__ == '__main__':
+    main_func()

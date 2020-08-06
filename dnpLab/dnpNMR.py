@@ -67,8 +67,8 @@ def update_parameters(proc_parameters, requiredList, default_parameters):
     for requiredParameter in requiredList:
         if not requiredParameter in updatedProc_parameters:
             updatedProc_parameters[requiredParameter] = default_parameters[requiredParameter]
-            print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
-            print(default_parameters[requiredParameter])
+            #print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
+            #print(default_parameters[requiredParameter])
 
     return updatedProc_parameters
 
@@ -266,8 +266,7 @@ def integrate(all_data,proc_parameters):
     integrateMax = integrate_center + _np.abs(integrate_width)/2.
 
 #    data = data.range(dim,integrateMin,integrateMax)
-    print('here')
-    print(dim)
+    #print(dim)
     data = data[dim,(integrateMin,integrateMax)]
 
     data = data.sum(dim)
