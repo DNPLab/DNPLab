@@ -4,8 +4,11 @@ from dnpLab.core import nddata
 import numpy as np
 import random
 
+from dnpLab.core.nddata_coord import nddata_coord, nddata_coord_collection
+
 test_dims = ['x', 'y', 'z', 'p', 'q', 'r']
 num_random_tests = 10
+
 
 class dnpLab_nddata_core_tester(unittest.TestCase):
     def setUp(self):
@@ -127,6 +130,33 @@ class dnpLab_nddata_core_tester(unittest.TestCase):
             assert_array_equal((1./data).values, 1./values)
             assert_array_equal((1.j/data).values, 1.j/values)
             assert_array_equal((random_array/data).values, random_array/values)
+
+
+class dnpLab_nddata_coord_tester(unittest.TestCase):
+    def setUp(self):
+        a = nddata_coord('a', slice(0, 10, 1))
+        b = nddata_coord('b', slice(0, 1, 50e-3))
+        c = np.r_[1:2:0.25]
+        d = nddata_coord_collection(['a', 'b', 'c'], [a, c, b])
+        self.a, self.b, self.c, self.d = a, b, c, d
+
+    def test_get_str_uses_dim(self):
+        assert_array_equal(self.d.dims, ['a', 'b', 'c'])
+
+    def test_get_int_uses_index(self):
+        assert_array_equal(self.d[0], self.a)
+
+    def test_reorder_only_1_dim(self):
+        self.d.reorder(['c'])
+        assert_array_equal(self.d.dims, ['c', 'a', 'b'])
+
+    def test_reorder_all_3_dims(self):
+        self.d.reorder(['b', 'c', 'a'])
+        assert_array_equal(self.d.dims, ['b', 'c', 'a'])
+
+    def test_rename(self):
+        self.d.rename('a', 'new_a')
+        assert_array_equal(self.d.dims, ['new_a', 'b', 'c'])
 
 
 if __name__ == '__main__':
