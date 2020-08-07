@@ -1044,14 +1044,14 @@ class hydrationGUI(QMainWindow):
             self.dnpLab_workspace.copy('raw','proc')
 
             self.processData()
-            
+
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('RAW DATA ERROR')
             self.gui_dict['gui_function']['buttons'] = False
             self.gui_dict['gui_function']['sliders'] = False
-
+        
     def Next_Button(self):
         """Use the Next button to step through the data folders"""
         if self.gui_dict['gui_function']['buttons']:
@@ -1094,6 +1094,7 @@ class hydrationGUI(QMainWindow):
                 else:
                     self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(round(min(self.Ep),1))]
                 self.plot_enh()
+                
         elif self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1'] or self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
         
             tau = np.reshape(nextproc_workspace['proc'].coords,-1)
@@ -1278,8 +1279,8 @@ class hydrationGUI(QMainWindow):
             
             self.gui_dict['gui_function']['sliders'] = True
         
-        xdata = self.processing_workspace['proc'].coords
-        self.gui_dict['data_plot']['xdata'] = np.reshape(xdata['t2'], -1)
+            xdata = self.processing_workspace['proc'].coords
+            self.gui_dict['data_plot']['xdata'] = np.reshape(xdata['t2'], -1)
         
         self.adjustSliders()
             
@@ -1302,17 +1303,22 @@ class hydrationGUI(QMainWindow):
         
         adjslider_workspace = copy.deepcopy(self.processing_workspace)
         
-        self.gui_dict['processing_spec']['phase'] =  self.gui_dict['processing_spec']['originalPhase'] + (self.gui_dict['processing_spec']['phase_factor'] * self.gui_dict['processing_spec']['originalPhase'])
-
-        ydata = adjslider_workspace['proc'].values * np.exp(-1j*self.gui_dict['processing_spec']['phase'])
-        self.gui_dict['data_plot']['ydata'] = np.real(ydata)
+        if self.gui_dict['gui_function']['autoProcess']:
+            pass
+        else:
         
-        xdata = adjslider_workspace['proc'].coords
-        self.gui_dict['data_plot']['xdata'] = np.reshape(xdata['t2'], -1)
+            self.gui_dict['processing_spec']['phase'] =  self.gui_dict['processing_spec']['originalPhase'] + (self.gui_dict['processing_spec']['phase_factor'] * self.gui_dict['processing_spec']['originalPhase'])
+
+            ydata = adjslider_workspace['proc'].values * np.exp(-1j*self.gui_dict['processing_spec']['phase'])
+            self.gui_dict['data_plot']['ydata'] = np.real(ydata)
+            
+            xdata = adjslider_workspace['proc'].coords
+            self.gui_dict['data_plot']['xdata'] = np.reshape(xdata['t2'], -1)
+            
         adjslider_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['phase'])
         adjslider_workspace = odnp.dnpNMR.integrate(adjslider_workspace,{'integrate_center' : self.gui_dict['processing_spec']['integration_center'] , 'integrate_width' : self.gui_dict['processing_spec']['integration_width']})
         adjslider_workspace['proc'].values = np.real(adjslider_workspace['proc'].values)
-        
+    
         if len(adjslider_workspace['proc'].values) == 1:
             pass
         else:
@@ -1323,19 +1329,26 @@ class hydrationGUI(QMainWindow):
             popt, pcov = optimize.curve_fit(self.t1Func, self.gui_dict['t1_plot']['tau'], self.gui_dict['t1_plot']['t1Amps'], p0=[1., self.gui_dict['t1_plot']['t1Amps'][-1], self.gui_dict['t1_plot']['t1Amps'][-1]], method='lm')
             stdd = np.sqrt(np.diag(pcov))
             
-            tau = np.r_[np.min(self.gui_dict['t1_plot']['tau']):np.max(self.gui_dict['t1_plot']['tau']):100j]
-            self.gui_dict['t1_plot']['t1Fit'] = self.t1Func(tau, popt[0],popt[1],popt[2])
-            self.gui_dict['t1_plot']['t1Val'] = popt[0]
-            self.plot_enh()
+            if self.gui_dict['gui_function']['autoProcess']:
+                pass
+            else:
+                tau = np.r_[np.min(self.gui_dict['t1_plot']['tau']):np.max(self.gui_dict['t1_plot']['tau']):100j]
+                self.gui_dict['t1_plot']['t1Fit'] = self.t1Func(tau, popt[0],popt[1],popt[2])
+                self.gui_dict['t1_plot']['t1Val'] = popt[0]
+                self.plot_enh()
             
+        if self.gui_dict['gui_function']['autoProcess']:
+            pass
+        else:
+        
             if self.gui_dict['rawdata_function']['folder'] == -1:
 
                 print('---Error in T1---')
                 print('T1: ' + str(round(popt[0],4)) + ' +/- ' + str(round(stdd[0],4)))
         
-        self.gui_dict['data_plot']['xmin'] = int(round(self.gui_dict['processing_spec']['integration_center'] - np.abs(self.gui_dict['processing_spec']['integration_width'])/2))
-        self.gui_dict['data_plot']['xmax'] = int(round(self.gui_dict['processing_spec']['integration_center'] + np.abs(self.gui_dict['processing_spec']['integration_width'])/2))
-        self.plot_data()
+            self.gui_dict['data_plot']['xmin'] = int(round(self.gui_dict['processing_spec']['integration_center'] - np.abs(self.gui_dict['processing_spec']['integration_width'])/2))
+            self.gui_dict['data_plot']['xmax'] = int(round(self.gui_dict['processing_spec']['integration_center'] + np.abs(self.gui_dict['processing_spec']['integration_width'])/2))
+            self.plot_data()
 
     def finishProcessing(self):
         
