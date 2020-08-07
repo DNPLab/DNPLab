@@ -184,21 +184,16 @@ def process_cnsi(path: str, par: ProcParameter):
             'T10': float(T10)}
 
 
-if __name__ == '__main__':
-    path = 'data/TEMPO_500uM/'  # path to CNSI data folder
-    ppar = ProcParameter()
-    ppar.verbose = False
-    ppar.tic, ppar.tiw, ppar.eic, ppar.eiw = 0, 250, 0, 250
+def get_results(path:str, ppar:ProcParameter, hpar:HydrationParameter):
+    """
+    Returns:
+        HydrationResults
+
+    """
     rest = process_cnsi(path, ppar)
     t1, t1_power, e, e_power = rest['T1p'], rest['T1powers'], rest['Ep'], rest['Epowers']
-    print(t1_power)
 
-    hpar = HydrationParameter()
-    hpar.smax_model = 'free'
-    hpar.t1_interp_method = 'linear'
-    hpar.spin_C = 500
     hpar.T10 = rest['T10']
-    hpar.field = 348.5
 
     hc = HydrationCalculator(T1=t1,
                              T1_power=t1_power,
@@ -206,6 +201,21 @@ if __name__ == '__main__':
                              E_power=e_power,
                              hp=hpar)
     hc.run()
-    print(hc.results)
+    return hc.results
+
+
+if __name__ == '__main__':
+    path = 'data/TEMPO_500uM/'  # path to CNSI data folder
+    ppar = ProcParameter()
+    ppar.verbose = False
+    ppar.tic, ppar.tiw, ppar.eic, ppar.eiw = 0, 250, 0, 250
+
+    hpar = HydrationParameter()
+    hpar.smax_model = 'free'
+    hpar.t1_interp_method = 'linear'
+    hpar.spin_C = 500
+    hpar.field = 348.5
+
+
 
 # savemat('/Users/thomascasey/Documents/MATLAB/' + 'test.mat', {'dnp' : dnpData}, oned_as='column')
