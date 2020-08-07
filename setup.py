@@ -17,8 +17,7 @@ setup(
             'scipy',
             'matplotlib',
             'h5py',
-            'PyQt5',
-            'pandas'
+            'PyQt5'
             ],
         classifiers = [
             'Development Status :: 3 - Alpha',

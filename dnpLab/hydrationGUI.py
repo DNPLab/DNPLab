@@ -17,7 +17,6 @@ from matplotlib.figure import Figure
 import numpy as np
 from scipy.io import loadmat, savemat
 from scipy import optimize
-import pandas as pd
 import copy
 import re
 import datetime
@@ -33,7 +32,7 @@ class hydrationGUI(QMainWindow):
         super().__init__()
         self.left = 10
         self.top = 10
-        self.title = 'Han Lab ODNP Processing'
+        self.title = 'ODNP Processing'
         self.width = 1050
         self.height = 625
         
@@ -427,6 +426,8 @@ class hydrationGUI(QMainWindow):
         self.nextButton.clicked.connect(self.Next_Button)
         self.autoButton.clicked.connect(self.Auto_Process_Button)
         self.backButton.clicked.connect(self.Back_Button)
+        self.onlyT1pCheckbox.clicked.connect(self.Only_T1p_Checkbox)
+        self.onlyT10Checkbox.clicked.connect(self.Only_T10_Checkbox)
         self.show_wrkupCheckbox.setChecked(True)
         self.show_wrkupCheckbox.clicked.connect(self.Show_Workup_Checkbox)
         self.fit_wrkupCheckbox.setChecked(False)
@@ -1636,8 +1637,8 @@ class hydrationGUI(QMainWindow):
                 ksig.append(self.gui_dict['hydration_results']['ksigma_array'][k])
                 ksig_fit.append(self.gui_dict['hydration_results']['ksigma_fit'][k])
             
-            dfE = pd.DataFrame(list(zip(*[list(epow), list(e), list(ksig), list(ksig_fit)])))
-            dfE.to_csv(flnm + '_E_ksig.csv', index=False, header=['Epowers','Ep','ksigma','ksigma_fit'])
+            dfE = np.vstack((epow,e,ksig,ksig_fit)).T
+            np.savetxt(flnm + ' E ksig.csv', dfE, fmt='%10.10f', delimiter = ',', header = 'Epowers,Ep,ksigma,ksigma fit', comments = '')
             
             t = []
             t.append(self.gui_dict['dnpLab_data']['T10'])
@@ -1650,8 +1651,8 @@ class hydrationGUI(QMainWindow):
                 terr.append(self.gui_dict['dnpLab_data']['T1p_error'][k])
                 tpow.append(self.gui_dict['dnpLab_data']['T1powers'][k])
                 
-            dfT1 = pd.DataFrame(list(zip(*[list(tpow), list(t), list(terr)])))
-            dfT1.to_csv(flnm + '_T1.csv', index=False, header=['T1powers','T1p','T1p error'])
+            dfT1 = np.vstack((tpow,t,terr)).T
+            np.savetxt(flnm + ' T1s.csv', dfT1, fmt='%10.10f', delimiter = ',', header = 'T1powers,T1p,T1p error', comments = '')
         
 
     def Integration_Center_Slider(self, cvalue):
@@ -1780,6 +1781,16 @@ class hydrationGUI(QMainWindow):
             self.Hydration_Button()
         else:
             pass
+    
+    def Only_T1p_Checkbox(self):
+        """Rather than return to the beginning of the E(p) series, the Restart button will return to the first T1(p) point"""
+        if self.onlyT1pCheckbox.isChecked():
+            self.onlyT10Checkbox.setChecked(False)
+            
+    def Only_T10_Checkbox(self):
+        """Rather than return to the beginning of the E(p) series, the Restart button will return to the T1(0) point"""
+        if self.onlyT10Checkbox.isChecked():
+            self.onlyT1pCheckbox.setChecked(False)
     
     
     #--Plot Colors--#
