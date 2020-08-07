@@ -614,7 +614,7 @@ class HydrationCalculator:
 def hydration(ws):
 
     # Hydration required data
-    hyd = ws['hydration']
+    hyd = ws['hydration_inputs']
     T1, T1_power, E, E_power = [hyd[k] for k in ['T1', 'T1_power', 'E', 'E_power']]
 
     # Create hydration parameter

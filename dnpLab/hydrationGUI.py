@@ -22,7 +22,7 @@ import re
 import datetime
 import time
 
-sys.path.append('...dnpLab')
+sys.path.append('..')
 import dnpLab as odnp
 
 class hydrationGUI(QMainWindow):
@@ -47,7 +47,7 @@ class hydrationGUI(QMainWindow):
     def initUI(self):
         
         self.testmode = False # set to True for testing, False for normal use
-        self.labpath = '...dnplab' # same as sys path to dnpLab
+        self.labpath = '..' # same as sys path to dnpLab
          
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
@@ -181,13 +181,18 @@ class hydrationGUI(QMainWindow):
         self.backButton.move(5,525)
         self.backButton.resize(100,40)
         
-        # T1(0) label
-        self.errorLabel = QLabel(self)
-        self.errorLabel.setStyleSheet('font : bold 14px')
-        self.errorLabel.move(730,535)
-        self.errorLabel.resize(200,20)
-        #self.errorLabel.setFont(QtGui.QFont('Helvetica', 16))
-        self.errorLabel.setText('')
+        # dnpLab error
+        self.dnpLab_errorLabel = QLabel(self)
+        self.dnpLab_errorLabel.setStyleSheet('font : bold 14px')
+        self.dnpLab_errorLabel.move(730,525)
+        self.dnpLab_errorLabel.resize(200,20)
+        self.dnpLab_errorLabel.setText('dnpLab data Error')
+        # workup error
+        self.workup_errorLabel = QLabel(self)
+        self.workup_errorLabel.setStyleSheet('font : bold 14px')
+        self.workup_errorLabel.move(730,545)
+        self.workup_errorLabel.resize(200,20)
+        self.workup_errorLabel.setText('Workup data Error')
         
         # T1(0) label
         self.t10Label = QLabel(self)
@@ -301,7 +306,7 @@ class hydrationGUI(QMainWindow):
         self.matoutButton.resize(120,30)
         
         # Define main dictionary
-        self.gui_dict = {'gui_function' : {}, 'folder_structure' : {}, 'rawdata_function' : {}, 'processing_spec' : {}, 'workup_function' : {},  'dnpLab_function' : {}, 'workup_data' : {}, 'dnpLab_data' : {}, 'hydration_results' : {}, 'data_plot' : {}, 'enhancement_plot' : {}, 't1_plot' : {}}
+        self.gui_dict = {'gui_function' : {}, 'folder_structure' : {}, 'rawdata_function' : {}, 'processing_spec' : {}, 'workup_function' : {},  'dnpLab_function' : {}, 'workup_data' : {}, 'dnpLab_data' : {}, 'hydration_results' : {}, 'data_plot' : {}, 'enhancement_plot' : {}, 't1_plot' : {}, 't1_fit' : {}}
         
         # set some default parameters
         self.wrkup_smax = 1
@@ -342,7 +347,7 @@ class hydrationGUI(QMainWindow):
             self.tetheredCheckbox.setVisible(True)
             self.freeCheckbox.setVisible(True)
             self.matoutButton.setVisible(True)
-            self.nextButton.setText('Hydration')
+            self.nextButton.setText('dnpHydration')
             self.autoButton.setVisible(False)
             self.backButton.setText('Restart')
             self.onlyT1pCheckbox.setVisible(True)
@@ -356,19 +361,19 @@ class hydrationGUI(QMainWindow):
             self.optimizeCheckbox.setVisible(False)
             self.backButton.setVisible(True)
 
-            if self.gui_dict['workup_function']['isWorkup'] or self.gui_dict['dnpLab_function']['isLab']:
+            if self.gui_dict['gui_function']['isWorkup'] or self.gui_dict['gui_function']['isLab']:
                 self.backButton.setVisible(False)
                 self.onlyT1pCheckbox.setVisible(False)
                 self.onlyT10Checkbox.setVisible(False)
                 
-            if self.gui_dict['workup_function']['isWorkup']:
+            if self.gui_dict['gui_function']['isWorkup']:
                 self.workupt10Label.setVisible(True)
                 self.workupt10Edit.setVisible(True)
             else:
                 self.t10Label.setVisible(True)
                 self.t10Edit.setVisible(True)
                 
-            if self.gui_dict['workup_function']['addWorkup']:
+            if self.gui_dict['gui_function']['addWorkup']:
                 self.show_wrkupCheckbox.setVisible(True)
                 self.fit_wrkupCheckbox.setVisible(True)
                 self.gui_dict['workup_function']['show'] = True
@@ -414,7 +419,8 @@ class hydrationGUI(QMainWindow):
         
         self.t1plt.setVisible(True)
         self.enhplt.setVisible(True)
-        self.errorLabel.setVisible(False)
+        self.dnpLab_errorLabel.setVisible(False)
+        self.workup_errorLabel.setVisible(False)
 
     def connect_widgets(self):
         
@@ -538,51 +544,70 @@ class hydrationGUI(QMainWindow):
             self.gui_dict['gui_function']['sliders'] = True
     
     def GUI_Result_Button(self):
-        """Select the .mat file previously saved using the 'Save results' button"""
+        """Select either the h5 or the .mat files previously saved using the 'Save results' button"""
         try:
             if self.testmode:
-                flname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_output.mat'
+                flname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_output.h5'
             else:
                 dir = QFileDialog.getOpenFileName(self)
                 flname = dir[0]
-            
+                
             print('GUI Results: ' + flname)
+            
             x = flname.split(os.sep)
+            fl = x[len(x)-1]
+            exten = flname.split('.')
+
             self.pathLabel.setText('GUI RESULTS DIRECTORY: ' + x[len(x)-2] + ' ' + os.sep + ' ' + x[len(x)-1])
             
-            matin = loadmat(flname)
-
             self.ksiglabel='dnpLab'
             self.gui_dict['rawdata_function']['folder'] = -3
-            
-            self.gui_dict['dnpLab_function']['isLab'] = True
-            self.gui_dict['workup_function']['isWorkup'] = False
-            self.gui_dict['workup_function']['addWorkup'] = False
+            self.gui_dict['gui_function']['isLab'] = True
+            self.gui_dict['gui_function']['isWorkup'] = False
+            self.gui_dict['gui_function']['addWorkup'] = False
             self.gui_dict['workup_function']['show'] = False
             self.gui_dict['workup_function']['fit'] = False
             
             self.reset_plots()
-            self.t10Edit.setText(str(round(float(matin['odnp']['T10']),4)))
             
-            self.gui_dict['dnpLab_data']['T10'] = float(matin['odnp']['T10'])
-            self.gui_dict['dnpLab_data']['T10_error'] = float(matin['odnp']['T10_error'])
-            epows=matin['odnp']['Epowers'][0]
-            self.gui_dict['dnpLab_data']['Epowers'] = np.ravel(epows[0])
-            ep = matin['odnp']['Ep'][0]
-            self.Ep = np.ravel(ep[0])
-            t1pows = matin['odnp']['T1powers'][0]
-            self.gui_dict['dnpLab_data']['T1powers'] = np.ravel(t1pows[0])
-            t1p = matin['odnp']['T1p'][0]
-            self.T1p = np.ravel(t1p[0])
-            t1perr = matin['odnp']['T1p_error'][0]
-            self.T1p_error = np.ravel(t1perr[0])
+            if 'mat' in exten:
+                matin = loadmat(flname)
+
+                self.t10Edit.setText(str(round(float(matin['odnp']['T10']),4)))
+                
+                self.gui_dict['dnpLab_data']['T10'] = float(matin['odnp']['T10'])
+                self.gui_dict['dnpLab_data']['T10_error'] = float(matin['odnp']['T10_error'])
+                epows=matin['odnp']['Epowers'][0]
+                self.gui_dict['dnpLab_data']['Epowers'] = np.ravel(epows[0])
+                ep = matin['odnp']['Ep'][0]
+                self.Ep = np.ravel(ep[0])
+                t1pows = matin['odnp']['T1powers'][0]
+                self.gui_dict['dnpLab_data']['T1powers'] = np.ravel(t1pows[0])
+                t1p = matin['odnp']['T1p'][0]
+                self.T1p = np.ravel(t1p[0])
+                t1perr = matin['odnp']['T1p_error'][0]
+                self.T1p_error = np.ravel(t1perr[0])
+                
+            elif 'h5' in exten:
+                h5in = odnp.dnpImport.h5.loadh5(flname)
+                
+                self.t10Edit.setText(str(round(float(h5in['hydration_inputs']['T10']),4)))
+                
+                self.gui_dict['dnpLab_data']['T100'] = float(h5in['hydration_inputs']['T100'])
+                self.gui_dict['dnpLab_data']['T10'] = float(h5in['hydration_inputs']['T10'])
+                self.gui_dict['dnpLab_data']['T10_error'] = float(h5in['hydration_results']['T10_error'])
+                self.gui_dict['dnpLab_data']['Epowers'] = h5in['hydration_inputs']['E_power']
+                self.Ep = h5in['hydration_inputs']['E']
+                self.gui_dict['dnpLab_data']['T1powers'] = h5in['hydration_inputs']['T1_power']
+                self.T1p = h5in['hydration_inputs']['T1']
+                self.T1p_error = h5in['hydration_results']['T1p_error']
             
             self.gui_dict['rawdata_function']['nopowers'] = False
             
             self.finishProcessing()
             
             self.gui_dict['gui_function']['buttons'] = True
-        
+   
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
@@ -620,9 +645,9 @@ class hydrationGUI(QMainWindow):
             self.plot_setter()
             
             self.gui_dict['gui_function']['buttons'] = False
-            self.gui_dict['workup_function']['isWorkup'] = False
-            self.gui_dict['workup_function']['addWorkup'] = False
-            self.gui_dict['dnpLab_function']['isLab'] = False
+            self.gui_dict['gui_function']['isWorkup'] = False
+            self.gui_dict['gui_function']['addWorkup'] = False
+            self.gui_dict['gui_function']['isLab'] = False
             self.gui_dict['workup_function']['fit'] = False
             self.gui_dict['workup_function']['show'] = False
             self.gui_dict['enhancement_plot']['plotT1fit'] = True
@@ -660,36 +685,39 @@ class hydrationGUI(QMainWindow):
             x = wrkname.split(os.sep)
             self.pathLabel.setText('WORKUP DIRECTORY: ' + x[len(x)-3] + ' ' + os.sep + ' ' + x[len(x)-2])
             
-            self.ksiglabel='workup'
+            self.ksiglabel='Workup'
             self.gui_dict['rawdata_function']['folder'] = -3
 
-            self.gui_dict['workup_function']['isWorkup'] = True
-            self.gui_dict['dnpLab_function']['isLab'] = False
-            self.gui_dict['workup_function']['addWorkup'] = False
-            self.gui_dict['workup_function']['show'] = False
-            self.gui_dict['workup_function']['fit'] = False
+            self.gui_dict['gui_function']['isWorkup'] = True
+            self.gui_dict['gui_function']['isLab'] = False
+            self.gui_dict['gui_function']['addWorkup'] = False
+            self.gui_dict['workup_function']['show'] = True
+            self.gui_dict['workup_function']['fit'] = True
 
             self.reset_plots()
             self.processWorkup()
+            
+            """
             self.gui_dict['dnpLab_data'] = copy.deepcopy(self.gui_dict['workup_data'])
             self.Ep = self.gui_dict['workup_data']['Ep']
             self.T1p = self.gui_dict['workup_data']['T1p']
             self.T1p_error = self.gui_dict['workup_data']['T1p_error']
             self.gui_dict['dnpLab_data']['T10'] = self.gui_dict['workup_data']['T10']
             self.gui_dict['dnpLab_data']['T10_error'] = self.gui_dict['workup_data']['T10_error']
+            """
             
             self.gui_dict['rawdata_function']['nopowers'] = False
             
             self.finishProcessing()
 
             self.gui_dict['gui_function']['buttons'] = True
-            
+
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('WORKUP ERROR')
             self.gui_dict['gui_function']['buttons'] = False
-    
+        
     def processWorkup(self):
 
         # load enhancementPowers.csv
@@ -742,7 +770,8 @@ class hydrationGUI(QMainWindow):
         
 
         #wrkupksig_array = np.loadtxt(self.gui_dict['workup_function']['directory'] + 'kSigma.csv', delimiter = ',', usecols = range(0,1), max_rows=21, skiprows = 6)
-        #ksig = np.array([self.gui_dict['workup_data']['Epowers'],wrkupksig_array.reshape(-1)])
+        #self.gui_dict['workup_data']['ksigma_powers'] = wrkupksig_array[:,1].reshape(-1)])
+        #self.gui_dict['workup_data']['ksigma_array'] = wrkupksig_array[:,0].reshape(-1)])
         #ksig = np.transpose(ksig)
         #ksig = ksig[ksig[:,0].argsort()]
         #self.workup_ksig_array = ksig[:,1]
@@ -896,8 +925,11 @@ class hydrationGUI(QMainWindow):
             self.pathLabel.setText('DATA DIRECTORY: ' + x[len(x)-3] + ' ' + os.sep + ' ' + x[len(x)-2])
 
             self.gui_dict['folder_structure'] = {}
-            self.gui_dict['workup_function']['isWorkup'] = False
-            self.gui_dict['dnpLab_function']['isLab'] = False
+            self.gui_dict['gui_function']['isWorkup'] = False
+            self.gui_dict['gui_function']['isLab'] = False
+            self.gui_dict['gui_function']['addWorkup'] = False
+            self.gui_dict['workup_function']['show'] = False
+            self.gui_dict['workup_function']['fit'] = False
 
             if os.path.exists(self.gui_dict['rawdata_function']['directory'] + '40'):
 
@@ -913,15 +945,11 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict['folder_structure']['T1'] = range(28,33)
                 self.gui_dict['folder_structure']['T10'] = 304
                                 
-            self.gui_dict['workup_function']['addWorkup'] = False
-            self.gui_dict['workup_function']['show'] = False
-            self.gui_dict['workup_function']['fit'] = False
-            
             self.gui_dict['rawdata_function']['nopowers'] = True
             
             if os.path.exists(self.gui_dict['rawdata_function']['directory'] + 'Workup') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 'enhancementPowers.csv') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 'kSigma.csv') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 't1Powers.csv'):
                 
-                self.gui_dict['workup_function']['addWorkup'] = True
+                self.gui_dict['gui_function']['addWorkup'] = True
                 self.gui_dict['workup_function']['show'] = True
                 
                 self.gui_dict['workup_function']['directory'] = os.path.join(dirname + 'Workup' + os.sep)
@@ -1057,7 +1085,7 @@ class hydrationGUI(QMainWindow):
         """Use the Next button to step through the data folders"""
         if self.gui_dict['gui_function']['buttons']:
         
-            if self.gui_dict['workup_function']['isWorkup']:
+            if self.gui_dict['gui_function']['isWorkup']:
                 self.Hydration_Button()
             else:
             
@@ -1114,9 +1142,9 @@ class hydrationGUI(QMainWindow):
             if self.gui_dict['gui_function']['autoProcess']:
                 pass
             else:
-                new_tau = np.r_[np.min(self.gui_dict['t1_plot']['tau']):np.max(self.gui_dict['t1_plot']['tau']):100j]
-                self.gui_dict['t1_plot']['t1Fit'] = self.t1Func(new_tau, popt[0],popt[1],popt[2])
-                self.gui_dict['t1_plot']['t1Val'] = popt[0]
+                self.gui_dict['t1_fit']['xaxis'] = np.r_[np.min(self.gui_dict['t1_fit']['tau']):np.max(self.gui_dict['t1_fit']['tau']):100j]
+                self.gui_dict['t1_fit']['t1Fit'] = self.t1Func(self.gui_dict['t1_fit']['xaxis'], popt[0],popt[1],popt[2])
+                self.gui_dict['t1_fit']['t1Val'] = popt[0]
             
                 self.gui_dict['t1_plot']['xdata'] = self.gui_dict['dnpLab_data']['T1powers'][0:len(self.T1p)]
                 self.gui_dict['t1_plot']['ydata'] = self.T1p
@@ -1125,8 +1153,8 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict['t1_plot']['ytick'] = [max(self.T1p)]
                 self.gui_dict['t1_plot']['ytickLabel'] = [str(round(max(self.T1p),1))]
                 
-                self.gui_dict['t1_plot']['tau'] = tau
-                self.gui_dict['t1_plot']['t1Amps'] = Mdata
+                self.gui_dict['t1_fit']['tau'] = tau
+                self.gui_dict['t1_fit']['t1Amps'] = Mdata
                 self.plot_t1()
                 self.plot_enh()
         
@@ -1280,9 +1308,6 @@ class hydrationGUI(QMainWindow):
             
             self.gui_dict['gui_function']['sliders'] = True
         
-            xdata = self.processing_workspace['proc'].coords
-            self.gui_dict['data_plot']['xdata'] = np.reshape(xdata['t2'], -1)
-        
         self.adjustSliders()
             
     def optCenter(self):
@@ -1324,18 +1349,19 @@ class hydrationGUI(QMainWindow):
             pass
         else:
             
-            self.gui_dict['t1_plot']['t1Amps'] = adjslider_workspace['proc'].values
-            self.gui_dict['t1_plot']['tau'] = np.reshape(adjslider_workspace['proc'].coords,-1)
+            self.gui_dict['t1_fit']['t1Amps'] = adjslider_workspace['proc'].values
+            self.gui_dict['t1_fit']['tau'] = np.reshape(adjslider_workspace['proc'].coords,-1)
             
-            popt, pcov = optimize.curve_fit(self.t1Func, self.gui_dict['t1_plot']['tau'], self.gui_dict['t1_plot']['t1Amps'], p0=[1., self.gui_dict['t1_plot']['t1Amps'][-1], self.gui_dict['t1_plot']['t1Amps'][-1]], method='lm')
+            popt, pcov = optimize.curve_fit(self.t1Func, self.gui_dict['t1_fit']['tau'], self.gui_dict['t1_fit']['t1Amps'], p0=[1., self.gui_dict['t1_fit']['t1Amps'][-1], self.gui_dict['t1_fit']['t1Amps'][-1]], method='lm')
             stdd = np.sqrt(np.diag(pcov))
             
             if self.gui_dict['gui_function']['autoProcess']:
                 pass
             else:
-                tau = np.r_[np.min(self.gui_dict['t1_plot']['tau']):np.max(self.gui_dict['t1_plot']['tau']):100j]
-                self.gui_dict['t1_plot']['t1Fit'] = self.t1Func(tau, popt[0],popt[1],popt[2])
-                self.gui_dict['t1_plot']['t1Val'] = popt[0]
+                tau = np.r_[np.min(self.gui_dict['t1_fit']['tau']):np.max(self.gui_dict['t1_fit']['tau']):100j]
+                self.gui_dict['t1_fit']['t1Fit'] = self.t1Func(tau, popt[0],popt[1],popt[2])
+                self.gui_dict['t1_fit']['t1Val'] = popt[0]
+                self.gui_dict['t1_fit']['xaxis'] = np.r_[np.min(self.gui_dict['t1_fit']['tau']):np.max(self.gui_dict['t1_fit']['tau']):100j]
                 self.plot_enh()
             
         if self.gui_dict['gui_function']['autoProcess']:
@@ -1356,25 +1382,7 @@ class hydrationGUI(QMainWindow):
         self.gui_dict['gui_function']['calculating'] = True
         self.show_hide_components()
         
-        if self.gui_dict['rawdata_function']['nopowers']:
-            self.gui_dict['dnpLab_data']['Ep'] = self.Ep
-            self.gui_dict['dnpLab_data']['T1p'] = self.T1p
-            self.gui_dict['dnpLab_data']['T1p_error'] = self.T1p_error
-        else:
-            enh = np.array([self.gui_dict['dnpLab_data']['Epowers'], self.Ep])
-            enh = np.transpose(enh)
-            enh = enh[enh[:,0].argsort()]
-            self.gui_dict['dnpLab_data']['Epowers'] = enh[:,0]
-            self.gui_dict['dnpLab_data']['Ep'] = enh[:,1]
-            
-            t1 = np.array([self.gui_dict['dnpLab_data']['T1powers'], self.T1p, self.T1p_error])
-            t1 = np.transpose(t1)
-            t1 = t1[t1[:,0].argsort()]
-            self.gui_dict['dnpLab_data']['T1powers'] = t1[:,0]
-            self.gui_dict['dnpLab_data']['T1p'] = t1[:,1]
-            self.gui_dict['dnpLab_data']['T1p_error'] = t1[:,2]
-        
-        if self.gui_dict['workup_function']['isWorkup'] or self.gui_dict['workup_function']['addWorkup']:
+        if self.gui_dict['gui_function']['isWorkup'] or self.gui_dict['gui_function']['addWorkup']:
 
             wenh = np.array([self.gui_dict['workup_data']['Epowers'], self.gui_dict['workup_data']['Ep']])
             wenh = np.transpose(wenh)
@@ -1389,23 +1397,59 @@ class hydrationGUI(QMainWindow):
             self.gui_dict['workup_data']['T1p'] = wt1[:,1]
             self.gui_dict['workup_data']['T1p_error'] = wt1[:,2]
             
-            if self.gui_dict['workup_function']['addWorkup']:
+            if self.gui_dict['gui_function']['addWorkup']:
                 self.show_wrkupCheckbox.setVisible(True)
                 self.fit_wrkupCheckbox.setVisible(True)
-
-        self.gui_dict['enhancement_plot']['xdata'] = self.gui_dict['dnpLab_data']['Epowers']
-        self.gui_dict['enhancement_plot']['ydata'] = self.gui_dict['dnpLab_data']['Ep']
-        self.gui_dict['enhancement_plot']['title'] = 'E[p]'
-        self.gui_dict['enhancement_plot']['ytick'] = [0,min(self.gui_dict['dnpLab_data']['Ep'])]
-
-        if min(self.gui_dict['dnpLab_data']['Ep']) <= -10:
-            self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(int(min(self.gui_dict['dnpLab_data']['Ep'])))]
-        else:
-            self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(round(min(self.gui_dict['dnpLab_data']['Ep']),1))]
         
-        self.gui_dict['t1_plot']['xdata'] = self.gui_dict['dnpLab_data']['T1powers']
-        self.gui_dict['t1_plot']['ydata'] = self.gui_dict['dnpLab_data']['T1p']
+        if self.gui_dict['gui_function']['isWorkup']:
+            self.gui_dict['enhancement_plot']['xdata'] = self.gui_dict['workup_data']['Epowers']
+            self.gui_dict['enhancement_plot']['ydata'] = self.gui_dict['workup_data']['Ep']
+            
+            self.gui_dict['enhancement_plot']['ytick'] = [0,min(self.gui_dict['workup_data']['Ep'])]
+
+            if min(self.gui_dict['workup_data']['Ep']) <= -10:
+                self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(int(min(self.gui_dict['workup_data']['Ep'])))]
+            else:
+                self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(round(min(self.gui_dict['workup_data']['Ep']),1))]
+            
+            self.gui_dict['t1_plot']['xdata'] = self.gui_dict['workup_data']['T1powers']
+            self.gui_dict['t1_plot']['ydata'] = self.gui_dict['workup_data']['T1p']
+            
+        else:
+            if self.gui_dict['rawdata_function']['nopowers']:
+                self.gui_dict['dnpLab_data']['Ep'] = self.Ep
+                self.gui_dict['dnpLab_data']['T1p'] = self.T1p
+                self.gui_dict['dnpLab_data']['T1p_error'] = self.T1p_error
+            else:
+                enh = np.array([self.gui_dict['dnpLab_data']['Epowers'], self.Ep])
+                enh = np.transpose(enh)
+                enh = enh[enh[:,0].argsort()]
+                self.gui_dict['dnpLab_data']['Epowers'] = enh[:,0]
+                self.gui_dict['dnpLab_data']['Ep'] = enh[:,1]
+                
+                t1 = np.array([self.gui_dict['dnpLab_data']['T1powers'], self.T1p, self.T1p_error])
+                t1 = np.transpose(t1)
+                t1 = t1[t1[:,0].argsort()]
+                self.gui_dict['dnpLab_data']['T1powers'] = t1[:,0]
+                self.gui_dict['dnpLab_data']['T1p'] = t1[:,1]
+                self.gui_dict['dnpLab_data']['T1p_error'] = t1[:,2]
+
+                self.gui_dict['enhancement_plot']['xdata'] = self.gui_dict['dnpLab_data']['Epowers']
+                self.gui_dict['enhancement_plot']['ydata'] = self.gui_dict['dnpLab_data']['Ep']
+                
+                self.gui_dict['enhancement_plot']['ytick'] = [0,min(self.gui_dict['dnpLab_data']['Ep'])]
+
+                if min(self.gui_dict['dnpLab_data']['Ep']) <= -10:
+                    self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(int(min(self.gui_dict['dnpLab_data']['Ep'])))]
+                else:
+                    self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(round(min(self.gui_dict['dnpLab_data']['Ep']),1))]
+                
+                self.gui_dict['t1_plot']['xdata'] = self.gui_dict['dnpLab_data']['T1powers']
+                self.gui_dict['t1_plot']['ydata'] = self.gui_dict['dnpLab_data']['T1p']
+        
+        self.gui_dict['enhancement_plot']['title'] = 'E[p]'
         self.gui_dict['t1_plot']['title'] = 'T1[p]'
+        
         self.gui_dict['gui_function']['sliders'] = False
         
         self.gui_dict['data_plot']['plotksig'] = True
@@ -1413,7 +1457,7 @@ class hydrationGUI(QMainWindow):
         self.gui_dict['enhancement_plot']['plotT1fit'] = False
         self.gui_dict['enhancement_plot']['plotEpfit'] = True
         
-        if self.gui_dict['workup_function']['isWorkup']:
+        if self.gui_dict['gui_function']['isWorkup']:
             print('---workup Errors in T1---')
             print('T10: ' + str(round(self.gui_dict['workup_data']['T10'],2)) + ' +/- ' + str(round(self.gui_dict['workup_data']['T10_error'],4)))
             for k in range(0,len(self.gui_dict['workup_data']['T1p'])):
@@ -1424,7 +1468,7 @@ class hydrationGUI(QMainWindow):
             for k in range(0,len(self.T1p)):
                 print(str(round(self.T1p[k],2)) + ' +/- ' + str(round(self.T1p_error[k],4)))
             
-            if self.gui_dict['workup_function']['addWorkup']:
+            if self.gui_dict['gui_function']['addWorkup']:
                 print('---workup Errors in T1---')
                 print('T10: ' + str(round(self.gui_dict['workup_data']['T10'],2)) + ' +/- ' + str(round(self.gui_dict['workup_data']['T10_error'],4)))
                 for k in range(0,len(self.gui_dict['workup_data']['T1p'])):
@@ -1460,19 +1504,13 @@ class hydrationGUI(QMainWindow):
                      }
         
         """
-        
-        self.err = False
-        self.errorLabel.setVisible(False)
+
+        self.dnpLab_errorLabel.setVisible(False)
+        self.workup_errorLabel.setVisible(False)
         
         spin_C = float(self.slcEdit.text())
         field = float(self.fieldEdit.text())
         T100 = float(self.t100Edit.text())
-        self.gui_dict['dnpLab_data']['T100'] = float(self.t100Edit.text())
-        if self.gui_dict['workup_function']['isWorkup']:
-            T10 = float(self.workupt10Edit.text())
-        else:
-            T10 = float(self.t10Edit.text())
-            
         if self.tetheredCheckbox.isChecked():
             smax_model = 'tethered'
             self.wrkup_smax = 1
@@ -1484,52 +1522,57 @@ class hydrationGUI(QMainWindow):
             t1_interp_method = 'linear'
         else:
             t1_interp_method = 'second_order'
-
-        if self.exclude1T1Checkbox.isChecked():
-        
-            T1p = self.gui_dict['dnpLab_data']['T1p'][1:len(self.gui_dict['dnpLab_data']['T1p'])]
-            T1powers = self.gui_dict['dnpLab_data']['T1powers'][1:len(self.gui_dict['dnpLab_data']['T1powers'])]
-        else:
             
-            T1p = self.gui_dict['dnpLab_data']['T1p']
-            T1powers = self.gui_dict['dnpLab_data']['T1powers']
-        
-        
-        hydration = {'E' : np.array(self.gui_dict['dnpLab_data']['Ep']), 'E_power' : np.array(self.gui_dict['dnpLab_data']['Epowers']), 'T1' : np.array(T1p), 'T1_power' : np.array(T1powers)}
-        hydration.update({
-            'T10': T10,
-            'T100': self.gui_dict['dnpLab_data']['T100'],
-            'spin_C': spin_C,
-            'field': field,
-            'smax_model': smax_model,
-            't1_interp_method': t1_interp_method
-        })
-        hyd = odnp.create_workspace()
-        hyd.add('hydration', hydration)
-
-        try:
-            self.gui_dict['hydration_results'] = odnp.dnpHydration.hydration(hyd)
-            self.plothydresults = copy.deepcopy(self.gui_dict['hydration_results'])
-        except:
-            self.err = True
-            self.errorLabel.setVisible(True)
-            if self.gui_dict['workup_function']['isWorkup']:
-                self.errorLabel.setText('workup data Error')
-            else:
-                self.errorLabel.setText('dnpLab data Error')
-
-        if self.gui_dict['workup_function']['isWorkup']:
+        if self.gui_dict['gui_function']['isWorkup']:
             self.workupt10Label.setVisible(True)
             self.workupt10Edit.setVisible(True)
             self.t10Label.setVisible(False)
             self.t10Edit.setVisible(False)
         else:
-            self.workupt10Label.setVisible(False)
-            self.workupt10Edit.setVisible(False)
+
+            if self.gui_dict['gui_function']['addWorkup']:
+                self.workupt10Label.setVisible(True)
+                self.workupt10Edit.setVisible(True)
+            else:
+                self.workupt10Label.setVisible(False)
+                self.workupt10Edit.setVisible(False)
+
+            if self.exclude1T1Checkbox.isChecked():
+                
+                T1p = self.gui_dict['dnpLab_data']['T1p'][1:len(self.gui_dict['dnpLab_data']['T1p'])]
+                T1powers = self.gui_dict['dnpLab_data']['T1powers'][1:len(self.gui_dict['dnpLab_data']['T1powers'])]
+            else:
+                
+                T1p = self.gui_dict['dnpLab_data']['T1p']
+                T1powers = self.gui_dict['dnpLab_data']['T1powers']
+            
+            T10 = float(self.t10Edit.text())
             self.t10Label.setVisible(True)
             self.t10Edit.setVisible(True)
+            self.gui_dict['dnpLab_data']['T100'] = T100
             
-        if self.gui_dict['workup_function']['isWorkup'] or self.gui_dict['workup_function']['addWorkup']:
+            hydration = {'E' : np.array(self.gui_dict['dnpLab_data']['Ep']), 'E_power' : np.array(self.gui_dict['dnpLab_data']['Epowers']), 'T1' : np.array(T1p), 'T1_power' : np.array(T1powers)}
+            hydration.update({
+                'T10': T10,
+                'T100': self.gui_dict['dnpLab_data']['T100'],
+                'spin_C': spin_C,
+                'field': field,
+                'smax_model': smax_model,
+                't1_interp_method': t1_interp_method
+            })
+            hyd = odnp.create_workspace()
+            hyd.add('hydration_inputs', hydration)
+
+            try:
+                self.gui_dict['hydration_results'] = odnp.dnpHydration.hydration(hyd)
+                self.addHyd_workspace = copy.deepcopy(hyd)
+                self.addHyd_workspace.add('hydration_results', self.gui_dict['hydration_results'])
+            except:
+                self.dataplt.axes.cla()
+                self.dataplt.draw()
+                self.dnpLab_errorLabel.setVisible(True)
+
+        if self.gui_dict['gui_function']['isWorkup'] or self.gui_dict['gui_function']['addWorkup']:
         
                 if self.gui_dict['workup_function']['fit'] or self.gui_dict['workup_function']['show']:
                     
@@ -1544,44 +1587,43 @@ class hydrationGUI(QMainWindow):
                         wT1powers = self.gui_dict['workup_data']['T1powers']
                     
                     wT10 = float(self.workupt10Edit.text())
+                    self.gui_dict['workup_data']['T100'] = T100
                     
                     whydration = {'E' : np.array(self.gui_dict['workup_data']['Ep']), 'E_power' : np.array(self.gui_dict['workup_data']['Epowers']), 'T1' : np.array(wT1p), 'T1_power' : np.array(wT1powers)}
                     whydration.update({
                         'T10': wT10,
-                        'T100': self.gui_dict['dnpLab_data']['T100'],
+                        'T100': self.gui_dict['workup_data']['T100'],
                         'spin_C': spin_C,
                         'field': field,
                         'smax_model': smax_model,
                         't1_interp_method': t1_interp_method
                     })
                     whyd = odnp.create_workspace()
-                    whyd.add('hydration', whydration)
+                    whyd.add('hydration_inputs', whydration)
                     
                     try:
                         self.gui_dict['workup_hydration_results'] = odnp.dnpHydration.hydration(whyd)
-                        if self.gui_dict['workup_function']['fit']:
-                            self.plothydresults = copy.deepcopy(self.gui_dict['workup_hydration_results'])
+                        if self.gui_dict['workup_function']['fit'] or self.gui_dict['gui_function']['isWorkup']:
+                            self.addHyd_workspace = copy.deepcopy(whyd)
+                            self.addHyd_workspace.add('hydration_results', self.gui_dict['workup_hydration_results'])
                     except:
-                        self.err = True
-                        self.errorLabel.setVisible(True)
-                        self.errorLabel.setText('workup data Error')
-                    
-                    self.workupt10Label.setVisible(True)
-                    self.workupt10Edit.setVisible(True)
+                        self.dataplt.axes.cla()
+                        self.dataplt.draw()
+                        self.workup_errorLabel.setVisible(True)
+            
+        if self.gui_dict['gui_function']['isWorkup']:
+            
+            if min(wT1p)<0.1:
+                self.gui_dict['t1_plot']['ymin'] = 0
+            else:
+                self.gui_dict['t1_plot']['ymin'] =  min(self.gui_dict['workup_data']['T1p'])*.85
+                
+            if max(wT1p)>5:
+                self.gui_dict['t1_plot']['ymax'] = 1
+            else:
+                self.gui_dict['t1_plot']['ymax'] =  max(self.gui_dict['workup_data']['T1p'])*1.15
 
-        self.gui_dict['gui_function']['hydrationEdits'] = True
-        
-        if self.err:
-            self.dataplt.axes.cla()
-            self.dataplt.draw()
-            pass
         else:
-
-            self.gui_dict['data_plot']['title'] = r'$k_\sigma[p]$'
-            self.plot_data()
-            
-            self.plot_enh()
-            
             if min(T1p)<0.1:
                 self.gui_dict['t1_plot']['ymin'] = 0
             else:
@@ -1592,68 +1634,61 @@ class hydrationGUI(QMainWindow):
             else:
                 self.gui_dict['t1_plot']['ymax'] =  max(self.gui_dict['dnpLab_data']['T1p'])*1.15
             
-            self.gui_dict['t1_plot']['ytick'] = [self.gui_dict['t1_plot']['ymin'],self.gui_dict['t1_plot']['ymax']]
-            self.gui_dict['t1_plot']['ytickLabel'] = [str(round(self.gui_dict['t1_plot']['ymin'],1)),str(round(self.gui_dict['t1_plot']['ymax'],1))]
+        self.gui_dict['t1_plot']['ytick'] = [self.gui_dict['t1_plot']['ymin'],self.gui_dict['t1_plot']['ymax']]
+        self.gui_dict['t1_plot']['ytickLabel'] = [str(round(self.gui_dict['t1_plot']['ymin'],1)),str(round(self.gui_dict['t1_plot']['ymax'],1))]
+        
+        self.gui_dict['data_plot']['title'] = r'$k_\sigma[p]$'
             
-            self.plot_t1()
-            
-            print('-----Errors in ksigma-----')
-            if self.gui_dict['workup_function']['isWorkup']:
-                print('workup (hydration): ' + str(round(self.gui_dict['hydration_results']['ksigma'],2)) + ' +/- ' +  str(round(self.gui_dict['hydration_results']['ksigma_error'],4)))
+        self.plot_data()
+        self.plot_enh()
+        self.plot_t1()
+        
+        print('-----Errors in ksigma-----')
+        if self.gui_dict['gui_function']['isWorkup']:
+            print('Workup (dnpHydration): ' + str(round(self.gui_dict['workup_hydration_results']['ksigma'],2)) + ' +/- ' +  str(round(self.gui_dict['workup_hydration_results']['ksigma_error'],4)))
+            print('workup = ' + str(round(self.gui_dict['workup_data']['kSigma']/spin_C/self.wrkup_smax,2)) + ' +/- ' +  str(round(self.gui_dict['workup_data']['kSigma_error']/spin_C/self.wrkup_smax,4)))
+        else:
+            print('dnpLab (dnpHydration): = ' + str(round(self.gui_dict['hydration_results']['ksigma'],2)) + ' +/- ' +  str(round(self.gui_dict['hydration_results']['ksigma_error'],4)))
+            if self.gui_dict['workup_function']['fit']:
+                print('Workup (dnpHydration): ' + str(round(self.gui_dict['workup_hydration_results']['ksigma'],2)) + ' +/- ' +  str(round(self.gui_dict['workup_hydration_results']['ksigma_error'],4)))
+            if self.gui_dict['gui_function']['addWorkup']:
                 print('workup = ' + str(round(self.gui_dict['workup_data']['kSigma']/spin_C/self.wrkup_smax,2)) + ' +/- ' +  str(round(self.gui_dict['workup_data']['kSigma_error']/spin_C/self.wrkup_smax,4)))
-            else:
-                print('dnpLab (hydration): = ' + str(round(self.gui_dict['hydration_results']['ksigma'],2)) + ' +/- ' +  str(round(self.gui_dict['hydration_results']['ksigma_error'],4)))
-                if self.gui_dict['workup_function']['fit']:
-                    print('workup (hydration): ' + str(round(self.gui_dict['workup_hydration_results']['ksigma'],2)) + ' +/- ' +  str(round(self.gui_dict['workup_hydration_results']['ksigma_error'],4)))
-                if self.gui_dict['workup_function']['addWorkup']:
-                    print('workup = ' + str(round(self.gui_dict['workup_data']['kSigma']/spin_C/self.wrkup_smax,2)) + ' +/- ' +  str(round(self.gui_dict['workup_data']['kSigma_error']/spin_C/self.wrkup_smax,4)))
+                
+        self.gui_dict['gui_function']['hydrationEdits'] = True
             
     def Save_Results_Button(self):
         """Save the results of processing to a format that can be read by the hydrationGUI using the 'GUI Result' button or by the MATLAB App called xODNP"""
         
-        flnm1 = QFileDialog.getSaveFileName(self)
-        if flnm1[0]:
-            flnm = flnm1[0]
+        pthnm1 = QFileDialog.getSaveFileName(self)
+        if pthnm1[0]:
+            pthnm = pthnm1[0]
 
-        if flnm:
+        if pthnm:
             
-            odnpData = {'Epowers' : self.gui_dict['dnpLab_data']['Epowers'], 'Ep' : self.gui_dict['dnpLab_data']['Ep'], 'T1powers' : self.gui_dict['dnpLab_data']['T1powers'], 'T1p' : self.gui_dict['dnpLab_data']['T1p'], 'T1p_error' : self.gui_dict['dnpLab_data']['T1p_error'], 'T10' : self.gui_dict['dnpLab_data']['T10'], 'T10_error' : self.gui_dict['dnpLab_data']['T10_error'], 'T100' : self.gui_dict['dnpLab_data']['T100']}
-            
-            odnpResults = {'kSigmas' : self.gui_dict['hydration_results']['ksigma_array'], 'kSigmas_fit' : self.gui_dict['hydration_results']['ksigma_fit']}
-
-            savemat(flnm + '.mat', {'odnp' : odnpData, 'ksig' : odnpResults}, oned_as='column')
-            
-            e = []
-            e.append(1)
-            epow = []
-            epow.append(0)
-            ksig = []
-            ksig.append(0)
-            ksig_fit = []
-            ksig_fit.append(0)
-            for k in range(0,len(self.gui_dict['dnpLab_data']['Epowers'])):
-                e.append(self.gui_dict['dnpLab_data']['Ep'][k])
-                epow.append(self.gui_dict['dnpLab_data']['Epowers'][k])
-                ksig.append(self.gui_dict['hydration_results']['ksigma_array'][k])
-                ksig_fit.append(self.gui_dict['hydration_results']['ksigma_fit'][k])
-            
-            dfE = np.vstack((epow,e,ksig,ksig_fit)).T
-            np.savetxt(flnm + ' E ksig.csv', dfE, fmt='%10.10f', delimiter = ',', header = 'Epowers,Ep,ksigma,ksigma fit', comments = '')
-            
-            t = []
-            t.append(self.gui_dict['dnpLab_data']['T10'])
-            terr = []
-            terr.append(self.gui_dict['dnpLab_data']['T10_error'])
-            tpow = []
-            tpow.append(0)
-            for k in range(0,len(self.gui_dict['dnpLab_data']['T1powers'])):
-                t.append(self.gui_dict['dnpLab_data']['T1p'][k])
-                terr.append(self.gui_dict['dnpLab_data']['T1p_error'][k])
-                tpow.append(self.gui_dict['dnpLab_data']['T1powers'][k])
+            if self.gui_dict['workup_function']['fit'] or self.gui_dict['gui_function']['isWorkup']:
+                self.addHyd_workspace['hydration_results'].update({'T1p_error' : self.gui_dict['workup_data']['T1p_error'], 'T10_error' : self.gui_dict['workup_data']['T10_error']})
+            else:
+                self.addHyd_workspace['hydration_results'].update({'T1p_error' : self.gui_dict['dnpLab_data']['T1p_error'], 'T10_error' : self.gui_dict['dnpLab_data']['T10_error']})
                 
-            dfT1 = np.vstack((tpow,t,terr)).T
-            np.savetxt(flnm + ' T1s.csv', dfT1, fmt='%10.10f', delimiter = ',', header = 'T1powers,T1p,T1p error', comments = '')
-        
+            odnpData = {'Epowers' : self.addHyd_workspace['hydration_inputs']['E_power'], 'Ep' : self.addHyd_workspace['hydration_inputs']['E'], 'T1powers' : self.addHyd_workspace['hydration_inputs']['T1_power'], 'T1p' : self.addHyd_workspace['hydration_inputs']['T1'], 'T1p_error' : self.addHyd_workspace['hydration_results']['T1p_error'], 'T10' : self.addHyd_workspace['hydration_inputs']['T10'], 'T10_error' : self.addHyd_workspace['hydration_results']['T10_error'], 'T100' : self.addHyd_workspace['hydration_inputs']['T100']}
+            
+            odnpResults = {'kSigmas' : self.addHyd_workspace['hydration_results']['ksigma_array'], 'kSigmas_fit' : self.addHyd_workspace['hydration_results']['ksigma_fit']}
+            
+            spltpthnm = pthnm.split(os.sep)
+            flnm = spltpthnm[len(spltpthnm)-1]
+            svpthnm = pthnm + ' hydrationGUI Results'
+            os.mkdir(svpthnm)
+           
+            odnp.dnpImport.h5.saveh5(self.addHyd_workspace, svpthnm + os.sep + flnm + ' hydration_parameters.h5')
+            
+            savemat(svpthnm + os.sep + flnm + ' xODNP.mat', {'odnp' : odnpData, 'ksig' : odnpResults}, oned_as='column')
+            
+            dfE = np.vstack((self.addHyd_workspace['hydration_inputs']['E_power'],self.addHyd_workspace['hydration_inputs']['E'],self.addHyd_workspace['hydration_results']['ksigma_array'],self.addHyd_workspace['hydration_results']['ksigma_fit'])).T
+            np.savetxt(svpthnm + os.sep + flnm + ' E_ksig.csv', dfE, fmt='%10.10f', delimiter = ',', header = 'E powers,E(p),ksigma(p),ksigma(p) fit', comments = '')
+            
+            dfT1 = np.vstack((self.addHyd_workspace['hydration_inputs']['T1_power'],self.addHyd_workspace['hydration_inputs']['T1'],self.addHyd_workspace['hydration_results']['T1p_error'][0:len(self.addHyd_workspace['hydration_inputs']['T1_power'])])).T
+            np.savetxt(svpthnm + os.sep + flnm + ' T1s.csv', dfT1, fmt='%10.10f', delimiter = ',', header = 'T1 powers,T1(p),T1(p) error', comments = '')
+            
 
     def Integration_Center_Slider(self, cvalue):
         """Slider to change the center of the spectrum integration window"""
@@ -1807,30 +1842,35 @@ class hydrationGUI(QMainWindow):
 
         if self.gui_dict['data_plot']['plotksig']:
             
-            self.dataplt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.gui_dict['hydration_results']['ksigma_array'],color='#46812B',marker='o',linestyle='none',label= self.ksiglabel + r' $k_\sigma$[p]')
-            self.dataplt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.plothydresults['ksigma_fit'],'#F37021',label=r'hydration fit')
-            
-            indx_h = max(self.plothydresults['ksigma_array'])*.8
-            self.dataplt.axes.set_ylim(0, max(self.plothydresults['ksigma_array'])*1.1)
-            
-            if self.gui_dict['workup_function']['show']:
-                self.dataplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_hydration_results']['ksigma_array'],color='#004D9F',marker='o',linestyle='none',label= r'workup $k_\sigma$[p]')
-                self.dataplt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.gui_dict['workup_hydration_results']['ksigma_fit'],color='#004D9F',linestyle=':',label = 'workup fit')
+            indx_h = max(self.addHyd_workspace['hydration_results']['ksigma_array'])*.8
+            self.dataplt.axes.set_ylim(0, max(self.addHyd_workspace['hydration_results']['ksigma_array'])*1.1)
 
+            indexes = [.11, .21, .31, .41, .51, .61]
+            if self.gui_dict['gui_function']['addWorkup'] and self.gui_dict['workup_function']['show']:
+                self.dataplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_hydration_results']['ksigma_array'],color='#004D9F',marker='o',linestyle='none',label= r'Workup $k_\sigma$[p]')
+
+                self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.645, indx_h-(.21*indx_h), r'Workup $k_\sigma = $' + str(round(self.gui_dict['workup_data']['kSigma']/float(self.slcEdit.text())/self.wrkup_smax,2)), fontsize=12)
                 indexes = [0, .11, .31, .41, .51, .61]
-                self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.645, indx_h-(.21*indx_h), r'workup $k_\sigma = $' + str(round(self.gui_dict['workup_data']['kSigma']/float(self.slcEdit.text())/self.wrkup_smax,2)), fontsize=12)
-            else:
-                indexes = [.11, .21, .31, .41, .51, .61]
                 
-            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[0]*indx_h), r'$k_\rho = $' + str(round(self.plothydresults['krho'],2)), fontsize=12)
-            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[1]*indx_h), r'$k_\sigma = $' + str(round(self.plothydresults['ksigma'],2)), fontsize=12)
-            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[2]*indx_h), r'$k_{low} = $' + str(round(self.plothydresults['klow'],2)), fontsize=12)
-            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[3]*indx_h), r'$\xi = $' + str(round(self.plothydresults['coupling_factor'],4)), fontsize=12)
-            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[4]*indx_h), r'$t_{corr} = $' + str(round(self.plothydresults['tcorr'],2)), fontsize=12)
-            d_local = round(self.plothydresults['Dlocal']*1e10,2)
-            self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers'])*.75,indx_h-(indexes[5]*indx_h), r'$D_{local} = $' + str(d_local) + r'$e^{-10}$', fontsize=12)
-            self.dataplt.axes.set_yticks([0 , max(self.plothydresults['ksigma_array'])])
-            self.dataplt.axes.set_yticklabels(['0' , str(round(max(self.plothydresults['ksigma_array']),1))])
+            if self.gui_dict['gui_function']['isWorkup']:
+                self.dataplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_hydration_results']['ksigma_array'],color='#004D9F',marker='o',linestyle='none',label= r'Workup $k_\sigma$[p]')
+                self.dataplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_hydration_results']['ksigma_fit'],color='#F37021',label=r'dnpHydration Fit')
+            else:
+                self.dataplt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.gui_dict['hydration_results']['ksigma_array'],color='#46812B',marker='o',linestyle='none',label= r'dnpLab $k_\sigma$[p]')
+                if self.gui_dict['workup_function']['fit']:
+                    self.dataplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_hydration_results']['ksigma_fit'],color='#F37021',label = 'Workup Fit')
+                else:
+                    self.dataplt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.gui_dict['hydration_results']['ksigma_fit'],color='#F37021',label = 'dnpLab Fit')
+
+            self.dataplt.axes.text(max(self.addHyd_workspace['hydration_inputs']['E_power'])*.75,indx_h-(indexes[0]*indx_h), r'$k_\rho = $' + str(round(self.addHyd_workspace['hydration_results']['krho'],2)), fontsize=12)
+            self.dataplt.axes.text(max(self.addHyd_workspace['hydration_inputs']['E_power'])*.75,indx_h-(indexes[1]*indx_h), r'$k_\sigma = $' + str(round(self.addHyd_workspace['hydration_results']['ksigma'],2)), fontsize=12)
+            self.dataplt.axes.text(max(self.addHyd_workspace['hydration_inputs']['E_power'])*.75,indx_h-(indexes[2]*indx_h), r'$k_{low} = $' + str(round(self.addHyd_workspace['hydration_results']['klow'],2)), fontsize=12)
+            self.dataplt.axes.text(max(self.addHyd_workspace['hydration_inputs']['E_power'])*.75,indx_h-(indexes[3]*indx_h), r'$\xi = $' + str(round(self.addHyd_workspace['hydration_results']['coupling_factor'],4)), fontsize=12)
+            self.dataplt.axes.text(max(self.addHyd_workspace['hydration_inputs']['E_power'])*.75,indx_h-(indexes[4]*indx_h), r'$t_{corr} = $' + str(round(self.addHyd_workspace['hydration_results']['tcorr'],2)), fontsize=12)
+            d_local = round(self.addHyd_workspace['hydration_results']['Dlocal']*1e10,2)
+            self.dataplt.axes.text(max(self.addHyd_workspace['hydration_inputs']['E_power'])*.75,indx_h-(indexes[5]*indx_h), r'$D_{local} = $' + str(d_local) + r'$e^{-10}$', fontsize=12)
+            self.dataplt.axes.set_yticks([0 , max(self.addHyd_workspace['hydration_results']['ksigma_array'])])
+            self.dataplt.axes.set_yticklabels(['0' , str(round(max(self.addHyd_workspace['hydration_results']['ksigma_array']),1))])
             self.dataplt.axes.legend()
         else:
             self.dataplt.axes.plot(self.gui_dict['data_plot']['xdata'],self.gui_dict['data_plot']['ydata'])
@@ -1846,16 +1886,24 @@ class hydrationGUI(QMainWindow):
 
         self.enhplt.axes.cla()
         if self.gui_dict['enhancement_plot']['plotT1fit']:
-            self.enhplt.axes.plot(self.gui_dict['t1_plot']['tau'],self.gui_dict['t1_plot']['t1Amps'],color='#46812B',marker='o',linestyle='none')
-            new_xax = np.r_[np.min(self.gui_dict['t1_plot']['tau']):np.max(self.gui_dict['t1_plot']['tau']):100j]
-            self.enhplt.axes.plot(new_xax,self.gui_dict['t1_plot']['t1Fit'],'#F37021')
-            self.enhplt.axes.text(max(self.gui_dict['t1_plot']['tau'])*.65, max(self.gui_dict['t1_plot']['t1Amps'])*.3, 'T1 = ' + str(round(self.gui_dict['t1_plot']['t1Val'], 4)), fontsize=10)
+            self.enhplt.axes.plot(self.gui_dict['t1_fit']['tau'],self.gui_dict['t1_fit']['t1Amps'],color='#46812B',marker='o',linestyle='none')
+            self.enhplt.axes.plot(self.gui_dict['t1_fit']['xaxis'],self.gui_dict['t1_fit']['t1Fit'],'#F37021')
+            self.enhplt.axes.text(max(self.gui_dict['t1_fit']['tau'])*.65, max(self.gui_dict['t1_fit']['t1Amps'])*.3, 'T1 = ' + str(round(self.gui_dict['t1_fit']['t1Val'], 4)), fontsize=10)
         else:
             if self.gui_dict['enhancement_plot']['plotEpfit']:
-                self.enhplt.axes.plot(self.gui_dict['enhancement_plot']['xdata'],self.gui_dict['enhancement_plot']['ydata'],color='#46812B',marker='o',linestyle='none',label=self.ksiglabel)
-                self.enhplt.axes.plot(self.gui_dict['enhancement_plot']['xdata'],self.plothydresults['uncorrected_Ep'],'#F37021',label='Hydration Fit')
-                if self.gui_dict['workup_function']['show']:
-                    self.enhplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_data']['Ep'],color='#004D9F',marker='o',linestyle='none',label='workup')
+                if self.gui_dict['gui_function']['addWorkup'] and self.gui_dict['workup_function']['show']:
+                    self.enhplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_data']['Ep'],color='#004D9F',marker='o',linestyle='none',label='Workup')
+
+                if self.gui_dict['gui_function']['isWorkup']:
+                    self.enhplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_data']['Ep'],color='#004D9F',marker='o',linestyle='none',label='Workup')
+                    self.enhplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_hydration_results']['uncorrected_Ep'],color='#F37021',label='dnpHydration Fit')
+                else:
+                    self.enhplt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.gui_dict['dnpLab_data']['Ep'],color='#46812B',marker='o',linestyle='none',label='dnpLab')
+                    if self.gui_dict['workup_function']['fit']:
+                        self.enhplt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_hydration_results']['uncorrected_Ep'],color='#F37021',label='Workup Fit')
+                    else:
+                        self.enhplt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.gui_dict['hydration_results']['uncorrected_Ep'],color='#F37021',label='dnpLab Fit')
+                      
                 self.enhplt.axes.legend()
             else:
                 self.enhplt.axes.plot(self.gui_dict['enhancement_plot']['xdata'],self.gui_dict['enhancement_plot']['ydata'],color='#46812B',marker='o',linestyle='none')
@@ -1870,10 +1918,19 @@ class hydrationGUI(QMainWindow):
 
         self.t1plt.axes.cla()
         if self.gui_dict['t1_plot']['plotT1interp']:
-            self.t1plt.axes.plot(self.gui_dict['t1_plot']['xdata'],self.gui_dict['t1_plot']['ydata'],color='#46812B',marker='o',linestyle='none',label=self.ksiglabel)
-            self.t1plt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.plothydresults['interpolated_T1'],'#F37021',label='Interpolation')
-            if self.gui_dict['workup_function']['show']:
-                self.t1plt.axes.plot(self.gui_dict['workup_data']['T1powers'],self.gui_dict['workup_data']['T1p'],color='#004D9F',marker='o',linestyle='none',label='workup')
+            if self.gui_dict['gui_function']['addWorkup'] and self.gui_dict['workup_function']['show']:
+                self.t1plt.axes.plot(self.gui_dict['workup_data']['T1powers'],self.gui_dict['workup_data']['T1p'],color='#004D9F',marker='o',linestyle='none',label='Workup')
+                
+            if self.gui_dict['gui_function']['isWorkup']:
+                self.t1plt.axes.plot(self.gui_dict['workup_data']['T1powers'],self.gui_dict['workup_data']['T1p'],color='#004D9F',marker='o',linestyle='none',label='Workup')
+                self.t1plt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_hydration_results']['interpolated_T1'],'#F37021',label='Interpolation')
+            else:
+                self.t1plt.axes.plot(self.gui_dict['dnpLab_data']['T1powers'],self.gui_dict['dnpLab_data']['T1p'],color='#46812B',marker='o',linestyle='none',label='dnpLab')
+                if self.gui_dict['workup_function']['fit']:
+                    self.t1plt.axes.plot(self.gui_dict['workup_data']['Epowers'],self.gui_dict['workup_hydration_results']['interpolated_T1'],'#F37021',label='Interpolation')
+                else:
+                    self.t1plt.axes.plot(self.gui_dict['dnpLab_data']['Epowers'],self.gui_dict['hydration_results']['interpolated_T1'],'#F37021',label='Interpolation')
+            
             self.t1plt.axes.legend()
         else:
             self.t1plt.axes.plot(self.gui_dict['t1_plot']['xdata'],self.gui_dict['t1_plot']['ydata'],color='#46812B',marker='o',linestyle='none')
