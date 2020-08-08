@@ -95,73 +95,72 @@ class hydrationGUI(QMainWindow):
         self.pathLabel.resize(700,20)
         self.pathLabel.setText('Data folder path')
         
-        # int center slider label
-        self.intcenterLabel = QLabel(self)
-        self.intcenterLabel.setStyleSheet('font : bold 14px') #; color : rgb(255,184,20)') ; background-color : rgb(0, 77, 159)')
-        self.intcenterLabel.move(123, 520)
-        self.intcenterLabel.resize(490,30)
-        self.intcenterLabel.setText(' Window center:')
-        # int center slider
-        self.intcenterSlider = QSlider(Qt.Horizontal, self)
-        #self.intcenterSlider.setStyleSheet('background-color : rgb(0, 77, 159)')
-        self.intcenterSlider.setGeometry(250, 525, 360, 20)
-        
-        # int window slider label
-        self.intwindowLabel = QLabel(self)
-        self.intwindowLabel.setStyleSheet('font : bold 14px') #; color : rgb(255,184,20)') ; background-color : rgb(0, 77, 159)')
-        self.intwindowLabel.move(123, 555)
-        self.intwindowLabel.resize(490,30)
-        self.intwindowLabel.setText('  Window width:')
-        # int window slider
-        self.intwindowSlider = QSlider(Qt.Horizontal, self)
-        #self.intwindowSlider.setStyleSheet('background-color : rgb(0, 77, 159)')
-        self.intwindowSlider.setGeometry(250, 560, 360, 20)
-        
         # Phase slider label
         self.phaseLabel = QLabel(self)
         self.phaseLabel.setStyleSheet('font : bold 14px') #; color : rgb(255,184,20)') ; background-color : rgb(0, 77, 159)')
-        self.phaseLabel.move(123, 590)
+        self.phaseLabel.move(10, 520) #123, 590
         self.phaseLabel.resize(490,30)
         self.phaseLabel.setText('   Phase Adjust:')
         # Phase slider
         self.phaseSlider = QSlider(Qt.Horizontal, self)
         #self.phaseSlider.setStyleSheet('background-color : rgb(0, 77, 159)')
-        self.phaseSlider.setGeometry(250, 595, 360, 20)
-        # autophase checkbox
-        self.optimizeCheckbox = QCheckBox(self)
-        self.optimizeCheckbox.setStyleSheet('font : bold 14px')
-        self.optimizeCheckbox.move(612,595)
-        self.optimizeCheckbox.resize(100,20)
-        self.optimizeCheckbox.setText('Optimize')
-        self.optimizeCheckbox.setChecked(False)
+        self.phaseSlider.setGeometry(120, 526, 365, 20)
         
-        # show workup checkbox
-        self.show_wrkupCheckbox = QCheckBox(self)
-        self.show_wrkupCheckbox.setStyleSheet('font : bold 14px')
-        self.show_wrkupCheckbox.move(627,565)
-        self.show_wrkupCheckbox.resize(130,20)
-        self.show_wrkupCheckbox.setText('Show workup')
-        # fit workup checkbox
-        self.fit_wrkupCheckbox = QCheckBox(self)
-        self.fit_wrkupCheckbox.setStyleSheet('font : bold 14px')
-        self.fit_wrkupCheckbox.move(627,585)
-        self.fit_wrkupCheckbox.resize(130,20)
-        self.fit_wrkupCheckbox.setText('Fit workup')
+        # int center slider label
+        self.intcenterLabel = QLabel(self)
+        self.intcenterLabel.setStyleSheet('font : bold 14px') #; color : rgb(255,184,20)') ; background-color : rgb(0, 77, 159)')
+        self.intcenterLabel.move(5, 551)
+        self.intcenterLabel.resize(490,30)
+        self.intcenterLabel.setText(' Window center:')
+        # int center slider
+        self.intcenterSlider = QSlider(Qt.Horizontal, self)
+        #self.intcenterSlider.setStyleSheet('background-color : rgb(0, 77, 159)')
+        self.intcenterSlider.setGeometry(120, 557, 365, 20)
         
+        # int window slider label
+        self.intwindowLabel = QLabel(self)
+        self.intwindowLabel.setStyleSheet('font : bold 14px') #; color : rgb(255,184,20)') ; background-color : rgb(0, 77, 159)')
+        self.intwindowLabel.move(6, 582)
+        self.intwindowLabel.resize(490,30)
+        self.intwindowLabel.setText('  Window width:')
+        # int window slider
+        self.intwindowSlider = QSlider(Qt.Horizontal, self)
+        #self.intwindowSlider.setStyleSheet('background-color : rgb(0, 77, 159)')
+        self.intwindowSlider.setGeometry(120, 588, 365, 20)
+        
+        # optimize phase checkbox
+        self.optphsCheckbox = QCheckBox(self)
+        self.optphsCheckbox.setStyleSheet('font : bold 14px')
+        self.optphsCheckbox.move(490,526)
+        self.optphsCheckbox.resize(100,20)
+        self.optphsCheckbox.setText('Optimize')
+        # optimize center checkbox
+        self.optcentCheckbox = QCheckBox(self)
+        self.optcentCheckbox.setStyleSheet('font : bold 14px')
+        self.optcentCheckbox.move(490,557)
+        self.optcentCheckbox.resize(100,20)
+        self.optcentCheckbox.setText('Optimize')
+        # opt window button
+        self.optwidthButton = QPushButton('Optimize Width', self)
+        self.optwidthButton.setStyleSheet('font : bold ; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
+        self.optwidthButton.move(490,588)
+        self.optwidthButton.resize(120,20)
+        self.optwidthButton.clicked.connect(self.Han_Lab_Button)
+
         # autophase checkbox
         self.onlyT1pCheckbox = QCheckBox(self)
         self.onlyT1pCheckbox.setStyleSheet('font : bold 14px')
-        self.onlyT1pCheckbox.move(10,565)
+        self.onlyT1pCheckbox.move(727,575)
         self.onlyT1pCheckbox.resize(100,20)
         self.onlyT1pCheckbox.setText('Only T1(p)')
         self.onlyT1pCheckbox.setChecked(False)
         # autophase checkbox
         self.onlyT10Checkbox = QCheckBox(self)
         self.onlyT10Checkbox.setStyleSheet('font : bold 14px')
-        self.onlyT10Checkbox.move(10,585)
+        self.onlyT10Checkbox.move(727,595)
         self.onlyT10Checkbox.resize(100,20)
         self.onlyT10Checkbox.setText('Only T1(0)')
-        self.onlyT10Checkbox.setChecked(False)
+        
         
         # Create a next button
         self.nextButton = QPushButton('Next Plot', self)
@@ -178,45 +177,21 @@ class hydrationGUI(QMainWindow):
         # Create a back button
         self.backButton = QPushButton('Back', self)
         self.backButton.setStyleSheet('font : bold 14px; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
-        self.backButton.move(5,525)
+        self.backButton.move(625,575)
         self.backButton.resize(100,40)
         
         # dnpLab error
         self.dnpLab_errorLabel = QLabel(self)
         self.dnpLab_errorLabel.setStyleSheet('font : bold 14px')
-        self.dnpLab_errorLabel.move(730,525)
+        self.dnpLab_errorLabel.move(615,545)
         self.dnpLab_errorLabel.resize(200,20)
-        self.dnpLab_errorLabel.setText('dnpLab data Error')
+        self.dnpLab_errorLabel.setText('dnpLab fit Error')
         # workup error
         self.workup_errorLabel = QLabel(self)
         self.workup_errorLabel.setStyleSheet('font : bold 14px')
-        self.workup_errorLabel.move(730,545)
+        self.workup_errorLabel.move(615,525)
         self.workup_errorLabel.resize(200,20)
-        self.workup_errorLabel.setText('Workup data Error')
-        
-        # T1(0) label
-        self.t10Label = QLabel(self)
-        self.t10Label.setStyleSheet('font : bold 14px')
-        self.t10Label.move(345,525)
-        self.t10Label.resize(80,20)
-        self.t10Label.setText('T1(0) (s):')
-        # Create a T10(0) text edit
-        self.t10Edit = QLineEdit(self)
-        self.t10Edit.move(410,525)
-        self.t10Edit.resize(65,25)
-        self.t10Edit.setText('2.5')
-        
-        # T1(0) label
-        self.workupt10Label = QLabel(self)
-        self.workupt10Label.setStyleSheet('font : bold 14px')
-        self.workupt10Label.move(345,560)
-        self.workupt10Label.resize(150,20)
-        self.workupt10Label.setText('workup T1(0) (s):')
-        # Create a T10(0) text edit
-        self.workupt10Edit = QLineEdit(self)
-        self.workupt10Edit.move(465,560)
-        self.workupt10Edit.resize(65,25)
-        self.workupt10Edit.setText('2.5')
+        self.workup_errorLabel.setText('Workup fit Error')
 
         # T1 interpolation label
         self.t1fitLabel = QLabel(self)
@@ -242,60 +217,96 @@ class hydrationGUI(QMainWindow):
         self.exclude1T1Checkbox.move(865,500)
         self.exclude1T1Checkbox.resize(150,20)
         self.exclude1T1Checkbox.setText('Exclude first T1(p)')
-        self.exclude1T1Checkbox.setChecked(False)
+        
+        # T1(0) label
+        self.t10Label = QLabel(self)
+        self.t10Label.setStyleSheet('font : bold 14px')
+        self.t10Label.move(73,525)
+        self.t10Label.resize(80,20)
+        self.t10Label.setText('T1(0) (s):')
+        # Create a T10(0) text edit
+        self.t10Edit = QLineEdit(self)
+        self.t10Edit.move(140,525)
+        self.t10Edit.resize(65,25)
+        self.t10Edit.setText('2.5')
+        
+        # T1(0) label
+        self.workupt10Label = QLabel(self)
+        self.workupt10Label.setStyleSheet('font : bold 14px')
+        self.workupt10Label.move(420,525)
+        self.workupt10Label.resize(150,20)
+        self.workupt10Label.setText('workup T1(0) (s):')
+        # Create a T10(0) text edit
+        self.workupt10Edit = QLineEdit(self)
+        self.workupt10Edit.move(545,525)
+        self.workupt10Edit.resize(65,25)
+        self.workupt10Edit.setText('2.5')
+        
+        # show workup checkbox
+        self.show_wrkupCheckbox = QCheckBox(self)
+        self.show_wrkupCheckbox.setStyleSheet('font : bold 14px')
+        self.show_wrkupCheckbox.move(420,550)
+        self.show_wrkupCheckbox.resize(130,20)
+        self.show_wrkupCheckbox.setText('Show workup')
+        # fit workup checkbox
+        self.fit_wrkupCheckbox = QCheckBox(self)
+        self.fit_wrkupCheckbox.setStyleSheet('font : bold 14px')
+        self.fit_wrkupCheckbox.move(420,570)
+        self.fit_wrkupCheckbox.resize(130,20)
+        self.fit_wrkupCheckbox.setText('Fit workup')
         
         # T10(0) label
         self.t100Label = QLabel(self)
         self.t100Label.setStyleSheet('font : bold 14px')
-        self.t100Label.move(183,525)
+        self.t100Label.move(68,560)
         self.t100Label.resize(80,20)
         self.t100Label.setText('T1<sub>0</sub>(0) (s):')
         # Create a T10(0) text edit
         self.t100Edit = QLineEdit(self)
-        self.t100Edit.move(255,525)
+        self.t100Edit.move(140,560)
         self.t100Edit.resize(65,25)
         self.t100Edit.setText('2.5')
         
         # concentration label
         self.slcLabel = QLabel(self)
         self.slcLabel.setStyleSheet('font : bold 14px')
-        self.slcLabel.move(123,560)
+        self.slcLabel.move(43,595)
         self.slcLabel.resize(150,20)
-        self.slcLabel.setText('Concentration (uM):')
+        self.slcLabel.setText('Spin [C] (uM):')
         # Create a concentration text edit
         self.slcEdit = QLineEdit(self)
-        self.slcEdit.move(265,560)
+        self.slcEdit.move(140,595)
         self.slcEdit.resize(65,25)
         self.slcEdit.setText('100')
         
         # magnetic field label
         self.fieldLabel = QLabel(self)
         self.fieldLabel.setStyleSheet('font : bold 14px')
-        self.fieldLabel.move(123,595)
+        self.fieldLabel.move(225,525)
         self.fieldLabel.resize(150,20)
-        self.fieldLabel.setText('Magnetic Field (mT):')
+        self.fieldLabel.setText('Field (mT):')
         # Create a magnetic field text edit
         self.fieldEdit = QLineEdit(self)
-        self.fieldEdit.move(265,595)
+        self.fieldEdit.move(305,525)
         self.fieldEdit.resize(65,25)
         self.fieldEdit.setText('348.5')
 
         # smax label
         self.smaxLabel = QLabel(self)
         self.smaxLabel.setStyleSheet('font : bold 14px')
-        self.smaxLabel.move(345,595)
+        self.smaxLabel.move(225,560)
         self.smaxLabel.resize(100,20)
         self.smaxLabel.setText('s<sub>max</sub> model:')
         # tethered checkbox
         self.tetheredCheckbox = QCheckBox(self)
         self.tetheredCheckbox.setStyleSheet('font : bold 14px')
-        self.tetheredCheckbox.move(425,595)
+        self.tetheredCheckbox.move(305,560)
         self.tetheredCheckbox.resize(100,20)
         self.tetheredCheckbox.setText('Tethered')
         # free checkbox
         self.freeCheckbox = QCheckBox(self)
         self.freeCheckbox.setStyleSheet('font : bold 14px')
-        self.freeCheckbox.move(510,595)
+        self.freeCheckbox.move(305,580)
         self.freeCheckbox.resize(100,20)
         self.freeCheckbox.setText('Free')
         
@@ -313,7 +324,8 @@ class hydrationGUI(QMainWindow):
         
         self.intwindowSlider.setMinimum(5)
         self.intwindowSlider.setMaximum(50)
-        self.gui_dict['processing_spec']['integration_width'] = 20
+        self.gui_dict['processing_spec']['integration_width'] = 40
+        self.gui_dict['processing_spec']['autoint_width'] = self.gui_dict['processing_spec']['integration_width']
         self.intwindowSlider.setValue(self.gui_dict['processing_spec']['integration_width'])
         
         self.gui_dict['processing_spec']['integration_center'] = 0
@@ -347,7 +359,7 @@ class hydrationGUI(QMainWindow):
             self.tetheredCheckbox.setVisible(True)
             self.freeCheckbox.setVisible(True)
             self.matoutButton.setVisible(True)
-            self.nextButton.setText('dnpHydration')
+            self.nextButton.setVisible(False)
             self.autoButton.setVisible(False)
             self.backButton.setText('Restart')
             self.onlyT1pCheckbox.setVisible(True)
@@ -358,7 +370,9 @@ class hydrationGUI(QMainWindow):
             self.intwindowSlider.setVisible(False)
             self.phaseLabel.setVisible(False)
             self.phaseSlider.setVisible(False)
-            self.optimizeCheckbox.setVisible(False)
+            self.optcentCheckbox.setVisible(False)
+            self.optphsCheckbox.setVisible(False)
+            self.optwidthButton.setVisible(False)
             self.backButton.setVisible(True)
 
             if self.gui_dict['gui_function']['isWorkup'] or self.gui_dict['gui_function']['isLab']:
@@ -406,13 +420,14 @@ class hydrationGUI(QMainWindow):
             self.intwindowSlider.setVisible(True)
             self.phaseLabel.setVisible(True)
             self.phaseSlider.setVisible(True)
-            self.optimizeCheckbox.setVisible(True)
+            self.optcentCheckbox.setVisible(True)
+            self.optphsCheckbox.setVisible(True)
+            self.optwidthButton.setVisible(True)
             self.show_wrkupCheckbox.setVisible(False)
             self.fit_wrkupCheckbox.setVisible(False)
             self.backButton.setText('Back')
             self.onlyT1pCheckbox.setVisible(False)
             self.onlyT10Checkbox.setVisible(False)
-            self.nextButton.setText('Next Plot')
             self.autoButton.setVisible(True)
             self.backButton.setVisible(True)
             self.nextButton.setVisible(True)
@@ -427,13 +442,18 @@ class hydrationGUI(QMainWindow):
         self.intcenterSlider.valueChanged[int].connect(self.Integration_Center_Slider)
         self.intwindowSlider.valueChanged[int].connect(self.Integration_Window_Slider)
         self.phaseSlider.valueChanged[int].connect(self.Spectrum_Phase_Slider)
-        self.optimizeCheckbox.clicked.connect(self.Optimize_Checkbox)
-        self.optimizeCheckbox.setChecked(False)
+        self.optcentCheckbox.clicked.connect(self.Optimize_Center_Checkbox)
+        self.optcentCheckbox.setChecked(False)
+        self.optphsCheckbox.clicked.connect(self.Optimize_Phase_Checkbox)
+        self.optphsCheckbox.setChecked(False)
+        self.optwidthButton.clicked.connect(self.Optimize_Int_Width)
         self.nextButton.clicked.connect(self.Next_Button)
         self.autoButton.clicked.connect(self.Auto_Process_Button)
         self.backButton.clicked.connect(self.Back_Button)
         self.onlyT1pCheckbox.clicked.connect(self.Only_T1p_Checkbox)
+        self.onlyT1pCheckbox.setChecked(False)
         self.onlyT10Checkbox.clicked.connect(self.Only_T10_Checkbox)
+        self.onlyT10Checkbox.setChecked(False)
         self.show_wrkupCheckbox.setChecked(True)
         self.show_wrkupCheckbox.clicked.connect(self.Show_Workup_Checkbox)
         self.fit_wrkupCheckbox.setChecked(False)
@@ -446,6 +466,7 @@ class hydrationGUI(QMainWindow):
         self.order2fitCheckbox.clicked.connect(self.SecondOrder_Interpolation_Checkbox)
         self.order2fitCheckbox.setChecked(True)
         self.exclude1T1Checkbox.clicked.connect(self.Exclude_FirstT1_Checkbox)
+        self.exclude1T1Checkbox.setChecked(False)
         self.slcEdit.editingFinished.connect(self.Edit_Hydration_Inputs)
         self.fieldEdit.editingFinished.connect(self.Edit_Hydration_Inputs)
         self.tetheredCheckbox.clicked.connect(self.Smax_Tethered_Checkbox)
@@ -900,7 +921,133 @@ class hydrationGUI(QMainWindow):
                bestindex = np.argmax(success)
                
            self.gui_dict['processing_spec']['originalPhase'] = phases[0,bestindex]
-             
+    
+ 
+    def Optimize_Int_Width(self):
+        
+        print('Optimizing Integration Width...')
+        try:
+        
+            self.workupPhaseOpt()
+            self.optphsCheckbox.setChecked(True)
+            self.optCenter()
+            self.optcentCheckbox.setChecked(True)
+            
+            spin_C = float(self.slcEdit.text())
+            field = float(self.fieldEdit.text())
+            T100 = float(self.t100Edit.text())
+            if self.tetheredCheckbox.isChecked():
+                smax_model = 'tethered'
+            else:
+                smax_model = 'free'
+            if self.linearfitCheckbox.isChecked():
+                t1_interp_method = 'linear'
+            else:
+                t1_interp_method = 'second_order'
+
+            ksig_stdd = []
+            opt_widths = [15,17,20]
+            
+            """
+            fldrs =  list(self.gui_dict['folder_structure']['enh'][0:5]) + list(self.gui_dict['folder_structure']['enh'][len(self.gui_dict['folder_structure']['enh'])-4:len(self.gui_dict['folder_structure']['enh'])-1]) + list(self.gui_dict['folder_structure']['T1'])
+            
+            fldrs.insert(0, self.gui_dict['folder_structure']['p0'])
+            fldrs.insert(len(fldrs), self.gui_dict['folder_structure']['T10'])
+            """
+            for indx in opt_widths:
+                print('Trying width = ' + str(indx) + '...')
+                E = []
+                T1p = []
+                for k in self.gui_dict['folder_structure']['all']:
+                    data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'],k)
+                    self.processing_workspace = odnp.create_workspace('raw',data)
+                    self.processing_workspace.copy('raw','proc')
+                    
+                    self.processing_workspace = odnp.dnpNMR.remove_offset(self.processing_workspace,{})
+                    self.processing_workspace = odnp.dnpNMR.window(self.processing_workspace,{})
+                    self.processing_workspace = odnp.dnpNMR.fourier_transform(self.processing_workspace,{})
+                    self.workupPhaseOpt()
+                    self.processing_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['originalPhase'])
+                    self.optCenter()
+
+                    iterativeopt_workspace = copy.deepcopy(self.processing_workspace)
+                    iterativeopt_workspace = odnp.dnpNMR.integrate(iterativeopt_workspace, {'integrate_center' : self.gui_dict['processing_spec']['integration_center'] , 'integrate_width' : indx})
+                    iterativeopt_workspace['proc'].values = np.real(iterativeopt_workspace['proc'].values)
+                    if len(iterativeopt_workspace['proc'].values) > 1:
+                        tau = np.reshape(iterativeopt_workspace['proc'].coords,-1)
+                        Mdata = np.real(iterativeopt_workspace['proc'].values)
+                        popt, pcov = optimize.curve_fit(self.t1Func, tau, Mdata, p0=[1., Mdata[-1], Mdata[-1]], method='lm')
+                        stdd = np.sqrt(np.diag(pcov))
+                        
+                    if k == self.gui_dict['folder_structure']['p0']:
+                        p0 = np.real(iterativeopt_workspace['proc'].values[0])
+                    elif k in self.gui_dict['folder_structure']['enh']:
+                        E.append(np.real(iterativeopt_workspace['proc'].values[0])/p0)
+                    if k in self.gui_dict['folder_structure']['T1']:
+                        T1p.append(popt[0])
+                    elif k == self.gui_dict['folder_structure']['T10']:
+                        T10 = popt[0]
+                
+                if self.exclude1T1Checkbox.isChecked():
+                    T1p = T1p[1:len(T1p)]
+                    T1powers = self.gui_dict['dnpLab_data']['T1powers'][1:len(T1p)]
+                else:
+                    T1powers = self.gui_dict['dnpLab_data']['T1powers']
+                    
+                hydration = {'E' : np.array(E), 'E_power' : np.array(self.gui_dict['dnpLab_data']['Epowers']), 'T1' : np.array(T1p), 'T1_power' : np.array(T1powers)}
+                hydration.update({
+                    'T10': T10,
+                    'T100': T100,
+                    'spin_C': spin_C,
+                    'field': field,
+                    'smax_model': smax_model,
+                    't1_interp_method': t1_interp_method
+                })
+                hyd = odnp.create_workspace()
+                hyd.add('hydration_inputs', hydration)
+                
+                try:
+                    res = odnp.dnpHydration.hydration(hyd)
+                    ksig_stdd.append(res['ksigma_error'])
+                except:
+                    ksig_stdd.append(1000)
+                    pass
+
+            print('KSIG_ERROR = ' + str(ksig_stdd))
+            min_ksig_stdd = np.argmin(ksig_stdd)
+            print('MIN ksig = ' + str(min_ksig_stdd))
+            self.gui_dict['processing_spec']['integration_width'] = opt_widths[min_ksig_stdd]
+            print('Finished optimizing integration width, best width = ' + str(self.gui_dict['processing_spec']['integration_width']))
+            
+        except:
+            print('ERROR in optimizing width, resetting.')
+            pass
+        
+        self.gui_dict['folder_structure']['index'] = 0
+        self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['p0']
+        
+        data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'],self.gui_dict['rawdata_function']['folder'])
+        self.dnpLab_workspace = odnp.create_workspace('raw',data)
+        self.dnpLab_workspace.copy('raw','proc')
+
+        self.processData()
+        
+    def optCenter(self):
+    
+        optcenter_workspace = copy.deepcopy(self.processing_workspace)
+        
+        intgrl_array = []
+        indx = range(-50,51)
+        optcenter_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['originalPhase'])
+        for k in indx:
+            iterativeopt_workspace = copy.deepcopy(optcenter_workspace)
+            iterativeopt_workspace = odnp.dnpNMR.integrate(iterativeopt_workspace, {'integrate_center' : k , 'integrate_width' : 10})
+            iterativeopt_workspace['proc'].values = np.real(iterativeopt_workspace['proc'].values)
+            intgrl_array.append(abs(iterativeopt_workspace['proc'].values[0]))
+        cent = np.argmax(intgrl_array)
+        self.gui_dict['processing_spec']['integration_center'] = indx[cent]
+        
+        
     def Han_Lab_Button(self):
         """Select the base folder of a dataset generated using the 'rb_dnp1' command in topspin at CNSI
         
@@ -1080,31 +1227,17 @@ class hydrationGUI(QMainWindow):
             self.pathLabel.setText('RAW DATA ERROR')
             self.gui_dict['gui_function']['buttons'] = False
             self.gui_dict['gui_function']['sliders'] = False
-        
-    def Next_Button(self):
-        """Use the Next button to step through the data folders"""
-        if self.gui_dict['gui_function']['buttons']:
-        
-            if self.gui_dict['gui_function']['isWorkup']:
-                self.Hydration_Button()
-            else:
-            
-                if self.gui_dict['rawdata_function']['folder'] == -3 or self.gui_dict['folder_structure']['index'] >= len(self.gui_dict['folder_structure']['all']):
-                    self.Hydration_Button()
-                else:
-                
-                    self.nextProcessing()
-        else:
-            pass
+
             
     def t1Func(self, tau, x1, x2, x3):
         return x2 - x3 * np.exp(-1.*tau/x1)
             
-    def nextProcessing(self):
-        
+    def Next_Button(self):
+        """Use the Next button to step through the data folders"""
         nextproc_workspace = copy.deepcopy(self.processing_workspace)
         
         nextproc_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['phase'])
+        
         nextproc_workspace = odnp.dnpNMR.integrate(nextproc_workspace,{'integrate_center' : self.gui_dict['processing_spec']['integration_center'] , 'integrate_width' : self.gui_dict['processing_spec']['integration_width']})
             
         if self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['p0']:
@@ -1266,13 +1399,16 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict['gui_function']['autoProcess'] = True
                 #t = time.time()
                 for k in range(self.gui_dict['folder_structure']['index']+1,len(self.gui_dict['folder_structure']['all'])+1):
-                    self.nextProcessing()
+                    self.Next_Button()
                 #elapsed = time.time() - t
                 #print('AutoProcess Time = ' + str(elapsed))
             except:
                 print('Error in auto processing, resetting to folder # ' + str(self.gui_dict['folder_structure']['p0']))
                 self.gui_dict['folder_structure']['index'] = len(self.gui_dict['folder_structure']['all'])
                 self.Back_Button()
+                
+                self.optphsCheckbox.setChecked(True)
+                self.optcentCheckbox.setChecked(True)
         else:
             pass
         
@@ -1285,10 +1421,13 @@ class hydrationGUI(QMainWindow):
         self.processing_workspace = odnp.dnpNMR.fourier_transform(self.processing_workspace,{})
         phase_dict = copy.deepcopy(self.processing_workspace)
         self.gui_dict['processing_spec']['originalPhase'] = phase_dict['proc'].phase()
-        if self.optimizeCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
-            self.gui_dict['processing_spec']['integration_width'] = 15
+        
+        if self.optcentCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
+            self.optCenter()
+            
+        if self.optphsCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
             self.workupPhaseOpt()
-        self.optCenter()
+
         
         if self.gui_dict['gui_function']['autoProcess']:
             self.gui_dict['processing_spec']['phase'] = self.gui_dict['processing_spec']['originalPhase']
@@ -1309,22 +1448,7 @@ class hydrationGUI(QMainWindow):
             self.gui_dict['gui_function']['sliders'] = True
         
         self.adjustSliders()
-            
-    def optCenter(self):
-    
-        optcenter_workspace = copy.deepcopy(self.processing_workspace)
-        
-        intgrl_array = []
-        indx = range(-50,51)
-        optcenter_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['originalPhase'])
-        for k in indx:
-            iterativeopt_workspace = copy.deepcopy(optcenter_workspace)
-            iterativeopt_workspace = odnp.dnpNMR.integrate(iterativeopt_workspace, {'integrate_center' : k , 'integrate_width' : 10})
-            iterativeopt_workspace['proc'].values = np.real(iterativeopt_workspace['proc'].values)
-            intgrl_array.append(abs(iterativeopt_workspace['proc'].values[0]))
-        cent = np.argmax(intgrl_array)
-        self.gui_dict['processing_spec']['integration_center'] = indx[cent]
-        
+
     def adjustSliders(self):
         
         adjslider_workspace = copy.deepcopy(self.processing_workspace)
@@ -1694,7 +1818,7 @@ class hydrationGUI(QMainWindow):
         """Slider to change the center of the spectrum integration window"""
         if self.gui_dict['gui_function']['sliders']:
             self.gui_dict['processing_spec']['integration_center'] = cvalue
-            self.optimizeCheckbox.setChecked(False)
+            self.optcentCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
@@ -1703,7 +1827,7 @@ class hydrationGUI(QMainWindow):
         """Slider to change the width of the spectrum integration window"""
         if self.gui_dict['gui_function']['sliders']:
             self.gui_dict['processing_spec']['integration_width'] = wvalue
-            self.optimizeCheckbox.setChecked(False)
+            self.optcentCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
@@ -1712,15 +1836,25 @@ class hydrationGUI(QMainWindow):
         """Slider to change the phase correction applied to the spectrum"""
         if self.gui_dict['gui_function']['sliders']:
             self.gui_dict['processing_spec']['phase_factor'] = pvalue/1000
-            self.optimizeCheckbox.setChecked(False)
+            self.optphsCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
     
-    def Optimize_Checkbox(self):
+    def Optimize_Center_Checkbox(self):
+        """Check this to have the GUI automatically choose the best integration center"""
+        if self.gui_dict['gui_function']['sliders']:
+            if self.optcentCheckbox.isChecked():
+                self.processData()
+            else:
+                pass
+        else:
+            pass
+    
+    def Optimize_Phase_Checkbox(self):
         """Check this to have the GUI automatically choose the best phase"""
         if self.gui_dict['gui_function']['sliders']:
-            if self.optimizeCheckbox.isChecked():
+            if self.optphsCheckbox.isChecked():
                 self.gui_dict['processing_spec']['phase_factor'] = 0
                 self.processData()
             else:
