@@ -145,7 +145,6 @@ class hydrationGUI(QMainWindow):
         self.optwidthButton.setStyleSheet('font : bold ; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
         self.optwidthButton.move(490,588)
         self.optwidthButton.resize(120,20)
-        self.optwidthButton.clicked.connect(self.Han_Lab_Button)
 
         # autophase checkbox
         self.onlyT1pCheckbox = QCheckBox(self)
@@ -324,7 +323,7 @@ class hydrationGUI(QMainWindow):
         
         self.intwindowSlider.setMinimum(5)
         self.intwindowSlider.setMaximum(50)
-        self.gui_dict['processing_spec']['integration_width'] = 40
+        self.gui_dict['processing_spec']['integration_width'] = 20
         self.gui_dict['processing_spec']['autoint_width'] = self.gui_dict['processing_spec']['integration_width']
         self.intwindowSlider.setValue(self.gui_dict['processing_spec']['integration_width'])
         
@@ -924,114 +923,114 @@ class hydrationGUI(QMainWindow):
     
  
     def Optimize_Int_Width(self):
-        
-        print('Optimizing Integration Width...')
-        try:
-        
-            self.workupPhaseOpt()
-            self.optphsCheckbox.setChecked(True)
-            self.optCenter()
-            self.optcentCheckbox.setChecked(True)
-            
-            spin_C = float(self.slcEdit.text())
-            field = float(self.fieldEdit.text())
-            T100 = float(self.t100Edit.text())
-            if self.tetheredCheckbox.isChecked():
-                smax_model = 'tethered'
-            else:
-                smax_model = 'free'
-            if self.linearfitCheckbox.isChecked():
-                t1_interp_method = 'linear'
-            else:
-                t1_interp_method = 'second_order'
-
-            ksig_stdd = []
-            opt_widths = [15,17,20]
-            
-            """
-            fldrs =  list(self.gui_dict['folder_structure']['enh'][0:5]) + list(self.gui_dict['folder_structure']['enh'][len(self.gui_dict['folder_structure']['enh'])-4:len(self.gui_dict['folder_structure']['enh'])-1]) + list(self.gui_dict['folder_structure']['T1'])
-            
-            fldrs.insert(0, self.gui_dict['folder_structure']['p0'])
-            fldrs.insert(len(fldrs), self.gui_dict['folder_structure']['T10'])
-            """
-            for indx in opt_widths:
-                print('Trying width = ' + str(indx) + '...')
-                E = []
-                T1p = []
-                for k in self.gui_dict['folder_structure']['all']:
-                    data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'],k)
-                    self.processing_workspace = odnp.create_workspace('raw',data)
-                    self.processing_workspace.copy('raw','proc')
-                    
-                    self.processing_workspace = odnp.dnpNMR.remove_offset(self.processing_workspace,{})
-                    self.processing_workspace = odnp.dnpNMR.window(self.processing_workspace,{})
-                    self.processing_workspace = odnp.dnpNMR.fourier_transform(self.processing_workspace,{})
-                    self.workupPhaseOpt()
-                    self.processing_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['originalPhase'])
-                    self.optCenter()
-
-                    iterativeopt_workspace = copy.deepcopy(self.processing_workspace)
-                    iterativeopt_workspace = odnp.dnpNMR.integrate(iterativeopt_workspace, {'integrate_center' : self.gui_dict['processing_spec']['integration_center'] , 'integrate_width' : indx})
-                    iterativeopt_workspace['proc'].values = np.real(iterativeopt_workspace['proc'].values)
-                    if len(iterativeopt_workspace['proc'].values) > 1:
-                        tau = np.reshape(iterativeopt_workspace['proc'].coords,-1)
-                        Mdata = np.real(iterativeopt_workspace['proc'].values)
-                        popt, pcov = optimize.curve_fit(self.t1Func, tau, Mdata, p0=[1., Mdata[-1], Mdata[-1]], method='lm')
-                        stdd = np.sqrt(np.diag(pcov))
-                        
-                    if k == self.gui_dict['folder_structure']['p0']:
-                        p0 = np.real(iterativeopt_workspace['proc'].values[0])
-                    elif k in self.gui_dict['folder_structure']['enh']:
-                        E.append(np.real(iterativeopt_workspace['proc'].values[0])/p0)
-                    if k in self.gui_dict['folder_structure']['T1']:
-                        T1p.append(popt[0])
-                    elif k == self.gui_dict['folder_structure']['T10']:
-                        T10 = popt[0]
+        """Optimize the integration width by processing with a range of integration widths and comparing the standard deviation in corresponding dnpHydration fits"""
+        if self.gui_dict['gui_function']['buttons']:
+       
+            print('Optimizing Integration Width...')
+            try:
                 
-                if self.exclude1T1Checkbox.isChecked():
-                    T1p = T1p[1:len(T1p)]
-                    T1powers = self.gui_dict['dnpLab_data']['T1powers'][1:len(T1p)]
+                spin_C = float(self.slcEdit.text())
+                field = float(self.fieldEdit.text())
+                T100 = float(self.t100Edit.text())
+                if self.tetheredCheckbox.isChecked():
+                    smax_model = 'tethered'
                 else:
-                    T1powers = self.gui_dict['dnpLab_data']['T1powers']
-                    
-                hydration = {'E' : np.array(E), 'E_power' : np.array(self.gui_dict['dnpLab_data']['Epowers']), 'T1' : np.array(T1p), 'T1_power' : np.array(T1powers)}
-                hydration.update({
-                    'T10': T10,
-                    'T100': T100,
-                    'spin_C': spin_C,
-                    'field': field,
-                    'smax_model': smax_model,
-                    't1_interp_method': t1_interp_method
-                })
-                hyd = odnp.create_workspace()
-                hyd.add('hydration_inputs', hydration)
+                    smax_model = 'free'
+                if self.linearfitCheckbox.isChecked():
+                    t1_interp_method = 'linear'
+                else:
+                    t1_interp_method = 'second_order'
+
+                ksig_stdd = []
+                opt_widths = [13,17,21,25,29]
                 
-                try:
-                    res = odnp.dnpHydration.hydration(hyd)
-                    ksig_stdd.append(res['ksigma_error'])
-                except:
-                    ksig_stdd.append(1000)
-                    pass
+                """
+                fldrs =  list(self.gui_dict['folder_structure']['enh'][0:5]) + list(self.gui_dict['folder_structure']['enh'][len(self.gui_dict['folder_structure']['enh'])-4:len(self.gui_dict['folder_structure']['enh'])-1]) + list(self.gui_dict['folder_structure']['T1'])
+                
+                fldrs.insert(0, self.gui_dict['folder_structure']['p0'])
+                fldrs.insert(len(fldrs), self.gui_dict['folder_structure']['T10'])
+                """
+                for indx in opt_widths:
+                    print('Trying width = ' + str(indx) + '...')
+                    E = []
+                    T1p = []
+                    for k in self.gui_dict['folder_structure']['all']:
+                        data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'],k)
+                        self.processing_workspace = odnp.create_workspace('raw',data)
+                        self.processing_workspace.copy('raw','proc')
+                        
+                        self.processing_workspace = odnp.dnpNMR.remove_offset(self.processing_workspace,{})
+                        self.processing_workspace = odnp.dnpNMR.window(self.processing_workspace,{})
+                        self.processing_workspace = odnp.dnpNMR.fourier_transform(self.processing_workspace,{})
+                        self.workupPhaseOpt()
+                        self.processing_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['originalPhase'])
+                        self.optCenter()
 
-            print('KSIG_ERROR = ' + str(ksig_stdd))
-            min_ksig_stdd = np.argmin(ksig_stdd)
-            print('MIN ksig = ' + str(min_ksig_stdd))
-            self.gui_dict['processing_spec']['integration_width'] = opt_widths[min_ksig_stdd]
-            print('Finished optimizing integration width, best width = ' + str(self.gui_dict['processing_spec']['integration_width']))
+                        iterativeopt_workspace = copy.deepcopy(self.processing_workspace)
+                        iterativeopt_workspace = odnp.dnpNMR.integrate(iterativeopt_workspace, {'integrate_center' : self.gui_dict['processing_spec']['integration_center'] , 'integrate_width' : indx})
+                        iterativeopt_workspace['proc'].values = np.real(iterativeopt_workspace['proc'].values)
+                        if len(iterativeopt_workspace['proc'].values) > 1:
+                            tau = np.reshape(iterativeopt_workspace['proc'].coords,-1)
+                            Mdata = np.real(iterativeopt_workspace['proc'].values)
+                            popt, pcov = optimize.curve_fit(self.t1Func, tau, Mdata, p0=[1., Mdata[-1], Mdata[-1]], method='lm')
+                            stdd = np.sqrt(np.diag(pcov))
+                            
+                        if k == self.gui_dict['folder_structure']['p0']:
+                            p0 = np.real(iterativeopt_workspace['proc'].values[0])
+                        elif k in self.gui_dict['folder_structure']['enh']:
+                            E.append(np.real(iterativeopt_workspace['proc'].values[0])/p0)
+                        if k in self.gui_dict['folder_structure']['T1']:
+                            T1p.append(popt[0])
+                        elif k == self.gui_dict['folder_structure']['T10']:
+                            T10 = popt[0]
+                    
+                    if self.exclude1T1Checkbox.isChecked():
+                        T1p = T1p[1:len(T1p)]
+                        T1powers = self.gui_dict['dnpLab_data']['T1powers'][1:len(T1p)]
+                    else:
+                        T1powers = self.gui_dict['dnpLab_data']['T1powers']
+                        
+                    hydration = {'E' : np.array(E), 'E_power' : np.array(self.gui_dict['dnpLab_data']['Epowers']), 'T1' : np.array(T1p), 'T1_power' : np.array(T1powers)}
+                    hydration.update({
+                        'T10': T10,
+                        'T100': T100,
+                        'spin_C': spin_C,
+                        'field': field,
+                        'smax_model': smax_model,
+                        't1_interp_method': t1_interp_method
+                    })
+                    hyd = odnp.create_workspace()
+                    hyd.add('hydration_inputs', hydration)
+                    
+                    try:
+                        res = odnp.dnpHydration.hydration(hyd)
+                        ksig_stdd.append(res['ksigma_error'])
+                    except:
+                        ksig_stdd.append(1000)
+                        pass
+
+                min_ksig_stdd = np.argmin(ksig_stdd)
+                self.gui_dict['processing_spec']['integration_width'] = opt_widths[min_ksig_stdd]
+                print('Finished optimizing integration width, best width = ' + str(self.gui_dict['processing_spec']['integration_width']))
+                
+                self.optphsCheckbox.setChecked(True)
+                self.optcentCheckbox.setChecked(True)
+                
+            except:
+                print('ERROR in optimizing width, resetting.')
+                pass
             
-        except:
-            print('ERROR in optimizing width, resetting.')
-            pass
-        
-        self.gui_dict['folder_structure']['index'] = 0
-        self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['p0']
-        
-        data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'],self.gui_dict['rawdata_function']['folder'])
-        self.dnpLab_workspace = odnp.create_workspace('raw',data)
-        self.dnpLab_workspace.copy('raw','proc')
+            self.gui_dict['folder_structure']['index'] = 0
+            self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['p0']
+            
+            data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'],self.gui_dict['rawdata_function']['folder'])
+            self.dnpLab_workspace = odnp.create_workspace('raw',data)
+            self.dnpLab_workspace.copy('raw','proc')
 
-        self.processData()
-        
+            self.processData()
+        else:
+            pass
+            
     def optCenter(self):
     
         optcenter_workspace = copy.deepcopy(self.processing_workspace)
@@ -1234,84 +1233,88 @@ class hydrationGUI(QMainWindow):
             
     def Next_Button(self):
         """Use the Next button to step through the data folders"""
-        nextproc_workspace = copy.deepcopy(self.processing_workspace)
+        if self.gui_dict['gui_function']['buttons']:
         
-        nextproc_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['phase'])
-        
-        nextproc_workspace = odnp.dnpNMR.integrate(nextproc_workspace,{'integrate_center' : self.gui_dict['processing_spec']['integration_center'] , 'integrate_width' : self.gui_dict['processing_spec']['integration_width']})
+            nextproc_workspace = copy.deepcopy(self.processing_workspace)
             
-        if self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['p0']:
-            self.gui_dict['dnpLab_data']['p0'] = np.real(nextproc_workspace['proc'].values[0])
-        elif self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['enh']:
-            Ep = np.real(nextproc_workspace['proc'].values[0]) / self.gui_dict['dnpLab_data']['p0']
-            self.Ep.append(np.real(Ep))
-            if self.gui_dict['gui_function']['autoProcess']:
-                pass
-            else:
-                self.gui_dict['enhancement_plot']['xdata'] = self.gui_dict['dnpLab_data']['Epowers'][0:len(self.Ep)]
-                self.gui_dict['enhancement_plot']['ydata'] = self.Ep
-                self.gui_dict['enhancement_plot']['ytick'] = [0,min(self.Ep)]
-                if min(self.Ep) <= -10:
-                    self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(int(min(self.Ep)))]
+            nextproc_workspace['proc'] *= np.exp(-1j*self.gui_dict['processing_spec']['phase'])
+            
+            nextproc_workspace = odnp.dnpNMR.integrate(nextproc_workspace,{'integrate_center' : self.gui_dict['processing_spec']['integration_center'] , 'integrate_width' : self.gui_dict['processing_spec']['integration_width']})
+                
+            if self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['p0']:
+                self.gui_dict['dnpLab_data']['p0'] = np.real(nextproc_workspace['proc'].values[0])
+            elif self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['enh']:
+                Ep = np.real(nextproc_workspace['proc'].values[0]) / self.gui_dict['dnpLab_data']['p0']
+                self.Ep.append(np.real(Ep))
+                if self.gui_dict['gui_function']['autoProcess']:
+                    pass
                 else:
-                    self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(round(min(self.Ep),1))]
-                self.plot_enh()
-                
-        elif self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1'] or self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
-        
-            tau = np.reshape(nextproc_workspace['proc'].coords,-1)
-            Mdata = np.real(nextproc_workspace['proc'].values)
-            popt, pcov = optimize.curve_fit(self.t1Func, tau, Mdata, p0=[1., Mdata[-1], Mdata[-1]], method='lm')
-            stdd = np.sqrt(np.diag(pcov))
-
-            if self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1']:
-                self.T1p.append(popt[0])
-                self.T1p_error.append(stdd[0])
-            elif self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
-                self.gui_dict['dnpLab_data']['T10'] = popt[0]
-                self.gui_dict['dnpLab_data']['T10_error'] = stdd[0]
-                self.t10Edit.setText(str(round(self.gui_dict['dnpLab_data']['T10'],4)))
-
-            if self.gui_dict['gui_function']['autoProcess']:
-                pass
-            else:
-                self.gui_dict['t1_fit']['xaxis'] = np.r_[np.min(self.gui_dict['t1_fit']['tau']):np.max(self.gui_dict['t1_fit']['tau']):100j]
-                self.gui_dict['t1_fit']['t1Fit'] = self.t1Func(self.gui_dict['t1_fit']['xaxis'], popt[0],popt[1],popt[2])
-                self.gui_dict['t1_fit']['t1Val'] = popt[0]
+                    self.gui_dict['enhancement_plot']['xdata'] = self.gui_dict['dnpLab_data']['Epowers'][0:len(self.Ep)]
+                    self.gui_dict['enhancement_plot']['ydata'] = self.Ep
+                    self.gui_dict['enhancement_plot']['ytick'] = [0,min(self.Ep)]
+                    if min(self.Ep) <= -10:
+                        self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(int(min(self.Ep)))]
+                    else:
+                        self.gui_dict['enhancement_plot']['ytickLabel'] = ['0',str(round(min(self.Ep),1))]
+                    self.plot_enh()
+                    
+            elif self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1'] or self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
             
-                self.gui_dict['t1_plot']['xdata'] = self.gui_dict['dnpLab_data']['T1powers'][0:len(self.T1p)]
-                self.gui_dict['t1_plot']['ydata'] = self.T1p
-                self.gui_dict['t1_plot']['ymin'] = min(self.gui_dict['t1_plot']['ydata'])*.9
-                self.gui_dict['t1_plot']['ymax'] = max(self.gui_dict['t1_plot']['ydata'])*1.1
-                self.gui_dict['t1_plot']['ytick'] = [max(self.T1p)]
-                self.gui_dict['t1_plot']['ytickLabel'] = [str(round(max(self.T1p),1))]
+                tau = np.reshape(nextproc_workspace['proc'].coords,-1)
+                Mdata = np.real(nextproc_workspace['proc'].values)
+                popt, pcov = optimize.curve_fit(self.t1Func, tau, Mdata, p0=[1., Mdata[-1], Mdata[-1]], method='lm')
+                stdd = np.sqrt(np.diag(pcov))
+
+                if self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1']:
+                    self.T1p.append(popt[0])
+                    self.T1p_error.append(stdd[0])
+                elif self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
+                    self.gui_dict['dnpLab_data']['T10'] = popt[0]
+                    self.gui_dict['dnpLab_data']['T10_error'] = stdd[0]
+                    self.t10Edit.setText(str(round(self.gui_dict['dnpLab_data']['T10'],4)))
+
+                if self.gui_dict['gui_function']['autoProcess']:
+                    pass
+                else:
+                    self.gui_dict['t1_fit']['xaxis'] = np.r_[np.min(self.gui_dict['t1_fit']['tau']):np.max(self.gui_dict['t1_fit']['tau']):100j]
+                    self.gui_dict['t1_fit']['t1Fit'] = self.t1Func(self.gui_dict['t1_fit']['xaxis'], popt[0],popt[1],popt[2])
+                    self.gui_dict['t1_fit']['t1Val'] = popt[0]
                 
-                self.gui_dict['t1_fit']['tau'] = tau
-                self.gui_dict['t1_fit']['t1Amps'] = Mdata
-                self.plot_t1()
-                self.plot_enh()
-        
-        self.gui_dict['folder_structure']['index'] += 1
-        if self.gui_dict['gui_function']['autoProcess']:
-            print('Finished with Folder #' + str(self.gui_dict['folder_structure']['index']) + ' of ' + str(len(self.gui_dict['folder_structure']['all'])))
-        
-        if self.gui_dict['folder_structure']['index'] >= len(self.gui_dict['folder_structure']['all']):
-            self.finishProcessing()
+                    self.gui_dict['t1_plot']['xdata'] = self.gui_dict['dnpLab_data']['T1powers'][0:len(self.T1p)]
+                    self.gui_dict['t1_plot']['ydata'] = self.T1p
+                    self.gui_dict['t1_plot']['ymin'] = min(self.gui_dict['t1_plot']['ydata'])*.9
+                    self.gui_dict['t1_plot']['ymax'] = max(self.gui_dict['t1_plot']['ydata'])*1.1
+                    self.gui_dict['t1_plot']['ytick'] = [max(self.T1p)]
+                    self.gui_dict['t1_plot']['ytickLabel'] = [str(round(max(self.T1p),1))]
+                    
+                    self.gui_dict['t1_fit']['tau'] = tau
+                    self.gui_dict['t1_fit']['t1Amps'] = Mdata
+                    self.plot_t1()
+                    self.plot_enh()
+            
+            self.gui_dict['folder_structure']['index'] += 1
+            if self.gui_dict['gui_function']['autoProcess']:
+                print('Finished with Folder #' + str(self.gui_dict['folder_structure']['index']) + ' of ' + str(len(self.gui_dict['folder_structure']['all'])))
+            
+            if self.gui_dict['folder_structure']['index'] >= len(self.gui_dict['folder_structure']['all']):
+                self.finishProcessing()
+            else:
+                self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['all'][self.gui_dict['folder_structure']['index']]
+                
+                if self.gui_dict['gui_function']['autoProcess']:
+                    pass
+                else:
+                    if self.gui_dict['folder_structure']['index'] == len(self.gui_dict['folder_structure']['all'])-1:
+                        self.nextButton.setText('Finish')
+                    self.plot_setter()
+                    
+                data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'],self.gui_dict['rawdata_function']['folder'])
+                self.dnpLab_workspace = odnp.create_workspace('raw',data)
+                self.dnpLab_workspace.copy('raw','proc')
+                
+                self.processData()
         else:
-            self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['all'][self.gui_dict['folder_structure']['index']]
-            
-            if self.gui_dict['gui_function']['autoProcess']:
-                pass
-            else:
-                if self.gui_dict['folder_structure']['index'] == len(self.gui_dict['folder_structure']['all'])-1:
-                    self.nextButton.setText('Finish')
-                self.plot_setter()
-                
-            data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'],self.gui_dict['rawdata_function']['folder'])
-            self.dnpLab_workspace = odnp.create_workspace('raw',data)
-            self.dnpLab_workspace.copy('raw','proc')
-            
-            self.processData()
+            pass
             
     def Back_Button(self):
         """Use the Back button to go backwards through the data folders"""
