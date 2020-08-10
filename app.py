@@ -15,6 +15,7 @@ print = pprint.pprint
 TEMPDIR = None
 CNSI_EMX_LINK = 'https://www.mrl.ucsb.edu/spectroscopy-facility/instruments/7-bruker-emxplus-epr-spectrometer'
 DEMO_DATA_LINK = 'https://github.com/ylin00/odnplab/raw/master/20190821_TW_4OH-TEMPO_500uM_.zip'
+ISSUE_COMPLAINT_LINK = 'https://github.com/ylin00/odnplab/issues'
 
 
 def get_table_download_link(temp_file_path, filename='results'):
@@ -89,7 +90,20 @@ def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
         # upzip to tmpdir
         with zipfile.ZipFile(uploaded_file, "r") as zip_ref:
             zip_ref.extractall(tmpdir)
-            expname = zip_ref.namelist()[0]
+            # Select the first folder ended with '/1/', no matter how deep
+            expname = sorted([x for x in zip_ref.namelist() if x[-3:] == '/1/' and 'pdata' not in x])
+            if expname is None or len(expname) == 0:
+                st.markdown(f"""
+                ## Error
+                I could not find a folder with experiment number 1.
+                
+                Could you double check if you have `my_odnp_exp/1/`?
+                
+                If problems are still there, please report the issue below.
+                 """)
+                return {}, ''
+            else:
+                expname = expname[0][0:-2]
 
         # Process CNSI ODNP and return a str of results
         path = os.path.join(tmpdir, expname)  # path to CNSI data folder
@@ -139,13 +153,7 @@ my_odnp_exp/
 - For Mac you can use 'compress'.
 
 5. Upload the zip file and click run.
-6. For demo, click [here]({DEMO_DATA_LINK}) to download a zip file and upload. The demo data came from (500 $\mu$M 4OH-TEMPO in water, {'$k_{sigma} = 95 s^{-1} M^{-1}$'}).
-
 """)
-
-# 6. Download a demo (500 $\mu$M 4OH-TEMPO in water, $k_{sigma} ~= 95 s^{-1} M^{-1}$)
-# st.write(f'<a href="" download="ucsb_cnsi_odnp_demo.zip">Download Results</a>')
-# _ = st.text_input('Your Lucky Number', value='42')
 
 st.markdown("## Upload a Zip file")
 uploaded_file = st.file_uploader("Here ->", type="zip")
@@ -168,3 +176,11 @@ if uploaded_file is not None:
                     unsafe_allow_html=True)
     else:
         st.write("^ Click Me ")
+
+st.markdown(f"""
+## Demo
+6. For demo, click [here]({DEMO_DATA_LINK}) to download a zip file and upload. The demo data came from (500 $\mu$M 4OH-TEMPO in water, {'$k_{sigma} = 95 s^{-1} M^{-1}$'}).
+
+## Issues/Support
+7. Report any issue [here]({ISSUE_COMPLAINT_LINK}) and I will get back to you shortly.
+""")
