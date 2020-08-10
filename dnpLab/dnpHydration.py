@@ -549,7 +549,7 @@ class HydrationCalculator:
         # curve fitting
         # see https://docs.scipy.org/doc/scipy/reference/optimize.html
         popt, pcov = optimize.curve_fit(calc_ksigma, power, ksig_sp,
-                                         p0=[50, (max(power) / 2)], method='lm')
+                                         p0=[95.4/2, (max(power)*0.1)], method='lm')
 
         assert popt[0] > 0, 'Unexpected ksigma value: %d < 0' % popt[0]
         return popt, pcov
@@ -602,7 +602,7 @@ class HydrationCalculator:
         # least-squares fitting.
         # see https://docs.scipy.org/doc/scipy/reference/optimize.html
         results = optimize.least_squares(fun=residual,
-                                         x0=[0.5, (max(power) / 2)],
+                                         x0=[0.27, (max(power)*0.1)],
                                          args=(Ep, power, T10, T100, wRatio, s_max),
                                          jac='2-point', method='lm')
         if not results.success:
