@@ -29,12 +29,12 @@ ws = dnp.dnpNMR.align(ws, {})
 ws.copy('proc', 'ft')
 ws = dnp.dnpNMR.integrate(ws, {'integrate_width': 40})
 
-dnp.plot(ws['ft'])
-dnp.xlim(20,-20)
-dnp.figure()
-dnp.plot(ws['proc'], 'o')
+dnp.dnpResults.plot(ws['ft'])
+dnp.dnpResults.xlim(20,-20)
+dnp.dnpResults.figure()
+dnp.dnpResults.plot(ws['proc'], 'o')
 
 dnp.dnpImport.h5.saveh5(ws, 'test.h5')
 
-dnp.show()
+dnp.dnpResults.show()
 

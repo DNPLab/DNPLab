@@ -10,9 +10,9 @@ x = np.r_[1:100]
 values = np.random.randn(len(x))
 
 data = nddata_core(values, ['x'], [x])
-
-dnp.plot(data)
-dnp.show()
 print(data)
+
+dnp.dnpResults.plot(data)
+dnp.dnpResults.show()
 
 
