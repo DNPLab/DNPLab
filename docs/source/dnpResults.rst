@@ -1,8 +1,8 @@
-=======
-dnpNMR
-=======
+========
+dnpResults
+========
 
-.. automodule:: dnpLab.dnpNMR
+.. automodule:: dnpLab.dnpResults
    :members:
    :show-inheritance:
    :member-order: bysource

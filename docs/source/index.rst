@@ -34,11 +34,10 @@ Features
    install
    quick-start
    dnpData
-   io
    dnpNMR
    dnpFit
    dnpHydration
-   plot
+   dnpResults
    hydrationGUI
 
 Index
