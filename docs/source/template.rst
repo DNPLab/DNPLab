@@ -1,5 +1,5 @@
 ========
-dnp_data
+TITLE
 ========
 
 here is a reference: :func:`dnpLab.dnpData.dnpData.phase`
@@ -34,3 +34,5 @@ here is a reference: :func:`dnpLab.dnpData.dnpData.phase`
 
 .. automodule:: dnpLab.dnpData
    :members:
+   :show-inheritance:
+   :member-order: bysource
