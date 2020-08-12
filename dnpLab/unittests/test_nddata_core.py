@@ -14,22 +14,28 @@ class dnpLab_nddata_core_tester(unittest.TestCase):
     def setUp(self):
         self.dims = test_dims
         random.sample(test_dims, random.randint(1,len(test_dims)))
+    def construct_random_data(self):
+        random_dims = random.sample(test_dims, random.randint(1,len(test_dims)))
+
+        random_coords = [np.r_[0:random.randint(1,6)] for dim in random_dims]
+        shape = [coord.size for coord in random_coords]
+
+        random_values = np.random.randn(*shape)
+        data = nddata.nddata_core(random_values, random_dims, random_coords)
+        return data,random_dims,random_values,random_coords
 
     def test_nddata_core_init(self):
         for ix in range(num_random_tests):
-            random_dims = random.sample(test_dims, random.randint(1,len(test_dims)))
-
-            random_coords = [np.r_[0:random.randint(1,6)] for dim in random_dims]
-            shape = [coord.size for coord in random_coords]
-
-            random_values = np.random.randn(*shape)
-            data = nddata.nddata_core(random_values, random_dims, random_coords)
+            data,random_dims,random_values,random_coords = self.construct_random_data()
             self.assertTrue(data._self_consistent())
             assert_array_equal(data.values, random_values)
             for ix, dim in enumerate(random_dims):
                 assert_array_equal(data.coords[dim], random_coords[ix])
             self.assertListEqual(data.dims, random_dims)
 
+    def test_coord_type(self):
+        data,_,_,_ = self.construct_random_data()
+        self.assertEqual(type(data.coords),nddata_coord_collection)
     def test_ndim(self):
         values = np.r_[1:10].reshape(3,3)
         x = np.r_[0:3]
