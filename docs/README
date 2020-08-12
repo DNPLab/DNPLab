@@ -1,0 +1,11 @@
+# How to build?
+
+```
+sphinx-build source build
+```
+
+After building, use the following to access doc
+
+```
+open build/index.html
+```
