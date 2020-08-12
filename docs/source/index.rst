@@ -33,13 +33,13 @@ Features
 
    install
    quick-start
-   dnp_data
+   dnpData
    io
-   nmr
-   dnp_fit
+   dnpNMR
+   dnpFit
    dnpHydration
    plot
-   gui
+   hydrationGUI
 
 Index
 ==================
