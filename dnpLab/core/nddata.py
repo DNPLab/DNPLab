@@ -472,19 +472,40 @@ class nddata_core(object):
 
         return a
 
-    def chunk(self, dim, new_dim, new_coord):
+    def chunk(self, dim, new_dims, new_sizes):
         '''
-        '''
+        .. note::
+            This is a placeholder for a function that's not yet implemented
 
-#        a = self.copy()
-#        num_chunks = len(a.get_coord(dim)) / len(new_coords)
-#        dims = a.dims.append(new_dim)
-#        coords = a.coords.append(new_coord)
-#
-#        values = np.stack(np.split(a.values, num_chunks))
-#        error = np.stack(np.split(a.error, num_chunks))
-#
-#        return a
+        Parameters
+        ----------
+        dim: str
+            Assume that the dimension `dim` is a direct product of the
+            dimensions given in `new_dims`, and chunk it out into those new
+            dimensions.
+        new_dims: list of str
+            The new dimensions to generate.  Note that one of the elements of
+            the list can be `dim` if you like.
+
+            It's assumed that the ordering of `dim` is a direct product given
+            in C-ordering (*i.e.* the inner dimensions are listed last and the
+            outer dimensions are listed first -- here "inner" means that
+            changes to the index of the inner-most dimension correspond to
+            adjacent positions in memory and/or adjacent indeces in the
+            original dimension that you are chunking)
+        new_sizes: list of int
+            sizes of the new dimensions`
+        Returns
+        -------
+        self: nddata_core
+            The new nddata object.
+            Note that uniformly ascending or descending coordinates are manipulated in a rational way,
+            *e.g.* `[1,2,3,4,5,6]` when chunked to a size of `[2,3]` will yield
+            coordinates for the two new dimensions:
+            `[1,4]` and `[0,1,2]`.
+            Coordinates that are not uniformly ascending or descending will
+            yield and error and must be manually modified by the user.
+        '''
         return NotImplemented
 
 
@@ -585,6 +606,15 @@ class nddata_core(object):
 
     def __array__(self):
         return self.values
+
+    def smoosh(self, old_dims, new_name):
+        '''
+        .. note::
+            Not yet implemented.
+
+        `smoosh` does the opposite of `chunk` -- see :func`:~nddata_core.chunk`
+        '''
+        return NotImplemented
 
     def sort(self, dim):
         '''
