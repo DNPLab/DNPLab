@@ -612,6 +612,14 @@ class HydrationCalculator:
 
 
 def hydration(ws):
+    """Calculating Hydration Results
+
+    Args:
+        ws: Workspace
+
+    Returns:
+        dict: A dictionary of hydration results
+    """
 
     # Hydration required data
     hyd = ws['hydration']

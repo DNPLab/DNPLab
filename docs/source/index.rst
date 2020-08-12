@@ -37,7 +37,7 @@ Features
    io
    nmr
    dnp_fit
-   hydration
+   dnpHydration
    plot
    gui
 
