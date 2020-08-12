@@ -358,11 +358,13 @@ class hydrationGUI(QMainWindow):
             self.tetheredCheckbox.setVisible(True)
             self.freeCheckbox.setVisible(True)
             self.matoutButton.setVisible(True)
+            self.backButton.setVisible(True)
+            self.onlyT1pCheckbox.setVisible(True)
+            self.onlyT10Checkbox.setVisible(True)
+            
             self.nextButton.setVisible(False)
             self.autoButton.setVisible(False)
             self.backButton.setText('Restart')
-            self.onlyT1pCheckbox.setVisible(True)
-            self.onlyT10Checkbox.setVisible(True)
             self.intcenterLabel.setVisible(False)
             self.intcenterSlider.setVisible(False)
             self.intwindowLabel.setVisible(False)
@@ -372,7 +374,7 @@ class hydrationGUI(QMainWindow):
             self.optcentCheckbox.setVisible(False)
             self.optphsCheckbox.setVisible(False)
             self.optwidthButton.setVisible(False)
-            self.backButton.setVisible(True)
+            
 
             if self.gui_dict['gui_function']['isWorkup'] or self.gui_dict['gui_function']['isLab']:
                 self.backButton.setVisible(False)
@@ -389,12 +391,26 @@ class hydrationGUI(QMainWindow):
             if self.gui_dict['gui_function']['addWorkup']:
                 self.show_wrkupCheckbox.setVisible(True)
                 self.fit_wrkupCheckbox.setVisible(True)
-                self.gui_dict['workup_function']['show'] = True
-                self.gui_dict['workup_function']['fit'] = False
                 self.show_wrkupCheckbox.setChecked(True)
+                self.gui_dict['workup_function']['show'] = True
+                
+                self.gui_dict['workup_function']['fit'] = False
                 self.fit_wrkupCheckbox.setChecked(False)
                 
         else:
+            self.intcenterLabel.setVisible(True)
+            self.intcenterSlider.setVisible(True)
+            self.intwindowLabel.setVisible(True)
+            self.intwindowSlider.setVisible(True)
+            self.phaseLabel.setVisible(True)
+            self.phaseSlider.setVisible(True)
+            self.optcentCheckbox.setVisible(True)
+            self.optphsCheckbox.setVisible(True)
+            self.optwidthButton.setVisible(True)
+            self.autoButton.setVisible(True)
+            self.backButton.setVisible(True)
+            self.nextButton.setVisible(True)
+        
             self.t10Label.setVisible(False)
             self.t10Edit.setVisible(False)
             self.workupt10Label.setVisible(False)
@@ -413,26 +429,15 @@ class hydrationGUI(QMainWindow):
             self.tetheredCheckbox.setVisible(False)
             self.freeCheckbox.setVisible(False)
             self.matoutButton.setVisible(False)
-            self.intcenterLabel.setVisible(True)
-            self.intcenterSlider.setVisible(True)
-            self.intwindowLabel.setVisible(True)
-            self.intwindowSlider.setVisible(True)
-            self.phaseLabel.setVisible(True)
-            self.phaseSlider.setVisible(True)
-            self.optcentCheckbox.setVisible(True)
-            self.optphsCheckbox.setVisible(True)
-            self.optwidthButton.setVisible(True)
             self.show_wrkupCheckbox.setVisible(False)
             self.fit_wrkupCheckbox.setVisible(False)
             self.backButton.setText('Back')
             self.onlyT1pCheckbox.setVisible(False)
             self.onlyT10Checkbox.setVisible(False)
-            self.autoButton.setVisible(True)
-            self.backButton.setVisible(True)
-            self.nextButton.setVisible(True)
-        
+
         self.t1plt.setVisible(True)
         self.enhplt.setVisible(True)
+        
         self.dnpLab_errorLabel.setVisible(False)
         self.workup_errorLabel.setVisible(False)
 
@@ -453,10 +458,10 @@ class hydrationGUI(QMainWindow):
         self.onlyT1pCheckbox.setChecked(False)
         self.onlyT10Checkbox.clicked.connect(self.Only_T10_Checkbox)
         self.onlyT10Checkbox.setChecked(False)
-        self.show_wrkupCheckbox.setChecked(True)
         self.show_wrkupCheckbox.clicked.connect(self.Show_Workup_Checkbox)
-        self.fit_wrkupCheckbox.setChecked(False)
+        self.show_wrkupCheckbox.setChecked(True)
         self.fit_wrkupCheckbox.clicked.connect(self.Fit_Workup_Checkbox)
+        self.fit_wrkupCheckbox.setChecked(False)
         self.t100Edit.editingFinished.connect(self.Edit_Hydration_Inputs)
         self.t10Edit.editingFinished.connect(self.Edit_Hydration_Inputs)
         self.workupt10Edit.editingFinished.connect(self.Edit_Hydration_Inputs)
@@ -562,99 +567,7 @@ class hydrationGUI(QMainWindow):
             self.gui_dict['gui_function']['sliders'] = False
             self.phaseSlider.setValue(0)
             self.gui_dict['gui_function']['sliders'] = True
-    
-    """
-    def Full_opt_Button(self):
         
-        best_proc_pars = optimize.minimize(self.global_param_optimize, [10, self.gui_dict['processing_spec']['integration_width'], self.gui_dict['processing_spec']['integration_center']], args=(), method=None, jac=None, hess=None, hessp=None, bounds=None, constraints=(), tol=None, callback=None, options=None)
-        
-        best_pars = {}
-        best_pars['window_linewidth'] = best_proc_pars[0]
-        best_pars['integrate_center'] = best_proc_pars[1]
-        best_pars['integrate_width'] = best_proc_pars[2]
-        print(best_pars)
-        
-    
-    def global_t1Fit_optimize(self, window_linewidth, integrate_width, integrate_center):
-        
-        proc_params = {}
-        proc_params['window_linewidth'] = window_linewidth
-        proc_params['zero_fill_factor'] = 2
-        self.processing_workspace = self.proc_workspace(self.processing_workspace,proc_params)
-        
-        self.workupPhaseOpt()
-        self.processing_workspace = self.phs_workspace(self.processing_workspace,self.gui_dict['processing_spec']['originalPhase'])
-        self.optCenter()
-
-        int_params = {}
-        int_params['integrate_center'] = integrate_center
-        int_params['integrate_width'] = integrate_width
-        iterativeopt_workspace = self.int_workspace(self.processing_workspace,int_params)
-        
-        popt,stdd = self.t1Fit(iterativeopt_workspace)
-        
-        return stdd[0]
-        
-    def global_param_optimize(self, window_linewidth, integrate_width, integrate_center):
-        print('GLOBAL PARAM OPT')
-        
-        for k in self.gui_dict['folder_structure']['all']:
-            
-            self.processing_workspace = self.import_create_workspace(k)
-            
-            if len(iterativeopt_workspace['proc'].values) > 1:
-                print('FITTING T1 STD')
-                temp = copy.deepcopy(self.processing_workspace)
-                best_proc_pars = optimize.minimize(self.global_t1Fit_optimize, [10, self.gui_dict['processing_spec']['integration_width'], self.gui_dict['processing_spec']['integration_center']], args=(), method=None, jac=None, hess=None, hessp=None, bounds=None, constraints=(), tol=None, callback=None, options=None)
-                window_linewidth, integrate_width, integrate_center = best_proc_pars[0], best_proc_pars[1], best_proc_pars[2]
-                
-            self.processing_workspace = copy.deepcopy(temp)
-            proc_params = {}
-            proc_params['window_linewidth'] = window_linewidth
-            proc_params['zero_fill_factor'] = 2
-            self.processing_workspace = self.proc_workspace(self.processing_workspace,proc_params)
-            
-            self.workupPhaseOpt()
-            self.processing_workspace = self.phs_workspace(self.processing_workspace,self.gui_dict['processing_spec']['originalPhase'])
-            self.optCenter()
-
-            int_params = {}
-            int_params['integrate_center'] = integrate_center
-            int_params['integrate_width'] = integrate_width
-            iterativeopt_workspace = self.int_workspace(self.processing_workspace,int_params)
-                    
-            if k == self.gui_dict['folder_structure']['p0']:
-                p0 = iterativeopt_workspace['proc'].values[0]
-            elif k in self.gui_dict['folder_structure']['enh']:
-                E.append(iterativeopt_workspace['proc'].values[0]/p0)
-            if k in self.gui_dict['folder_structure']['T1']:
-                T1p.append(popt[0])
-            elif k == self.gui_dict['folder_structure']['T10']:
-                T10 = popt[0]
-            
-        if self.exclude1T1Checkbox.isChecked():
-            T1p = T1p[1:len(T1p)]
-            T1powers = self.gui_dict['dnpLab_data']['T1powers'][1:len(T1p)]
-        else:
-            T1powers = self.gui_dict['dnpLab_data']['T1powers']
-            
-        hydration = {'E' : np.array(E), 'E_power' : np.array(self.gui_dict['dnpLab_data']['Epowers']), 'T1' : np.array(T1p), 'T1_power' : np.array(T1powers)}
-        hydration.update({
-            'T10': T10,
-            'T100': T100,
-            'spin_C': spin_C,
-            'field': field,
-            'smax_model': smax_model,
-            't1_interp_method': t1_interp_method
-        })
-        hyd = odnp.create_workspace()
-        hyd.add('hydration_inputs', hydration)
-        
-        res = odnp.dnpHydration.hydration(hyd)
-            
-        return res['ksigma_error']
-        
-    """
     
     def workupPhaseOpt(self):
     
@@ -693,111 +606,128 @@ class hydrationGUI(QMainWindow):
             iterativeopt_workspace = copy.deepcopy(optcenter_workspace)
             int_params['integrate_center'] = k
             iterativeopt_workspace = self.int_workspace(iterativeopt_workspace,int_params)
-            intgrl_array.append(abs(iterativeopt_workspace['proc'].values[0]))
+            if len(iterativeopt_workspace['proc'].values) > 1:
+                intgrl_array.append(sum(abs(iterativeopt_workspace['proc'].values)))
+            else:
+                intgrl_array.append(abs(iterativeopt_workspace['proc'].values[0]))
         cent = np.argmax(intgrl_array)
         self.gui_dict['processing_spec']['integration_center'] = indx[cent]
         
     
     def Optimize_Int_Width(self):
         """Optimize the integration width by processing with a range of integration widths and comparing the standard deviation in corresponding dnpHydration fits"""
+        
         if self.gui_dict['gui_function']['buttons']:
-       
+            
             print('Optimizing Integration Width...')
-            #try:
+            try:
             
-            spin_C = float(self.slcEdit.text())
-            field = float(self.fieldEdit.text())
-            T100 = float(self.t100Edit.text())
-            if self.tetheredCheckbox.isChecked():
-                smax_model = 'tethered'
-            else:
-                smax_model = 'free'
-            if self.linearfitCheckbox.isChecked():
-                t1_interp_method = 'linear'
-            else:
-                t1_interp_method = 'second_order'
-
-            ksig_stdd = []
-            opt_widths = [13,17,21,25,29]
-            
-            """
-            fldrs =  list(self.gui_dict['folder_structure']['enh'][0:5]) + list(self.gui_dict['folder_structure']['enh'][len(self.gui_dict['folder_structure']['enh'])-4:len(self.gui_dict['folder_structure']['enh'])-1]) + list(self.gui_dict['folder_structure']['T1'])
-            
-            fldrs.insert(0, self.gui_dict['folder_structure']['p0'])
-            fldrs.insert(len(fldrs), self.gui_dict['folder_structure']['T10'])
-            """
-            for indx in opt_widths:
-                print('Trying width = ' + str(indx) + '...')
-                E = []
-                T1p = []
-                for k in self.gui_dict['folder_structure']['all']:
-                    
-                    self.processing_workspace = self.import_create_workspace(k)
-                    
-                    proc_params = {}
-                    proc_params['window_linewidth'] = 10
-                    proc_params['zero_fill_factor'] = 2
-                    self.processing_workspace = self.proc_workspace(self.processing_workspace,proc_params)
-                    
-                    self.workupPhaseOpt()
-                    self.processing_workspace = self.phs_workspace(self.processing_workspace,self.gui_dict['processing_spec']['originalPhase'])
-                    self.optCenter()
-
-                    int_params = {}
-                    int_params['integrate_center'] = self.gui_dict['processing_spec']['integration_center']
-                    int_params['integrate_width'] = indx
-                    iterativeopt_workspace = self.int_workspace(self.processing_workspace,int_params)
-                    
-                    if len(iterativeopt_workspace['proc'].values) > 1:
-                        popt,stdd = self.t1Fit(iterativeopt_workspace)
-                        
-                    if k == self.gui_dict['folder_structure']['p0']:
-                        p0 = iterativeopt_workspace['proc'].values[0]
-                    elif k in self.gui_dict['folder_structure']['enh']:
-                        E.append(iterativeopt_workspace['proc'].values[0]/p0)
-                    if k in self.gui_dict['folder_structure']['T1']:
-                        T1p.append(popt[0])
-                    elif k == self.gui_dict['folder_structure']['T10']:
-                        T10 = popt[0]
-                
-                if self.exclude1T1Checkbox.isChecked():
-                    T1p = T1p[1:len(T1p)]
-                    T1powers = self.gui_dict['dnpLab_data']['T1powers'][1:len(T1p)]
-                else:
-                    T1powers = self.gui_dict['dnpLab_data']['T1powers']
-                    
-                hydration = {'E' : np.array(E), 'E_power' : np.array(self.gui_dict['dnpLab_data']['Epowers']), 'T1' : np.array(T1p), 'T1_power' : np.array(T1powers)}
-                hydration.update({
-                    'T10': T10,
-                    'T100': T100,
-                    'spin_C': spin_C,
-                    'field': field,
-                    'smax_model': smax_model,
-                    't1_interp_method': t1_interp_method
-                })
-                hyd = odnp.create_workspace()
-                hyd.add('hydration_inputs', hydration)
-                
                 try:
-                    res = odnp.dnpHydration.hydration(hyd)
-                    ksig_stdd.append(res['ksigma_error'])
+                    spin_C = float(self.slcEdit.text())
+                    field = float(self.fieldEdit.text())
+                    T100 = float(self.t100Edit.text())
                 except:
-                    ksig_stdd.append(1000)
-                    pass
+                    print('Supply all parameters in numerical format')
+                    return
+                    
+                if self.tetheredCheckbox.isChecked():
+                    smax_model = 'tethered'
+                else:
+                    smax_model = 'free'
+                if self.linearfitCheckbox.isChecked():
+                    t1_interp_method = 'linear'
+                else:
+                    t1_interp_method = 'second_order'
 
-            min_ksig_stdd = np.argmin(ksig_stdd)
-            self.gui_dict['processing_spec']['integration_width'] = opt_widths[min_ksig_stdd]
-            print('Finished optimizing integration width, best width = ' + str(self.gui_dict['processing_spec']['integration_width']))
-            
-            self.optphsCheckbox.setChecked(True)
-            self.optcentCheckbox.setChecked(True)
+                opt_widths = range(10,51)
                 
-            #except:
-             #   print('ERROR in optimizing width, resetting.')
-              #  pass
+                """
+                fldrs =  list(self.gui_dict['folder_structure']['enh'][0:5]) + list(self.gui_dict['folder_structure']['enh'][len(self.gui_dict['folder_structure']['enh'])-4:len(self.gui_dict['folder_structure']['enh'])-1]) + list(self.gui_dict['folder_structure']['T1'])
+                
+                fldrs.insert(0, self.gui_dict['folder_structure']['p0'])
+                fldrs.insert(len(fldrs), self.gui_dict['folder_structure']['T10'])
+                """
+                
+                ksig_stdd = []
+                for indx in opt_widths:
+                    print('Trying width = ' + str(indx) + '...')
+                    E = []
+                    T1p = []
+                    for k in self.gui_dict['folder_structure']['all']:
+                        
+                        self.processing_workspace = self.import_create_workspace(k)
+                        
+                        proc_params = {}
+                        proc_params['window_linewidth'] = 10
+                        proc_params['zero_fill_factor'] = 2
+                        self.processing_workspace = self.proc_workspace(self.processing_workspace,proc_params)
+                        
+                        self.workupPhaseOpt()
+                        self.processing_workspace = self.phs_workspace(self.processing_workspace,self.gui_dict['processing_spec']['originalPhase'])
+                        self.optCenter()
+
+                        int_params = {}
+                        int_params['integrate_center'] = self.gui_dict['processing_spec']['integration_center']
+                        int_params['integrate_width'] = indx
+                        iterativeopt_workspace = self.int_workspace(self.processing_workspace,int_params)
+                        
+                        if len(iterativeopt_workspace['proc'].values) > 1:
+                            popt,stdd = self.t1Fit(iterativeopt_workspace)
+                            
+                        if k == self.gui_dict['folder_structure']['p0']:
+                            p0 = iterativeopt_workspace['proc'].values[0]
+                        elif k in self.gui_dict['folder_structure']['enh']:
+                            E.append(iterativeopt_workspace['proc'].values[0]/p0)
+                        if k in self.gui_dict['folder_structure']['T1']:
+                            T1p.append(popt[0])
+                        elif k == self.gui_dict['folder_structure']['T10']:
+                            T10 = popt[0]
+                    
+                    if self.exclude1T1Checkbox.isChecked():
+                        T1p = T1p[1:len(T1p)]
+                        T1powers = self.gui_dict['dnpLab_data']['T1powers'][1:len(T1p)]
+                    else:
+                        T1powers = self.gui_dict['dnpLab_data']['T1powers']
+                        
+                    hydration = {'E' : np.array(E), 'E_power' : np.array(self.gui_dict['dnpLab_data']['Epowers']), 'T1' : np.array(T1p), 'T1_power' : np.array(T1powers)}
+                    hydration.update({
+                        'T10': T10,
+                        'T100': T100,
+                        'spin_C': spin_C,
+                        'field': field,
+                        'smax_model': smax_model,
+                        't1_interp_method': t1_interp_method
+                    })
+                    hyd = odnp.create_workspace()
+                    hyd.add('hydration_inputs', hydration)
+                    
+                    try:
+                        res = odnp.dnpHydration.hydration(hyd)
+                        ksig_stdd.append(res['ksigma_error'])
+                    except:
+                        ksig_stdd.append(1000)
+                        pass
+
+                min_ksig_stdd = np.argmin(ksig_stdd)
+                self.gui_dict['processing_spec']['integration_width'] = opt_widths[min_ksig_stdd]
+                
+                #self.gui_dict['processing_spec']['integration_width'] = 20
+                print('Finished optimizing integration width, best width = ' + str(self.gui_dict['processing_spec']['integration_width']))
+                
+                self.optphsCheckbox.setChecked(True)
+                self.optcentCheckbox.setChecked(True)
+                
+            except:
+                print('ERROR in optimizing width, resetting.')
+                pass
             
-            self.gui_dict['folder_structure']['index'] = 0
             self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['p0']
+            
+            self.Ep = []
+            self.T1p = []
+            self.T1p_error = []
+            self.reset_plots()
+            self.plot_setter()
             
             self.dnpLab_workspace = self.import_create_workspace(self.gui_dict['rawdata_function']['folder'])
 
@@ -898,7 +828,7 @@ class hydrationGUI(QMainWindow):
                 h5in = odnp.dnpImport.h5.loadh5(flname)
                 
                 self.t10Edit.setText(str(round(float(h5in['hydration_inputs']['T10']),4)))
-                
+
                 self.gui_dict['dnpLab_data']['T100'] = float(h5in['hydration_inputs']['T100'])
                 self.gui_dict['dnpLab_data']['T10'] = float(h5in['hydration_inputs']['T10'])
                 self.gui_dict['dnpLab_data']['T10_error'] = float(h5in['hydration_results']['T10_error'])
@@ -909,17 +839,17 @@ class hydrationGUI(QMainWindow):
                 self.T1p_error = h5in['hydration_results']['T1p_error']
             
             self.gui_dict['rawdata_function']['nopowers'] = False
-            
+     
             self.finishProcessing()
             
             self.gui_dict['gui_function']['buttons'] = True
-   
+       
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('GUI DATA ERROR')
             self.gui_dict['gui_function']['buttons'] = False
-        
+       
     
     def Workup_Button(self):
         """Select the "Workup" folder that is the output of workup software used by the Han Lab."""
@@ -1031,8 +961,7 @@ class hydrationGUI(QMainWindow):
 
         fullPath = self.gui_dict['rawdata_function']['directory']
         exps = self.ExpNums
-        dnpExp = self.dnpExp
-        
+
         expTime = []
         self.absTime = []
         for exp in exps:
@@ -1196,174 +1125,172 @@ class hydrationGUI(QMainWindow):
             Additional required files: power.mat and t1powers.mat OR power.csv and t1power.csv files that are the measurements of applied microwave powers
             
         """
-        #try:
-        if self.testmode:
-            dirname = self.labpath + os.sep + 'data' + os.sep + 'topspin'
-        else:
-            dirname = QFileDialog.getExistingDirectory(self)
-            
-        dirname = os.path.join(dirname + os.sep)
-        self.gui_dict['rawdata_function']['directory'] = dirname
-        print('Data: ' + dirname)
-        x = dirname.split(os.sep)
-        self.pathLabel.setText('DATA DIRECTORY: ' + x[len(x)-3] + ' ' + os.sep + ' ' + x[len(x)-2])
-
-        self.gui_dict['folder_structure'] = {}
-        self.gui_dict['gui_function']['isWorkup'] = False
-        self.gui_dict['gui_function']['isLab'] = False
-        self.gui_dict['gui_function']['addWorkup'] = False
-        self.gui_dict['workup_function']['show'] = False
-        self.gui_dict['workup_function']['fit'] = False
-
-        if os.path.exists(self.gui_dict['rawdata_function']['directory'] + '40'):
-
-            self.gui_dict['folder_structure']['p0'] = 5
-            self.gui_dict['folder_structure']['enh'] = list(range(6,30))
-            self.gui_dict['folder_structure']['T1'] = range(31,41)
-            self.gui_dict['folder_structure']['T10'] = 304
-
-        else:
-            
-            self.gui_dict['folder_structure']['p0'] = 5
-            self.gui_dict['folder_structure']['enh'] = range(6,27)
-            self.gui_dict['folder_structure']['T1'] = range(28,33)
-            self.gui_dict['folder_structure']['T10'] = 304
-                            
-        self.gui_dict['rawdata_function']['nopowers'] = True
-        
-        if os.path.exists(self.gui_dict['rawdata_function']['directory'] + 'Workup') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 'enhancementPowers.csv') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 'kSigma.csv') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 't1Powers.csv'):
-            
-            self.gui_dict['gui_function']['addWorkup'] = True
-            self.gui_dict['workup_function']['show'] = True
-            
-            self.gui_dict['workup_function']['directory'] = os.path.join(dirname + 'Workup' + os.sep)
-            
-            self.processWorkup()
-            
-            if len(self.gui_dict['workup_data']['Epowers']) == len(self.gui_dict['folder_structure']['enh']) and len(self.gui_dict['workup_data']['T1powers']) == len(self.gui_dict['folder_structure']['T1']):
+        try:
+            if self.testmode:
+                dirname = self.labpath + os.sep + 'data' + os.sep + 'topspin'
+            else:
+                dirname = QFileDialog.getExistingDirectory(self)
                 
-                Epowers = self.gui_dict['workup_data']['Epowers']
-                T1powers = self.gui_dict['workup_data']['T1powers']
+            dirname = os.path.join(dirname + os.sep)
+            self.gui_dict['rawdata_function']['directory'] = dirname
+            print('Data: ' + dirname)
+            x = dirname.split(os.sep)
+            self.pathLabel.setText('DATA DIRECTORY: ' + x[len(x)-3] + ' ' + os.sep + ' ' + x[len(x)-2])
+
+            self.gui_dict['folder_structure'] = {}
+            self.gui_dict['gui_function']['isWorkup'] = False
+            self.gui_dict['gui_function']['isLab'] = False
+            self.gui_dict['gui_function']['addWorkup'] = False
+            self.gui_dict['workup_function']['show'] = False
+            self.gui_dict['workup_function']['fit'] = False
+
+            if os.path.exists(self.gui_dict['rawdata_function']['directory'] + '40'):
+
+                self.gui_dict['folder_structure']['p0'] = 5
+                self.gui_dict['folder_structure']['enh'] = list(range(6,30))
+                self.gui_dict['folder_structure']['T1'] = range(31,41)
+                self.gui_dict['folder_structure']['T10'] = 304
+
+            else:
+                
+                self.gui_dict['folder_structure']['p0'] = 5
+                self.gui_dict['folder_structure']['enh'] = range(6,27)
+                self.gui_dict['folder_structure']['T1'] = range(28,33)
+                self.gui_dict['folder_structure']['T10'] = 304
+                                
+            self.gui_dict['rawdata_function']['nopowers'] = True
             
-                print('Found workup output, using power values from workup.')
-                self.gui_dict['rawdata_function']['nopowers'] = False
-        
-        if self.gui_dict['rawdata_function']['nopowers']:
-            if os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'power.mat') or os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'power.csv'):
+            if os.path.exists(self.gui_dict['rawdata_function']['directory'] + 'Workup') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 'enhancementPowers.csv') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 'kSigma.csv') and os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 't1Powers.csv'):
+                
+                self.gui_dict['gui_function']['addWorkup'] = True
+                self.gui_dict['workup_function']['show'] = True
+                
+                self.gui_dict['workup_function']['directory'] = os.path.join(dirname + 'Workup' + os.sep)
+                
+                self.processWorkup()
+                
+                if len(self.gui_dict['workup_data']['Epowers']) == len(self.gui_dict['folder_structure']['enh']) and len(self.gui_dict['workup_data']['T1powers']) == len(self.gui_dict['folder_structure']['T1']):
+                    
+                    Epowers = self.gui_dict['workup_data']['Epowers']
+                    T1powers = self.gui_dict['workup_data']['T1powers']
+                
+                    print('Found workup output, using power values from workup.')
+                    self.gui_dict['rawdata_function']['nopowers'] = False
             
-                if os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 't1_powers.mat') or os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 't1_powers.csv'):
+            if self.gui_dict['rawdata_function']['nopowers']:
+                if os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'power.mat') or os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'power.csv'):
+                
+                    if os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 't1_powers.mat') or os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 't1_powers.csv'):
+                        
+                        print('No workup output found, using power readings files.')
+                        
+                        self.ExpNums = self.gui_dict['folder_structure']['enh']
+                        self.workupExpTimes()
+                        self.pwrfile = 'power'
+                        self.buff = 2.5
+                        self.workupSplitPowers()
+                        
+                        
+                        #{{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
+                        Epowers = np.add(self.powerList, 21.9992)
+                        Epowers = np.divide(Epowers, 10)
+                        Epowers = np.power(10, Epowers)
+                        Epowers = np.multiply((1e-3),Epowers)
+                        #}}
+                        
+                        
+                        self.ExpNums = self.gui_dict['folder_structure']['T1']
+                        self.workupExpTimes()
+                        self.pwrfile = 't1_powers'
+                        self.buff = 20*2.5
+                        self.workupSplitPowers()
+                        
+                        
+                        #{{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
+                        T1powers = np.add(self.powerList, 21.9992)
+                        T1powers = np.divide(T1powers, 10)
+                        T1powers = np.power(10, T1powers)
+                        T1powers = np.multiply((1e-3),T1powers)
+                        #}}
+                        
+                        
+                        self.gui_dict['rawdata_function']['nopowers'] = False
+                          
+            if self.gui_dict['rawdata_function']['nopowers']:
+                print('No power readings found.')
+                print('Trying to find power settings in experiment titles...')
+                try:
+                    Eplist = []
+                    for k in self.gui_dict['folder_structure']['enh']:
+                        title = odnp.dnpImport.bruker.loadTitle(self.gui_dict['rawdata_function']['directory'],expNum = k)
+                        splitTitle = title.split(' ')
+                        Eplist.append(float(splitTitle[-1]))
+                        
+                    T1plist = []
+                    for k in self.gui_dict['folder_structure']['T1']:
+                        title = odnp.dnpImport.bruker.loadTitle(self.gui_dict['rawdata_function']['directory'],expNum = k)
+                        splitTitle = title.split(' ')
+                        T1plist.append(float(splitTitle[-1]))
                     
-                    print('No workup output found, using power readings files.')
                     
-                    self.ExpNums = self.gui_dict['folder_structure']['enh']
-                    self.dnpExp = True
-                    self.workupExpTimes()
-                    self.pwrfile = 'power'
-                    self.buff = 2.5
-                    self.workupSplitPowers()
-                    
-                    
-                    #{{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
-                    Epowers = np.add(self.powerList, 21.9992)
+                    #{{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the relationship between the attenuation setting, the power meter reading, and the power delivered to the resonator.
+                    Epowers = np.multiply(-1,Eplist)
+                    Epowers = np.add(Epowers, 29.01525)
                     Epowers = np.divide(Epowers, 10)
                     Epowers = np.power(10, Epowers)
                     Epowers = np.multiply((1e-3),Epowers)
-                    #}}
                     
-                    
-                    self.ExpNums = self.gui_dict['folder_structure']['T1']
-                    self.dnpExp = False
-                    self.workupExpTimes()
-                    self.pwrfile = 't1_powers'
-                    self.buff = 20*2.5
-                    self.workupSplitPowers()
-                    
-                    
-                    #{{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
-                    T1powers = np.add(self.powerList, 21.9992)
+                    T1powers = np.multiply(-1,T1plist)
+                    T1powers = np.add(T1powers, 29.01525)
                     T1powers = np.divide(T1powers, 10)
                     T1powers = np.power(10, T1powers)
                     T1powers = np.multiply((1e-3),T1powers)
                     #}}
                     
                     
+                    print('Powers taken from experiment titles. *WARNING: this is not accurate!')
                     self.gui_dict['rawdata_function']['nopowers'] = False
-                      
-        if self.gui_dict['rawdata_function']['nopowers']:
-            print('No power readings found.')
-            print('Trying to find power settings in experiment titles...')
-            try:
-                Eplist = []
-                for k in self.gui_dict['folder_structure']['enh']:
-                    title = odnp.dnpImport.bruker.loadTitle(self.gui_dict['rawdata_function']['directory'],expNum = k)
-                    splitTitle = title.split(' ')
-                    Eplist.append(float(splitTitle[-1]))
                     
-                T1plist = []
-                for k in self.gui_dict['folder_structure']['T1']:
-                    title = odnp.dnpImport.bruker.loadTitle(self.gui_dict['rawdata_function']['directory'],expNum = k)
-                    splitTitle = title.split(' ')
-                    T1plist.append(float(splitTitle[-1]))
-                
-                
-                #{{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the relationship between the attenuation setting, the power meter reading, and the power delivered to the resonator.
-                Epowers = np.multiply(-1,Eplist)
-                Epowers = np.add(Epowers, 29.01525)
-                Epowers = np.divide(Epowers, 10)
-                Epowers = np.power(10, Epowers)
-                Epowers = np.multiply((1e-3),Epowers)
-                
-                T1powers = np.multiply(-1,T1plist)
-                T1powers = np.add(T1powers, 29.01525)
-                T1powers = np.divide(T1powers, 10)
-                T1powers = np.power(10, T1powers)
-                T1powers = np.multiply((1e-3),T1powers)
-                #}}
-                
-                
-                print('Powers taken from experiment titles. *WARNING: this is not accurate!')
-                self.gui_dict['rawdata_function']['nopowers'] = False
-                
-            except:
-                print('No power readings available. E[p] and T1[p] are indexed by folder #.')
-                Epowers = self.gui_dict['folder_structure']['enh']
-                T1powers = self.gui_dict['folder_structure']['T1']
-        
-        self.gui_dict['folder_structure']['all'] = []
-        self.gui_dict['folder_structure']['all'].append(self.gui_dict['folder_structure']['p0'])
-        for k in self.gui_dict['folder_structure']['enh']:
-            self.gui_dict['folder_structure']['all'].append(k)
-        for k in self.gui_dict['folder_structure']['T1']:
-            self.gui_dict['folder_structure']['all'].append(k)
-        self.gui_dict['folder_structure']['all'].append(self.gui_dict['folder_structure']['T10'])
-        
-        self.Ep = []
-        self.T1p = []
-        self.T1p_error = []
-        self.gui_dict['dnpLab_data']['Epowers'] = Epowers
-        self.gui_dict['dnpLab_data']['T1powers'] = T1powers
-        self.originalEPowers = self.gui_dict['dnpLab_data']['Epowers']
-        self.originalT1Powers = self.gui_dict['dnpLab_data']['T1powers']
-        self.gui_dict['gui_function']['buttons'] = True
-        
-        self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['p0']
-        self.ksiglabel='dnpLab'
-        
-        self.reset_plots()
-        self.plot_setter()
-        
-        self.dnpLab_workspace = self.import_create_workspace(self.gui_dict['rawdata_function']['folder'])
+                except:
+                    print('No power readings available. E[p] and T1[p] are indexed by folder #.')
+                    Epowers = self.gui_dict['folder_structure']['enh']
+                    T1powers = self.gui_dict['folder_structure']['T1']
+            
+            self.gui_dict['folder_structure']['all'] = []
+            self.gui_dict['folder_structure']['all'].append(self.gui_dict['folder_structure']['p0'])
+            for k in self.gui_dict['folder_structure']['enh']:
+                self.gui_dict['folder_structure']['all'].append(k)
+            for k in self.gui_dict['folder_structure']['T1']:
+                self.gui_dict['folder_structure']['all'].append(k)
+            self.gui_dict['folder_structure']['all'].append(self.gui_dict['folder_structure']['T10'])
+            
+            self.Ep = []
+            self.T1p = []
+            self.T1p_error = []
+            self.gui_dict['dnpLab_data']['Epowers'] = Epowers
+            self.gui_dict['dnpLab_data']['T1powers'] = T1powers
+            self.originalEPowers = self.gui_dict['dnpLab_data']['Epowers']
+            self.originalT1Powers = self.gui_dict['dnpLab_data']['T1powers']
+            self.gui_dict['gui_function']['buttons'] = True
+            
+            self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['p0']
+            self.ksiglabel='dnpLab'
+            
+            self.reset_plots()
+            self.plot_setter()
+            
+            self.dnpLab_workspace = self.import_create_workspace(self.gui_dict['rawdata_function']['folder'])
 
-        self.processData()
-        
-        """
+            self.processData()
+            
+    
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('RAW DATA ERROR')
             self.gui_dict['gui_function']['buttons'] = False
             self.gui_dict['gui_function']['sliders'] = False
-        """
+    
            
     def Next_Button(self):
         """Use the Next button to step through the data folders"""
@@ -1529,6 +1456,7 @@ class hydrationGUI(QMainWindow):
             try:
                 print('Auto processing, please wait...')
                 self.gui_dict['gui_function']['autoProcess'] = True
+                self.gui_dict['processing_spec']['integration_width'] = 20
                 #t = time.time()
                 for k in range(self.gui_dict['folder_structure']['index']+1,len(self.gui_dict['folder_structure']['all'])+1):
                     self.Next_Button()
@@ -1541,6 +1469,7 @@ class hydrationGUI(QMainWindow):
                 
                 self.optphsCheckbox.setChecked(True)
                 self.optcentCheckbox.setChecked(True)
+    
         else:
             pass
         
@@ -1555,11 +1484,11 @@ class hydrationGUI(QMainWindow):
         phase_dict = copy.deepcopy(self.processing_workspace)
         self.gui_dict['processing_spec']['originalPhase'] = phase_dict['proc'].phase()
         
-        if self.optcentCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
-            self.optCenter()
-        
         if self.optphsCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
             self.workupPhaseOpt()
+            
+        if self.optcentCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
+            self.optCenter()
         
         if self.gui_dict['gui_function']['autoProcess']:
             self.gui_dict['processing_spec']['phase'] = self.gui_dict['processing_spec']['originalPhase']
@@ -1765,9 +1694,14 @@ class hydrationGUI(QMainWindow):
         self.dnpLab_errorLabel.setVisible(False)
         self.workup_errorLabel.setVisible(False)
         
-        spin_C = float(self.slcEdit.text())
-        field = float(self.fieldEdit.text())
-        T100 = float(self.t100Edit.text())
+        try:
+            spin_C = float(self.slcEdit.text())
+            field = float(self.fieldEdit.text())
+            T100 = float(self.t100Edit.text())
+        except:
+            print('Supply all parameters in numerical format')
+            return
+            
         if self.tetheredCheckbox.isChecked():
             smax_model = 'tethered'
             self.wrkup_smax = 1
@@ -1825,10 +1759,15 @@ class hydrationGUI(QMainWindow):
                 self.addHyd_workspace = copy.deepcopy(hyd)
                 self.addHyd_workspace.add('hydration_results', self.gui_dict['hydration_results'])
             except:
+                if T100 <= T10:
+                    print('T10(0) cannot be less than or equal to T1(0)')
+                if spin_C <= 0:
+                    print('Spin concentration cannot be zero or negative')
                 self.dataplt.axes.cla()
                 self.dataplt.draw()
                 self.dnpLab_errorLabel.setVisible(True)
-
+                return
+            
         if self.gui_dict['gui_function']['isWorkup'] or self.gui_dict['gui_function']['addWorkup']:
         
                 if self.gui_dict['workup_function']['fit'] or self.gui_dict['workup_function']['show']:
@@ -1864,9 +1803,14 @@ class hydrationGUI(QMainWindow):
                             self.addHyd_workspace = copy.deepcopy(whyd)
                             self.addHyd_workspace.add('hydration_results', self.gui_dict['workup_hydration_results'])
                     except:
+                        if T100 <= wT10:
+                            print('T10(0) cannot be less than or equal to T1(0)')
+                        if spin_C <= 0:
+                            print('Spin concentration cannot be zero or negative')
                         self.dataplt.axes.cla()
                         self.dataplt.draw()
                         self.workup_errorLabel.setVisible(True)
+                        return
             
         if self.gui_dict['gui_function']['isWorkup']:
             
@@ -1915,36 +1859,38 @@ class hydrationGUI(QMainWindow):
             
     def Save_Results_Button(self):
         """Save the results of processing to a format that can be read by the hydrationGUI using the 'GUI Result' button or by the MATLAB App called xODNP"""
-        
+
         pthnm1 = QFileDialog.getSaveFileName(self)
         if pthnm1[0]:
             pthnm = pthnm1[0]
+        else:
+            return
 
-        if pthnm:
+        if self.gui_dict['workup_function']['fit'] or self.gui_dict['gui_function']['isWorkup']:
+            self.addHyd_workspace['hydration_results'].update({'T1p_error' : self.gui_dict['workup_data']['T1p_error'], 'T10_error' : self.gui_dict['workup_data']['T10_error']})
+        else:
+            self.addHyd_workspace['hydration_results'].update({'T1p_error' : self.gui_dict['dnpLab_data']['T1p_error'], 'T10_error' : self.gui_dict['dnpLab_data']['T10_error']})
             
-            if self.gui_dict['workup_function']['fit'] or self.gui_dict['gui_function']['isWorkup']:
-                self.addHyd_workspace['hydration_results'].update({'T1p_error' : self.gui_dict['workup_data']['T1p_error'], 'T10_error' : self.gui_dict['workup_data']['T10_error']})
-            else:
-                self.addHyd_workspace['hydration_results'].update({'T1p_error' : self.gui_dict['dnpLab_data']['T1p_error'], 'T10_error' : self.gui_dict['dnpLab_data']['T10_error']})
-                
-            odnpData = {'Epowers' : self.addHyd_workspace['hydration_inputs']['E_power'], 'Ep' : self.addHyd_workspace['hydration_inputs']['E'], 'T1powers' : self.addHyd_workspace['hydration_inputs']['T1_power'], 'T1p' : self.addHyd_workspace['hydration_inputs']['T1'], 'T1p_error' : self.addHyd_workspace['hydration_results']['T1p_error'], 'T10' : self.addHyd_workspace['hydration_inputs']['T10'], 'T10_error' : self.addHyd_workspace['hydration_results']['T10_error'], 'T100' : self.addHyd_workspace['hydration_inputs']['T100']}
-            
-            odnpResults = {'kSigmas' : self.addHyd_workspace['hydration_results']['ksigma_array'], 'kSigmas_fit' : self.addHyd_workspace['hydration_results']['ksigma_fit']}
-            
-            spltpthnm = pthnm.split(os.sep)
-            flnm = spltpthnm[len(spltpthnm)-1]
-            svpthnm = pthnm + ' hydrationGUI Results'
-            os.mkdir(svpthnm)
-           
-            odnp.dnpImport.h5.saveh5(self.addHyd_workspace, svpthnm + os.sep + flnm + ' hydration_parameters.h5')
-            
-            savemat(svpthnm + os.sep + flnm + ' xODNP.mat', {'odnp' : odnpData, 'ksig' : odnpResults}, oned_as='column')
-            
-            dfE = np.vstack((self.addHyd_workspace['hydration_inputs']['E_power'],self.addHyd_workspace['hydration_inputs']['E'],self.addHyd_workspace['hydration_results']['ksigma_array'],self.addHyd_workspace['hydration_results']['ksigma_fit'])).T
-            np.savetxt(svpthnm + os.sep + flnm + ' E_ksig.csv', dfE, fmt='%10.10f', delimiter = ',', header = 'E powers,E(p),ksigma(p),ksigma(p) fit', comments = '')
-            
-            dfT1 = np.vstack((self.addHyd_workspace['hydration_inputs']['T1_power'],self.addHyd_workspace['hydration_inputs']['T1'],self.addHyd_workspace['hydration_results']['T1p_error'][0:len(self.addHyd_workspace['hydration_inputs']['T1_power'])])).T
-            np.savetxt(svpthnm + os.sep + flnm + ' T1s.csv', dfT1, fmt='%10.10f', delimiter = ',', header = 'T1 powers,T1(p),T1(p) error', comments = '')
+        odnpData = {'Epowers' : self.addHyd_workspace['hydration_inputs']['E_power'], 'Ep' : self.addHyd_workspace['hydration_inputs']['E'], 'T1powers' : self.addHyd_workspace['hydration_inputs']['T1_power'], 'T1p' : self.addHyd_workspace['hydration_inputs']['T1'], 'T1p_error' : self.addHyd_workspace['hydration_results']['T1p_error'], 'T10' : self.addHyd_workspace['hydration_inputs']['T10'], 'T10_error' : self.addHyd_workspace['hydration_results']['T10_error'], 'T100' : self.addHyd_workspace['hydration_inputs']['T100']}
+        
+        odnpResults = {'kSigmas' : self.addHyd_workspace['hydration_results']['ksigma_array'], 'kSigmas_fit' : self.addHyd_workspace['hydration_results']['ksigma_fit']}
+        
+        spltpthnm = pthnm.split(os.sep)
+        flnm = spltpthnm[len(spltpthnm)-1]
+        svpthnm = pthnm + ' hydrationGUI Results'
+        if os.path.isdir(svpthnm):
+            svpthnm = svpthnm + '_2'
+        os.mkdir(svpthnm)
+       
+        odnp.dnpImport.h5.saveh5(self.addHyd_workspace, svpthnm + os.sep + flnm + ' hydration_parameters.h5')
+        
+        savemat(svpthnm + os.sep + flnm + ' xODNP.mat', {'odnp' : odnpData, 'ksig' : odnpResults}, oned_as='column')
+        
+        dfE = np.vstack((self.addHyd_workspace['hydration_inputs']['E_power'],self.addHyd_workspace['hydration_inputs']['E'],self.addHyd_workspace['hydration_results']['ksigma_array'],self.addHyd_workspace['hydration_results']['ksigma_fit'])).T
+        np.savetxt(svpthnm + os.sep + flnm + ' E_ksig.csv', dfE, fmt='%10.10f', delimiter = ',', header = 'E powers,E(p),ksigma(p),ksigma(p) fit', comments = '')
+        
+        dfT1 = np.vstack((self.addHyd_workspace['hydration_inputs']['T1_power'],self.addHyd_workspace['hydration_inputs']['T1'],self.addHyd_workspace['hydration_results']['T1p_error'][0:len(self.addHyd_workspace['hydration_inputs']['T1_power'])])).T
+        np.savetxt(svpthnm + os.sep + flnm + ' T1s.csv', dfT1, fmt='%10.10f', delimiter = ',', header = 'T1 powers,T1(p),T1(p) error', comments = '')
             
 
     def Integration_Center_Slider(self, cvalue):
