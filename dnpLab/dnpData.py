@@ -1,8 +1,7 @@
-# Bridge12 Technologies, Inc
-# Python Class for Handling ODNP Data
+'''dnpData object for storing N-dimensional data with coordinates
+'''
 import numpy as np
 from collections.abc import MutableMapping
-#from matplotlib.pylab import *
 from copy import deepcopy
 
 from .core import nddata
@@ -11,13 +10,6 @@ version = '1.0'
 
 core_attrs_list = ['nmr_frequency']
 
-#TODO:
-# Fix Dictionary not being empty when dnp_data is initialized, problem with add_power function
-# Force all axes to be nddata arrays, so that indexing is easier
-# Add Alignment
-# Add Fit down dimension
-
-#class dnpData:
 class dnpData(nddata.nddata_core):
     '''dnpData Class for handling dnp data
 
@@ -49,11 +41,13 @@ class dnpData(nddata.nddata_core):
         self.proc_attrs = []
 #
     def __repr__(self):
-        ''' Representation of dnpData object
+        '''Representation of dnpData object
         '''
         return 'nddata(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self.values), repr(self.coords), repr(self.dims), repr(self.attrs))
 
     def __str__(self):
+        '''String representation of dnpData object
+        '''
         if len(self.attrs) < 20:
             return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\nproc_attrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs,self.proc_attrs)
         else:
@@ -62,7 +56,11 @@ class dnpData(nddata.nddata_core):
             return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\n + {} attrs'.format(self.values, self.dims, self.coords, core_attrs, num_additional_attrs)
 
     def add_proc_attrs(self,proc_attr_name,proc_dict):
-        '''
+        '''Stamp processing step to dnpdata object
+
+        Args:
+            proc_attr_name (str): Name of processing step (e.g. "fourier_transform"
+            proc_dict (dict): Dictionary of processing parameters for this processing step.
         '''
         if not isinstance(proc_attr_name,str):
             raise ValueError('Processing step name must be string')
@@ -71,7 +69,6 @@ class dnpData(nddata.nddata_core):
 
         self.proc_attrs.append((proc_attr_name,proc_dict))
 
-#    def add_coord(self, dim, coord):
     def addAxes(self, dim, coord):
         '''Add new axesLabel to dnpData object with ax
 
@@ -85,8 +82,8 @@ class dnpData(nddata.nddata_core):
         self.coords.append(dim, coord)
         self.values = np.expand_dims(self.values, -1)
 
-    def autophase(self,):
-        '''Automatically phase data
+    def autophase(self):
+        '''Multiply dnpdata object by phase
         '''
         p = self.phase()
         self.values *= np.exp(-1j*p)
@@ -176,6 +173,13 @@ class dnpdata_collection(MutableMapping):
     '''
 
     def __init__(self, *args, **kwargs):
+        '''dnpdata_collection __init__ method
+
+        Args:
+
+        Example::
+
+        '''
         self._processing_buffer = 'proc'
 
         self.__data_dict = {}
