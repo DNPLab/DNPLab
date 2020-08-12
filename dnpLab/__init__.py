@@ -6,4 +6,4 @@ from . import dnpFit
 from . import dnpHydration
 from . import hydrationGUI
 from . import core
-from .plot_lib import *
+from . import dnpResults
