@@ -8,18 +8,26 @@ Importing data
 ==============
 .. code-block:: python
 
-   import odnpLab
-   odnpLab.odnpImport.bruker.importBruker()
+   # Import module
+   import dnpLab as dnp
+
+   # import Topspin Data
+   path = 'path/to/data'
+   data = dnpLab.dnpImport.topspin.import_topspin(path)
+
+   # create workspace for processing data
+   workspace = dnp.create_workspace('raw', data)
 
 Processing NMR Data
 ===================
 .. code-block:: python
 
-   paramDict = {'linewidth' : 20
-                }
-   dataDict = odnpLab.odnpNMR.removeOffset(dataDict,paramDict)
-   dataDict = odnpLab.odnpNMR.window(dataDict,paramDict)
-   dataDict = odnpLab.odnpNMR.fourierTransform(dataDict,paramDict)
+   # Remove DC offset from FID
+   workspace = dnpLab.dnpNMR.remove_offset(workspace, {})
+   # Apply Exponential Apodization to data
+   workspace = dnpLab.dnpNMR.window(workspace, {})
+   # Apply Fourier Transform to direct dimension by default (t2)
+   workspace = dnpLab.dnpNMR.fourier_transform(workspace, {})
 
 Example Script
 ==============
