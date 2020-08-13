@@ -16,7 +16,6 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../../'))
-#sys.path.insert(0, os.path.abspath('../dnpLab'))
 print('path:')
 print(sys.path)
 
@@ -24,8 +23,8 @@ print(sys.path)
 # -- Project information -----------------------------------------------------
 
 project = u'dnpLab'
-copyright = u'2020, Timothy Keller'
-author = u'Timothy Keller'
+copyright = u'2020, dnpLab'
+author = u'dnpLab Team'
 
 from datetime import datetime
 
@@ -44,7 +43,7 @@ print(u'Release: ' + release)
 
 rst_epilog_list = [
         ('date',date),
-        ('author','Bridge12 + Han Lab'),
+        ('author','The dnpLab Team'),
         ]
 
 def make_rst_epilog(rst_epilog_list):
@@ -125,8 +124,12 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ['_static']
-html_static_path = []
+html_static_path = ['_static']
+# html_static_path = []
+
+def setup (app):
+    app.add_css_file('css/rtdB12Ttheme.css')
+
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -137,6 +140,8 @@ html_static_path = []
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+
+html_logo = '_static/images/dnpLabLogo.png'
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
