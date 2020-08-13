@@ -1,6 +1,6 @@
 """ hydrationGUI
 
-This is a graphical user interface for using dnpLab to process Han Lab format ODNP data and calculating hydration parameters using the dnpHydration module.
+A graphical user interface for using dnpLab to process Han Lab format ODNP data and calculating hydration parameters using the dnpHydration module.
 
 """
 import sys
@@ -626,7 +626,6 @@ class hydrationGUI(QMainWindow):
         self.gui_dict['processing_spec']['integration_center'] = indx[cent]
 
     def optWidth(self):
-        """Optimize the integration width"""
 
         optwidth_workspace = copy.deepcopy(self.processing_workspace)
         
@@ -698,7 +697,8 @@ class hydrationGUI(QMainWindow):
         return popt, stdd
 
     def GUI_Result_Button(self):
-        """Select either the h5 or the .mat files previously saved using the 'Save results' button"""
+        """Select either the h5 or the .mat files previously saved using the 'Save results' button.
+        """
         try:
             if self.testmode:
                 flname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results hydration_parameters.h5'
@@ -774,7 +774,8 @@ class hydrationGUI(QMainWindow):
 
         
     def Workup_Button(self):
-        """Select the "Workup" folder that is the output of workup software used by the Han Lab."""
+        """Select the "Workup" folder that is the output of workup software used by the Han Lab.
+        """
         try:
             if self.testmode:
                 pthnm = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'Workup'
@@ -803,15 +804,6 @@ class hydrationGUI(QMainWindow):
 
             self.reset_plots()
             self.processWorkup()
-
-            """
-            self.gui_dict['dnpLab_data'] = copy.deepcopy(self.gui_dict['workup_data'])
-            self.Ep = self.gui_dict['workup_data']['Ep']
-            self.T1p = self.gui_dict['workup_data']['T1p']
-            self.T1p_stdd = self.gui_dict['workup_data']['T1p_stdd']
-            self.gui_dict['dnpLab_data']['T10'] = self.gui_dict['workup_data']['T10']
-            self.gui_dict['dnpLab_data']['T10_stdd'] = self.gui_dict['workup_data']['T10_stdd']
-            """
 
             self.gui_dict['rawdata_function']['nopowers'] = False
 
@@ -993,7 +985,8 @@ class hydrationGUI(QMainWindow):
         return power_List
 
     def Bruker_Button(self):
-        """Select any numbered folder of a topspin dataset that contains 1D or 2D data"""
+        """Select any numbered folder of a topspin dataset that contains 1D or 2D data.
+        """
         try:
             if self.testmode:
                 pthnm = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + '304'
@@ -1055,7 +1048,7 @@ class hydrationGUI(QMainWindow):
 
         
     def Han_Lab_Button(self):
-        """Select the base folder of a dataset generated using the 'rb_dnp1' command in topspin at CNSI
+        """Select the base folder of a dataset generated using the 'rb_dnp1' command in topspin at UCSB.
         
         Required data:
             Folder 5: 1D spectrum that is collected without microwave power
@@ -1239,7 +1232,8 @@ class hydrationGUI(QMainWindow):
         
         
     def Next_Button(self):
-        """Use the Next button to step through the data folders"""
+        """Use the Next button to step through the data folders.
+        """
         if self.gui_dict['gui_function']['buttons']:
 
             phase = self.gui_dict['processing_spec']['phase']
@@ -1345,7 +1339,8 @@ class hydrationGUI(QMainWindow):
             pass
 
     def Back_Button(self):
-        """Use the Back button to go backwards through the data folders"""
+        """Use the Back button to return to the previous data folder.
+        """
         if self.gui_dict['gui_function']['buttons']:
 
             self.gui_dict['folder_structure']['index'] -= 1
@@ -1424,7 +1419,8 @@ class hydrationGUI(QMainWindow):
             pass
 
     def Auto_Process_Button(self):
-        """Allow the correct phase and integration window to be automatically chosen and process the full ODNP dataset"""
+        """Allow the correct phase and integration window to be automatically chosen and process the full ODNP dataset automatically.
+        """
         if self.gui_dict['gui_function']['buttons']:
             try:
                 self.optphsCheckbox.setChecked(True)
@@ -1668,7 +1664,7 @@ class hydrationGUI(QMainWindow):
         self.Hydration_Button()
 
     def Hydration_Button(self):
-        """Pass the processed data to the dnpHydration module
+        """Pass the processed data to the dnpHydration module.
         
         The GUI builds the input structure:
             
@@ -1879,7 +1875,8 @@ class hydrationGUI(QMainWindow):
         self.gui_dict['gui_function']['hydrationEdits'] = True
 
     def Save_Results_Button(self):
-        """Save the results of processing to a format that can be read by the hydrationGUI using the 'GUI Result' button or by the MATLAB App called xODNP"""
+        """Save the results of processing to a format that can be read by the hydrationGUI using the 'GUI Result' button or by the MATLAB App called xODNP.
+        """
 
         pthnm1 = QFileDialog.getSaveFileName(self)
         if pthnm1[0]:
@@ -1930,7 +1927,7 @@ class hydrationGUI(QMainWindow):
                    header='T1 powers,T1(p),T1(p) Std dev', comments='')
 
     def Spectrum_Phase_Slider(self, pvalue):
-        """Slider to change the phase correction applied to the spectrum"""
+        """Slider to change the phase correction applied to the spectrum."""
         if self.gui_dict['gui_function']['sliders']:
             self.gui_dict['processing_spec']['phase_factor'] = pvalue / 1000
             self.optphsCheckbox.setChecked(False)
@@ -1939,7 +1936,7 @@ class hydrationGUI(QMainWindow):
             pass
             
     def Integration_Center_Slider(self, cvalue):
-        """Slider to change the center of the spectrum integration window"""
+        """Slider to change the center of the spectrum integration window."""
         if self.gui_dict['gui_function']['sliders']:
             self.gui_dict['processing_spec']['integration_center'] = cvalue
             self.optcentCheckbox.setChecked(False)
@@ -1948,7 +1945,7 @@ class hydrationGUI(QMainWindow):
             pass
 
     def Integration_Window_Slider(self, wvalue):
-        """Slider to change the width of the spectrum integration window"""
+        """Slider to change the width of the spectrum integration window."""
         if self.gui_dict['gui_function']['sliders']:
             self.gui_dict['processing_spec']['integration_width'] = wvalue
             self.optwidthCheckbox.setChecked(False)
@@ -1958,7 +1955,7 @@ class hydrationGUI(QMainWindow):
             pass
     
     def Optimize_Phase_Checkbox(self):
-        """Check this to have the GUI automatically choose the best phase"""
+        """Check this to have the GUI automatically choose the best phase."""
         if self.gui_dict['gui_function']['sliders']:
             if self.optphsCheckbox.isChecked():
                 self.gui_dict['processing_spec']['phase_factor'] = 0
@@ -1969,7 +1966,7 @@ class hydrationGUI(QMainWindow):
             pass
             
     def Optimize_Center_Checkbox(self):
-        """Check this to have the GUI automatically choose the best integration center"""
+        """Check this to have the GUI automatically choose the best integration center."""
         if self.gui_dict['gui_function']['sliders']:
             if self.optcentCheckbox.isChecked():
                 self.processData()
@@ -1979,7 +1976,7 @@ class hydrationGUI(QMainWindow):
             pass
     
     def Optimize_Width_Checkbox(self):
-        """Check this to have the GUI automatically choose the best integration width"""
+        """Check this to have the GUI automatically choose the best integration width."""
         if self.gui_dict['gui_function']['sliders'] and self.gui_dict['rawdata_function']['folder'] != -2:
             if self.optwidthCheckbox.isChecked():
                 pass
@@ -1990,7 +1987,7 @@ class hydrationGUI(QMainWindow):
             pass
         
     def Linear_Interpolation_Checkbox(self):
-        """Choose a linear T1 interpolation"""
+        """Choose a linear T1 interpolation."""
         if self.linearfitCheckbox.isChecked():
             self.order2fitCheckbox.setChecked(False)
         else:
@@ -2002,7 +1999,7 @@ class hydrationGUI(QMainWindow):
             pass
 
     def SecondOrder_Interpolation_Checkbox(self):
-        """Choose a second order T1 interpolation"""
+        """Choose a second order T1 interpolation."""
         if self.order2fitCheckbox.isChecked():
             self.linearfitCheckbox.setChecked(False)
         else:
@@ -2014,7 +2011,7 @@ class hydrationGUI(QMainWindow):
             pass
 
     def Exclude_FirstT1_Checkbox(self):
-        """Exclude the first T1 point from the interpolation if it deviates significantly from the trend of the other points"""
+        """Exclude the first T1 point from the interpolation if it deviates significantly from the trend of the other points."""
         if self.gui_dict['gui_function']['hydrationEdits']:
             self.Hydration_Button()
         else:
@@ -2033,7 +2030,7 @@ class hydrationGUI(QMainWindow):
             pass
 
     def Smax_Free_Checkbox(self):
-        """Choose to have s_max calculated based on spin probe concentration"""
+        """Choose to have s_max calculated based on spin probe concentration."""
         if self.freeCheckbox.isChecked():
             self.tetheredCheckbox.setChecked(False)
         else:
@@ -2045,14 +2042,14 @@ class hydrationGUI(QMainWindow):
             pass
 
     def Edit_Hydration_Inputs(self):
-        """This function passes the text from the various edit boxes to dnpHydration in order to update the calculation of hydration parameters with changing inputs"""
+        """This function passes the text from the various edit boxes to dnpHydration as floats and re-calculates hydration parameters."""
         if self.gui_dict['gui_function']['hydrationEdits']:
             self.Hydration_Button()
         else:
             pass
 
     def Show_Workup_Checkbox(self):
-        """Show or hide the Workup results if they were found in the data folder"""
+        """Show or hide the Workup results if they were found in the data folder."""
         if self.show_wrkupCheckbox.isChecked():
             self.gui_dict['workup_function']['show'] = True
         else:
@@ -2066,7 +2063,7 @@ class hydrationGUI(QMainWindow):
             pass
 
     def Fit_Workup_Checkbox(self):
-        """Use dnpHydration to analyze the results of processing the data with the workup code"""
+        """Use dnpHydration to analyze the results of the workup code processing."""
         if self.fit_wrkupCheckbox.isChecked() and self.show_wrkupCheckbox.isChecked():
             self.gui_dict['workup_function']['fit'] = True
         else:
@@ -2079,12 +2076,12 @@ class hydrationGUI(QMainWindow):
             pass
 
     def Only_T1p_Checkbox(self):
-        """Rather than return to the beginning of the E(p) series, the Restart button will return to the first T1(p) point"""
+        """Rather than return to the beginning of the E(p) series, the Restart button will return to the first T1(p) point."""
         if self.onlyT1pCheckbox.isChecked():
             self.onlyT10Checkbox.setChecked(False)
 
     def Only_T10_Checkbox(self):
-        """Rather than return to the beginning of the E(p) series, the Restart button will return to the T1(0) point"""
+        """Rather than return to the beginning of the E(p) series, the Restart button will return to the T1(0) point."""
         if self.onlyT10Checkbox.isChecked():
             self.onlyT1pCheckbox.setChecked(False)
 
