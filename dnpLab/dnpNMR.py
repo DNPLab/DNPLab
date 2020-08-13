@@ -33,8 +33,10 @@ _default_autophase_parameters = {
         }
 
 def return_data(all_data):
-    '''
-    Determine what the data type is for processing
+    '''Determine type of data for processing and return data for processing
+
+    Args:
+
     '''
 
     is_workspace = False
@@ -59,16 +61,20 @@ def return_data(all_data):
     return data, is_workspace
 
 def update_parameters(proc_parameters, requiredList, default_parameters):
-    '''
-    For all parameters without default parameters, assign parameter value to default
+    '''Add default parameter to processing parameters if a processing parameter is missing
 
+    Args:
+        proc_parameters (dict): Dictionary of initial processing parameters
+        requiredList (list): List of requrired processing parameters
+        default_parameters (dict): Dictionary of default processing parameters
+
+    Returns:
+        dict: Updated processing parameters dictionary
     '''
     updatedProc_parameters = proc_parameters
     for requiredParameter in requiredList:
         if not requiredParameter in updatedProc_parameters:
             updatedProc_parameters[requiredParameter] = default_parameters[requiredParameter]
-            #print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
-            #print(default_parameters[requiredParameter])
 
     return updatedProc_parameters
 
@@ -79,15 +85,17 @@ def remove_offset(all_data, proc_parameters):
         all_data (dnpData, dict): Data container for data
         proc_parameters (dict,procParam): Processing _parameters
 
-    .. code-block:: python
+    Returns:
+        dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
+        dnpData: If dnpdata object is given, return dnpdata object.
 
+    Example::
+
+       proc_parameters = {}
        proc_parameters['dim'] = 't2'
        proc_parameters['offset_points'] = 10
 
-       outData = dnpLab.dnpNMR.remove_offset(all_data,proc_parameters)
-
-    Returns:
-        all_data (dnpData, dict)
+       workspace = dnpLab.dnpNMR.remove_offset(workspace, proc_parameters)
     '''
     # Determine if data is dictionary or dnpData object
     data, isDict = return_data(all_data)
