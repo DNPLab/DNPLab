@@ -89,8 +89,15 @@ _dspfvs_table_13 = {
         96  : 2.995,
         }
 
-def find_group_delay(decim,dspfvs):
-    '''
+def find_group_delay(decim, dspfvs):
+    '''Determine group delay from tables
+
+    Args:
+        decim: Decimation factor of the digital filter (factor by which oversampling rate exeeds sampling rate).
+        dspfvs: Firmware version for Bruker Console.
+    
+    Returns:
+        float: Group delay. Number of points FID is shifted by DSP. The ceiling of this number (group delay rounded up) is the number of points should be removed from the start of the FID.
     '''
     group_delay = 0
     if decim == 1:
@@ -109,23 +116,37 @@ def find_group_delay(decim,dspfvs):
 
     return group_delay
 
-def load_title(path, expNum = 1, titlePath = 'pdata/1',titleFilename = 'title'):
-    '''
-    Import Topspin Experiment Title File
+def load_title(path, expNum = 1, titlePath = 'pdata/1', titleFilename = 'title'):
+    '''Import Topspin Experiment Title File
+
+    Args:
+        path (str): Directory of title
+        expNum (int): Experiment number to return title
+        titlePath (str): Path within experiment of title
+        titleFilename (str): filename of title
+
+    Returns:
+        str: Contents of experiment title file
     '''
 
-    pathFilename = _os.path.join(path,str(expNum),titlePath,titleFilename) 
+    pathFilename = _os.path.join(path, str(expNum), titlePath, titleFilename) 
 
-    with open(pathFilename,'r') as f:
+    with open(pathFilename, 'r') as f:
         rawTitle = f.read()
     title = rawTitle.rstrip()
 
     return title
 
 def load_acqu(path, expNum = 1, paramFilename = 'acqus'):
-    '''
-    JCAMPDX file
-    return dictionary of parameters
+    '''Import Topspin JCAMPDX file
+
+    Args:
+        path (str): directory of acqusition file
+        expNum (int): Experiment number
+        paramFilename (str): Acqusition parameters filename
+
+    Returns:
+        dict: Dictionary of acqusition parameters
     '''
 
     pathFilename = path + str(expNum) + '/' + paramFilename
@@ -176,8 +197,15 @@ def load_proc(path, expNum = 1, procNum = 1, paramFilename = 'procs'):
 
 
 
-def dir_data_type(path,expNum):
-    '''
+def dir_data_type(path, expNum):
+    '''Determine type of data in directory
+
+    Args:
+        path (str): Directory of data
+        expNum (int): Experiment number
+
+    Returns:
+        str: String identifying filetype
     '''
     fullPath = path + '/' + str(expNum)
 
@@ -193,8 +221,16 @@ def dir_data_type(path,expNum):
     else:
         return ''
 
-def import_topspin(path,expNum,paramFilename = 'acqus'):
-    '''
+def import_topspin(path, expNum, paramFilename = 'acqus'):
+    '''Import topspin data and return dnpdata object
+
+    Args:
+        path (str): Directory of data
+        expNum (int): Experiment number
+        paramFilename (str): Parameters filename
+
+    Returns:
+        dnpdata: topspin data
     '''
     dirType = dir_data_type(path,expNum)
 
@@ -217,8 +253,16 @@ def import_topspin(path,expNum,paramFilename = 'acqus'):
         Print('Could Not Identify Data Type in File')
 
 
-def topspin_fid(path,expNum,paramFilename = 'acqus'):
-    '''
+def topspin_fid(path, expNum, paramFilename = 'acqus'):
+    '''Import topspin fid data and return dnpdata object
+
+    Args:
+        path (str): Directory of data
+        expNum (int): Experiment number
+        paramFilename (str): Parameters filename
+
+    Returns:
+        dnpdata: Topspin data
     '''
     attrsDict = load_acqu(path, expNum, paramFilename)
 
@@ -255,7 +299,7 @@ def topspin_fid(path,expNum,paramFilename = 'acqus'):
     return output
 
 def topspin_jcamp_dx(path):
-    '''Return the contents of
+    '''Return the contents of topspin JCAMP-DX file as dictionary
 
     Args:
         path: Path to file
@@ -342,7 +386,14 @@ def topspin_jcamp_dx(path):
 
 
 def topspin_vdlist(path, expNum):
-    '''
+    '''Return topspin vdlist
+
+    Args:
+        Path (str): Directory of data
+        expNum (int): Experiment number
+
+    Returns:
+        numpy.ndarray: vdlist as numpy array
     '''
     fullPath = path + str(expNum) + '/vdlist'
 
@@ -371,8 +422,16 @@ def topspin_vdlist(path, expNum):
     vdList = _np.array(vdList)
     return vdList
 
-def import_ser(path,expNum,paramFilename = 'acqus'):
-    '''
+def import_ser(path, expNum, paramFilename = 'acqus'):
+    '''Import topspin ser file
+
+    Args:
+        path (str): Directory of data
+        expNum (int): Experiment number
+        paramFilename (str): Filename of parameters file
+
+    Returns:
+        dnpdata: Topspin data
     '''
     attrsDict = load_acqu(path, expNum, paramFilename)
 
@@ -411,8 +470,16 @@ def import_ser(path,expNum,paramFilename = 'acqus'):
 
     return output
 
-def topspin_ser_phase_cycle(path,expNum,paramFilename = 'acqus'):
-    '''
+def topspin_ser_phase_cycle(path, expNum, paramFilename = 'acqus'):
+    '''Import Topspin data with phase cycle saved as different dimension
+
+    Args:
+        path (str): Directory of data
+        expNum (int): Experiment number
+        paramFilename (str): Filename of parameters file
+
+    Returns:
+        dnpdata: Topspin data
     '''
     attrsDict = load_acqu(path, expNum, paramFilename)
 
@@ -456,7 +523,13 @@ def topspin_ser_phase_cycle(path,expNum,paramFilename = 'acqus'):
 
 
 def import_topspin_dir(path):
-    '''
+    '''Import directory of Topspin data and return as dictionary
+
+    Args:
+        path (str): Directory of data
+
+    Returns:
+        dict: Topspin data. Keys correspond to folder name. Values correspond to dnpdata with topspin data for each folder.
     '''
 
     dirFiles = [x for x in _os.listdir(path) if _os.path.isdir(_os.path.join(path,x))]
@@ -468,11 +541,7 @@ def import_topspin_dir(path):
             dataDict[expNum] = tempData
         except:
             pass
-#            print('%s is not a valid data directory'%(expNum))
     return dataDict
-
-
-
 
 if __name__ == "__main__":
     pass
