@@ -127,10 +127,11 @@ class hydrationGUI(QMainWindow):
         self.optcentCheckbox.resize(100, 20)
         self.optcentCheckbox.setText('Optimize')
         # opt window button
-        self.optwidthButton = QPushButton('Optimize Width', self)
-        self.optwidthButton.setStyleSheet('font : bold ; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
-        self.optwidthButton.move(490, 588)
-        self.optwidthButton.resize(120, 20)
+        self.optwidthCheckbox = QCheckBox(self)
+        self.optwidthCheckbox.setStyleSheet('font : bold 14px')
+        self.optwidthCheckbox.move(490, 588)
+        self.optwidthCheckbox.resize(100, 20)
+        self.optwidthCheckbox.setText('Optimize')
 
         # autophase checkbox
         self.onlyT1pCheckbox = QCheckBox(self)
@@ -168,13 +169,13 @@ class hydrationGUI(QMainWindow):
         self.dnpLab_errorLabel = QLabel(self)
         self.dnpLab_errorLabel.setStyleSheet('font : bold 14px')
         self.dnpLab_errorLabel.move(615, 545)
-        self.dnpLab_errorLabel.resize(200, 20)
+        self.dnpLab_errorLabel.resize(500, 20)
         self.dnpLab_errorLabel.setText('dnpLab fit Error')
         # workup error
         self.workup_errorLabel = QLabel(self)
         self.workup_errorLabel.setStyleSheet('font : bold 14px')
         self.workup_errorLabel.move(615, 525)
-        self.workup_errorLabel.resize(200, 20)
+        self.workup_errorLabel.resize(500, 20)
         self.workup_errorLabel.setText('Workup fit Error')
 
         # T1 interpolation label
@@ -327,10 +328,9 @@ class hydrationGUI(QMainWindow):
         # set some default parameters
         self.wrkup_smax = 1
 
-        self.intwindowSlider.setMinimum(5)
-        self.intwindowSlider.setMaximum(50)
-        self.gui_dict['processing_spec']['integration_width'] = 20
-        self.gui_dict['processing_spec']['autoint_width'] = self.gui_dict['processing_spec']['integration_width']
+        self.intwindowSlider.setMinimum(1)
+        self.intwindowSlider.setMaximum(100)
+        self.gui_dict['processing_spec']['integration_width'] = 10
         self.intwindowSlider.setValue(self.gui_dict['processing_spec']['integration_width'])
 
         self.gui_dict['processing_spec']['integration_center'] = 0
@@ -379,7 +379,7 @@ class hydrationGUI(QMainWindow):
             self.phaseSlider.setVisible(False)
             self.optcentCheckbox.setVisible(False)
             self.optphsCheckbox.setVisible(False)
-            self.optwidthButton.setVisible(False)
+            self.optwidthCheckbox.setVisible(False)
 
             if self.gui_dict['gui_function']['isWorkup'] or self.gui_dict['gui_function']['isLab']:
                 self.backButton.setVisible(False)
@@ -411,7 +411,7 @@ class hydrationGUI(QMainWindow):
             self.phaseSlider.setVisible(True)
             self.optcentCheckbox.setVisible(True)
             self.optphsCheckbox.setVisible(True)
-            self.optwidthButton.setVisible(True)
+            self.optwidthCheckbox.setVisible(True)
             self.autoButton.setVisible(True)
             self.backButton.setVisible(True)
             self.nextButton.setVisible(True)
@@ -455,7 +455,8 @@ class hydrationGUI(QMainWindow):
         self.optcentCheckbox.setChecked(True)
         self.optphsCheckbox.clicked.connect(self.Optimize_Phase_Checkbox)
         self.optphsCheckbox.setChecked(True)
-        self.optwidthButton.clicked.connect(self.Optimize_Int_Width)
+        self.optwidthCheckbox.clicked.connect(self.Optimize_Width_Checkbox)
+        self.optwidthCheckbox.setChecked(False)
         self.nextButton.clicked.connect(self.Next_Button)
         self.autoButton.clicked.connect(self.Auto_Process_Button)
         self.backButton.clicked.connect(self.Back_Button)
@@ -580,9 +581,9 @@ class hydrationGUI(QMainWindow):
 
     def workupPhaseOpt(self):
 
-        opt_dict = copy.deepcopy(self.processing_workspace)
+        optphase_workspace = copy.deepcopy(self.processing_workspace)
 
-        curve = opt_dict['proc'].values
+        curve = optphase_workspace['proc'].values
         # {{{ find bestindex once
         phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)  # this should work w/out altering the sign
         rotated_data = (curve.reshape(-1, 1)) * np.exp(-1j * phases)
@@ -602,16 +603,16 @@ class hydrationGUI(QMainWindow):
                 (np.imag(rotated_data) ** 2).sum(axis=0))  # optimize the signal power to noise power
             bestindex = np.argmax(success)
 
-        self.gui_dict['processing_spec']['originalPhase'] = phases[0, bestindex]
+        self.gui_dict['processing_spec']['original_phase'] = phases[0, bestindex]
 
-    def optCenter(self):
+    def optCenter(self,width):
 
         optcenter_workspace = copy.deepcopy(self.processing_workspace)
 
         intgrl_array = []
         indx = range(-50, 51)
-        optcenter_workspace = self.phs_workspace(optcenter_workspace, self.gui_dict['processing_spec']['originalPhase'])
-        int_params = {'integrate_width': 10}
+        optcenter_workspace = self.phs_workspace(optcenter_workspace, self.gui_dict['processing_spec']['original_phase'])
+        int_params = {'integrate_width': width}
         for k in indx:
             iterativeopt_workspace = copy.deepcopy(optcenter_workspace)
             int_params['integrate_center'] = k
@@ -623,128 +624,32 @@ class hydrationGUI(QMainWindow):
         cent = np.argmax(intgrl_array)
         self.gui_dict['processing_spec']['integration_center'] = indx[cent]
 
-    def Optimize_Int_Width(self):
-        """Optimize the integration width by processing with a range of integration widths and comparing the standard deviation in corresponding dnpHydration fits"""
+    def optWidth(self):
+        """Optimize the integration width"""
 
-        if self.gui_dict['gui_function']['buttons']:
-
-            print('Optimizing Integration Width...')
-            try:
-
-                try:
-                    spin_C = float(self.slcEdit.text())
-                    field = float(self.fieldEdit.text())
-                    T100 = float(self.t100Edit.text())
-                except:
-                    print('Supply all parameters in numerical format')
-                    return
-
-                if self.tetheredCheckbox.isChecked():
-                    smax_model = 'tethered'
-                else:
-                    smax_model = 'free'
-                if self.linearfitCheckbox.isChecked():
-                    t1_interp_method = 'linear'
-                else:
-                    t1_interp_method = 'second_order'
-
-                opt_widths = range(16, 27, 2)
-
-                """
-                fldrs =  list(self.gui_dict['folder_structure']['enh'][0:5]) + list(self.gui_dict['folder_structure']['enh'][len(self.gui_dict['folder_structure']['enh'])-4:len(self.gui_dict['folder_structure']['enh'])-1]) + list(self.gui_dict['folder_structure']['T1'])
-                
-                fldrs.insert(0, self.gui_dict['folder_structure']['p0'])
-                fldrs.insert(len(fldrs), self.gui_dict['folder_structure']['T10'])
-                """
-
-                ksig_stdd = []
-                for indx in opt_widths:
-                    print('Trying width = ' + str(indx) + '...')
-                    E = []
-                    T1p = []
-                    for k in self.gui_dict['folder_structure']['all']:
-
-                        self.processing_workspace = self.import_create_workspace(k)
-
-                        proc_params = {'window_linewidth': 10, 'zero_fill_factor': 2}
-                        self.processing_workspace = self.proc_workspace(self.processing_workspace, proc_params)
-
-                        self.workupPhaseOpt()
-                        self.processing_workspace = self.phs_workspace(self.processing_workspace,
-                                                                       self.gui_dict['processing_spec'][
-                                                                           'originalPhase'])
-                        self.optCenter()
-
-                        int_params = {'integrate_center': self.gui_dict['processing_spec']['integration_center'],
-                                      'integrate_width': indx}
-                        iterativeopt_workspace = self.int_workspace(self.processing_workspace, int_params)
-
-                        if len(iterativeopt_workspace['proc'].values) > 1:
-                            popt, stdd = self.t1Fit(iterativeopt_workspace)
-
-                        if k == self.gui_dict['folder_structure']['p0']:
-                            p0 = iterativeopt_workspace['proc'].values[0]
-                        elif k in self.gui_dict['folder_structure']['enh']:
-                            E.append(iterativeopt_workspace['proc'].values[0] / p0)
-                        if k in self.gui_dict['folder_structure']['T1']:
-                            T1p.append(popt[0])
-                        elif k == self.gui_dict['folder_structure']['T10']:
-                            T10 = popt[0]
-
-                    if self.exclude1T1Checkbox.isChecked():
-                        T1p = T1p[1:len(T1p)]
-                        T1powers = self.gui_dict['dnpLab_data']['T1powers'][1:len(T1p)]
-                    else:
-                        T1powers = self.gui_dict['dnpLab_data']['T1powers']
-
-                    hydration = {'E': np.array(E), 'E_power': np.array(self.gui_dict['dnpLab_data']['Epowers']),
-                                 'T1': np.array(T1p), 'T1_power': np.array(T1powers)}
-                    hydration.update({
-                        'T10': T10,
-                        'T100': T100,
-                        'spin_C': spin_C,
-                        'field': field,
-                        'smax_model': smax_model,
-                        't1_interp_method': t1_interp_method
-                    })
-                    hyd = odnp.create_workspace()
-                    hyd.add('hydration_inputs', hydration)
-
-                    try:
-                        res = odnp.dnpHydration.hydration(hyd)
-                        ksig_stdd.append(res['ksigma_error'])
-                    except:
-                        ksig_stdd.append(1000)
-                        pass
-
-                min_ksig_stdd = np.argmin(ksig_stdd)
-                self.gui_dict['processing_spec']['integration_width'] = opt_widths[min_ksig_stdd]
-
-                # self.gui_dict['processing_spec']['integration_width'] = 20
-                print('Finished optimizing integration width, best width = ' + str(
-                    self.gui_dict['processing_spec']['integration_width']))
-
-                self.optphsCheckbox.setChecked(True)
-                self.optcentCheckbox.setChecked(True)
-
-            except:
-                print('ERROR in optimizing width, resetting.')
-                pass
-
-            self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['p0']
-
-            self.Ep = []
-            self.T1p = []
-            self.T1p_error = []
-            self.reset_plots()
-            self.plot_setter()
-
-            self.dnpLab_workspace = self.import_create_workspace(self.gui_dict['rawdata_function']['folder'])
-
-            self.processData()
+        optwidth_workspace = copy.deepcopy(self.processing_workspace)
+        
+        optwidth_workspace = self.phs_workspace(optwidth_workspace, self.gui_dict['processing_spec']['original_phase'])
+        xdata = optwidth_workspace['proc'].coords
+        ydata = abs(np.real(optwidth_workspace['proc'].values))
+        qual_factor = 1/3
+        if optwidth_workspace['proc'].ndim == 1:
+            xdata = np.ravel(xdata)
+            one_third = np.where(ydata > max(ydata)*qual_factor)
+            one_third = np.ravel(one_third)
+            self.gui_dict['processing_spec']['integration_width'] = xdata[one_third[len(one_third)-1]+5] - xdata[one_third[0]-5]
         else:
-            pass
-
+            xdata = np.ravel(xdata[0])
+            min_x = []
+            max_x = []
+            for k in range(0,len(ydata[0,:])):
+                one_third = np.where(ydata[round(len(ydata[:,0])/2)-75:round(len(ydata[:,0])/2)+75,k] > max(ydata[round(len(ydata[:,0])/2)-75:round(len(ydata[:,0])/2)+75,k])*qual_factor)
+                one_third = np.ravel(one_third)
+                min_x.append(xdata[one_third[0]-5])
+                max_x.append(xdata[one_third[len(one_third)-1]+5])
+            
+            self.gui_dict['processing_spec']['integration_width'] = max(max_x) - min(min_x)
+        
     def import_create_workspace(self, folder):
 
         data = odnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'], folder)
@@ -756,8 +661,6 @@ class hydrationGUI(QMainWindow):
     @staticmethod
     def proc_workspace(workspace, proc_params):
 
-        proc_params['zero_fill_factor'] = 2
-        proc_params['window_linewidth'] = 10
         workspace = odnp.dnpNMR.remove_offset(workspace, {})
         workspace = odnp.dnpNMR.window(workspace, {'linewidth': proc_params['window_linewidth']})
         workspace = odnp.dnpNMR.fourier_transform(workspace, {'zero_fill_factor': proc_params['zero_fill_factor']})
@@ -800,7 +703,11 @@ class hydrationGUI(QMainWindow):
                 flname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_output.mat'
             else:
                 dirname = QFileDialog.getOpenFileName(self)
-                flname = dirname[0]
+                
+                if dirname:
+                    flname = dirname[0]
+                else:
+                    return
 
             print('GUI Results: ' + flname)
 
@@ -860,21 +767,27 @@ class hydrationGUI(QMainWindow):
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
-            self.pathLabel.setText('GUI DATA ERROR')
+            self.pathLabel.setText('File type error ')
             self.gui_dict['gui_function']['buttons'] = False
 
+        
     def Workup_Button(self):
         """Select the "Workup" folder that is the output of workup software used by the Han Lab."""
         try:
             if self.testmode:
-                wrkname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'Workup'
+                pthnm = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'Workup'
             else:
-                wrkname = QFileDialog.getExistingDirectory(self)
-
-            wrkname = os.path.join(wrkname + os.sep)
-            self.gui_dict['workup_function']['directory'] = wrkname
-            print('Workup: ' + wrkname)
-            x = wrkname.split(os.sep)
+                dirname = QFileDialog.getExistingDirectory(self)
+                
+                if dirname:
+                    pthnm = dirname
+                else:
+                    return
+            
+            pthnm = os.path.join(pthnm + os.sep)
+            self.gui_dict['workup_function']['directory'] = pthnm
+            print('Workup: ' + pthnm)
+            x = pthnm.split(os.sep)
             self.pathLabel.setText('WORKUP DIRECTORY: ' + x[len(x) - 3] + ' ' + os.sep + ' ' + x[len(x) - 2])
 
             self.ksiglabel = 'Workup'
@@ -903,13 +816,14 @@ class hydrationGUI(QMainWindow):
             self.finishProcessing()
 
             self.gui_dict['gui_function']['buttons'] = True
-
+            
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
-            self.pathLabel.setText('WORKUP ERROR')
+            self.pathLabel.setText('File type error')
             self.gui_dict['gui_function']['buttons'] = False
 
+        
     def processWorkup(self):
 
         # load enhancementPowers.csv
@@ -1080,27 +994,31 @@ class hydrationGUI(QMainWindow):
         """Select any numbered folder of a topspin dataset that contains 1D or 2D data"""
         try:
             if self.testmode:
-                dirname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + '304'
+                pthnm = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + '304'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
+                if dirname:
+                    pthnm = dirname
+                else:
+                    return
 
-            dirname = os.path.join(dirname + os.sep)
+            pthnm = os.path.join(pthnm + os.sep)
 
-            x = dirname.split(os.sep)
+            x = pthnm.split(os.sep)
             self.pathLabel.setText('DATA DIRECTORY: ' + x[len(x) - 3] + ' ' + os.sep + ' ' + x[len(x) - 2])
 
             self.singlefolder = x[len(x) - 2]
-            path = dirname.replace(str(self.singlefolder) + os.sep, '')
+            path = pthnm.replace(str(self.singlefolder) + os.sep, '')
 
             data = odnp.dnpImport.topspin.import_topspin(path, self.singlefolder)
             self.dnpLab_workspace = odnp.create_workspace('raw', data)
             self.dnpLab_workspace.copy('raw', 'proc')
 
             if self.dnpLab_workspace['proc'].ndim == 2:
-                print('T1 Measurement: ' + dirname)
+                print('T1 Measurement: ' + pthnm)
                 self.gui_dict['rawdata_function']['folder'] = -1
             elif self.dnpLab_workspace['proc'].ndim == 1:
-                print('1D Data: ' + dirname)
+                print('1D Data: ' + pthnm)
                 self.gui_dict['rawdata_function']['folder'] = -2
 
             self.reset_plots()
@@ -1126,13 +1044,14 @@ class hydrationGUI(QMainWindow):
                 self.enhplt.setVisible(False)
             elif self.gui_dict['rawdata_function']['folder'] == -1:
                 self.enhplt.setVisible(True)
-
+                
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
-            self.pathLabel.setText('T1 DATA ERROR')
+            self.pathLabel.setText('Bruker data error')
             self.gui_dict['gui_function']['sliders'] = False
 
+        
     def Han_Lab_Button(self):
         """Select the base folder of a dataset generated using the 'rb_dnp1' command in topspin at CNSI
         
@@ -1146,14 +1065,19 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                dirname = self.labpath + os.sep + 'data' + os.sep + 'topspin'
+                pthnm = self.labpath + os.sep + 'data' + os.sep + 'topspin'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
+                if dirname:
+                    pthnm = dirname
+                else:
+                    return
+                
 
-            dirname = os.path.join(dirname + os.sep)
-            self.gui_dict['rawdata_function']['directory'] = dirname
-            print('Data: ' + dirname)
-            x = dirname.split(os.sep)
+            pthnm = os.path.join(pthnm + os.sep)
+            self.gui_dict['rawdata_function']['directory'] = pthnm
+            print('Data: ' + pthnm)
+            x = pthnm.split(os.sep)
             self.pathLabel.setText('DATA DIRECTORY: ' + x[len(x) - 3] + ' ' + os.sep + ' ' + x[len(x) - 2])
 
             self.gui_dict['folder_structure'] = {}
@@ -1189,7 +1113,7 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict['gui_function']['addWorkup'] = True
                 self.gui_dict['workup_function']['show'] = True
 
-                self.gui_dict['workup_function']['directory'] = os.path.join(dirname + 'Workup' + os.sep)
+                self.gui_dict['workup_function']['directory'] = os.path.join(pthnm + 'Workup' + os.sep)
 
                 self.processWorkup()
 
@@ -1303,14 +1227,15 @@ class hydrationGUI(QMainWindow):
             self.dnpLab_workspace = self.import_create_workspace(self.gui_dict['rawdata_function']['folder'])
 
             self.processData()
-
+        
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
-            self.pathLabel.setText('RAW DATA ERROR')
+            self.pathLabel.setText('Han Lab data error ')
             self.gui_dict['gui_function']['buttons'] = False
             self.gui_dict['gui_function']['sliders'] = False
-
+        
+        
     def Next_Button(self):
         """Use the Next button to step through the data folders"""
         if self.gui_dict['gui_function']['buttons']:
@@ -1341,37 +1266,56 @@ class hydrationGUI(QMainWindow):
 
             elif self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1'] or \
                     self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
+                
+                try:
+                    popt, stdd = self.t1Fit(nextproc_workspace)
+                    
+                    if self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1']:
+                        self.T1p.append(popt[0])
+                        self.T1p_error.append(stdd[0])
+                    elif self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
+                        self.gui_dict['dnpLab_data']['T10'] = popt[0]
+                        self.gui_dict['dnpLab_data']['T10_error'] = stdd[0]
+                        self.t10Edit.setText(str(round(self.gui_dict['dnpLab_data']['T10'], 4)))
+                        
+                    if self.gui_dict['gui_function']['autoProcess']:
+                        pass
+                    else:
+                        self.gui_dict['t1_fit']['tau'] = np.reshape(nextproc_workspace['proc'].coords, -1)
+                        self.gui_dict['t1_fit']['t1Amps'] = nextproc_workspace['proc'].values
+                        self.gui_dict['t1_fit']['xaxis'] = np.r_[np.min(self.gui_dict['t1_fit']['tau']):np.max(
+                            self.gui_dict['t1_fit']['tau']):100j]
+                        self.gui_dict['t1_fit']['t1Fit'] = self.t1Func(self.gui_dict['t1_fit']['xaxis'], popt[0], popt[1], popt[2])
+                        self.gui_dict['t1_fit']['t1Val'] = popt[0]
 
-                popt, stdd = self.t1Fit(nextproc_workspace)
+                        self.gui_dict['t1_plot']['xdata'] = self.gui_dict['dnpLab_data']['T1powers'][0:len(self.T1p)]
+                        self.gui_dict['t1_plot']['ydata'] = self.T1p
+                        self.gui_dict['t1_plot']['ymin'] = min(self.gui_dict['t1_plot']['ydata']) * .9
+                        self.gui_dict['t1_plot']['ymax'] = max(self.gui_dict['t1_plot']['ydata']) * 1.1
+                        self.gui_dict['t1_plot']['ytick'] = [max(self.T1p)]
+                        self.gui_dict['t1_plot']['ytickLabel'] = [str(round(max(self.T1p), 1))]
 
-                if self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1']:
-                    self.T1p.append(popt[0])
-                    self.T1p_error.append(stdd[0])
-                elif self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
-                    self.gui_dict['dnpLab_data']['T10'] = popt[0]
-                    self.gui_dict['dnpLab_data']['T10_error'] = stdd[0]
-                    self.t10Edit.setText(str(round(self.gui_dict['dnpLab_data']['T10'], 4)))
-
-                if self.gui_dict['gui_function']['autoProcess']:
-                    pass
-                else:
-                    self.gui_dict['t1_fit']['tau'] = np.reshape(nextproc_workspace['proc'].coords, -1)
-                    self.gui_dict['t1_fit']['t1Amps'] = nextproc_workspace['proc'].values
-                    self.gui_dict['t1_fit']['xaxis'] = np.r_[np.min(self.gui_dict['t1_fit']['tau']):np.max(
-                        self.gui_dict['t1_fit']['tau']):100j]
-                    self.gui_dict['t1_fit']['t1Fit'] = self.t1Func(self.gui_dict['t1_fit']['xaxis'], popt[0], popt[1],
-                                                                   popt[2])
-                    self.gui_dict['t1_fit']['t1Val'] = popt[0]
-
-                    self.gui_dict['t1_plot']['xdata'] = self.gui_dict['dnpLab_data']['T1powers'][0:len(self.T1p)]
-                    self.gui_dict['t1_plot']['ydata'] = self.T1p
-                    self.gui_dict['t1_plot']['ymin'] = min(self.gui_dict['t1_plot']['ydata']) * .9
-                    self.gui_dict['t1_plot']['ymax'] = max(self.gui_dict['t1_plot']['ydata']) * 1.1
-                    self.gui_dict['t1_plot']['ytick'] = [max(self.T1p)]
-                    self.gui_dict['t1_plot']['ytickLabel'] = [str(round(max(self.T1p), 1))]
-
-                    self.plot_t1()
-                    self.plot_enh()
+                        self.plot_t1()
+                        self.plot_enh()
+                        
+                except:
+                    if self.gui_dict['folder_structure']['all'][
+                    self.gui_dict['folder_structure']['index']] == 28:
+                        print('WARNING: Error in first T1(p) fit, setting to ~0 and excluding from dnpHydration')
+                        self.exclude1T1Checkbox.setChecked(True)
+                        self.T1p.append(0.001)
+                        self.T1p_error.append(0)
+                    elif self.gui_dict['folder_structure']['all'][
+                    self.gui_dict['folder_structure']['index']] == self.gui_dict['folder_structure']['T10']:
+                        print('WARNING: Error in T1(0) fit, arbitrarily setting T1(0) = 2s')
+                        self.gui_dict['dnpLab_data']['T10'] = 2.0
+                        self.gui_dict['dnpLab_data']['T10_error'] = 0
+                        self.t10Edit.setText(str(round(self.gui_dict['dnpLab_data']['T10'], 4)))
+                    else:
+                        print('WARNING: Error in T1(p) fit for folder ' + str(self.gui_dict['folder_structure']['all'][
+                        self.gui_dict['folder_structure']['index']]) + ', setting equal to previous T1(p)')
+                        self.T1p.append(self.T1p[len(self.T1p)-1])
+                        self.T1p_error.append(0)
 
             self.gui_dict['folder_structure']['index'] += 1
             if self.gui_dict['gui_function']['autoProcess']:
@@ -1392,8 +1336,9 @@ class hydrationGUI(QMainWindow):
                     self.plot_setter()
 
                 self.dnpLab_workspace = self.import_create_workspace(self.gui_dict['rawdata_function']['folder'])
-
+                    
                 self.processData()
+
         else:
             pass
 
@@ -1416,6 +1361,7 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict['folder_structure']['index'] = len(self.gui_dict['folder_structure']['all']) - 1
                     self.nextButton.setText('Finish')
                 else:
+                    self.nextButton.setText('Next')
                     if self.onlyT1pCheckbox.isChecked():
                         self.gui_dict['rawdata_function']['folder'] = self.gui_dict['folder_structure']['T1'][0]
                         self.gui_dict['folder_structure']['index'] = len(
@@ -1479,21 +1425,19 @@ class hydrationGUI(QMainWindow):
         """Allow the correct phase and integration window to be automatically chosen and process the full ODNP dataset"""
         if self.gui_dict['gui_function']['buttons']:
             try:
+                self.optphsCheckbox.setChecked(True)
+                self.optcentCheckbox.setChecked(True)
                 print('Auto processing, please wait...')
                 self.gui_dict['gui_function']['autoProcess'] = True
                 # t = time.time()
-                for k in range(self.gui_dict['folder_structure']['index'] + 1,
-                               len(self.gui_dict['folder_structure']['all']) + 1):
+                for k in range(self.gui_dict['folder_structure']['index'] + 1, len(self.gui_dict['folder_structure']['all']) + 1):
                     self.Next_Button()
                 # elapsed = time.time() - t
                 # print('AutoProcess Time = ' + str(elapsed))
             except:
-                print('Error in auto processing, resetting to folder # ' + str(self.gui_dict['folder_structure']['p0']))
                 self.gui_dict['folder_structure']['index'] = len(self.gui_dict['folder_structure']['all'])
                 self.Back_Button()
-
-                self.optphsCheckbox.setChecked(True)
-                self.optcentCheckbox.setChecked(True)
+                print('Error in auto processing folder # ' + str(self.gui_dict['folder_structure']['all'][k-2]) + ', resetting to folder # ' + str(self.gui_dict['folder_structure']['p0']))
 
         else:
             pass
@@ -1505,23 +1449,29 @@ class hydrationGUI(QMainWindow):
         self.processing_workspace = self.proc_workspace(self.processing_workspace, proc_params)
 
         phase_dict = copy.deepcopy(self.processing_workspace)
-        self.gui_dict['processing_spec']['originalPhase'] = phase_dict['proc'].phase()
+        self.gui_dict['processing_spec']['original_phase'] = phase_dict['proc'].phase()
 
         if self.optphsCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
             self.workupPhaseOpt()
 
         if self.optcentCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
-            self.optCenter()
+            width = 10
+            self.optCenter(width)
+            
+        if self.optwidthCheckbox.isChecked():
+            self.optWidth()
+            self.optCenter(self.gui_dict['processing_spec']['integration_width'])
+            self.optcentCheckbox.setChecked(True)
 
         if self.gui_dict['gui_function']['autoProcess']:
-            self.gui_dict['processing_spec']['phase'] = self.gui_dict['processing_spec']['originalPhase']
+            self.gui_dict['processing_spec']['phase'] = self.gui_dict['processing_spec']['original_phase']
         else:
             self.gui_dict['gui_function']['sliders'] = False
 
-            fac = (np.pi / self.gui_dict['processing_spec']['originalPhase'])
+            fac = (np.pi / self.gui_dict['processing_spec']['original_phase'])
             self.phaseSlider.setMinimum(round(-1000 * abs(fac)))
             self.phaseSlider.setMaximum(round(1000 * abs(fac)))
-            self.phaseSlider.setValue(self.gui_dict['processing_spec']['originalPhase'])
+            self.phaseSlider.setValue(self.gui_dict['processing_spec']['original_phase'])
 
             self.intcenterSlider.setValue(self.gui_dict['processing_spec']['integration_center'])
             self.intcenterSlider.setMinimum(self.gui_dict['processing_spec']['integration_center'] - 50)
@@ -1538,12 +1488,12 @@ class hydrationGUI(QMainWindow):
         adjslider_workspace = copy.deepcopy(self.processing_workspace)
 
         if self.gui_dict['gui_function']['autoProcess']:
-            self.gui_dict['processing_spec']['integration_width'] = 20
+            pass
         else:
 
-            self.gui_dict['processing_spec']['phase'] = self.gui_dict['processing_spec']['originalPhase'] + (
+            self.gui_dict['processing_spec']['phase'] = self.gui_dict['processing_spec']['original_phase'] + (
                     self.gui_dict['processing_spec']['phase_factor'] * self.gui_dict['processing_spec'][
-                'originalPhase'])
+                'original_phase'])
 
             xdata = adjslider_workspace['proc'].coords
             self.gui_dict['data_plot']['xdata'] = np.reshape(xdata['t2'], -1)
@@ -1563,16 +1513,30 @@ class hydrationGUI(QMainWindow):
 
             self.gui_dict['t1_fit']['tau'] = np.reshape(adjslider_workspace['proc'].coords, -1)
             self.gui_dict['t1_fit']['t1Amps'] = adjslider_workspace['proc'].values
-
-            popt, stdd = self.t1Fit(adjslider_workspace)
+            
+            try:
+                popt, stdd = self.t1Fit(adjslider_workspace)
+            except:
+                self.gui_dict['data_plot']['xmin'] = int(round(
+                    self.gui_dict['processing_spec']['integration_center'] - np.abs(
+                        self.gui_dict['processing_spec']['integration_width']) / 2))
+                self.gui_dict['data_plot']['xmax'] = int(round(
+                    self.gui_dict['processing_spec']['integration_center'] + np.abs(
+                        self.gui_dict['processing_spec']['integration_width']) / 2))
+                self.plot_data()
+                self.gui_dict['t1_fit']['xaxis'] = []
+                self.gui_dict['t1_fit']['t1Fit'] = []
+                self.gui_dict['t1_fit']['t1Val'] = 000
+                self.gui_dict['enhancement_plot']['title'] = 'T1 Fit Error'
+                self.plot_enh()
+                return
 
             if self.gui_dict['gui_function']['autoProcess']:
                 pass
             else:
                 self.gui_dict['t1_fit']['xaxis'] = np.r_[np.min(self.gui_dict['t1_fit']['tau']):np.max(
                     self.gui_dict['t1_fit']['tau']):100j]
-                self.gui_dict['t1_fit']['t1Fit'] = self.t1Func(self.gui_dict['t1_fit']['xaxis'], popt[0], popt[1],
-                                                               popt[2])
+                self.gui_dict['t1_fit']['t1Fit'] = self.t1Func(self.gui_dict['t1_fit']['xaxis'], popt[0], popt[1], popt[2])
                 self.gui_dict['t1_fit']['t1Val'] = popt[0]
                 self.plot_enh()
 
@@ -1581,7 +1545,7 @@ class hydrationGUI(QMainWindow):
         else:
 
             if self.gui_dict['rawdata_function']['folder'] == -1:
-                print('---Error in T1---')
+                print('---Standard Deviation in T1---')
                 print('T1: ' + str(round(popt[0], 4)) + ' +/- ' + str(round(stdd[0], 4)))
 
             self.gui_dict['data_plot']['xmin'] = int(round(
@@ -1678,21 +1642,21 @@ class hydrationGUI(QMainWindow):
         self.gui_dict['enhancement_plot']['plotEpfit'] = True
 
         if self.gui_dict['gui_function']['isWorkup']:
-            print('---workup Errors in T1---')
+            print('---workup Standard Deviations in T1---')
             print('T10: ' + str(round(self.gui_dict['workup_data']['T10'], 2)) + ' +/- ' + str(
                 round(self.gui_dict['workup_data']['T10_error'], 4)))
             for k in range(0, len(self.gui_dict['workup_data']['T1p'])):
                 print(str(round(self.gui_dict['workup_data']['T1p'][k], 2)) + ' +/- ' + str(
                     round(self.gui_dict['workup_data']['T1p_error'][k], 4)))
         else:
-            print('---Errors in T1---')
+            print('---Standard Deviations in T1---')
             print('T10: ' + str(round(self.gui_dict['dnpLab_data']['T10'], 2)) + ' +/- ' + str(
                 round(self.gui_dict['dnpLab_data']['T10_error'], 4)))
             for k in range(0, len(self.T1p)):
                 print(str(round(self.T1p[k], 2)) + ' +/- ' + str(round(self.T1p_error[k], 4)))
 
             if self.gui_dict['gui_function']['addWorkup']:
-                print('---workup Errors in T1---')
+                print('---workup Standard Deviations in T1---')
                 print('T10: ' + str(round(self.gui_dict['workup_data']['T10'], 2)) + ' +/- ' + str(
                     round(self.gui_dict['workup_data']['T10_error'], 4)))
                 for k in range(0, len(self.gui_dict['workup_data']['T1p'])):
@@ -1801,14 +1765,14 @@ class hydrationGUI(QMainWindow):
                 self.addHyd_workspace.add('hydration_results', self.gui_dict['hydration_results'])
             except:
                 if T100 <= T10:
-                    print('T10(0) cannot be less than or equal to T1(0)')
+                    self.dnpLab_errorLabel.setText('dnpLab fit Error: T10(0) cannot be less than or equal to T1(0)')
                 if spin_C <= 0:
-                    print('Spin concentration cannot be zero or negative')
+                    self.dnpLab_errorLabel.setText('dnpLab fit Error: Spin concentration cannot be zero or negative')
                 self.dataplt.axes.cla()
                 self.dataplt.draw()
                 self.dnpLab_errorLabel.setVisible(True)
                 return
-
+            
         if self.gui_dict['gui_function']['isWorkup'] or self.gui_dict['gui_function']['addWorkup']:
 
             if self.gui_dict['workup_function']['fit'] or self.gui_dict['workup_function']['show']:
@@ -1848,9 +1812,9 @@ class hydrationGUI(QMainWindow):
                         self.addHyd_workspace.add('hydration_results', self.gui_dict['workup_hydration_results'])
                 except:
                     if T100 <= wT10:
-                        print('T10(0) cannot be less than or equal to T1(0)')
+                        self.workup_errorLabel.setText('Workup fit Error: T10(0) cannot be less than or equal to T1(0)')
                     if spin_C <= 0:
-                        print('Spin concentration cannot be zero or negative')
+                        self.workup_errorLabel.setText('Workup fit Error: Spin concentration cannot be zero or negative')
                     self.dataplt.axes.cla()
                     self.dataplt.draw()
                     self.workup_errorLabel.setVisible(True)
@@ -1889,7 +1853,7 @@ class hydrationGUI(QMainWindow):
         self.plot_enh()
         self.plot_t1()
 
-        print('-----Errors in ksigma-----')
+        print('-----Standard Deviations in ksigma-----')
         if self.gui_dict['gui_function']['isWorkup']:
             print('Workup (dnpHydration): ' + str(
                 round(self.gui_dict['workup_hydration_results']['ksigma'], 2)) + ' +/- ' + str(
@@ -1944,7 +1908,7 @@ class hydrationGUI(QMainWindow):
         flnm = spltpthnm[len(spltpthnm) - 1]
         svpthnm = pthnm + ' hydrationGUI Results'
         if os.path.isdir(svpthnm):
-            svpthnm = svpthnm + '_2'
+            svpthnm = pthnm + '_COPY' + ' hydrationGUI Results'
         os.mkdir(svpthnm)
 
         odnp.dnpImport.h5.saveh5(self.addHyd_workspace, svpthnm + os.sep + flnm + ' hydration_parameters.h5')
@@ -1963,8 +1927,17 @@ class hydrationGUI(QMainWindow):
                           self.addHyd_workspace['hydration_results']['T1p_error'][
                           0:len(self.addHyd_workspace['hydration_inputs']['T1_power'])])).T
         np.savetxt(svpthnm + os.sep + flnm + ' T1s.csv', dfT1, fmt='%10.10f', delimiter=',',
-                   header='T1 powers,T1(p),T1(p) error', comments='')
+                   header='T1 powers,T1(p),T1(p) Std dev', comments='')
 
+    def Spectrum_Phase_Slider(self, pvalue):
+        """Slider to change the phase correction applied to the spectrum"""
+        if self.gui_dict['gui_function']['sliders']:
+            self.gui_dict['processing_spec']['phase_factor'] = pvalue / 1000
+            self.optphsCheckbox.setChecked(False)
+            self.adjustSliders()
+        else:
+            pass
+            
     def Integration_Center_Slider(self, cvalue):
         """Slider to change the center of the spectrum integration window"""
         if self.gui_dict['gui_function']['sliders']:
@@ -1978,30 +1951,12 @@ class hydrationGUI(QMainWindow):
         """Slider to change the width of the spectrum integration window"""
         if self.gui_dict['gui_function']['sliders']:
             self.gui_dict['processing_spec']['integration_width'] = wvalue
+            self.optwidthCheckbox.setChecked(False)
             self.optcentCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
-
-    def Spectrum_Phase_Slider(self, pvalue):
-        """Slider to change the phase correction applied to the spectrum"""
-        if self.gui_dict['gui_function']['sliders']:
-            self.gui_dict['processing_spec']['phase_factor'] = pvalue / 1000
-            self.optphsCheckbox.setChecked(False)
-            self.adjustSliders()
-        else:
-            pass
-
-    def Optimize_Center_Checkbox(self):
-        """Check this to have the GUI automatically choose the best integration center"""
-        if self.gui_dict['gui_function']['sliders']:
-            if self.optcentCheckbox.isChecked():
-                self.processData()
-            else:
-                pass
-        else:
-            pass
-
+    
     def Optimize_Phase_Checkbox(self):
         """Check this to have the GUI automatically choose the best phase"""
         if self.gui_dict['gui_function']['sliders']:
@@ -2012,7 +1967,28 @@ class hydrationGUI(QMainWindow):
                 pass
         else:
             pass
-
+            
+    def Optimize_Center_Checkbox(self):
+        """Check this to have the GUI automatically choose the best integration center"""
+        if self.gui_dict['gui_function']['sliders']:
+            if self.optcentCheckbox.isChecked():
+                self.processData()
+            else:
+                pass
+        else:
+            pass
+    
+    def Optimize_Width_Checkbox(self):
+        """Check this to have the GUI automatically choose the best integration width"""
+        if self.gui_dict['gui_function']['sliders'] and self.gui_dict['rawdata_function']['folder'] != -2:
+            if self.optwidthCheckbox.isChecked():
+                pass
+            else:
+                self.gui_dict['processing_spec']['integration_width'] = 10
+            self.processData()
+        else:
+            pass
+        
     def Linear_Interpolation_Checkbox(self):
         """Choose a linear T1 interpolation"""
         if self.linearfitCheckbox.isChecked():
