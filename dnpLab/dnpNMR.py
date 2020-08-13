@@ -298,8 +298,7 @@ def align(all_data,proc_parameters):
     data, isDict = return_data(all_data)
 
     if len(_np.shape(data.values)) != 2:
-        print('Only 2-dimensional data supported')
-        return
+        raise ValueError('Only 2-dimensional data is currently supported')
 
     requiredList = _defaultAlign_parameters.keys()
     proc_parameters = update_parameters(proc_parameters,requiredList,_defaultAlign_parameters)
