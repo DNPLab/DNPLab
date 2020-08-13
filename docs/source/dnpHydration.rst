@@ -1,8 +1,8 @@
 =============
-hydration
+dnpHydration
 =============
 
-.. automodule:: dnpLab.hydration
+.. automodule:: dnpLab.dnpHydration
    :members:
    :show-inheritance:
    :member-order: bysource

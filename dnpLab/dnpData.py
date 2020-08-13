@@ -1,8 +1,7 @@
-# Bridge12 Technologies, Inc
-# Python Class for Handling ODNP Data
+'''dnpData object for storing N-dimensional data with coordinates
+'''
 import numpy as np
 from collections.abc import MutableMapping
-#from matplotlib.pylab import *
 from copy import deepcopy
 
 from .core import nddata
@@ -11,13 +10,6 @@ version = '1.0'
 
 core_attrs_list = ['nmr_frequency']
 
-#TODO:
-# Fix Dictionary not being empty when dnp_data is initialized, problem with add_power function
-# Force all axes to be nddata arrays, so that indexing is easier
-# Add Alignment
-# Add Fit down dimension
-
-#class dnpData:
 class dnpData(nddata.nddata_core):
     '''dnpData Class for handling dnp data
 
@@ -33,70 +25,6 @@ class dnpData(nddata.nddata_core):
 
     '''
 
-#    def __abs__(self):
-#        '''return absolute value of dnpData object
-#        Example::
-#           >> data = abs(data)
-#        '''
-#        out = deepcopy(self)
-#        out.values = np.abs(out.values)
-#        return out
-#
-#    def __add__(self,data):
-#        newData = deepcopy(self)
-#        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-#            newData.values += data
-#        elif isinstance(data,np.ndarray):
-#            newData.values = newData.values + data
-#        elif isinstance(data,dnpData):
-#            newData.values = newData.values + data.values
-#        else:
-#            print('Cannot add, type not supported:')
-#            print(type(data))
-#            return
-#        return newData
-#
-#    def __copy__(self):
-#        return deepcopy(self)
-#
-#    def __getitem__(self,index):
-#        '''Indexing dnpData function
-#        '''
-##        return self.data[index]
-##        print index
-#
-#        # Make sure format is correct
-#        if len(index) % 2 == 1:
-#            print('invalid indexing')
-#            return
-#
-#        indexing_labels = index[0::2]
-#        indexing_list = index[1::2]
-#
-#        indices = []
-#
-#        for axes_ix, axes_label in enumerate(self.dims):
-#            if axes_label in indexing_labels:
-#                ix = indexing_labels.index(axes_label)
-##                indices.append(indexing_list[ix])
-#                if indexing_list[ix] == -1:
-#                    indices.append(slice(indexing_list[ix],None))
-#                elif isinstance(indexing_list[ix],int):
-#                    indices.append(slice(indexing_list[ix],indexing_list[ix]+1))
-#                else:
-#                    indices.append(indexing_list[ix])
-#            else:
-#                indices.append(slice(0,len(self.coords[axes_ix])))
-#
-#        indices = tuple(indices)
-#
-#        out = deepcopy(self)
-#        out.values = out.values[indices]
-#        for ix in range(len(out.coords)):
-#            out.coords[ix] = out.coords[ix][indices[ix]]
-#
-#        return out
-#
     def __init__(self, values = np.r_[[]], coords = [], dims = [], attrs = {}, procList = []):
         '''dnpData Class __init__ method
 
@@ -111,109 +39,28 @@ class dnpData(nddata.nddata_core):
         super().__init__(values, dims, coords, attrs)
         self.version = version
         self.proc_attrs = []
-
-#        self.values = values
-#        self.coords = coords
-#        self.dims = dims
-#        self.attrs = attrs
-#        self.proc_attrs = []
-#
-#    def __len__(self):
-#        return np.size(self.values)
-#
-#    def __mul__(self,data):
-#        newData = deepcopy(self)
-#        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-#            newData.values *= data
-#        elif isinstance(data,np.ndarray):
-#            newData.values = newData.values * data
-#        elif isinstance(data,dnpData):
-#            newData.values = newData.values * data.values
-#        else:
-#            print('Cannot add, type not supported:')
-#            print(type(data))
-#            return
-#
-#        return newData
-#
-#    def __max__(self):
-#        ''' Return maximum value of numpy array
-#        '''
-#        #NOTE Not working
-#        out = deepcopy(self)
-#        out.values = np.max(out.values)
-#        return out
-#
-#    def __pow__(self,data):
-#        newData = deepcopy(self)
-#        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-#            newData.values = newData.values**data
-#        elif isinstance(data,np.ndarray):
-#            newData.values = newData.values**data
-#        elif isinstance(data,dnpData):
-#            newData.values = newData.values**data.values
-#        else:
-#            print('Cannot add, type not supported:')
-#            print(type(data))
-#            return
-#        return newData
-#
-#    def __radd__(self,data):
-#        return self.__add__(data)
 #
     def __repr__(self):
-        ''' Representation of dnpData object
+        '''Representation of dnpData object
         '''
         return 'nddata(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self.values), repr(self.coords), repr(self.dims), repr(self.attrs))
-#
-#    def __rmul__(self,data):
-#        return self.__mul__(data)
-#
-#    def __rsub__(self,data):
-#        newData = deepcopy(self)
-#        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-#            newData.values = data - newData.data
-#        elif isinstance(data,np.ndarray):
-#            newData.values = data - newData.values
-#        elif isinstance(data,dnpData):
-#            newData.values = data.values - newData.values
-#        else:
-#            print('Cannot add, type not supported:')
-#            print(type(data))
-#            return
-#        return newData
-#
+
     def __str__(self):
+        '''String representation of dnpData object
+        '''
         if len(self.attrs) < 20:
             return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\nproc_attrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs,self.proc_attrs)
         else:
             core_attrs = {k:self.attrs[k] for k in core_attrs_list if k in core_attrs_list}
             num_additional_attrs = len(self.attrs) - len(core_attrs)
             return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\n + {} attrs'.format(self.values, self.dims, self.coords, core_attrs, num_additional_attrs)
-#
-#    def __sub__(self,data):
-#        newData = deepcopy(self)
-#        if isinstance(data,(int,float,complex)) and not isinstance(data,bool):
-#            newData.values -= data
-#        elif isinstance(data,np.ndarray):
-#            newData.values = newData.values - data
-#        elif isinstance(data,dnpData):
-#            newData.values = newData.values - data.values
-#        else:
-#            print('Cannot add, type not supported:')
-#            print(type(data))
-#            return
-#        return newData
-#        
-#    def abs(self):
-#        '''Return absolute value of data
-#        '''
-#        out = deepcopy(self)
-#        out.values = np.abs(out.values)
-#        return out
 
     def add_proc_attrs(self,proc_attr_name,proc_dict):
-        '''
+        '''Stamp processing step to dnpdata object
+
+        Args:
+            proc_attr_name (str): Name of processing step (e.g. "fourier_transform"
+            proc_dict (dict): Dictionary of processing parameters for this processing step.
         '''
         if not isinstance(proc_attr_name,str):
             raise ValueError('Processing step name must be string')
@@ -222,7 +69,6 @@ class dnpData(nddata.nddata_core):
 
         self.proc_attrs.append((proc_attr_name,proc_dict))
 
-#    def add_coord(self, dim, coord):
     def addAxes(self, dim, coord):
         '''Add new axesLabel to dnpData object with ax
 
@@ -236,8 +82,8 @@ class dnpData(nddata.nddata_core):
         self.coords.append(dim, coord)
         self.values = np.expand_dims(self.values, -1)
 
-    def autophase(self,):
-        '''Automatically phase data
+    def autophase(self):
+        '''Multiply dnpdata object by phase
         '''
         p = self.phase()
         self.values *= np.exp(-1j*p)
@@ -267,77 +113,6 @@ class dnpData(nddata.nddata_core):
         self.coords[axesLabel] = np.concatenate((np.array(self.coords[axesLabel]).reshape(-1),np.array(newData.coords[axesLabel]).reshape(-1)))
 
         self.reorder(reorderLabels)
-
-#    def copy(self):
-#        return deepcopy(self)
-#
-#    def getAxes(self,axesLabel):
-#        '''Return given axes of dnpData object
-#
-#        Args:
-#            axes_label (str): Axes to retrieve
-#        '''
-#        index = self.dims.index(axesLabel)
-#        return self.coords[index]
-#
-#    def imag(self):
-#        '''Return imaginary part of data
-#        '''
-#        out = deepcopy(self)
-#        out.values = np.imag(out.values)
-#        return out
-
-#    def index(self,axesLabel):
-#        '''Return index of given axes label
-#
-#        Args:
-#            axesLabel (str): axis label to index
-#        '''
-#        return self.dims.index(axesLabel)
-#
-#    def len(self,axesLabel):
-#        '''Return length of given dimension
-#
-#        Args:
-#            axes_label (str): Axis to return length
-#
-#        Example:
-#        data.len('t')
-#        '''
-#        index = self.dims.index(axesLabel)
-#
-#        return np.shape(self.values)[index]
-#
-#    def max(self):
-#        '''Return maximum value of data
-#        '''
-#        out = deepcopy(self)
-#        maxValue = np.max(out.values)
-#        return maxValue
-#
-#    def amax(self, dim):
-#        '''Return maximum value of data
-#        '''
-#        a = self.copy()
-#        index = a.dims.index(dim)
-#
-#        a.dims.pop(index)
-#        a.coords.pop(index)
-#
-#        a.values = np.amax(a.values, axis = index)
-#
-#        return a
-#
-#    def argmax(self, dim):
-#        '''Return maximum value of data
-#        '''
-#        a = self.copy()
-#        index = a.dims.index(dim)
-#
-#        a.values = a.coords[dim][np.argmax(a.values, axis = index)]
-#        a.coords.pop(dim)
-#
-#        return a
 
     def phase(self,):
         '''Return phase of dnpData object
@@ -373,91 +148,6 @@ class dnpData(nddata.nddata_core):
 
         return out
 
-#    def real(self):
-#        '''Return real part of data
-#        '''
-#        out = deepcopy(self)
-#        out.values = np.real(out.values)
-#        return out
-
-#    def reorder(self,dims):
-#        '''Reorder array given a list of axes labels
-#
-#        Args:
-#            dims (list,tuple, str): Axes to reorder
-#
-#        .. note::
-#            If not all axes are defined, they will be placed at the end of the axes labels in their original order
-#        '''
-#        if isinstance(dims,str):
-#            dims = [dims]
-#        if isinstance(dims,tuple):
-#            dims = list(dims)
-#        if not isinstance(dims,list):
-#            print('dims must be a list')
-#            return
-#
-#        if sorted(dims) != sorted(self.dims):
-#            for label in dims:
-#                if label not in self.dims:
-#                    print('\'%s\' not in axes labels'%label)
-#                    return
-#            for label in self.dims:
-#                if label not in dims:
-#                    dims.append(label)
-#        ix_reorder = [self.dims.index(k) for k in dims]
-#        self.coords = [self.coords[ix] for ix in ix_reorder]
-#        self.dims = [self.dims[ix] for ix in ix_reorder]
-#        self.values = np.transpose(self.values,ix_reorder)
-#
-#    def rename(self, oldLabel, newLabel):
-#        '''Rename axis
-#        
-#        Args:
-#            oldLabel (str): Axis label to be changed
-#            newLabel (str): New label for axes
-#        '''
-#        index = self.dims.index(oldLabel)
-#        self.dims[index] = newLabel
-#
-#    def sort(self):
-#        '''Sort order of axes based on python list sorting for axes labels
-#
-#        '''
-#        ix_sort = sorted(range(len(self.dims)), key = lambda k: self.dims[k])
-#
-#        dims_sort = [self.dims[ix] for ix in ix_sort]
-#        self.coords = [self.coords[dim] for dim in dims_sort]
-#        self.values = np.transpose(self.values,ix_sort)
-#
-
-
-#    def plot(self,axes_label,*args,**kwargs):
-#        '''
-#        plot data down given dimension
-#
-#        Parameters:
-#        axes_label: str
-#            axis to plot down (will be x-axis)
-#        *args:
-#            numpy args
-#        **kwargs
-#            numpy kwargs
-#
-#        NOTES:
-#        Use show() to view figure
-#
-#        Example:
-#        data.plot('t')
-#        '''
-#
-#        index = self.dims.index(axes_label)
-#
-#        plot_data = self.values
-#
-#        plot(self.coords[index],np.swapaxes(plot_data,0,index),*args,**kwargs)
-#        xlabel(self.dims[index])
-
     def squeeze(self):
         '''Remove all length 1 dimensions from data
 
@@ -478,31 +168,18 @@ class dnpData(nddata.nddata_core):
             self.dims.pop(index_value)
             self.values = np.squeeze(self.values)
 
-#    def sum(self,axesLabel):
-#        '''Perform sum down given dimension
-#
-#        .. warning::
-#           Axis information is lost
-#
-#        Args:
-#            axesLabel (str): Name of Axis to perform sum down
-#
-#        .. code-block:: python
-#
-#            data.sum('t')
-#        '''
-#
-#        index = self.dims.index(axesLabel)
-#        self.values = np.sum(self.values,axis = index)
-#        removedAxesLabel = self.dims.pop(index)
-#        removedAxes = self.coords.pop(index)
-
-
 class dnpdata_collection(MutableMapping):
-    """A dictionary that applies an arbitrary key-altering
-       function before accessing the keys"""
+    '''Dictionary-like workspace object for storing dnpdata objects
+    '''
 
     def __init__(self, *args, **kwargs):
+        '''dnpdata_collection __init__ method
+
+        Args:
+
+        Example::
+
+        '''
         self._processing_buffer = 'proc'
 
         self.__data_dict = {}
