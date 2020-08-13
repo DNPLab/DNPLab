@@ -74,6 +74,7 @@ rst_epilog = make_rst_epilog(rst_epilog_list)
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
     'sphinx.ext.ifconfig',
     'sphinx.ext.intersphinx'
