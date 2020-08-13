@@ -16,10 +16,6 @@ class dnpNMR_tester(unittest.TestCase):
         self.ws['raw'] = self.data
         self.ws.copy('raw','proc')
 
-#    def test_align(self):
-#
-#        nmr.align(self.ws, {})
-
     def test_basic_nmr_processing(self):
 
         self.ws = nmr.remove_offset(self.ws, {})
