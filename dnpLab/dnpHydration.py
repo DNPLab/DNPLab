@@ -178,8 +178,8 @@ class HydrationResults(AttrDict):
             numpy array that is the result of ~(1-E) / [ (constants*T1) ],
             used in ksigma(E_power) fit,
         ksigma_fit (numpy.array)        : ksig_fit,
-        ksigma (float)                 : ksigma,
-        ksigma_error (float)            : ksigma_error,
+        ksigma (float)                  : ksigma,
+        ksigma_stdd (float)             : ksigma_stdd,
         ksigma_bulk_ratio (float)       : ksigma/ksigma_bulk,
         krho (float)                    : krho,
         klow (float)                    : klow,
@@ -187,7 +187,7 @@ class HydrationResults(AttrDict):
         coupling_factor (float)         : coupling_factor,
         tcorr (float)                   : tcorr,
         tcorr_bulk_ratio (float)        : tcorr / tcorr_bulk,
-        Dlocal (float)                 : Dlocal
+        Dlocal (float)                  : Dlocal
 
     """
     def __init__(self, *args, **kwargs):
@@ -197,7 +197,7 @@ class HydrationResults(AttrDict):
         self.ksigma_array = None
         self.ksigma_fit = None
         self.ksigma = None
-        self.ksigma_error = None
+        self.ksigma_stdd = None
         self.ksigma_bulk_ratio = None
         self.krho = None
         self.klow = None
@@ -363,7 +363,7 @@ class HydrationCalculator:
         ksigma_smax = popt[0]
         p_12 = popt[1]
         ksigma_std = np.sqrt(np.diag(pcov))
-        ksigma_error = ksigma_std[0] / s_max
+        ksigma_stdd = ksigma_std[0] / s_max
 
         ksigma_fit = (ksigma_smax * power) / (p_12 + power)
         # (Eq. 42) calculate the "corrected" ksigma*s(p) array using the fit parameters,
@@ -430,7 +430,7 @@ class HydrationCalculator:
         J = results.jac
         cov = np.linalg.inv(J.T.dot(J))
         results_std = np.sqrt(np.diagonal(cov))
-        xi_unc_error = results_std[0]
+        xi_unc_stdd = results_std[0]
         """
         
         uncorrected_Ep = 1-((xi_unc*(1-(T10/T100))*omega_ratio)*((power*s_max)/(p_12_unc+power)))
@@ -441,7 +441,7 @@ class HydrationCalculator:
             'ksigma_array'      : ksigma_array,
             'ksigma_fit'        : ksigma_fit,
             'ksigma'            : ksigma,
-            'ksigma_error'      : ksigma_error,
+            'ksigma_stdd'      : ksigma_stdd,
             'ksigma_bulk_ratio' : ksigma/ksigma_bulk,
             'krho'              : krho,
             'klow'              : klow,

@@ -1,5 +1,5 @@
 import sys
-sys.path.append('.../odnplab')
+sys.path.append('..')
 import unittest
 from dnpLab.dnpHydration import HydrationParameter
 
