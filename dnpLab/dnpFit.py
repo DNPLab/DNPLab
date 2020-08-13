@@ -62,6 +62,8 @@ def enhancementRes(x,data,powerArray):
     return data - enhancementFunction(powerArray,x)
 
 def enhancementFunction(powerArray,x):
+    '''
+    '''
     E_max = x[0]
     power_half = x[1]
 
