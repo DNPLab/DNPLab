@@ -1,4 +1,4 @@
-from .. import dnpData
+from .. import dnpdata
 from .. import create_workspace
 import numpy as np
 from struct import unpack
@@ -16,7 +16,7 @@ def import_prospa(path, parameters_filename = None, verbose = False):
         verbose (bool): If true, prints additional information for troubleshooting
     
     Returns:
-        dnpData object with Kea data
+        dnpdata object with Kea data
     '''
 
     if parameters_filename == None:
@@ -28,7 +28,6 @@ def import_prospa(path, parameters_filename = None, verbose = False):
         filename, extension = os.path.splitext(filename)
     elif os.path.isdir(path):
         filesList = glob.glob(os.path.join(path, '*.[1-4]d'))
-        print(filesList)
         if len(filesList) == 0:
             raise ValueError('No binary data file in directory:')
         elif len(filesList) > 1:
@@ -78,7 +77,7 @@ def import_prospa(path, parameters_filename = None, verbose = False):
 
 
 
-    kea_data = dnpData(data, coords, dims, attrs)
+    kea_data = dnpdata(data, coords, dims, attrs)
 
     return kea_data
 
@@ -91,12 +90,10 @@ def import_prospa_dir(path, exp_list = None):
     if exp_list is not None:
         dirs = [dir_ for dir_ in dirs if dir_ in exp_list]
 
-    print(dirs)
 
     ws = create_workspace()
 
     for ix, dir_ in enumerate(dirs):
-        print(os.path.join(path, dir_))
         tmp = import_prospa(os.path.join(path, dir_))
         ws.add(dir_, tmp)
 

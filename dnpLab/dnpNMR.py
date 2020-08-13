@@ -1,4 +1,4 @@
-from . import dnpData, dnpdata_collection
+from . import dnpdata, dnpdata_collection
 import numpy as _np
 
 _default_fourier_transform_parameters = {
@@ -33,12 +33,14 @@ _default_autophase_parameters = {
         }
 
 def return_data(all_data):
-    '''
-    Determine what the data type is for processing
+    '''Determine type of data for processing and return data for processing
+
+    Args:
+
     '''
 
     is_workspace = False
-    if isinstance(all_data,dnpData):
+    if isinstance(all_data,dnpdata):
         data = all_data.copy()
     elif isinstance(all_data, dict):
         raise ValueError('Type dict is not supported')
@@ -59,16 +61,20 @@ def return_data(all_data):
     return data, is_workspace
 
 def update_parameters(proc_parameters, requiredList, default_parameters):
-    '''
-    For all parameters without default parameters, assign parameter value to default
+    '''Add default parameter to processing parameters if a processing parameter is missing
 
+    Args:
+        proc_parameters (dict): Dictionary of initial processing parameters
+        requiredList (list): List of requrired processing parameters
+        default_parameters (dict): Dictionary of default processing parameters
+
+    Returns:
+        dict: Updated processing parameters dictionary
     '''
     updatedProc_parameters = proc_parameters
     for requiredParameter in requiredList:
         if not requiredParameter in updatedProc_parameters:
             updatedProc_parameters[requiredParameter] = default_parameters[requiredParameter]
-            #print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
-            #print(default_parameters[requiredParameter])
 
     return updatedProc_parameters
 
@@ -76,20 +82,22 @@ def remove_offset(all_data, proc_parameters):
     '''Remove DC offset from FID by averaging the last few data points and subtracting the average
 
     Args:
-        all_data (dnpData, dict): Data container for data
+        all_data (dnpdata, dict): Data container for data
         proc_parameters (dict,procParam): Processing _parameters
 
-    .. code-block:: python
+    Returns:
+        dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
+        dnpdata: If dnpdata object is given, return dnpdata object.
 
+    Example::
+
+       proc_parameters = {}
        proc_parameters['dim'] = 't2'
        proc_parameters['offset_points'] = 10
 
-       outData = dnpLab.dnpNMR.remove_offset(all_data,proc_parameters)
-
-    Returns:
-        all_data (dnpData, dict)
+       workspace = dnpLab.dnpNMR.remove_offset(workspace, proc_parameters)
     '''
-    # Determine if data is dictionary or dnpData object
+    # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
 
     requiredList = _default_remove_offset_parameters.keys()
@@ -121,11 +129,11 @@ def fourier_transform(all_data, proc_parameters):
         Assumes dt = t[1] - t[0]
 
     Args:
-        all_data (dnpData, dict): Data container
+        all_data (dnpdata, dict): Data container
         proc_parameters (dict, procParam): Processing parameters
 
     Returns:
-        all_data (dnpData, dict): Processed data in container
+        all_data (dnpdata, dict): Processed data in container
         
     Example:
 
@@ -139,7 +147,7 @@ def fourier_transform(all_data, proc_parameters):
         all_data = dnpLab.dnpNMR.fourier_transform(all_data, proc_parameters)
     '''
 
-    # Determine if data is dictionary or dnpData object
+    # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
 
     requiredList = _default_fourier_transform_parameters.keys()
@@ -180,7 +188,7 @@ def window(all_data,proc_parameters):
     '''Apply Apodization to data down given dimension
     
     Args:
-        all_data (dnpData, dict): data container
+        all_data (dnpdata, dict): data container
         proc_parameters (dict, procParam): parameter values
 
     .. note::
@@ -230,7 +238,7 @@ def integrate(all_data,proc_parameters):
     '''_integrate data down given dimension
     
     Args:
-        all_data (dnpData,dict): Data container
+        all_data (dnpdata,dict): Data container
         proc_parameters (dict, procParam): Processing Parameters
             dim_label: str
                 dimension to integrate
@@ -240,7 +248,7 @@ def integrate(all_data,proc_parameters):
                 width of integration window
 
     Returns:
-        all_data (dnpData,dict): Processed data
+        all_data (dnpdata,dict): Processed data
 
     Exampe:
     .. code-block:: python
@@ -290,8 +298,7 @@ def align(all_data,proc_parameters):
     data, isDict = return_data(all_data)
 
     if len(_np.shape(data.values)) != 2:
-        print('Only 2-dimensional data supported')
-        return
+        raise ValueError('Only 2-dimensional data is currently supported')
 
     requiredList = _defaultAlign_parameters.keys()
     proc_parameters = update_parameters(proc_parameters,requiredList,_defaultAlign_parameters)
