@@ -1,7 +1,7 @@
 import numpy as _np
 import os
 
-from .. import dnpData as _dnpData
+from .. import dnpdata as _dnpdata
 
 from struct import unpack
 
@@ -197,7 +197,7 @@ def import_vnmrj(path, fidFilename = 'fid', paramFilename = 'procpar'):
         paramFilename(str): process parameter filename
 
     Returns:
-        dnpData: data in dnpData object
+        dnpdata: data in dnpdata object
 
     """
 
@@ -225,5 +225,5 @@ def import_vnmrj(path, fidFilename = 'fid', paramFilename = 'procpar'):
     else:
         data = data.reshape(-1)
 
-    return _dnpData(data, coords, dims, attrs)
+    return _dnpdata(data, coords, dims, attrs)
 

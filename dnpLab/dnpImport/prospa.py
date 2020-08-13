@@ -1,4 +1,4 @@
-from .. import dnpData
+from .. import dnpdata
 from .. import create_workspace
 import numpy as np
 from struct import unpack
@@ -16,7 +16,7 @@ def import_prospa(path, parameters_filename = None, verbose = False):
         verbose (bool): If true, prints additional information for troubleshooting
     
     Returns:
-        dnpData object with Kea data
+        dnpdata object with Kea data
     '''
 
     if parameters_filename == None:
@@ -78,7 +78,7 @@ def import_prospa(path, parameters_filename = None, verbose = False):
 
 
 
-    kea_data = dnpData(data, coords, dims, attrs)
+    kea_data = dnpdata(data, coords, dims, attrs)
 
     return kea_data
 
