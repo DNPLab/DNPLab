@@ -19,20 +19,6 @@ orange = '#F37021'
 plt.rcParams['lines.linewidth'] = 1.5
 plt.rcParams['axes.prop_cycle'] = plt.cycler(color = [orange, dark_green, light_green, dark_grey, light_grey])
 
-def plot(data, *args, **kwargs):
-    '''Plot function for dnpdata object
-    '''
-#    coord = data.coords[dim]
-    coord = data.coords[0]
-    dim = data.dims[0]
-
-#    original_order = data.dims
-#    data.reorder([dim])
-    plt.plot(coord, data.values, *args, **kwargs)
-    plt.xlabel(dim)
-#    data.reorder(original_order)
-
-
 def imshow(data, *args, **kwargs):
     '''Image Plot for dnpdata object
     '''
@@ -51,6 +37,18 @@ def imshow(data, *args, **kwargs):
     plt.xlabel(dims[1])
     plt.ylabel(dims[0])
 
+def plot(data, *args, **kwargs):
+    '''Plot function for dnpdata object
+    '''
+#    coord = data.coords[dim]
+    coord = data.coords[0]
+    dim = data.dims[0]
+
+#    original_order = data.dims
+#    data.reorder([dim])
+    plt.plot(coord, data.values, *args, **kwargs)
+    plt.xlabel(dim)
+#    data.reorder(original_order)
 
 show = plt.show
 
