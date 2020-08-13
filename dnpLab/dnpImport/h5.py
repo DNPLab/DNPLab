@@ -1,4 +1,4 @@
-from .. import dnpData, create_workspace
+from .. import dnpdata, create_workspace
 import warnings
 import numpy as np
 import h5py
@@ -116,7 +116,7 @@ def read_dnpdata(dnpdata_group):
     for k in dnpdata_group['attrs'].attrs.keys():
         attrs[k] = dnpdata_group['attrs'].attrs[k]
 
-    data = dnpData(values, axes, dims, attrs)
+    data = dnpdata(values, axes, dims, attrs)
 
     if 'proc_attrs' in dnpdata_group.keys():
         proc_attrs = []

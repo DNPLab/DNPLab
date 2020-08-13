@@ -1,4 +1,4 @@
-'''dnpData object for storing N-dimensional data with coordinates
+'''dnpdata object for storing N-dimensional data with coordinates
 '''
 import numpy as np
 from collections.abc import MutableMapping
@@ -10,10 +10,10 @@ version = '1.0'
 
 core_attrs_list = ['nmr_frequency']
 
-class dnpData(nddata.nddata_core):
-    '''dnpData Class for handling dnp data
+class dnpdata(nddata.nddata_core):
+    '''dnpdata Class for handling dnp data
 
-    The dnpData class is inspired by pyspecdata nddata object which handles n-dimensional data, axes, and other relevant information together. 
+    The dnpdata class is inspired by pyspecdata nddata object which handles n-dimensional data, axes, and other relevant information together. 
     
     This class is designed to handle data and axes together so that performing NMR processing can be performed easily.
 
@@ -26,7 +26,7 @@ class dnpData(nddata.nddata_core):
     '''
 
     def __init__(self, values = np.r_[[]], coords = [], dims = [], attrs = {}, procList = []):
-        '''dnpData Class __init__ method
+        '''dnpdata Class __init__ method
 
         Args:
             data (numpy.ndarray): 
@@ -41,12 +41,12 @@ class dnpData(nddata.nddata_core):
         self.proc_attrs = []
 #
     def __repr__(self):
-        '''Representation of dnpData object
+        '''Representation of dnpdata object
         '''
         return 'nddata(values = {}, coords = {}, dims = {}, attrs = {})'.format(repr(self.values), repr(self.coords), repr(self.dims), repr(self.attrs))
 
     def __str__(self):
-        '''String representation of dnpData object
+        '''String representation of dnpdata object
         '''
         if len(self.attrs) < 20:
             return 'values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\nproc_attrs:\n{}'.format(self.values, self.dims, self.coords, self.attrs,self.proc_attrs)
@@ -70,9 +70,9 @@ class dnpData(nddata.nddata_core):
         self.proc_attrs.append((proc_attr_name,proc_dict))
 
     def addAxes(self, dim, coord):
-        '''Add new axesLabel to dnpData object with ax
+        '''Add new axesLabel to dnpdata object with ax
 
-        This function increases the dimension of the dnpData object by 1 with the axesValue parameter giving the axes
+        This function increases the dimension of the dnpdata object by 1 with the axesValue parameter giving the axes
 
         Args:
             axesLabel (str): Name of new axis
@@ -94,7 +94,7 @@ class dnpData(nddata.nddata_core):
         '''Concatenate new dnp data to original data along given axes label
 
         Args:
-            newData (dnpData): data to be concatenated to dnp_data object
+            newData (dnpdata): data to be concatenated to dnp_data object
             axesLabel (str): axis to concatenate down
         '''
         reorderLabels = self.dims
@@ -115,7 +115,7 @@ class dnpData(nddata.nddata_core):
         self.reorder(reorderLabels)
 
     def phase(self,):
-        '''Return phase of dnpData object
+        '''Return phase of dnpdata object
 
         Returns:
             phase (float,int): phase of data calculated from sum of imaginary divided by sum of real components
@@ -131,7 +131,7 @@ class dnpData(nddata.nddata_core):
             maxValue (float): Maximum axes value for indexing
 
         Returns:
-            dnpData
+            dnpdata
         '''
 
         out = deepcopy(self)
@@ -187,22 +187,22 @@ class dnpdata_collection(MutableMapping):
         if len(args) == 0:
             return
         elif len(args) == 1:
-            if isinstance(args[0], dnpData):
-                self.__data_dict['raw'] == dnpData
+            if isinstance(args[0], dnpdata):
+                self.__data_dict['raw'] == dnpdata
             elif isinstance(args[0], dict):
                 data_dict = args[0]
                 for key in data_dict:
-                    if isinstance(data_dict[key], (dnpData, dict)):
+                    if isinstance(data_dict[key], (dnpdata, dict)):
                         self.__data_dict[key] = data_dict[key]
                     else:
-                        raise TypeError('Each type in dict must be dnpData or dict')
+                        raise TypeError('Each type in dict must be dnpdata or dict')
             else:
-                raise TypeError('Argument must be type dnpData')
+                raise TypeError('Argument must be type dnpdata')
         elif len(args) == 2:
-            if isinstance(args[0], str) and isinstance(args[1], (dnpData, dict)):
+            if isinstance(args[0], str) and isinstance(args[1], (dnpdata, dict)):
                 self.__data_dict[args[0]] = args[1]
             else:
-                raise TypeError('If two arguments, first argument must be str and 2nd argument must be dnpData or dict')
+                raise TypeError('If two arguments, first argument must be str and 2nd argument must be dnpdata or dict')
         else:
             raise TypeError('Arguments not understood')
 
@@ -210,7 +210,7 @@ class dnpdata_collection(MutableMapping):
         return self.__data_dict[key]
 
     def __setitem__(self, key, value):
-        if (not isinstance(key, str)) or (not isinstance(value, (dict, dnpData))):
+        if (not isinstance(key, str)) or (not isinstance(value, (dict, dnpdata))):
             raise TypeError('Key must be string and value must be dnpdata or dict')
         self.__data_dict[key] = value
 
@@ -279,8 +279,8 @@ class dnpdata_collection(MutableMapping):
     def add(self, name, data):
         '''
         '''
-        if (not isinstance(name, str)) or (not isinstance(data, (dnpData,dict))):
-            raise TypeError('add takes two arguments, a string and dnpLab.odnpData type')
+        if (not isinstance(name, str)) or (not isinstance(data, (dnpdata,dict))):
+            raise TypeError('add takes two arguments, a string and dnpLab.dnpdata type')
         self.__data_dict[name] = data
 
     def __repr__(self):

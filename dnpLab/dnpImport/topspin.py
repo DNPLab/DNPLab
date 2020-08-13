@@ -1,7 +1,7 @@
 import numpy as _np
 import re as _re
 
-from .. import dnpData as _dnpData
+from .. import dnpdata as _dnpdata
 
 import os as _os
 
@@ -250,7 +250,7 @@ def topspin_fid(path,expNum,paramFilename = 'acqus'):
 
     importantParamsDict = {}
     importantParamsDict['nmr_frequency'] = attrsDict['SFO1'] * 1e6
-    output = _dnpData(data,[t],['t2'],importantParamsDict)
+    output = _dnpdata(data,[t],['t2'],importantParamsDict)
 
     return output
 
@@ -407,7 +407,7 @@ def import_ser(path,expNum,paramFilename = 'acqus'):
 
     importantParamsDict = {}
     importantParamsDict['nmr_frequency'] = attrsDict['SFO1'] * 1e6
-    output = _dnpData(data,[t,vdList],['t2','t1'],importantParamsDict)
+    output = _dnpdata(data,[t,vdList],['t2','t1'],importantParamsDict)
 
     return output
 
@@ -451,7 +451,7 @@ def topspin_ser_phase_cycle(path,expNum,paramFilename = 'acqus'):
     importantParamsDict = {}
     importantParamsDict['nmr_frequency'] = attrsDict['SFO1'] * 1e6
 
-    output = _dnpData(data,[t],['t2'],importantParamsDict)
+    output = _dnpdata(data,[t],['t2'],importantParamsDict)
     return output
 
 

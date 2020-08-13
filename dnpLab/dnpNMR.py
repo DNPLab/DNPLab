@@ -1,4 +1,4 @@
-from . import dnpData, dnpdata_collection
+from . import dnpdata, dnpdata_collection
 import numpy as _np
 
 _default_fourier_transform_parameters = {
@@ -40,7 +40,7 @@ def return_data(all_data):
     '''
 
     is_workspace = False
-    if isinstance(all_data,dnpData):
+    if isinstance(all_data,dnpdata):
         data = all_data.copy()
     elif isinstance(all_data, dict):
         raise ValueError('Type dict is not supported')
@@ -82,12 +82,12 @@ def remove_offset(all_data, proc_parameters):
     '''Remove DC offset from FID by averaging the last few data points and subtracting the average
 
     Args:
-        all_data (dnpData, dict): Data container for data
+        all_data (dnpdata, dict): Data container for data
         proc_parameters (dict,procParam): Processing _parameters
 
     Returns:
         dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
-        dnpData: If dnpdata object is given, return dnpdata object.
+        dnpdata: If dnpdata object is given, return dnpdata object.
 
     Example::
 
@@ -97,7 +97,7 @@ def remove_offset(all_data, proc_parameters):
 
        workspace = dnpLab.dnpNMR.remove_offset(workspace, proc_parameters)
     '''
-    # Determine if data is dictionary or dnpData object
+    # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
 
     requiredList = _default_remove_offset_parameters.keys()
@@ -129,11 +129,11 @@ def fourier_transform(all_data, proc_parameters):
         Assumes dt = t[1] - t[0]
 
     Args:
-        all_data (dnpData, dict): Data container
+        all_data (dnpdata, dict): Data container
         proc_parameters (dict, procParam): Processing parameters
 
     Returns:
-        all_data (dnpData, dict): Processed data in container
+        all_data (dnpdata, dict): Processed data in container
         
     Example:
 
@@ -147,7 +147,7 @@ def fourier_transform(all_data, proc_parameters):
         all_data = dnpLab.dnpNMR.fourier_transform(all_data, proc_parameters)
     '''
 
-    # Determine if data is dictionary or dnpData object
+    # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
 
     requiredList = _default_fourier_transform_parameters.keys()
@@ -188,7 +188,7 @@ def window(all_data,proc_parameters):
     '''Apply Apodization to data down given dimension
     
     Args:
-        all_data (dnpData, dict): data container
+        all_data (dnpdata, dict): data container
         proc_parameters (dict, procParam): parameter values
 
     .. note::
@@ -238,7 +238,7 @@ def integrate(all_data,proc_parameters):
     '''_integrate data down given dimension
     
     Args:
-        all_data (dnpData,dict): Data container
+        all_data (dnpdata,dict): Data container
         proc_parameters (dict, procParam): Processing Parameters
             dim_label: str
                 dimension to integrate
@@ -248,7 +248,7 @@ def integrate(all_data,proc_parameters):
                 width of integration window
 
     Returns:
-        all_data (dnpData,dict): Processed data
+        all_data (dnpdata,dict): Processed data
 
     Exampe:
     .. code-block:: python

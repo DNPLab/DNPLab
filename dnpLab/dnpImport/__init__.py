@@ -1,5 +1,3 @@
-#from .kea import *
-#from .bruker import *
 from . import prospa
 from . import topspin
 from . import vnmrj

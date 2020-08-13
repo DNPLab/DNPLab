@@ -1,9 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-#import dnpData
-from . import dnpData
-#import dnpData
+#import dnpdata
+from .dnpData import dnpdata
 
 figure = plt.figure
 legend = plt.legend
@@ -21,7 +20,7 @@ plt.rcParams['lines.linewidth'] = 1.5
 plt.rcParams['axes.prop_cycle'] = plt.cycler(color = [orange, dark_green, light_green, dark_grey, light_grey])
 
 def plot(data, *args, **kwargs):
-    '''
+    '''Plot function for dnpdata object
     '''
 #    coord = data.coords[dim]
     coord = data.coords[0]
@@ -35,7 +34,7 @@ def plot(data, *args, **kwargs):
 
 
 def imshow(data, *args, **kwargs):
-    '''
+    '''Image Plot for dnpdata object
     '''
 
     dims = data.dims
@@ -53,19 +52,7 @@ def imshow(data, *args, **kwargs):
     plt.ylabel(dims[0])
 
 
-#    return NotImplemented
-
 show = plt.show
 
 if __name__ == '__main__':
-
-    x = np.r_[-10:10:100j].reshape(10,10)
-    y = x**2.
-
-    data = dnpData.dnpData(y, [np.r_[0:10], np.r_[0:10]], ['x'])
-    plot(data)
-    show()
-
-#    fig = plt.figure()
-#    plt.plot(x, y)
-#
+    pass
