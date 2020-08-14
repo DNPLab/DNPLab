@@ -11,19 +11,19 @@ import dnpLab as dnp
 # directory of base folder containing the numbered folders listed below
 directory = '..topspin'
 
-#Folder number for p=0 point in ODNP set
+# folder number for p=0 point in ODNP set
 folder_p0 = 5
 
-# Folder number for T1(0) in ODNP set
+# folder number for T1(0) in ODNP set
 folder_T10 = 304
 
-# List of folder numbers for Enhancement(p) points in ODNP set
+# list of folder numbers for Enhancement(p) points in ODNP set
 folders_Enhancements = range(6,27)
 
-# List of folder numbers for T1(p) points in ODNP set
+# list of folder numbers for T1(p) points in ODNP set
 folders_T1s = range(28,33)
 
-# Give input parameters and set options for dnpHydration
+# give input parameters and set options for dnpHydration
 spin_C = 100
 field = 348.5
 T100 = 2.5
@@ -68,7 +68,10 @@ int_params = dict()
 int_params['integrate_center'] = 0
 int_params['integrate_width'] = 20
 
-####
+save_name = 'ODNPdata_dnpHydrationResults'
+
+
+#### Do not change the code below ####
 print('Working...')
 
 def workupPhaseOpt(workspace):
@@ -84,6 +87,7 @@ def workupPhaseOpt(workspace):
     return phases[0, bestindex]
 
 def optCenter(workspace):
+
     intgrl_array = []
     indx = range(-50, 51)
     int_params = {'integrate_width': 10}
@@ -95,6 +99,7 @@ def optCenter(workspace):
         else:
             intgrl_array.append(abs(iterativeopt_workspace['proc'].values[0]))
     cent = np.argmax(intgrl_array)
+    
     return indx[cent]
 
 total_folders = []
@@ -126,7 +131,6 @@ for f in range(0, len(total_folders)):
         workspace['proc'] *= np.exp(-1j * phase)
      
     int_params['integrate_center'] = optCenter(workspace)
-
     workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  int_params['integrate_center'], 'integrate_width' : int_params['integrate_width']})
 
     if  total_folders[f] == folder_p0:
@@ -184,14 +188,17 @@ hydration_workspace.add('hydration_inputs', hydration)
 hydration_results = dnp.dnpHydration.hydration(hydration_workspace)
 
 hydration_workspace.add('hydration_results', hydration_results)
-hydration_workspace['hydration_results'].update({'T1_stdd': T1_stdd, 'T10_stdd': T10_stdd})
+hydration_workspace['hydration_results'].update({'T1p_stdd': T1_stdd, 'T10_stdd': T10_stdd})
 
-svpthnm = directory + 'ODNPdata_dnpHydrationResults'
+svpthnm = directory + save_name
+if os.path.isfile(directory + save_name + '.h5'):
+    svpthnm = svpthnm + '_COPY'
+    
 dnp.dnpImport.h5.saveh5(hydration_workspace, svpthnm + '.h5')
 
 print('Done with dnpHydration.')
 print('T1(0) = ' + str(T10) + ', stdd = ' + str(T10_stdd))
 print('krho = ' + str(hydration_results['krho']))
-print('ksigma = ' + str(hydration_results['ksigma']) + ', stdd = ' + str(hydration_results['ksigma_error']))
+print('ksigma = ' + str(hydration_results['ksigma']) + ', stdd = ' + str(hydration_results['ksigma_stdd']))
 print('coupling factor = ' + str(hydration_results['coupling_factor']))
 print('tcorr = ' + str(hydration_results['tcorr']))

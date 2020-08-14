@@ -585,24 +585,11 @@ class hydrationGUI(QMainWindow):
         optphase_workspace = copy.deepcopy(self.processing_workspace)
 
         curve = optphase_workspace['proc'].values
-        # {{{ find bestindex once
-        phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)  # this should work w/out altering the sign
+        phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
         rotated_data = (curve.reshape(-1, 1)) * np.exp(-1j * phases)
         success = (np.real(rotated_data) ** 2).sum(axis=0) / (
-            (np.imag(rotated_data) ** 2).sum(axis=0))  # optimize the signal power to noise power
+            (np.imag(rotated_data) ** 2).sum(axis=0))
         bestindex = np.argmax(success)
-        # }}}
-        # {{{ find the bestindex based on that
-        if bestindex > phases.shape[1] - 2:
-            bestindex = phases.shape[1] - 2
-            phases = np.linspace(
-                phases[0, bestindex - 1],
-                phases[0, bestindex + 1],
-                100).reshape(1, -1)
-            rotated_data = (curve.reshape(-1, 1)) * np.exp(-1j * phases)
-            success = (np.real(rotated_data) ** 2).sum(axis=0) / (
-                (np.imag(rotated_data) ** 2).sum(axis=0))  # optimize the signal power to noise power
-            bestindex = np.argmax(success)
 
         self.gui_dict['processing_spec']['original_phase'] = phases[0, bestindex]
 
@@ -683,18 +670,6 @@ class hydrationGUI(QMainWindow):
 
         return workspace
 
-    @staticmethod
-    def t1Func(tau, x1, x2, x3):
-        return x2 - x3 * np.exp(-1. * tau / x1)
-
-    def t1Fit(self, workspace):
-
-        tau = np.reshape(workspace['proc'].coords, -1)
-        Mdata = workspace['proc'].values
-        popt, pcov = optimize.curve_fit(self.t1Func, tau, Mdata, p0=[1., Mdata[-1], Mdata[-1]], method='lm')
-        stdd = np.sqrt(np.diag(pcov))
-
-        return popt, stdd
 
     def GUI_Result_Button(self):
         """Select either the h5 or the .mat files previously saved using the 'Save results' button.
@@ -1039,13 +1014,13 @@ class hydrationGUI(QMainWindow):
                 self.enhplt.setVisible(False)
             elif self.gui_dict['rawdata_function']['folder'] == -1:
                 self.enhplt.setVisible(True)
-
+        
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('Bruker data error')
             self.gui_dict['gui_function']['sliders'] = False
-
+    
         
     def Han_Lab_Button(self):
         """Select the base folder of a dataset generated using the 'rb_dnp1' command in topspin at UCSB.
@@ -1264,25 +1239,26 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
                 
                 try:
-                    popt, stdd = self.t1Fit(nextproc_workspace)
+                    dnp.dnpFit.t1Fit(nextproc_workspace)
                     
                     if self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1']:
-                        self.T1p.append(popt[0])
-                        self.T1p_stdd.append(stdd[0])
+                        self.T1p.append(nextproc_workspace['fit'].attrs['t1'])
+                        self.T1p_stdd.append(nextproc_workspace['fit'].attrs['t1_stdd'])
                     elif self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
-                        self.gui_dict['dnpLab_data']['T10'] = popt[0]
-                        self.gui_dict['dnpLab_data']['T10_stdd'] = stdd[0]
+                        self.gui_dict['dnpLab_data']['T10'] = nextproc_workspace['fit'].attrs['t1']
+                        self.gui_dict['dnpLab_data']['T10_stdd'] = nextproc_workspace['fit'].attrs['t1_stdd']
                         self.t10Edit.setText(str(round(self.gui_dict['dnpLab_data']['T10'], 4)))
                         
                     if self.gui_dict['gui_function']['autoProcess']:
                         pass
                     else:
+                        
                         self.gui_dict['t1_fit']['tau'] = np.reshape(nextproc_workspace['proc'].coords, -1)
                         self.gui_dict['t1_fit']['t1Amps'] = nextproc_workspace['proc'].values
-                        self.gui_dict['t1_fit']['xaxis'] = np.r_[np.min(self.gui_dict['t1_fit']['tau']):np.max(
-                            self.gui_dict['t1_fit']['tau']):100j]
-                        self.gui_dict['t1_fit']['t1Fit'] = self.t1Func(self.gui_dict['t1_fit']['xaxis'], popt[0], popt[1], popt[2])
-                        self.gui_dict['t1_fit']['t1Val'] = popt[0]
+                        
+                        self.gui_dict['t1_fit']['xaxis'] = nextproc_workspace['fit'].coords[0]
+                        self.gui_dict['t1_fit']['t1Fit'] = nextproc_workspace['fit'].values
+                        self.gui_dict['t1_fit']['t1Val'] = nextproc_workspace['fit'].attrs['t1']
 
                         self.gui_dict['t1_plot']['xdata'] = self.gui_dict['dnpLab_data']['T1powers'][0:len(self.T1p)]
                         self.gui_dict['t1_plot']['ydata'] = self.T1p
@@ -1513,14 +1489,14 @@ class hydrationGUI(QMainWindow):
             self.gui_dict['t1_fit']['t1Amps'] = adjslider_workspace['proc'].values
             
             try:
-                popt, stdd = self.t1Fit(adjslider_workspace)
+                dnp.dnpFit.t1Fit(adjslider_workspace)
             except:
                 self.gui_dict['data_plot']['xmin'] = int(round(
-                    self.gui_dict['processing_spec']['integration_center'] - np.abs(
-                        self.gui_dict['processing_spec']['integration_width']) / 2))
+                   self.gui_dict['processing_spec']['integration_center'] - np.abs(
+                       self.gui_dict['processing_spec']['integration_width']) / 2))
                 self.gui_dict['data_plot']['xmax'] = int(round(
-                    self.gui_dict['processing_spec']['integration_center'] + np.abs(
-                        self.gui_dict['processing_spec']['integration_width']) / 2))
+                   self.gui_dict['processing_spec']['integration_center'] + np.abs(
+                       self.gui_dict['processing_spec']['integration_width']) / 2))
                 self.plot_data()
                 self.gui_dict['t1_fit']['xaxis'] = []
                 self.gui_dict['t1_fit']['t1Fit'] = []
@@ -1530,13 +1506,17 @@ class hydrationGUI(QMainWindow):
                 return
 
             if self.gui_dict['gui_function']['autoProcess']:
-                pass
+               pass
             else:
-                self.gui_dict['t1_fit']['xaxis'] = np.r_[np.min(self.gui_dict['t1_fit']['tau']):np.max(
-                    self.gui_dict['t1_fit']['tau']):100j]
-                self.gui_dict['t1_fit']['t1Fit'] = self.t1Func(self.gui_dict['t1_fit']['xaxis'], popt[0], popt[1], popt[2])
-                self.gui_dict['t1_fit']['t1Val'] = popt[0]
-                self.plot_enh()
+               
+               self.gui_dict['t1_fit']['tau'] = np.reshape(adjslider_workspace['proc'].coords, -1)
+               self.gui_dict['t1_fit']['t1Amps'] = adjslider_workspace['proc'].values
+               
+               self.gui_dict['t1_fit']['xaxis'] = adjslider_workspace['fit'].coords[0]
+               self.gui_dict['t1_fit']['t1Fit'] = adjslider_workspace['fit'].values
+               self.gui_dict['t1_fit']['t1Val'] = adjslider_workspace['fit'].attrs['t1']
+
+               self.plot_enh()
 
         if self.gui_dict['gui_function']['autoProcess']:
             pass
@@ -1544,7 +1524,7 @@ class hydrationGUI(QMainWindow):
 
             if self.gui_dict['rawdata_function']['folder'] == -1:
                 print('---Standard Deviation in T1---')
-                print('T1: ' + str(round(popt[0], 4)) + ' +/- ' + str(round(stdd[0], 4)))
+                print('T1: ' + str(round(adjslider_workspace['fit'].attrs['t1'], 4)) + ' +/- ' + str(round(adjslider_workspace['fit'].attrs['t1_stdd'], 4)))
 
             self.gui_dict['data_plot']['xmin'] = int(round(
                 self.gui_dict['processing_spec']['integration_center'] - np.abs(
