@@ -87,7 +87,10 @@ class nddata_core(object):
         return True
 
     def _check_error(self, error):
-        '''
+        '''Check that error attribute is numpy array and it's size matches values
+
+        Args:
+            error (numpy.ndarray): Numpy object to check if valid error attribute
         '''
 
         check_type = isinstance(error, np.ndarray)
@@ -116,17 +119,29 @@ class nddata_core(object):
         return coords_check and dims_check
 
     def _attrs_valid():
-        '''Verify attrs are valid
+        '''Verify attrs attribute is valid. All values in attrs must be list, numpy.ndarray, int, float, complex, or str.
         '''
 
         for key in self._attrs:
-            if not isinstance(self._attrs, (list, np.ndarray, int, float, str)):
+            if not isinstance(self._attrs, (list, np.ndarray, int, float, complex, str)):
                 return False
 
         return True
 
     def __getitem__(self, args):
-        '''
+        '''Method for indexing nddata_core
+
+        Args:
+            args (tuple): Tuple containing alternative dims and indexing values for each dimension to be indexed. (e.g. data['x', 1:10, 'y', :, 'z', (3.5, 7.5)])
+        Example::
+
+            data['x', 1] # return data indexing down "x" dim with index 1
+
+            data['x', 4.5] # return data indexing down "x" dim with "x" coords nearest to 4.5
+
+            data['x', 2:5] # return data indexing down "x" dim with index from 2 to 5
+
+            data['x', (100., 150.)] # return data indexing down "x" dim where coords are range from 100 to 150
         '''
         a = self.copy()
         if len(args) % 2 == 1:
@@ -187,6 +202,11 @@ class nddata_core(object):
         return a
 
     def copy(self):
+        '''Return deepcopy of dnpdata object
+        
+        Returns:
+            deep copy of data object
+        '''
         return deepcopy(self)
 
     def merge_attrs(self, b):
@@ -204,23 +224,21 @@ class nddata_core(object):
                     warnings.warn('attrs in two dictionarys contain different values, leaving original value:\n{}:{}'.format(key, self.attrs[key]))
 
     def __len__(self):
-        '''Returns total number of dims in values
+        '''Returns len(values) the length of the first dimension in values
         '''
         return len(self._values)
 
     @property
     def size(self):
-        '''Return size of values
+        '''Returns values.size. Total number of elements in numpy array.
         '''
         return self._values.size
 
     def sort_dims(self):
-        '''
+        '''Sort the dimensions
         '''
         sorted_order = sorted(range(len(self.dims)), key=lambda x: self.dims[x])
 
-#        self._dims = [self._dims[x] for x in sorted_order]
-#        self._coords = [self._coords[x] for x in sorted_order]
         self.coords.reorder_index(sorted_order)
         self._values = np.moveaxis(self._values,range(len(sorted_order)),sorted_order)
 
@@ -403,6 +421,12 @@ class nddata_core(object):
             raise ValueError('error must be type "numpy.ndarray"')
 
     def rename(self, dim, new_name):
+        '''Rename dim
+
+        Args:
+            dim (str): Name of dimension to rename
+            new_name (str): New name for dim
+        '''
         if dim in self.dims:
             if isinstance(new_name, str):
                 self.coords.rename(dim, new_name)
@@ -430,14 +454,6 @@ class nddata_core(object):
         new_order = [dims.index(dim) for dim in self.dims]
 
         self.coords.reorder(dims)
-        # dims
-#        self.dims = dims
-
-        # coords
-#        self.coords = [self.coords[x] for x in new_order]
-#        self.coords = [self.coords[dim] for dim in dims]
-#        self.coords = [self.coords[x] for x in new_order]
-#        self.coords = [self.coords[new_order[x]] for x in range(len(new_order))]
 
         # Transpose values
         self.values = np.transpose(self.values, new_order)
@@ -551,7 +567,13 @@ class nddata_core(object):
 
 
     def align(self, b):
-        '''
+        '''Align two data objects for numerical operations
+
+        Args:
+            b: Ojbect to align with self
+
+        Returns:
+            tuple: self and b aligned data objects
         '''
         a = self.copy()
         b = b.copy()
@@ -617,13 +639,14 @@ class nddata_core(object):
         return NotImplemented
 
     def sort(self, dim):
+        '''Sort the coords corresponding to the given dim in ascending order
+
+        Args:
+            dim (str): dimension to sort
         '''
-        '''
-#        index = self.index(dim)
 
         sort_array = np.argsort(self.coords[dim])
 
-#        self.coords[index] = self.coords[index][sort_array]
         self.coords[dim] = self.coords[dim][sort_array]
 
         new_order = tuple([slice(None) if dim != this_dim else sort_array for this_dim in self.dims])
@@ -631,7 +654,12 @@ class nddata_core(object):
         self.values = self.values[new_order]
 
     def is_sorted(self, dim):
-        '''
+        '''Determine if coords corresponding to give dim are sorted in ascending order
+        Args:
+            dim (str): Dimension to check if sorted
+
+        Returns:
+            bool: True if sorted, False otherwise.
         '''
         return np.all(self.coords[dim][:-1] <= self.coords[dim][1:])
 
