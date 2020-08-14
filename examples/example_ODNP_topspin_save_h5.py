@@ -142,11 +142,10 @@ for f in range(0, len(total_folders)):
     dnp.dnpNMR.fourier_transform(workspace,{'zero_fill_factor' : proc_params['zero_fill_factor']})
     
     if workspace['proc'].ndim == 2:
-        workspace = dnp.dnpNMR.autophase(workspace,{})
         workspace = dnp.dnpNMR.align(workspace, {})
-    else:
-        phase = workupPhaseOpt(workspace)
-        workspace['proc'] *= np.exp(-1j * phase)
+        
+    phase = workupPhaseOpt(workspace)
+    workspace['proc'] *= np.exp(-1j * phase)
      
     int_params['integrate_center'] = optCenter(workspace)
     workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  int_params['integrate_center'], 'integrate_width' : int_params['integrate_width']})
