@@ -1,30 +1,30 @@
-from . import dnpData, dnpdata_collection
+from . import dnpdata, dnpdata_collection
 import numpy as _np
 
 _default_fourier_transform_parameters = {
-        'dim': 't',
+        'dim': 't2',
         'zero_fill_factor' : 2, # zero fill dim to 
         'shift' : True, # shift dim to center zero frequency
         'convert_to_ppm' : True, # convert dim to ppm
         }
 
 _defaultAlign_parameters = {
-        'dim': 't',
+        'dim': 't2',
         }
 
 _default_window_parameters = {
         'linewidth' : 10,
-        'dim' : 't',
+        'dim' : 't2',
         }
 
 _default_integrate_parameters = {
-        'dim' : 't',
+        'dim' : 't2',
         'integrate_center' : 0,
         'integrate_width' : 100,
         }
 
 _default_remove_offset_parameters = {
-        'dim' : 't',
+        'dim' : 't2',
         'offset_points' : 10,
         }
 
@@ -33,12 +33,14 @@ _default_autophase_parameters = {
         }
 
 def return_data(all_data):
-    '''
-    Determine what the data type is for processing
+    '''Determine type of data for processing and return data for processing
+
+    Args:
+
     '''
 
     is_workspace = False
-    if isinstance(all_data,dnpData):
+    if isinstance(all_data,dnpdata):
         data = all_data.copy()
     elif isinstance(all_data, dict):
         raise ValueError('Type dict is not supported')
@@ -59,16 +61,20 @@ def return_data(all_data):
     return data, is_workspace
 
 def update_parameters(proc_parameters, requiredList, default_parameters):
-    '''
-    For all parameters without default parameters, assign parameter value to default
+    '''Add default parameter to processing parameters if a processing parameter is missing
 
+    Args:
+        proc_parameters (dict): Dictionary of initial processing parameters
+        requiredList (list): List of requrired processing parameters
+        default_parameters (dict): Dictionary of default processing parameters
+
+    Returns:
+        dict: Updated processing parameters dictionary
     '''
     updatedProc_parameters = proc_parameters
     for requiredParameter in requiredList:
         if not requiredParameter in updatedProc_parameters:
             updatedProc_parameters[requiredParameter] = default_parameters[requiredParameter]
-            print('Required parameter "%s" not given.\nSetting "%s" to default value of:'%(requiredParameter,requiredParameter))
-            print(default_parameters[requiredParameter])
 
     return updatedProc_parameters
 
@@ -76,20 +82,22 @@ def remove_offset(all_data, proc_parameters):
     '''Remove DC offset from FID by averaging the last few data points and subtracting the average
 
     Args:
-        all_data (dnpData, dict): Data container for data
+        all_data (dnpdata, dict): Data container for data
         proc_parameters (dict,procParam): Processing _parameters
 
-    .. code-block:: python
+    Returns:
+        dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
+        dnpdata: If dnpdata object is given, return dnpdata object.
 
-       proc_parameters['dim'] = 't'
+    Example::
+
+       proc_parameters = {}
+       proc_parameters['dim'] = 't2'
        proc_parameters['offset_points'] = 10
 
-       outData = dnpLab.dnpNMR.remove_offset(all_data,proc_parameters)
-
-    Returns:
-        all_data (dnpData, dict)
+       workspace = dnpLab.dnpNMR.remove_offset(workspace, proc_parameters)
     '''
-    # Determine if data is dictionary or dnpData object
+    # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
 
     requiredList = _default_remove_offset_parameters.keys()
@@ -97,7 +105,7 @@ def remove_offset(all_data, proc_parameters):
     dim = proc_parameters['dim']
     offset_points = int(proc_parameters['offset_points'])
 
-    offsetData = data['t',-1*offset_points:].values
+    offsetData = data['t2',-1*offset_points:].values
     offsetData = offsetData.reshape(-1)
     offset = _np.mean(offsetData)
 
@@ -108,7 +116,7 @@ def remove_offset(all_data, proc_parameters):
     data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
-        all_data['proc'] = data
+        all_data[all_data.processing_buffer] = data
         return all_data
     else:
         return data
@@ -121,17 +129,17 @@ def fourier_transform(all_data, proc_parameters):
         Assumes dt = t[1] - t[0]
 
     Args:
-        all_data (dnpData, dict): Data container
+        all_data (dnpdata, dict): Data container
         proc_parameters (dict, procParam): Processing parameters
 
     Returns:
-        all_data (dnpData, dict): Processed data in container
+        all_data (dnpdata, dict): Processed data in container
         
     Example:
 
     .. code-block:: python
     
-        proc_parameters['dim'] = 't'
+        proc_parameters['dim'] = 't2'
         proc_parameters['zero_fill_factor'] = 2
         proc_parameters['shift'] = True
         proc_parameters['convert_to_ppm'] = True
@@ -139,7 +147,7 @@ def fourier_transform(all_data, proc_parameters):
         all_data = dnpLab.dnpNMR.fourier_transform(all_data, proc_parameters)
     '''
 
-    # Determine if data is dictionary or dnpData object
+    # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
 
     requiredList = _default_fourier_transform_parameters.keys()
@@ -171,7 +179,7 @@ def fourier_transform(all_data, proc_parameters):
     data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
-        all_data['proc'] = data
+        all_data[all_data.processing_buffer] = data
         return all_data
     else:
         return data
@@ -180,7 +188,7 @@ def window(all_data,proc_parameters):
     '''Apply Apodization to data down given dimension
     
     Args:
-        all_data (dnpData, dict): data container
+        all_data (dnpdata, dict): data container
         proc_parameters (dict, procParam): parameter values
 
     .. note::
@@ -192,7 +200,7 @@ def window(all_data,proc_parameters):
 
         proc_parameters = {
                 'linewidth' : 10,
-                'dim' : 't',
+                'dim' : 't2',
                 }
         all_data = dnpLab.dnpNMR.window(all_data,proc_parameters)
         
@@ -221,7 +229,7 @@ def window(all_data,proc_parameters):
     data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
-        all_data['proc'] = data
+        all_data[all_data.processing_buffer] = data
         return all_data
     else:
         return data
@@ -230,7 +238,7 @@ def integrate(all_data,proc_parameters):
     '''_integrate data down given dimension
     
     Args:
-        all_data (dnpData,dict): Data container
+        all_data (dnpdata,dict): Data container
         proc_parameters (dict, procParam): Processing Parameters
             dim_label: str
                 dimension to integrate
@@ -240,13 +248,13 @@ def integrate(all_data,proc_parameters):
                 width of integration window
 
     Returns:
-        all_data (dnpData,dict): Processed data
+        all_data (dnpdata,dict): Processed data
 
     Exampe:
     .. code-block:: python
 
         proc_parameters = {
-                    'dim' : 't',
+                    'dim' : 't2',
                     'integrate_center' : 0,
                     'integrate_width' : 100,
                     }
@@ -265,16 +273,18 @@ def integrate(all_data,proc_parameters):
     integrateMin = integrate_center - _np.abs(integrate_width)/2.
     integrateMax = integrate_center + _np.abs(integrate_width)/2.
 
-    data = data.range(dim,integrateMin,integrateMax)
+#    data = data.range(dim,integrateMin,integrateMax)
+    #print(dim)
+    data = data[dim,(integrateMin,integrateMax)]
 
-    data.sum(dim)
+    data = data.sum(dim)
 
     proc_attr_name = 'integrate'
     proc_dict = {k:proc_parameters[k] for k in proc_parameters if k in requiredList}
     data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
-        all_data['proc'] = data
+        all_data[all_data.processing_buffer] = data
         return all_data
     else:
         return data
@@ -288,19 +298,19 @@ def align(all_data,proc_parameters):
     data, isDict = return_data(all_data)
 
     if len(_np.shape(data.values)) != 2:
-        print('Only 2-dimensional data supported')
-        return
+        raise ValueError('Only 2-dimensional data is currently supported')
 
     requiredList = _defaultAlign_parameters.keys()
     proc_parameters = update_parameters(proc_parameters,requiredList,_defaultAlign_parameters)
 
     alignAxesLabel = proc_parameters['dim']
     originalAxesOrder = data.dims
-    data.reorder(alignAxesLabel)
+    data.reorder([alignAxesLabel])
     dimIter = data.dims[-1]
 
-    refData = data[dimIter,0].data.reshape(-1)
-    for ix in range(data.len(dimIter)):
+    refData = data[dimIter,0].values.reshape(-1)
+#    for ix in range(data.len(dimIter)):
+    for ix in range(len(data.coords[dimIter])):
         tempData = data[dimIter,ix].values.reshape(-1)
 
         corrData = _np.correlate(_np.abs(tempData),_np.abs(refData),mode='same')
@@ -314,7 +324,7 @@ def align(all_data,proc_parameters):
     data.add_proc_attrs(proc_attr_name, proc_dict)
 
     if isDict:
-        all_data['proc'] = data
+        all_data[all_data.processing_buffer] = data
         return all_data
     else:
         return data
@@ -323,6 +333,9 @@ def autophase(workspace, parameters):
     '''
     '''
 
+    requiredList = _default_autophase_parameters.keys()
+    parameters = update_parameters(parameters, requiredList, _default_autophase_parameters)
+
     data, is_workspace = return_data(workspace)
     phase = _np.arctan(_np.sum(_np.imag(data.values))/_np.sum(_np.real(data.values)))
 
@@ -330,8 +343,12 @@ def autophase(workspace, parameters):
     if _np.sum(_np.real(data.values)) < 0:
         data.values *= -1.
 
+    proc_attr_name = 'autophase'
+    proc_attrs = {k:parameters[k] for k in parameters if k in requiredList}
+    data.add_proc_attrs(proc_attr_name, proc_attrs)
+
     if is_workspace:
-        workspace['proc'] = data
+        workspace[workspace.processing_buffer] = data
         return workspace
     else:
         return data

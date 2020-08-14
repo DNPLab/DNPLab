@@ -1,4 +1,5 @@
-from .. import dnpData
+from .. import dnpdata
+from .. import create_workspace
 import numpy as np
 from struct import unpack
 import warnings
@@ -6,7 +7,7 @@ import os
 import glob
 
 
-def importKea(path, parameters_filename = None, verbose = False):
+def import_prospa(path, parameters_filename = None, verbose = False):
     '''Import Kea data
 
     Args:
@@ -15,7 +16,7 @@ def importKea(path, parameters_filename = None, verbose = False):
         verbose (bool): If true, prints additional information for troubleshooting
     
     Returns:
-        dnpData object with Kea data
+        dnpdata object with Kea data
     '''
 
     if parameters_filename == None:
@@ -26,7 +27,7 @@ def importKea(path, parameters_filename = None, verbose = False):
         path, filename = os.path.split(path)
         filename, extension = os.path.splitext(filename)
     elif os.path.isdir(path):
-        filesList = glob.glob(path + '*.[1-4]d')
+        filesList = glob.glob(os.path.join(path, '*.[1-4]d'))
         if len(filesList) == 0:
             raise ValueError('No binary data file in directory:')
         elif len(filesList) > 1:
@@ -70,15 +71,33 @@ def importKea(path, parameters_filename = None, verbose = False):
 
     # If axes information is give, assume it is the first dimension
     if x is not None:
-        dims[0] = 't'
+        dims[0] = 't2'
         # Assume units in us, convert to seconds
         coords[0] = x / 1e6
 
 
 
-    kea_data = dnpData(data, coords, dims, attrs)
+    kea_data = dnpdata(data, coords, dims, attrs)
 
     return kea_data
+
+def import_prospa_dir(path, exp_list = None):
+    '''Import directory of prospa experiments
+    '''
+
+    dirs = [x for x in os.listdir(path) if os.path.isdir(os.path.join(path,x))]
+
+    if exp_list is not None:
+        dirs = [dir_ for dir_ in dirs if dir_ in exp_list]
+
+
+    ws = create_workspace()
+
+    for ix, dir_ in enumerate(dirs):
+        tmp = import_prospa(os.path.join(path, dir_))
+        ws.add(dir_, tmp)
+
+    return ws
 
 def import_nd(path):
     '''Import Kea 1d, 2d, 3d, 4d files

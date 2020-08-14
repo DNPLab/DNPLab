@@ -1,7 +1,7 @@
 import numpy as _np
 import os
 
-from .. import dnpData as _dnpData
+from .. import dnpdata as _dnpdata
 
 from struct import unpack
 
@@ -42,14 +42,14 @@ def array_coords(attrs):
     array_dodc = attrs['arraydodc']
 
     if array_dim != 1:
-        coord = _np.r_[array_start:array_stop:array_delta]
+        coord = _np.r_[array_start:array_stop+array_delta:array_delta]
     else:
         coord = None
         dim = None
 
     return dim, coord
 
-def importfid(path, filename = 'fid'):
+def import_fid(path, filename = 'fid'):
     '''Import VnmrJ fid file
 
     Args:
@@ -188,7 +188,7 @@ def import_procpar(path, filename = 'procpar'):
                 paramDict[name] = value
 
 
-def importVarian(path, fidFilename = 'fid', paramFilename = 'procpar'):
+def import_vnmrj(path, fidFilename = 'fid', paramFilename = 'procpar'):
     """Import VnmrJ Data
 
     Args:
@@ -197,7 +197,7 @@ def importVarian(path, fidFilename = 'fid', paramFilename = 'procpar'):
         paramFilename(str): process parameter filename
 
     Returns:
-        dnpData: data in dnpData object
+        dnpdata: data in dnpdata object
 
     """
 
@@ -214,10 +214,10 @@ def importVarian(path, fidFilename = 'fid', paramFilename = 'procpar'):
     dwellTime = 1./sw
 
     t = _np.r_[0.:int(npts)] * dwellTime
-    dims = ['t']
+    dims = ['t2']
     coords = [t]
     
-    data = importfid(path, fidFilename)
+    data = import_fid(path, fidFilename)
 
     if coord is not None:
         dims.append(dim)
@@ -225,5 +225,5 @@ def importVarian(path, fidFilename = 'fid', paramFilename = 'procpar'):
     else:
         data = data.reshape(-1)
 
-    return _dnpData(data, coords, dims, attrs)
+    return _dnpdata(data, coords, dims, attrs)
 

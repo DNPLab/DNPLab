@@ -2,7 +2,7 @@
 
 from unittest import TestCase
 
-from dnpLab.utils import AttrDict, Parameter
+from dnpLab.dnpHydration import AttrDict, Parameter
 
 
 class TestAttrDict(TestCase):

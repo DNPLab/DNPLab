@@ -1,4 +1,4 @@
-""" Hydration module
+""" dnpHydration module
 
 This module calculates hydration related quantities using processed ODNP data.
 
@@ -7,12 +7,69 @@ This module calculates hydration related quantities using processed ODNP data.
 import numpy as np
 from scipy import interpolate
 from scipy import optimize
-from dnpLab.utils import AttrDict, Parameter
 
 
 class FitError(Exception):
     """Exception of Failed Fitting"""
     pass
+
+
+class AttrDict(object):
+    """Class with Dictionary-like Setting and Getting"""
+    def __init__(self, *args, **kwargs):
+        self.update(*args, **kwargs)
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+    def __setitem__(self, key, value):
+        self.__dict__[key] = value
+
+    def __delitem__(self, key):
+        del self.__dict__[key]
+
+    def __contains__(self, key):
+        return key in self.__dict__
+
+    def __len__(self):
+        return len(self.__dict__)
+
+    def __repr__(self):
+        return repr(self.__dict__)
+
+    def __eq__(self, other):
+        """This ensure equality between two dictionary"""
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        else:
+            return False
+
+    def __ne__(self, other):
+        """Not necessary for Python 3"""
+        return not self.__eq__(other)
+
+    def update(self, init=None, **kwargs):
+        """Update existing parameters
+
+        Args:
+            init: If init is present and has a .keys() method,
+                then does: for k in init: D[k] = E[k].
+                If init is present and lacks a .keys() method,
+                then does: for k, v in init: D[k] = v
+        """
+        if isinstance(init, dict):
+            self.__dict__.update(init)
+        elif isinstance(init, AttrDict):
+            self.__dict__.update(init.__dict__)
+        else:
+            self.__dict__.update(**kwargs)
+
+
+class Parameter(AttrDict):
+    """Parent Parameter Class"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class HydrationParameter(Parameter):
@@ -109,7 +166,7 @@ class HydrationParameter(Parameter):
             self.t1_interp_method = value
         else:
             self.__dict__[key] = value
-    
+
 
 class HydrationResults(AttrDict):
     """Class for handling hydration related quantities
@@ -121,8 +178,8 @@ class HydrationResults(AttrDict):
             numpy array that is the result of ~(1-E) / [ (constants*T1) ],
             used in ksigma(E_power) fit,
         ksigma_fit (numpy.array)        : ksig_fit,
-        ksigma (float)                 : ksigma,
-        ksigma_error (float)            : ksigma_error,
+        ksigma (float)                  : ksigma,
+        ksigma_stdd (float)             : ksigma_stdd,
         ksigma_bulk_ratio (float)       : ksigma/ksigma_bulk,
         krho (float)                    : krho,
         klow (float)                    : klow,
@@ -130,7 +187,7 @@ class HydrationResults(AttrDict):
         coupling_factor (float)         : coupling_factor,
         tcorr (float)                   : tcorr,
         tcorr_bulk_ratio (float)        : tcorr / tcorr_bulk,
-        Dlocal (float)                 : Dlocal
+        Dlocal (float)                  : Dlocal
 
     """
     def __init__(self, *args, **kwargs):
@@ -140,7 +197,7 @@ class HydrationResults(AttrDict):
         self.ksigma_array = None
         self.ksigma_fit = None
         self.ksigma = None
-        self.ksigma_error = None
+        self.ksigma_stdd = None
         self.ksigma_bulk_ratio = None
         self.krho = None
         self.klow = None
@@ -306,7 +363,7 @@ class HydrationCalculator:
         ksigma_smax = popt[0]
         p_12 = popt[1]
         ksigma_std = np.sqrt(np.diag(pcov))
-        ksigma_error = ksigma_std[0] / s_max
+        ksigma_stdd = ksigma_std[0] / s_max
 
         ksigma_fit = (ksigma_smax * power) / (p_12 + power)
         # (Eq. 42) calculate the "corrected" ksigma*s(p) array using the fit parameters,
@@ -373,7 +430,7 @@ class HydrationCalculator:
         J = results.jac
         cov = np.linalg.inv(J.T.dot(J))
         results_std = np.sqrt(np.diagonal(cov))
-        xi_unc_error = results_std[0]
+        xi_unc_stdd = results_std[0]
         """
         
         uncorrected_Ep = 1-((xi_unc*(1-(T10/T100))*omega_ratio)*((power*s_max)/(p_12_unc+power)))
@@ -384,7 +441,7 @@ class HydrationCalculator:
             'ksigma_array'      : ksigma_array,
             'ksigma_fit'        : ksigma_fit,
             'ksigma'            : ksigma,
-            'ksigma_error'      : ksigma_error,
+            'ksigma_stdd'      : ksigma_stdd,
             'ksigma_bulk_ratio' : ksigma/ksigma_bulk,
             'krho'              : krho,
             'klow'              : klow,
@@ -492,7 +549,7 @@ class HydrationCalculator:
         # curve fitting
         # see https://docs.scipy.org/doc/scipy/reference/optimize.html
         popt, pcov = optimize.curve_fit(calc_ksigma, power, ksig_sp,
-                                         p0=[50, (max(power) / 2)], method='lm')
+                                         p0=[95.4/2, (max(power)*0.1)], method='lm')
 
         assert popt[0] > 0, 'Unexpected ksigma value: %d < 0' % popt[0]
         return popt, pcov
@@ -545,7 +602,7 @@ class HydrationCalculator:
         # least-squares fitting.
         # see https://docs.scipy.org/doc/scipy/reference/optimize.html
         results = optimize.least_squares(fun=residual,
-                                         x0=[0.5, (max(power) / 2)],
+                                         x0=[0.27, (max(power)*0.1)],
                                          args=(Ep, power, T10, T100, wRatio, s_max),
                                          jac='2-point', method='lm')
         if not results.success:
@@ -555,9 +612,17 @@ class HydrationCalculator:
 
 
 def hydration(ws):
+    """Calculating Hydration Results
+
+    Args:
+        ws: Workspace
+
+    Returns:
+        dict: A dictionary of hydration results
+    """
 
     # Hydration required data
-    hyd = ws['hydration']
+    hyd = ws['hydration_inputs']
     T1, T1_power, E, E_power = [hyd[k] for k in ['T1', 'T1_power', 'E', 'E_power']]
 
     # Create hydration parameter
