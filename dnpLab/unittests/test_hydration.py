@@ -1,5 +1,5 @@
 import sys
-sys.path.append('.../odnplab')
+sys.path.append('..')
 
 import unittest
 import numpy as np
@@ -77,7 +77,7 @@ class TestHydration(unittest.TestCase):
                           ['T10', 'T100', 'spin_C', 'field']})
         hydration.update(
             {'smax_model': 'tethered', 't1_interp_method': 'second_order'})
-        ws.add('hydration', hydration)
+        ws.add('hydration_inputs', hydration)
         self.ws = ws
 
     def test_ws(self):

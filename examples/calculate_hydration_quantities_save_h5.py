@@ -73,7 +73,7 @@ hydration.update({
 })
 
 # Add hydration to workspace
-ws.add('hydration', hydration)
+ws.add('hydration_inputs', hydration)
 
 # Run hydration calculation
 res = dnpLab.dnpHydration.hydration(ws)
