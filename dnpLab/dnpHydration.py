@@ -114,14 +114,8 @@ class HydrationParameter(Parameter):
     __t1_interp_method = 'second_order'
     """str: Method used to interpolate T1, either linear or 'second_order'"""
 
-    def __init__(self):
-        """"""
-        super().__init__()
-        # Fixme: Remove the default field, spin concentration etc. Set them as required arguments
-        self.field = 348.5
-        self.spin_C = 100
-        self.T10 = 1.5
-        self.T100 = 2.5
+    def __init__(self, init=None):
+        super().__init__(init=init)
 
     @property
     def t1_interp_method(self):
@@ -142,7 +136,6 @@ class HydrationParameter(Parameter):
 
     @smax_model.setter
     def smax_model(self, value: str):
-    
         if value == 'tethered':
             self.__smax_model = value
         elif value == 'free':
@@ -191,7 +184,7 @@ class HydrationResults(AttrDict):
 
     """
     def __init__(self, *args, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.uncorrected_Ep = None
         self.interpolated_T1 = None
         self.ksigma_array = None

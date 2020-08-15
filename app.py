@@ -40,7 +40,7 @@ def set_hpar(hpar:HydrationParameter):
     # Processing parameter
     st.sidebar.markdown('**Hydration**')
     hpar.spin_C = st.sidebar.number_input("Spin label concentration (uM)", value=500.0, step=1.0, key='spin_C')
-    hpar.field = st.sidebar.number_input("Field (mT)", value=hpar.field, step=1.0, key='field')
+    hpar.field = st.sidebar.number_input("Field (mT)", value=348.5, step=1.0, key='field')
     hpar.smax_model = st.sidebar.radio('The spin is ', options=['tethered', 'free'], key='smax_model')
     hpar.t1_interp_method = st.sidebar.radio('T1 interpolation method', options=['linear', 'second_order'], index=0, key='t1_interp_method')
 
