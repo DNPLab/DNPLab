@@ -18,13 +18,13 @@ import dnpLab as dnp
 INPUT YOUR PARAMS HERE:
 '''
 
-directory = '..' # path to data folder
+directory = 'data/TEMPO_500uM/' # path to data folder
 
-Spin_Concentration = # micro molar
-Magnetic_Field = # mT
-T100 = # T1 without spin label, without microwaves, commonly called T1,0(0)
-smax_model = # ('tethered' or 'free')
-t1_interp_method = # ('linear' or 'second_order')
+Spin_Concentration = 500# micro molar
+Magnetic_Field = 4840# mT
+T100 = 2.5 # T1 without spin label, without microwaves, commonly called T1,0(0)
+smax_model = 'free' # ('tethered' or 'free')
+t1_interp_method = 'linear' # ('linear' or 'second_order')
 
 
 ### DO NOT EDIT BELOW ##
@@ -164,20 +164,14 @@ folders_Enhancements = range(6,27)
 # list of folder numbers for T1(p) points in ODNP set
 folders_T1s = range(28,33)
 
-total_folders = []
-total_folders.append(folder_p0)
-for e in folders_Enhancements:
-    total_folders.append(e)
-for t in folders_T1s:
-    total_folders.append(t)
-total_folders.append(folder_T10)
+total_folders = [folder_p0] + list(folders_Enhancements) + list(folders_T1s) + [folder_T10]
 
 T1 = []
 T1_stdd = []
 E = []
-for f in range(0, len(total_folders)):
+for i, folder in enumerate(total_folders):
 
-    data = dnp.dnpImport.topspin.import_topspin(directory, total_folders[f])
+    data = dnp.dnpImport.topspin.import_topspin(directory, folder)
     workspace = dnp.create_workspace('raw',data)
     workspace.copy('raw','proc')
 
@@ -188,8 +182,7 @@ for f in range(0, len(total_folders)):
     if workspace['proc'].ndim == 2:
         workspace = dnp.dnpNMR.align(workspace, {})
     
-    ## phase opt
-
+    ## phase opt: optimize the phase
     curve = workspace['proc'].values
 
     phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
@@ -202,38 +195,35 @@ for f in range(0, len(total_folders)):
     
     workspace['proc'] *= np.exp(-1j * phase)
         
-    ## optCenter
-
+    ## optCenter: find the optimized integration center
     intgrl_array = []
-    indx = range(-50, 51)
-    for k in range(0, len(indx)):
-        iterativeopt_workspace = copy.deepcopy(workspace)
-        iterativeopt_workspace = dnp.dnpNMR.integrate(iterativeopt_workspace,{'integrate_center' :  indx[k], 'integrate_width' : 10})
-        if len(iterativeopt_workspace['proc'].values) > 1:
-            intgrl_array.append(sum(abs(iterativeopt_workspace['proc'].values)))
-        else:
-            intgrl_array.append(abs(iterativeopt_workspace['proc'].values[0]))
+    indxes = range(-50, 51)
+    workspace.copy('proc', 'proc0')
+    for indx in indxes:
+        workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  indx, 'integrate_width' : 10})
+        intgrl_array.append(sum(abs(workspace['proc'].values)))
+        workspace.copy('proc0', 'proc')
     cent = np.argmax(intgrl_array)
-    center = indx[cent]
+    center = indxes[cent]
      
     workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  center, 'integrate_width' : pars['integration_width']})
 
-    if  total_folders[f] == folder_p0:
+    if  folder == folder_p0:
         p0 = np.real(workspace['proc'].values[0])
         print('Done with p0 folder...')
-    elif  total_folders[f] == folder_T10:
+    elif  folder == folder_T10:
         workspace = dnp.dnpFit.t1Fit(workspace)
         T10 = workspace['fit'].attrs['t1']
         T10_stdd = workspace['fit'].attrs['t1_stdd']
         print('Done with T1(0) folder...')
-    elif total_folders[f] in folders_T1s:
+    elif folder in folders_T1s:
         workspace = dnp.dnpFit.t1Fit(workspace)
         T1.append(workspace['fit'].attrs['t1'])
         T1_stdd.append(workspace['fit'].attrs['t1_stdd'])
-        print('Done with T1(p) folder ' + str(total_folders[f]) + '...')
-    elif total_folders[f] in folders_Enhancements:
+        print('Done with T1(p) folder ' + str(folder) + '...')
+    elif folder in folders_Enhancements:
         E.append(np.real(workspace['proc'].values[0]) / p0)
-        print('Done with Enhancement(p) folder ' + str(total_folders[f]) + '...')
+        print('Done with Enhancement(p) folder ' + str(folder) + '...')
 
 
 # get powers from .mat files
