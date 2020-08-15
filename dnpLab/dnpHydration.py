@@ -128,7 +128,7 @@ class HydrationParameter(Parameter):
             self.__t1_interp_method = value
         else:
             raise ValueError('t1_interp_method should be either `linear` or `second_order`')
-            
+
     @property
     def smax_model(self):
         """str: Method used to determine smax. Either `tethered` or `free`"""
@@ -143,7 +143,7 @@ class HydrationParameter(Parameter):
         else:
             raise ValueError(f'smax_model must be either `tethered` or `free`. '
                              f'Got {value}')
-    
+
     # These two function enable dictionary-like getting and setting properties.
     def __getitem__(self, key):
         if key in ['smax_model']:

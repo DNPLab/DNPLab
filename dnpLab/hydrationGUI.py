@@ -39,7 +39,7 @@ class hydrationGUI(QMainWindow):
         # self.setStyleSheet('background-color : rgb(255,255,255)')
         
         self.testmode = False  # set to True for testing, False for normal use
-        self.labpath = '..'  # same as sys path to dnpLab
+        self.testpath = '..'  # path to test data folder
         
         self.dataplt = PlotCanvas(self, width=7.2, height=4.8)
         self.enhplt = PlotCanvas(self, width=3.15, height=2)
@@ -592,7 +592,7 @@ class hydrationGUI(QMainWindow):
         bestindex = np.argmax(success)
 
         self.gui_dict['processing_spec']['original_phase'] = phases[0, bestindex]
-
+    
     def optCenter(self,width):
 
         optcenter_workspace = copy.deepcopy(self.processing_workspace)
@@ -624,7 +624,7 @@ class hydrationGUI(QMainWindow):
             xdata = np.ravel(xdata)
             one_third = np.where(ydata > max(ydata)*qual_factor)
             one_third = np.ravel(one_third)
-            self.gui_dict['processing_spec']['integration_width'] = xdata[one_third[len(one_third)-1]+5] - xdata[one_third[0]-5]
+            self.gui_dict['processing_spec']['integration_width'] = xdata[one_third[-1]] - xdata[one_third[0]]
         else:
             xdata = np.ravel(xdata[0])
             min_x = []
@@ -632,8 +632,8 @@ class hydrationGUI(QMainWindow):
             for k in range(0,len(ydata[0,:])):
                 one_third = np.where(ydata[round(len(ydata[:,0])/2)-75:round(len(ydata[:,0])/2)+75,k] > max(ydata[round(len(ydata[:,0])/2)-75:round(len(ydata[:,0])/2)+75,k])*qual_factor)
                 one_third = np.ravel(one_third)
-                min_x.append(xdata[one_third[0]-5])
-                max_x.append(xdata[one_third[len(one_third)-1]+5])
+                min_x.append(xdata[one_third[0]])
+                max_x.append(xdata[one_third[-1]])
             
             self.gui_dict['processing_spec']['integration_width'] = max(max_x) - min(min_x)
         
@@ -676,8 +676,8 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                flname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results hydration_parameters.h5'
-                #flname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results xODNP.mat'
+                flname = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results hydration_parameters.h5'
+                #flname = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results xODNP.mat'
             else:
                 dirname = QFileDialog.getOpenFileName(self)
                 
@@ -753,7 +753,7 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                pthnm = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'Workup'
+                pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'Workup'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
                 
@@ -859,7 +859,7 @@ class hydrationGUI(QMainWindow):
         # self.workup_ksig_array = ksig[:,1]
 
     @staticmethod
-    def workupExpTimes(fullPath, exps):
+    def get_powers(fullPath, powerFile, bufferVal, exps):
 
         expTime = []
         absTime = []
@@ -891,16 +891,6 @@ class hydrationGUI(QMainWindow):
             stop = second + minute + hour  # in seconds
             expTime.append(stop - start)
             absTime.append((absStart, absStop))
-
-        expTime = list(expTime)
-        for count, timeVal in enumerate(expTime):
-            if timeVal < 0:
-                expTime.pop(count)
-
-        return absTime
-
-    @staticmethod
-    def workupSplitPowers(fullPath, powerFile, bufferVal, absTime):
 
         threshold = 20
 
@@ -964,7 +954,7 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                pthnm = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + '304'
+                pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + '304'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
                 if dirname:
@@ -1035,7 +1025,7 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                pthnm = self.labpath + os.sep + 'data' + os.sep + 'topspin'
+                pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
                 if dirname:
@@ -1105,11 +1095,7 @@ class hydrationGUI(QMainWindow):
                         self.gui_dict['rawdata_function']['directory'] + 't1_powers.csv'):
                         print('No workup output found, using power readings files.')
 
-                        E_absTime = self.workupExpTimes(self.gui_dict['rawdata_function']['directory'],
-                                                        self.gui_dict['folder_structure']['enh'])
-                        E_power_List = self.workupSplitPowers(self.gui_dict['rawdata_function']['directory'], 'power',
-                                                              2.5, E_absTime)
-
+                        E_power_List = self.get_powers(self.gui_dict['rawdata_function']['directory'], 'power', 2.5, self.gui_dict['folder_structure']['enh'])
                         # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
                         Epowers = np.add(E_power_List, 21.9992)
                         Epowers = np.divide(Epowers, 10)
@@ -1117,11 +1103,7 @@ class hydrationGUI(QMainWindow):
                         Epowers = np.multiply(1e-3, Epowers)
                         # }}
 
-                        T1_absTime = self.workupExpTimes(self.gui_dict['rawdata_function']['directory'],
-                                                         self.gui_dict['folder_structure']['T1'])
-                        T1_power_List = self.workupSplitPowers(self.gui_dict['rawdata_function']['directory'],
-                                                               't1_powers', 20 * 2.5, T1_absTime)
-
+                        T1_power_List = self.get_powers(self.gui_dict['rawdata_function']['directory'], 't1_powers', 20*2.5, self.gui_dict['folder_structure']['T1'])
                         # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
                         T1powers = np.add(T1_power_List, 21.9992)
                         T1powers = np.divide(T1powers, 10)
@@ -1137,14 +1119,14 @@ class hydrationGUI(QMainWindow):
                 try:
                     Eplist = []
                     for k in self.gui_dict['folder_structure']['enh']:
-                        title = dnp.dnpImport.bruker.loadTitle(self.gui_dict['rawdata_function']['directory'],
+                        title = dnp.dnpImport.topspin.load_title(self.gui_dict['rawdata_function']['directory'],
                                                                 expNum=k)
                         splitTitle = title.split(' ')
                         Eplist.append(float(splitTitle[-1]))
 
                     T1plist = []
                     for k in self.gui_dict['folder_structure']['T1']:
-                        title = dnp.dnpImport.bruker.loadTitle(self.gui_dict['rawdata_function']['directory'],
+                        title = dnp.dnpImport.topspin.load_title(self.gui_dict['rawdata_function']['directory'],
                                                                 expNum=k)
                         splitTitle = title.split(' ')
                         T1plist.append(float(splitTitle[-1]))
@@ -1197,14 +1179,14 @@ class hydrationGUI(QMainWindow):
             self.dnpLab_workspace = self.import_create_workspace(self.gui_dict['rawdata_function']['folder'])
 
             self.processData()
-        
+ 
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('Han Lab data error ')
             self.gui_dict['gui_function']['buttons'] = False
             self.gui_dict['gui_function']['sliders'] = False
-        
+
         
     def Next_Button(self):
         """Use the Next button to step through the data folders.
@@ -1286,7 +1268,7 @@ class hydrationGUI(QMainWindow):
                     else:
                         print('WARNING: Error in T1(p) fit for folder ' + str(self.gui_dict['folder_structure']['all'][
                         self.gui_dict['folder_structure']['index']]) + ', setting equal to previous T1(p)')
-                        self.T1p.append(self.T1p[len(self.T1p)-1])
+                        self.T1p.append(self.T1p[-1])
                         self.T1p_stdd.append(0)
 
             self.gui_dict['folder_structure']['index'] += 1
@@ -1423,7 +1405,7 @@ class hydrationGUI(QMainWindow):
         self.processing_workspace = self.proc_workspace(self.processing_workspace, proc_params)
         
         if self.processing_workspace['proc'].ndim == 2:
-            dnp.dnpNMR.align(self.processing_workspace, {})
+            self.processing_workspace = dnp.dnpNMR.align(self.processing_workspace, {})
         
         if self.optphsCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
             self.workupPhaseOpt()
@@ -1882,7 +1864,7 @@ class hydrationGUI(QMainWindow):
                        'kSigmas_fit': self.addHyd_workspace['hydration_results']['ksigma_fit']}
 
         spltpthnm = pthnm.split(os.sep)
-        flnm = spltpthnm[len(spltpthnm) - 1]
+        flnm = spltpthnm[-1]
         svpthnm = pthnm + ' hydrationGUI Results'
         if os.path.isdir(svpthnm):
             svpthnm = pthnm + '_COPY' + ' hydrationGUI Results'

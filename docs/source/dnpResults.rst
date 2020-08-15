@@ -1,6 +1,6 @@
-========
+==========
 dnpResults
-========
+==========
 
 .. automodule:: dnpLab.dnpResults
    :members:

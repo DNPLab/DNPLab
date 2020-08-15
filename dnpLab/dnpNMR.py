@@ -33,22 +33,12 @@ _default_autophase_parameters = {
         }
 
 def return_data(all_data):
-    '''Determine type of data for processing and return data for processing
-
-    Args:
-
-    '''
 
     is_workspace = False
     if isinstance(all_data,dnpdata):
         data = all_data.copy()
     elif isinstance(all_data, dict):
         raise ValueError('Type dict is not supported')
-#        isDict = True
-#        if 'proc' in all_data:
-#            data = all_data['proc'].copy()
-#        elif 'raw' in all_data:
-#            data = all_data['raw'].copy()
     elif isinstance(all_data, dnpdata_collection):
         is_workspace = True
         if all_data.processing_buffer in all_data.keys():
@@ -84,6 +74,14 @@ def remove_offset(all_data, proc_parameters):
     Args:
         all_data (dnpdata, dict): Data container for data
         proc_parameters (dict,procParam): Processing _parameters
+
+    +---------------+------+---------+----------------------------------------------------------+
+    | parameter     | type | default | description                                              |
+    +---------------+------+---------+----------------------------------------------------------+
+    | dim           | str  | 't2'    | Dimension to calculate DC offset                         |
+    +---------------+------+---------+----------------------------------------------------------+
+    | offset_points | int  | 10      | Number of points at end of data to average for DC offset |
+    +---------------+------+---------+----------------------------------------------------------+
 
     Returns:
         dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
@@ -131,6 +129,18 @@ def fourier_transform(all_data, proc_parameters):
     Args:
         all_data (dnpdata, dict): Data container
         proc_parameters (dict, procParam): Processing parameters
+
+    +------------------+------+---------+--------------------------------------------------+
+    | parameter        | type | default | description                                      |
+    +------------------+------+---------+--------------------------------------------------+
+    | dim              | str  | 't2'    | dimension to Fourier transform                   |
+    +------------------+------+---------+--------------------------------------------------+
+    | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
+    +------------------+------+---------+--------------------------------------------------+
+    | shift            | bool | True    | Perform fftshift to set zero frequency to center |
+    +------------------+------+---------+--------------------------------------------------+
+    | convert_to_ppm   | bool | True    | Convert dim from Hz to ppm                       |
+    +------------------+------+---------+--------------------------------------------------+
 
     Returns:
         all_data (dnpdata, dict): Processed data in container
@@ -194,7 +204,18 @@ def window(all_data,proc_parameters):
     .. note::
         Axis units assumed to be seconds
 
-    Exampe:
+    +-----------+-------+---------+--------------------------------------------+
+    | parameter | type  | default | description                                |
+    +-----------+-------+---------+--------------------------------------------+
+    | dim       | str   | 't2'    | Dimension to apply exponential apodization |
+    +-----------+-------+---------+--------------------------------------------+
+    | linewidth | float | 10      | Linewidth of broadening to apply in Hz     |
+    +-----------+-------+---------+--------------------------------------------+
+
+    Returns:
+        dnpdata_collection or dnpdata: data object with window function applied
+
+    Example:
 
     .. code-block:: python
 
@@ -235,30 +256,34 @@ def window(all_data,proc_parameters):
         return data
 
 def integrate(all_data,proc_parameters):
-    '''_integrate data down given dimension
+    '''Integrate data down given dimension
     
     Args:
         all_data (dnpdata,dict): Data container
         proc_parameters (dict, procParam): Processing Parameters
-            dim_label: str
-                dimension to integrate
-            integrate_center:
-                center for width of integration
-            integrate_width: 
-                width of integration window
+
+    +------------------+-------+---------+------------------------------+
+    | parameter        | type  | default | description                  |
+    +------------------+-------+---------+------------------------------+
+    | dim              | str   | 't2'    | dimension to integrate       |
+    +------------------+-------+---------+------------------------------+
+    | integrate_center | float | 0       | center of integration window |
+    +------------------+-------+---------+------------------------------+
+    | integrate_width  | float | 100     | width of integration window  |
+    +------------------+-------+---------+------------------------------+
 
     Returns:
         all_data (dnpdata,dict): Processed data
 
-    Exampe:
-    .. code-block:: python
-
+    Example::
+        
         proc_parameters = {
-                    'dim' : 't2',
-                    'integrate_center' : 0,
-                    'integrate_width' : 100,
-                    }
+            'dim' : 't2',
+            'integrate_center' : 0,
+            'integrate_width' : 100,
+            }
         dnpLab.dnpNMR.integrate(all_data,proc_parameters)
+
     '''
 
     data, isDict = return_data(all_data)
@@ -273,8 +298,6 @@ def integrate(all_data,proc_parameters):
     integrateMin = integrate_center - _np.abs(integrate_width)/2.
     integrateMax = integrate_center + _np.abs(integrate_width)/2.
 
-#    data = data.range(dim,integrateMin,integrateMax)
-    #print(dim)
     data = data[dim,(integrateMin,integrateMax)]
 
     data = data.sum(dim)
@@ -291,8 +314,11 @@ def integrate(all_data,proc_parameters):
 
 
 def align(all_data,proc_parameters):
-    '''
-    Alignment of NMR spectra down given dim dimension
+    '''Alignment of NMR spectra down given dim dimension
+
+    Example::
+        
+        data = dnp.dnpNMR.align(data, {})
     '''
 
     data, isDict = return_data(all_data)
@@ -309,7 +335,7 @@ def align(all_data,proc_parameters):
     dimIter = data.dims[-1]
 
     refData = data[dimIter,0].values.reshape(-1)
-#    for ix in range(data.len(dimIter)):
+
     for ix in range(len(data.coords[dimIter])):
         tempData = data[dimIter,ix].values.reshape(-1)
 
@@ -330,7 +356,19 @@ def align(all_data,proc_parameters):
         return data
 
 def autophase(workspace, parameters):
-    '''
+    '''Automatically phase data
+
+    Args:
+        workspace (dnpdata_collection, dnpdata): Data object to autophase
+        parameters (dict): 
+
+    Returns:
+        dnpdata_collection, dnpdata: Autophased data
+
+    Example::
+
+        ws = dnp.dnpNMR.autophase(ws, {})
+
     '''
 
     requiredList = _default_autophase_parameters.keys()

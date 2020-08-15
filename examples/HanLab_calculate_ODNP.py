@@ -17,7 +17,7 @@ INPUT YOUR PARAMS HERE:
 directory = 'data/TEMPO_500uM/' # path to data folder
 
 Spin_Concentration = 500  # micro molar
-Magnetic_Field = 4840  # mT
+Magnetic_Field = 348.5  # mT
 T100 = 2.5  # T1 without spin label, without microwaves, commonly called T1,0(0)
 smax_model = 'free' # ('tethered' or 'free')
 t1_interp_method = 'linear' # ('linear' or 'second_order')
@@ -120,6 +120,71 @@ def get_powers(directory,powerfile,ExpNums,bufferVal):
     return power_List
 
 
+def find_peak(f, xmin, xmax):
+    """ Find integer peak of f(x) for x \in [xmin, xmax]. T = O(log(n)).
+    The frist derivative of f(x) must be monotonic. (by YL)
+
+    +---------------+----------------+
+    | xmax - xmin   | # calls of f   |
+    +---------------+----------------+
+    | 50            | 23             |
+    +---------------+----------------+
+    | 100           | 29             |
+    +---------------+----------------+
+    | 400           | 41             |
+    +---------------+----------------+
+    | 2000          | 53             |
+    +---------------+----------------+
+
+    Args:
+        xmin: The minimum of possible x.
+        xmax: The maximum of possible x
+        f: Callable. Must return a number.
+        *args: additional arguments for f.
+        **kwargs: additional keyword arguments for f.
+
+    Returns:
+        A number x_ for which f(x_) >= f(x) for all x \in [xmin, xmax]
+
+    """
+    if xmin == xmax:
+        return xmin, f(xmin)
+    elif xmin > xmax:
+        return xmax, f(xmax)
+
+    ymin = f(xmin)
+    ymax = f(xmax)
+
+    if xmin == xmax - 1:
+        return (xmin, ymin) if ymin >= ymax else (xmax, ymax)
+
+    xmid = (xmin + xmax) // 2
+    ymid = f(xmid)
+
+    if ymin >= ymid >= ymax:
+        xl, yl = find_peak(f, xmin+1, xmid-1)
+        return (xl, yl) if yl >= ymin else (xmin, ymin)
+
+    elif ymin <= ymid <= ymax:
+        xr, yr = find_peak(f, xmid+1, xmax-1)
+        return (xr, yr) if yr >= ymax else (xmax, ymax)
+
+    else:
+        x1, y1 = find_peak(f, xmin+1, xmid-1)
+        x2, y2 = find_peak(f, xmid+1, xmax-1)
+        (x1, y1) = (x1, y1) if y1 >= y2 else (x2, y2)
+        return (x1, y1) if y1 >= ymid else (xmid, ymid)
+
+
+def test_find_peak():
+    # when xmin <= x_ <= xmax, return x_
+    assert find_peak(lambda x:-x**2, -8, 8) == (0, 0)
+    # when xmin <= xmax <= x_, return x_
+    assert find_peak(lambda x:x, 0, 1) == (1, 1)
+    # when f(a) == f(b) == f(x_) where a <= b, return a
+    assert find_peak(lambda x:x**2, -1, 1) == (-1, 1)
+
+
 def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
     '''
     Args:
@@ -183,15 +248,21 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
         workspace['proc'] *= np.exp(-1j * phase)
 
         ## optCenter: find the optimized integration center
-        intgrl_array = []
-        indxes = np.arange(-50, 51, 5)
-        workspace.copy('proc', 'proc0')
-        for indx in indxes:
-            workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  indx, 'integrate_width' : 10})
-            intgrl_array.append(sum(abs(workspace['proc'].values)))
-            workspace.copy('proc0', 'proc')
-        cent = np.argmax(intgrl_array)
-        center = indxes[cent]
+        workspace.copy('proc', 'proc0')  # FIXME: drop this line, see below
+        def f_int(indx:int):
+            y = sum(abs(dnp.dnpNMR.integrate(workspace, {'integrate_center' :  indx, 'integrate_width' : 10})['proc'].values))
+            workspace.copy('proc0', 'proc')  # FIXME: Remove this line when test_dnpNMR.test_integrate pass
+            return y
+        center, _ = find_peak(f_int, -50, 51)
+        # intgrl_array = []
+        # indxes = range(-50, 51)
+        # workspace.copy('proc', 'proc0')
+        # for indx in indxes:
+        #     workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  indx, 'integrate_width' : 10})
+        #     intgrl_array.append(sum(abs(workspace['proc'].values)))
+        #     workspace.copy('proc0', 'proc')
+        # cent = np.argmax(intgrl_array)
+        # center = indxes[cent]
 
         workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  center, 'integrate_width' : pars['integration_width']})
 

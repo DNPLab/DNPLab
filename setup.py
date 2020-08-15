@@ -7,7 +7,7 @@ setup(
         version = '1.0',
         license = 'MIT',
         description = 'dnpLab - A NMR Processing Library for ODNP Experiments',
-        author = 'Timothy Keller',
+        author = 'Timothy Keller, Tom Casey, Yanxian Lin, Thorsten Maly, John Franck, Songi Han',
         author_email = 'tkeller@bridge12.com',
         url = '',
         download_url = '',
