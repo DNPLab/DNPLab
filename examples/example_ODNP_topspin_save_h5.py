@@ -74,7 +74,16 @@ save_name = 'ODNPdata_dnpHydrationResults'
 #### Do not change the code below ####
 print('Working...')
 
+
 def workupPhaseOpt(workspace):
+    """Return the optimized phase given a workspace.
+
+    Args:
+        workspace: Workspace containing an FID.
+
+    Returns:
+        float: The best phase.
+    """
 
     curve = workspace['proc'].values
     
@@ -86,7 +95,16 @@ def workupPhaseOpt(workspace):
 
     return phases[0, bestindex]
 
+
 def optCenter(workspace):
+    """Return the optimized integration center given a workspace.
+
+    Args:
+        workspace: Workspace containing an FID.
+
+    Returns:
+        int: The best integration center.
+    """
 
     intgrl_array = []
     indx = range(-50, 51)
