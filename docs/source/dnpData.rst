@@ -2,8 +2,8 @@
 dnpData
 =======
 
-.. automodule:: dnpLab.dnpdata
-   :members:
-   :show-inheritance:
-   :member-order: bysource
-   :inherited-members:
+.. .. automodule:: dnpLab.dnpdata
+..    :members:
+..    :show-inheritance:
+..    :member-order: bysource
+..    :inherited-members:
