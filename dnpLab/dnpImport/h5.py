@@ -24,7 +24,7 @@ def saveh5(dataDict, path, overwrite = False):
         dnpDataObject = dataDict[key]
 
         dnpDataGroup = f.create_group(key, track_order = True)
-        if isinstance(dnpDataObject, dnpData):
+        if isinstance(dnpDataObject, dnpdata):
             write_dnpdata(dnpDataGroup, dnpDataObject)
         elif isinstance(dnpDataObject, dict):
             write_dict(dnpDataGroup, dnpDataObject)

@@ -32,12 +32,21 @@ _default_autophase_parameters = {
         'method': 'arctan',
         }
 
-def align(all_data,proc_parameters):
-    '''
-    Align NMR spectra along given dimension
-    '''
+def return_data(all_data):
 
-    data, isDict = return_data(all_data)
+    is_workspace = False
+    if isinstance(all_data,dnpdata):
+        data = all_data.copy()
+    elif isinstance(all_data, dict):
+        raise ValueError('Type dict is not supported')
+    elif isinstance(all_data, dnpdata_collection):
+        is_workspace = True
+        if all_data.processing_buffer in all_data.keys():
+            data = all_data[all_data.processing_buffer]
+        else:
+            raise ValueError('No data in processing buffer')
+    else:
+        raise ValueError('Data type not supported')
 
     if len(_np.shape(data.values)) != 2:
         print('Only 2-dimensional data supported')
@@ -72,7 +81,25 @@ def align(all_data,proc_parameters):
     else:
         return data
 
-def autophase(workspace, parameters):
+    +---------------+------+---------+----------------------------------------------------------+
+    | parameter     | type | default | description                                              |
+    +---------------+------+---------+----------------------------------------------------------+
+    | dim           | str  | 't2'    | Dimension to calculate DC offset                         |
+    +---------------+------+---------+----------------------------------------------------------+
+    | offset_points | int  | 10      | Number of points at end of data to average for DC offset |
+    +---------------+------+---------+----------------------------------------------------------+
+
+    Returns:
+        dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
+        dnpdata: If dnpdata object is given, return dnpdata object.
+
+    Example::
+
+       proc_parameters = {}
+       proc_parameters['dim'] = 't2'
+       proc_parameters['offset_points'] = 10
+
+       workspace = dnpLab.dnpNMR.remove_offset(workspace, proc_parameters)
     '''
     Autophase of NMR spectra 
     '''
@@ -106,6 +133,18 @@ def fourier_transform(all_data, proc_parameters):
     Args:
         all_data (dnpdata, dict): Data container
         proc_parameters (dict, procParam): Processing parameters
+
+    +------------------+------+---------+--------------------------------------------------+
+    | parameter        | type | default | description                                      |
+    +------------------+------+---------+--------------------------------------------------+
+    | dim              | str  | 't2'    | dimension to Fourier transform                   |
+    +------------------+------+---------+--------------------------------------------------+
+    | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
+    +------------------+------+---------+--------------------------------------------------+
+    | shift            | bool | True    | Perform fftshift to set zero frequency to center |
+    +------------------+------+---------+--------------------------------------------------+
+    | convert_to_ppm   | bool | True    | Convert dim from Hz to ppm                       |
+    +------------------+------+---------+--------------------------------------------------+
 
     Returns:
         all_data (dnpdata, dict): Processed data in container
@@ -159,34 +198,96 @@ def fourier_transform(all_data, proc_parameters):
     else:
         return data
 
-def integrate(all_data,proc_parameters):
-    '''Integrate data along given dimension
+def window(all_data,proc_parameters):
+    '''Apply Apodization to data down given dimension
     
     Args:
-        all_data (dnpdata,dict): Data container
-        proc_parameters (dict, procParam): Processing Parameters
-        dim_label: str
-            dimension to integrate
+        all_data (dnpdata, dict): data container
+        proc_parameters (dict, procParam): parameter values
 
-        integrate_center:
-            center for width of integration
-        integrate_width: 
-            width of integration window
+    .. note::
+        Axis units assumed to be seconds
+
+    +-----------+-------+---------+--------------------------------------------+
+    | parameter | type  | default | description                                |
+    +-----------+-------+---------+--------------------------------------------+
+    | dim       | str   | 't2'    | Dimension to apply exponential apodization |
+    +-----------+-------+---------+--------------------------------------------+
+    | linewidth | float | 10      | Linewidth of broadening to apply in Hz     |
+    +-----------+-------+---------+--------------------------------------------+
 
     Returns:
-        all_data (dnpdata,dict): Processed data
+        dnpdata_collection or dnpdata: data object with window function applied
 
     Example:
 
     .. code-block:: python
 
         proc_parameters = {
-                    'dim' : 't2',
-                    'integrate_center' : 0,
-                    'integrate_width' : 100,
-                    }
+                'linewidth' : 10,
+                'dim' : 't2',
+                }
+        all_data = dnpLab.dnpNMR.window(all_data,proc_parameters)
+        
+    '''
 
+    data, isDict = return_data(all_data)
+
+    requiredList = _default_window_parameters.keys()
+    proc_parameters = update_parameters(proc_parameters,requiredList,_default_window_parameters)
+
+    dimLabel = proc_parameters['dim']
+    linewidth = proc_parameters['linewidth']
+
+    index = data.dims.index(dimLabel)
+
+    reshape_size = [1 for k in data.dims]
+    reshape_size[index] = len(data.coords[dimLabel])
+
+    # Must include factor of 2 in exponential to get correct linewidth ->
+    window_array = _np.exp(-1.*data.coords[dimLabel]*2.*linewidth).reshape(reshape_size)
+    window_array = _np.ones_like(data.values) * window_array
+    data.values *= window_array
+
+    proc_attr_name = 'window'
+    proc_dict = {k:proc_parameters[k] for k in proc_parameters if k in requiredList}
+    data.add_proc_attrs(proc_attr_name, proc_dict)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+        return all_data
+    else:
+        return data
+
+def integrate(all_data,proc_parameters):
+    '''Integrate data down given dimension
+    
+    Args:
+        all_data (dnpdata,dict): Data container
+        proc_parameters (dict, procParam): Processing Parameters
+
+    +------------------+-------+---------+------------------------------+
+    | parameter        | type  | default | description                  |
+    +------------------+-------+---------+------------------------------+
+    | dim              | str   | 't2'    | dimension to integrate       |
+    +------------------+-------+---------+------------------------------+
+    | integrate_center | float | 0       | center of integration window |
+    +------------------+-------+---------+------------------------------+
+    | integrate_width  | float | 100     | width of integration window  |
+    +------------------+-------+---------+------------------------------+
+
+    Returns:
+        all_data (dnpdata,dict): Processed data
+
+    Example::
+        
+        proc_parameters = {
+            'dim' : 't2',
+            'integrate_center' : 0,
+            'integrate_width' : 100,
+            }
         dnpLab.dnpNMR.integrate(all_data,proc_parameters)
+
     '''
 
     data, isDict = return_data(all_data)
@@ -201,8 +302,6 @@ def integrate(all_data,proc_parameters):
     integrateMin = integrate_center - _np.abs(integrate_width)/2.
     integrateMax = integrate_center + _np.abs(integrate_width)/2.
 
-#    data = data.range(dim,integrateMin,integrateMax)
-    #print(dim)
     data = data[dim,(integrateMin,integrateMax)]
 
     data = data.sum(dim)
@@ -220,9 +319,13 @@ def integrate(all_data,proc_parameters):
 def remove_offset(all_data, proc_parameters):
     '''Remove DC offset from FID by averaging the last few data points and subtracting the average
 
-    Args:
-        all_data (dnpdata, dict): Data container for data
-        proc_parameters (dict,procParam): Processing _parameters
+def align(all_data,proc_parameters):
+    '''Alignment of NMR spectra down given dim dimension
+
+    Example::
+        
+        data = dnp.dnpNMR.align(data, {})
+    '''
 
     Returns:
         dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
@@ -236,10 +339,10 @@ def remove_offset(all_data, proc_parameters):
        proc_parameters['dim'] = 't2'
        proc_parameters['offset_points'] = 10
 
-       workspace = dnpLab.dnpNMR.remove_offset(workspace, proc_parameters)
-    '''
-    # Determine if data is dictionary or dnpdata object
-    data, isDict = return_data(all_data)
+    refData = data[dimIter,0].values.reshape(-1)
+
+    for ix in range(len(data.coords[dimIter])):
+        tempData = data[dimIter,ix].values.reshape(-1)
 
     requiredList = _default_remove_offset_parameters.keys()
     proc_parameters = update_parameters(proc_parameters,requiredList,_default_remove_offset_parameters)
@@ -262,46 +365,21 @@ def remove_offset(all_data, proc_parameters):
     else:
         return data
 
-def return_data(all_data):
-    '''Determine type of data for processing and return data for processing
-    '''
-
-    is_workspace = False
-    if isinstance(all_data,dnpdata):
-        data = all_data.copy()
-    elif isinstance(all_data, dict):
-        raise ValueError('Type dict is not supported')
-#        isDict = True
-#        if 'proc' in all_data:
-#            data = all_data['proc'].copy()
-#        elif 'raw' in all_data:
-#            data = all_data['raw'].copy()
-    elif isinstance(all_data, dnpdata_collection):
-        is_workspace = True
-        if all_data.processing_buffer in all_data.keys():
-            data = all_data[all_data.processing_buffer]
-        else:
-            raise ValueError('No data in processing buffer')
-    else:
-        raise ValueError('Data type not supported')
-
-    return data, is_workspace
-
-def update_parameters(proc_parameters, requiredList, default_parameters):
-    '''Add default parameter to processing parameters if a processing parameter is missing
+def autophase(workspace, parameters):
+    '''Automatically phase data
 
     Args:
-        proc_parameters (dict): Dictionary of initial processing parameters
-        requiredList (list): List of required processing parameters
-        default_parameters (dict): Dictionary of default processing parameters
+        workspace (dnpdata_collection, dnpdata): Data object to autophase
+        parameters (dict): 
 
     Returns:
-        dict: Updated processing parameters dictionary
+        dnpdata_collection, dnpdata: Autophased data
+
+    Example::
+
+        ws = dnp.dnpNMR.autophase(ws, {})
+
     '''
-    updatedProc_parameters = proc_parameters
-    for requiredParameter in requiredList:
-        if not requiredParameter in updatedProc_parameters:
-            updatedProc_parameters[requiredParameter] = default_parameters[requiredParameter]
 
     return updatedProc_parameters
 
