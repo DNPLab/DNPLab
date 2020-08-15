@@ -6,8 +6,8 @@ import pprint
 import os
 import csv
 import base64
-from odnpLab.examples.workupCNSI import ProcParameter, process_cnsi
-from odnpLab.hydration import HydrationParameter, HydrationCalculator
+from examples.HanLab_calculate_ODNP import hanlab_calculate_odnp
+from dnpLab.dnpHydration import HydrationParameter
 
 print = pprint.pprint
 
@@ -31,23 +31,20 @@ def get_table_download_link(temp_file_path, filename='results'):
     return href
 
 
-def set_ppar(ppar:ProcParameter):
+def set_ppar(ppar:dict):
     """Prompt for users to choose parameters
 
-    Returns: tuple(ProcParameter, HydrationParameter)
+    Returns: dict
 
     """
     # Processing parameter
     st.sidebar.markdown("**Enhancement integration**")
-    ppar.eic = st.sidebar.slider("Center", min_value=-100, max_value=100, value=0, step=10, key='eic')
-    ppar.eiw = st.sidebar.slider("Width", min_value=10, max_value=500, value=250, step=10, key='eiw')
+    ppar['eiw'] = st.sidebar.slider("Width", min_value=10, max_value=500, value=20, step=10, key='eiw')
     st.sidebar.markdown("**T1 integration**")
     if not st.sidebar.checkbox("Same as Enhancement", value=True):
-        ppar.tic = st.sidebar.slider("Center", min_value=-100, max_value=100, value=0, step=10, key='tic')
-        ppar.tiw = st.sidebar.slider("Width", min_value=10, max_value=500, value=250, step=10, key='tiw')
+        ppar['tiw'] = st.sidebar.slider("Width", min_value=10, max_value=500, value=20, step=10, key='tiw')
     else:
-        ppar.tic = ppar.eic
-        ppar.tiw = ppar.eiw
+        ppar['tiw'] = ppar['eiw']
 
     return ppar
 
@@ -71,7 +68,7 @@ def set_hpar(hpar:HydrationParameter):
     return hpar
 
 
-def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
+def run(uploaded_file, ppar:dict, hpar:HydrationParameter):
     """
 
     Args:
@@ -108,20 +105,13 @@ def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
         # Process CNSI ODNP and return a str of results
         path = os.path.join(tmpdir, expname)  # path to CNSI data folder
 
-        rest = process_cnsi(path, ppar)
-
-        t1, t1_power, e, e_power = rest['T1p'], rest['T1powers'], rest['Ep'], rest['Epowers']
-
-        hpar.T10 = rest['T10']
-
-        hc = HydrationCalculator(T1=t1, T1_power=t1_power, E=e, E_power=e_power, hp=hpar)
-        hc.run()
+        hresults = hanlab_calculate_odnp(path, ppar, verbose=False)
 
         # Create dictionary of results
-        mydict = {k:v for k, v in hc.results.__dict__.items()
+        mydict = {k:v for k, v in hresults.__dict__.items()
                   if type(v) != type(np.ndarray([]))}
         mydict.update({k: ', '.join([f"{vi:.4f}" for vi in v])
-                       for k, v in hc.results.__dict__.items()
+                       for k, v in hresults.__dict__.items()
                        if type(v) == type(np.ndarray([]))})
 
     return mydict, expname
