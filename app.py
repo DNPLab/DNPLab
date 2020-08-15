@@ -17,6 +17,8 @@ VERSION = "v1.0"
 CNSI_EMX_LINK = 'https://www.mrl.ucsb.edu/spectroscopy-facility/instruments/7-bruker-emxplus-epr-spectrometer'
 DEMO_DATA_LINK = 'https://github.com/ylin00/odnplab/raw/master/20190821_TW_4OH-TEMPO_500uM_.zip'
 ISSUE_COMPLAINT_LINK = 'https://github.com/ylin00/odnplab/issues'
+DNPLAB_REPO_LINK = ''
+DNPLAB_DOC_LINK = ''
 
 
 def set_ppar(ppar:ProcParameter):
@@ -41,6 +43,7 @@ def set_hpar(hpar:HydrationParameter):
     st.sidebar.markdown('**Hydration**')
     hpar.spin_C = st.sidebar.number_input("Spin label concentration (uM)", value=500.0, step=1.0, key='spin_C')
     hpar.field = st.sidebar.number_input("Field (mT)", value=348.5, step=1.0, key='field')
+    hpar.T100 = st.sidebar.number_input("T1,0(0) (s)", value=2.5, step=0.05, key='t100')
     hpar.smax_model = st.sidebar.radio('The spin is ', options=['tethered', 'free'], key='smax_model')
     hpar.t1_interp_method = st.sidebar.radio('T1 interpolation method', options=['linear', 'second_order'], index=0, key='t1_interp_method')
 
