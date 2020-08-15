@@ -1,51 +1,33 @@
 import streamlit as st
-import numpy as np
 import zipfile
 import tempfile
 import pprint
 import os
-import csv
-import base64
+import numpy as np
+import matplotlib.pyplot as plt
 from examples.HanLab_calculate_ODNP import hanlab_calculate_odnp
 from dnpLab.dnpHydration import HydrationParameter
+from app_helper import ProcParameter, dict_to_str, get_table_download_link
 
 print = pprint.pprint
 
 # TEMPDIR = '/tmp/odnplab/'
 TEMPDIR = None
+VERSION = "v1.0"
 CNSI_EMX_LINK = 'https://www.mrl.ucsb.edu/spectroscopy-facility/instruments/7-bruker-emxplus-epr-spectrometer'
 DEMO_DATA_LINK = 'https://github.com/ylin00/odnplab/raw/master/20190821_TW_4OH-TEMPO_500uM_.zip'
 ISSUE_COMPLAINT_LINK = 'https://github.com/ylin00/odnplab/issues'
 
 
-def get_table_download_link(temp_file_path, filename='results'):
-    """Generates a link allowing a temp_file_path to be downloaded
-    
-    Args:
-        temp_file_path(str): A string to write to a txt file and download.
-        filename(str): the txt file name to generate.
-
-    """
-    b64 = base64.b64encode(temp_file_path.encode()).decode()  # some strings <-> bytes conversions necessary here
-    href = f'<a href="data:file/csv;base64,{b64}" download="{filename}.txt">Download Results</a>'
-    return href
-
-
-def set_ppar(ppar:dict):
+def set_ppar(ppar:ProcParameter):
     """Prompt for users to choose parameters
 
     Returns: dict
 
     """
     # Processing parameter
-    st.sidebar.markdown("**Enhancement integration**")
-    ppar['eiw'] = st.sidebar.slider("Width", min_value=10, max_value=500, value=20, step=10, key='eiw')
-    st.sidebar.markdown("**T1 integration**")
-    if not st.sidebar.checkbox("Same as Enhancement", value=True):
-        ppar['tiw'] = st.sidebar.slider("Width", min_value=10, max_value=500, value=20, step=10, key='tiw')
-    else:
-        ppar['tiw'] = ppar['eiw']
-
+    st.sidebar.markdown("**Peak integration**")
+    ppar.eiw = st.sidebar.slider("Width", min_value=10, max_value=500, value=20, step=10, key='eiw')
     return ppar
 
 
@@ -68,13 +50,13 @@ def set_hpar(hpar:HydrationParameter):
     return hpar
 
 
-def run(uploaded_file, ppar:dict, hpar:HydrationParameter):
+def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
     """
 
     Args:
         uploaded_file: zip file object
 
-    Returns: tuple(dict, str)
+    Returns: tuple(dict, str, HydrationResults)
         mydict: dictionary of results
         expname: name of the experiment
 
@@ -105,25 +87,40 @@ def run(uploaded_file, ppar:dict, hpar:HydrationParameter):
         # Process CNSI ODNP and return a str of results
         path = os.path.join(tmpdir, expname)  # path to CNSI data folder
 
-        hresults = hanlab_calculate_odnp(path, ppar, verbose=False)
-
-        # Create dictionary of results
-        mydict = {k:v for k, v in hresults.__dict__.items()
+        pars = {'integration_width'  : ppar.eiw,
+                 'spin_C'             : hpar.spin_C,
+                 'field'              : hpar.field,
+                 'T100'               : hpar.T100,
+                 'smax_model'         : hpar.smax_model,
+                 't1_interp_method'   : hpar.t1_interp_method}
+        hresults = hanlab_calculate_odnp(path, pars, verbose=ppar.verbose)
+        mydict = {k: v for k, v in hresults.items()
                   if type(v) != type(np.ndarray([]))}
         mydict.update({k: ', '.join([f"{vi:.4f}" for vi in v])
-                       for k, v in hresults.__dict__.items()
+                       for k, v in hresults.items()
                        if type(v) == type(np.ndarray([]))})
 
-    return mydict, expname
+    return mydict, expname, hresults
 
 
-def dict_to_str(mydict):
-    mylist = [f"{k} \t {v}" for k, v in mydict.items()]
-    return '\n'.join(mylist)
+def plot(data:dict):
+    """Create EDA"""
+    fig, axes = plt.subplots(1, 2, figsize=[6, 3], squeeze=True)
+    # Enhancement plot
+    axes[0].plot(data['E_power'], data['E'], '.k')
+    axes[0].set_xlabel('Power')
+    axes[0].set_ylabel('Enhancement')
+    # T1 plot
+    axes[1].plot(data['T1_power'], data['T1'], '.k')
+    axes[1].set_xlabel('Power')
+    axes[1].set_ylabel('T1 (s)')
+
+    fig.tight_layout()
+    st.pyplot()
 
 
 # =======THE APP=======
-st.title('ODNPLab: One-Step ODNP Processing \n Powered by DNPLab')
+st.title(f'ODNPLab: One-Step ODNP Processing \n {VERSION} \t Powered by DNPLab ')
 st.markdown(f"""
 ## How to use
 1. Collect your ODNP data on [UCSB CNSI EMXplus]({CNSI_EMX_LINK}).
@@ -160,10 +157,13 @@ if uploaded_file is not None:
 
     if st.button("Run"):
 
-        results, expname = run(uploaded_file, ppar=ppar, hpar=hpar)
+        st.write('This should take 10 seconds ...')
+        results, expname, data = run(uploaded_file, ppar=ppar, hpar=hpar)
+        plot(data)
         st.write(results)
-        st.markdown(get_table_download_link(dict_to_str(results), filename=expname),
-                    unsafe_allow_html=True)
+        st.markdown(
+            get_table_download_link(dict_to_str(results), filename=expname),
+            unsafe_allow_html=True)
     else:
         st.write("^ Click Me ")
 

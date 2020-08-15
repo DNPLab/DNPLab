@@ -184,7 +184,7 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
 
         ## optCenter: find the optimized integration center
         intgrl_array = []
-        indxes = range(-50, 51)
+        indxes = np.arange(-50, 51, 5)
         workspace.copy('proc', 'proc0')
         for indx in indxes:
             workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  indx, 'integrate_width' : 10})
@@ -274,7 +274,15 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
 
     hydration_results = dnp.dnpHydration.hydration(hydration_workspace)
 
-    hydration_results.update({'T1p_stdd': T1_stdd, 'T10_stdd': T10_stdd})
+    hydration_results.update({
+        'E': np.array(Enhancements),
+        'E_power': np.array(Enhancement_powers),
+        'T1_std': np.array(T1_stdd),
+        'T1': np.array(T1p),
+        'T1_power': np.array(T1_powers),
+        'T10': T10,
+        'T10_std': T10_stdd
+    })
 
     return hydration_results
 

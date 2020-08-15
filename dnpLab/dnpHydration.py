@@ -214,6 +214,16 @@ class HydrationResults(AttrDict):
     def values(self):
         return self.__dict__.values()
 
+    def to_dict_str(self):
+        """Create a dictionary of string representation of the results"""
+        # Create dictionary of results
+        mydict = {k:v for k, v in self.__dict__.items()
+                  if type(v) != type(np.ndarray([]))}
+        mydict.update({k: ', '.join([f"{vi:.4f}" for vi in v])
+                       for k, v in self.__dict__.items()
+                       if type(v) == type(np.ndarray([]))})
+        return mydict
+
 
 class HydrationCalculator:
     """Hydration Results Calculator
