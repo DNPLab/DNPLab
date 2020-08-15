@@ -74,7 +74,16 @@ save_name = 'ODNPdata_dnpHydrationResults'
 #### Do not change the code below ####
 print('Working...')
 
+
 def workupPhaseOpt(workspace):
+    """Return the optimized phase given a workspace.
+
+    Args:
+        workspace: Workspace containing an FID.
+
+    Returns:
+        float: The best phase.
+    """
 
     curve = workspace['proc'].values
     
@@ -86,7 +95,16 @@ def workupPhaseOpt(workspace):
 
     return phases[0, bestindex]
 
+
 def optCenter(workspace):
+    """Return the optimized integration center given a workspace.
+
+    Args:
+        workspace: Workspace containing an FID.
+
+    Returns:
+        int: The best integration center.
+    """
 
     intgrl_array = []
     indx = range(-50, 51)
@@ -124,11 +142,10 @@ for f in range(0, len(total_folders)):
     dnp.dnpNMR.fourier_transform(workspace,{'zero_fill_factor' : proc_params['zero_fill_factor']})
     
     if workspace['proc'].ndim == 2:
-        workspace = dnp.dnpNMR.autophase(workspace,{})
         workspace = dnp.dnpNMR.align(workspace, {})
-    else:
-        phase = workupPhaseOpt(workspace)
-        workspace['proc'] *= np.exp(-1j * phase)
+        
+    phase = workupPhaseOpt(workspace)
+    workspace['proc'] *= np.exp(-1j * phase)
      
     int_params['integrate_center'] = optCenter(workspace)
     workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  int_params['integrate_center'], 'integrate_width' : int_params['integrate_width']})
