@@ -114,14 +114,8 @@ class HydrationParameter(Parameter):
     __t1_interp_method = 'second_order'
     """str: Method used to interpolate T1, either linear or 'second_order'"""
 
-    def __init__(self):
-        """"""
-        super().__init__()
-        # Fixme: Remove the default field, spin concentration etc. Set them as required arguments
-        self.field = 348.5
-        self.spin_C = 100
-        self.T10 = 1.5
-        self.T100 = 2.5
+    def __init__(self, init=None):
+        super().__init__(init=init)
 
     @property
     def t1_interp_method(self):
@@ -134,7 +128,7 @@ class HydrationParameter(Parameter):
             self.__t1_interp_method = value
         else:
             raise ValueError('t1_interp_method should be either `linear` or `second_order`')
-            
+
     @property
     def smax_model(self):
         """str: Method used to determine smax. Either `tethered` or `free`"""
@@ -142,7 +136,6 @@ class HydrationParameter(Parameter):
 
     @smax_model.setter
     def smax_model(self, value: str):
-    
         if value == 'tethered':
             self.__smax_model = value
         elif value == 'free':
@@ -150,7 +143,7 @@ class HydrationParameter(Parameter):
         else:
             raise ValueError(f'smax_model must be either `tethered` or `free`. '
                              f'Got {value}')
-    
+
     # These two function enable dictionary-like getting and setting properties.
     def __getitem__(self, key):
         if key in ['smax_model']:
@@ -191,7 +184,7 @@ class HydrationResults(AttrDict):
 
     """
     def __init__(self, *args, **kwargs):
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self.uncorrected_Ep = None
         self.interpolated_T1 = None
         self.ksigma_array = None
@@ -213,6 +206,16 @@ class HydrationResults(AttrDict):
 
     def values(self):
         return self.__dict__.values()
+
+    def to_dict_str(self):
+        """Create a dictionary of string representation of the results"""
+        # Create dictionary of results
+        mydict = {k:v for k, v in self.__dict__.items()
+                  if type(v) != type(np.ndarray([]))}
+        mydict.update({k: ', '.join([f"{vi:.4f}" for vi in v])
+                       for k, v in self.__dict__.items()
+                       if type(v) == type(np.ndarray([]))})
+        return mydict
 
 
 class HydrationCalculator:
