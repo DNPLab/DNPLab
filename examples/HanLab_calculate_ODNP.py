@@ -14,10 +14,10 @@ import dnpLab as dnp
 '''
 INPUT YOUR PARAMS HERE:
 '''
-directory = 'data/TEMPO_500uM/' # path to data folder
+directory = '..data/topspin/' # path to data folder
 
-Spin_Concentration = 500  # micro molar
-Magnetic_Field = 4840  # mT
+Spin_Concentration = 100  # micro molar
+Magnetic_Field = 348.5  # mT
 T100 = 2.5  # T1 without spin label, without microwaves, commonly called T1,0(0)
 smax_model = 'free' # ('tethered' or 'free')
 t1_interp_method = 'linear' # ('linear' or 'second_order')
