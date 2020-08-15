@@ -14,9 +14,9 @@ import dnpLab as dnp
 '''
 INPUT YOUR PARAMS HERE:
 '''
-directory = '..data/topspin/' # path to data folder
+directory = 'data/TEMPO_500uM/' # path to data folder
 
-Spin_Concentration = 100  # micro molar
+Spin_Concentration = 500  # micro molar
 Magnetic_Field = 348.5  # mT
 T100 = 2.5  # T1 without spin label, without microwaves, commonly called T1,0(0)
 smax_model = 'free' # ('tethered' or 'free')
@@ -122,7 +122,19 @@ def get_powers(directory,powerfile,ExpNums,bufferVal):
 
 def find_peak(f, xmin, xmax):
     """ Find integer peak of f(x) for x \in [xmin, xmax]. T = O(log(n)).
-    The frist derivative of f(x) must be monotonic.
+    The frist derivative of f(x) must be monotonic. (by YL)
+
+    +---------------+----------------+
+    | xmax - xmin   | # calls of f   |
+    +---------------+----------------+
+    | 50            | 23             |
+    +---------------+----------------+
+    | 100           | 29             |
+    +---------------+----------------+
+    | 400           | 41             |
+    +---------------+----------------+
+    | 2000          | 53             |
+    +---------------+----------------+
 
     Args:
         xmin: The minimum of possible x.
@@ -150,7 +162,6 @@ def find_peak(f, xmin, xmax):
     ymid = f(xmid)
 
     if ymin >= ymid >= ymax:
-        # search (xmin, xmid)
         xl, yl = find_peak(f, xmin+1, xmid-1)
         return (xl, yl) if yl >= ymin else (xmin, ymin)
 
@@ -237,15 +248,21 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
         workspace['proc'] *= np.exp(-1j * phase)
 
         ## optCenter: find the optimized integration center
-        intgrl_array = []
-        indxes = range(-50, 51)
-        workspace.copy('proc', 'proc0')
-        for indx in indxes:
-            workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  indx, 'integrate_width' : 10})
-            intgrl_array.append(sum(abs(workspace['proc'].values)))
-            workspace.copy('proc0', 'proc')
-        cent = np.argmax(intgrl_array)
-        center = indxes[cent]
+        workspace.copy('proc', 'proc0')  # FIXME: drop this line, see below
+        def f_int(indx:int):
+            y = sum(abs(dnp.dnpNMR.integrate(workspace, {'integrate_center' :  indx, 'integrate_width' : 10})['proc'].values))
+            workspace.copy('proc0', 'proc')  # FIXME: Remove this line when test_dnpNMR.test_integrate pass
+            return y
+        center, _ = find_peak(f_int, -50, 51)
+        # intgrl_array = []
+        # indxes = range(-50, 51)
+        # workspace.copy('proc', 'proc0')
+        # for indx in indxes:
+        #     workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  indx, 'integrate_width' : 10})
+        #     intgrl_array.append(sum(abs(workspace['proc'].values)))
+        #     workspace.copy('proc0', 'proc')
+        # cent = np.argmax(intgrl_array)
+        # center = indxes[cent]
 
         workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  center, 'integrate_width' : pars['integration_width']})
 
@@ -334,27 +351,24 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
 
 
 if __name__ == '__main__':
-    test_find_peak()
+    pars = dict()
+    pars.update({'integration_width'  : 20,
+                 'spin_C'             : Spin_Concentration,
+                 'field'              : Magnetic_Field,
+                 'T100'               : T100,
+                 'smax_model'         : smax_model,
+                 't1_interp_method'   : t1_interp_method
+               })
 
-# if __name__ == '__main__':
-#     pars = dict()
-#     pars.update({'integration_width'  : 20,
-#                  'spin_C'             : Spin_Concentration,
-#                  'field'              : Magnetic_Field,
-#                  'T100'               : T100,
-#                  'smax_model'         : smax_model,
-#                  't1_interp_method'   : t1_interp_method
-#                })
-#
-#     hydration_results = hanlab_calculate_odnp(directory, pars)
-#
-#     print('-----------------------')
-#     print('--------Results--------')
-#     print('krho = ' + str(round(hydration_results['krho'],2)) + ' (s-1M-1)')
-#     print('ksigma = ' + str(round(hydration_results['ksigma'],2)) + ' (s-1M-1), standard dev = ' + str(round(hydration_results['ksigma_stdd'],4)))
-#     print('coupling factor = ' + str(round(hydration_results['coupling_factor'],5)))
-#     print('tcorr = ' + str(round(hydration_results['tcorr'],2)) + ' ps')
-#     print('Dlocal = ' + str(round(hydration_results['Dlocal'] * 1e10,2)) + ' x 10^-10 (m^2/s)')
-#     print('-----------------------')
-#     print('-----------------------')
-#
+    hydration_results = hanlab_calculate_odnp(directory, pars)
+
+    print('-----------------------')
+    print('--------Results--------')
+    print('krho = ' + str(round(hydration_results['krho'],2)) + ' (s-1M-1)')
+    print('ksigma = ' + str(round(hydration_results['ksigma'],2)) + ' (s-1M-1), standard dev = ' + str(round(hydration_results['ksigma_stdd'],4)))
+    print('coupling factor = ' + str(round(hydration_results['coupling_factor'],5)))
+    print('tcorr = ' + str(round(hydration_results['tcorr'],2)) + ' ps')
+    print('Dlocal = ' + str(round(hydration_results['Dlocal'] * 1e10,2)) + ' x 10^-10 (m^2/s)')
+    print('-----------------------')
+    print('-----------------------')
+
