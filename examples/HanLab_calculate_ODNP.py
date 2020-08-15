@@ -120,6 +120,60 @@ def get_powers(directory,powerfile,ExpNums,bufferVal):
     return power_List
 
 
+def find_peak(f, xmin, xmax):
+    """ Find integer peak of f(x) for x \in [xmin, xmax]. T = O(log(n)).
+    The frist derivative of f(x) must be monotonic.
+
+    Args:
+        xmin: The minimum of possible x.
+        xmax: The maximum of possible x
+        f: Callable. Must return a number.
+        *args: additional arguments for f.
+        **kwargs: additional keyword arguments for f.
+
+    Returns:
+        A number x_ for which f(x_) >= f(x) for all x \in [xmin, xmax]
+
+    """
+    if xmin == xmax:
+        return xmin, f(xmin)
+    elif xmin > xmax:
+        return xmax, f(xmax)
+
+    ymin = f(xmin)
+    ymax = f(xmax)
+
+    if xmin == xmax - 1:
+        return (xmin, ymin) if ymin >= ymax else (xmax, ymax)
+
+    xmid = (xmin + xmax) // 2
+    ymid = f(xmid)
+
+    if ymin >= ymid >= ymax:
+        # search (xmin, xmid)
+        xl, yl = find_peak(f, xmin+1, xmid-1)
+        return (xl, yl) if yl >= ymin else (xmin, ymin)
+
+    elif ymin <= ymid <= ymax:
+        xr, yr = find_peak(f, xmid+1, xmax-1)
+        return (xr, yr) if yr >= ymax else (xmax, ymax)
+
+    else:
+        x1, y1 = find_peak(f, xmin+1, xmid-1)
+        x2, y2 = find_peak(f, xmid+1, xmax-1)
+        (x1, y1) = (x1, y1) if y1 >= y2 else (x2, y2)
+        return (x1, y1) if y1 >= ymid else (xmid, ymid)
+
+
+def test_find_peak():
+    # when xmin <= x_ <= xmax, return x_
+    assert find_peak(lambda x:-x**2, -8, 8) == (0, 0)
+    # when xmin <= xmax <= x_, return x_
+    assert find_peak(lambda x:x, 0, 1) == (1, 1)
+    # when f(a) == f(b) == f(x_) where a <= b, return a
+    assert find_peak(lambda x:x**2, -1, 1) == (-1, 1)
+
+
 def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
     '''
     Args:
@@ -280,24 +334,27 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
 
 
 if __name__ == '__main__':
-    pars = dict()
-    pars.update({'integration_width'  : 20,
-                 'spin_C'             : Spin_Concentration,
-                 'field'              : Magnetic_Field,
-                 'T100'               : T100,
-                 'smax_model'         : smax_model,
-                 't1_interp_method'   : t1_interp_method
-               })
+    test_find_peak()
 
-    hydration_results = hanlab_calculate_odnp(directory, pars)
-
-    print('-----------------------')
-    print('--------Results--------')
-    print('krho = ' + str(round(hydration_results['krho'],2)) + ' (s-1M-1)')
-    print('ksigma = ' + str(round(hydration_results['ksigma'],2)) + ' (s-1M-1), standard dev = ' + str(round(hydration_results['ksigma_stdd'],4)))
-    print('coupling factor = ' + str(round(hydration_results['coupling_factor'],5)))
-    print('tcorr = ' + str(round(hydration_results['tcorr'],2)) + ' ps')
-    print('Dlocal = ' + str(round(hydration_results['Dlocal'] * 1e10,2)) + ' x 10^-10 (m^2/s)')
-    print('-----------------------')
-    print('-----------------------')
-
+# if __name__ == '__main__':
+#     pars = dict()
+#     pars.update({'integration_width'  : 20,
+#                  'spin_C'             : Spin_Concentration,
+#                  'field'              : Magnetic_Field,
+#                  'T100'               : T100,
+#                  'smax_model'         : smax_model,
+#                  't1_interp_method'   : t1_interp_method
+#                })
+#
+#     hydration_results = hanlab_calculate_odnp(directory, pars)
+#
+#     print('-----------------------')
+#     print('--------Results--------')
+#     print('krho = ' + str(round(hydration_results['krho'],2)) + ' (s-1M-1)')
+#     print('ksigma = ' + str(round(hydration_results['ksigma'],2)) + ' (s-1M-1), standard dev = ' + str(round(hydration_results['ksigma_stdd'],4)))
+#     print('coupling factor = ' + str(round(hydration_results['coupling_factor'],5)))
+#     print('tcorr = ' + str(round(hydration_results['tcorr'],2)) + ' ps')
+#     print('Dlocal = ' + str(round(hydration_results['Dlocal'] * 1e10,2)) + ' x 10^-10 (m^2/s)')
+#     print('-----------------------')
+#     print('-----------------------')
+#
