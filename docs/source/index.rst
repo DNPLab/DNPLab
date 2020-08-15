@@ -40,9 +40,16 @@ dnpLab is a collaborative project created by
     
 The source code for the project is published at: XXXX Need GitHub Link XXXX
 
-* Current Release: |release|
-* Documentation Build Date: |date|
-* Author(s): |author|
+.. list-table::
+   :widths: 60 40
+
+   * - Current Release
+     - |release|
+   * - Documentation Build Date
+     - |date|
+   * - Author(s)
+     - |author|
+
 
 Features
 =========
