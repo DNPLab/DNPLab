@@ -160,8 +160,9 @@ if uploaded_file is not None:
 
     if st.button("Run"):
 
-        st.write('This should take 10 seconds ...')
+        procesing_state = st.text('This should take 10 seconds ...')
         results, expname, data = run(uploaded_file, ppar=ppar, hpar=hpar)
+        procesing_state.text("")
         plot(data)
         st.write(results)
         st.markdown(
