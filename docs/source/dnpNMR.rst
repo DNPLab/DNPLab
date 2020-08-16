@@ -21,8 +21,8 @@ The following table summarizes all available functions in this module
 Detailed Description of Functions
 =================================
 
-.. .. automodule:: dnpLab.dnpNMR
-..    :members:
-..    :show-inheritance:
-..    :member-order: bysource
+.. automodule:: dnpLab.dnpNMR
+   :members:
+   :show-inheritance:
+   :member-order: bysource
 

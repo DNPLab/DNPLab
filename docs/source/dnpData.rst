@@ -31,6 +31,8 @@ The attributes in the dnpdata object are named according to the convention by Pa
    :show-inheritance:
    :member-order: bysource
    :inherited-members:
+
+
 .. .. automodule:: dnpLab.dnpdata
 ..    :members:
 ..    :show-inheritance:

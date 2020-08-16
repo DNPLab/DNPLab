@@ -17,7 +17,7 @@ The following table summarizes all available functions in this module
 Detailed Description of Functions
 =================================
 
-.. .. automodule:: dnpLab.dnpFit
-..    :members:
-..    :show-inheritance:
-..    :member-order: bysource
+.. automodule:: dnpLab.dnpFit
+   :members:
+   :show-inheritance:
+   :member-order: bysource
