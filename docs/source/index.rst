@@ -25,10 +25,6 @@
 
    <a href="https://jmfrancklab.github.io/" target="_blank"> Franck Lab</a>
 
-.. |dnpLabGitLink| raw:: html
-
-   <a href="https://github.com/DNPLab" target="_blank"> dnpLab </a>
-
 =================
 Welcome to dnpLab
 =================
@@ -65,9 +61,9 @@ Features
    :maxdepth: 2
    :caption: Documentation:
 
-   introduction
    install
    quick-start
+   examples
    dnpData
    dnpNMR
    dnpFit
