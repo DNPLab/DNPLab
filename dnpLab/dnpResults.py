@@ -40,15 +40,10 @@ def imshow(data, *args, **kwargs):
 def plot(data, *args, **kwargs):
     '''Plot function for dnpdata object
     '''
-#    coord = data.coords[dim]
     coord = data.coords[0]
     dim = data.dims[0]
 
-#    original_order = data.dims
-#    data.reorder([dim])
     plt.plot(coord, data.values, *args, **kwargs)
-    plt.xlabel(dim)
-#    data.reorder(original_order)
 
 show = plt.show
 
