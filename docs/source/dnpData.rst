@@ -26,7 +26,7 @@ The attributes in the dnpdata object are named according to the convention by Pa
 | proc_attrs    | list of tuples (str, dict) | List which stores each processing step       |
 +---------------+----------------------------+----------------------------------------------+
 
-.. automodule:: dnpLab.dnpdata
+.. autoclass:: dnpLab.dnpdata
    :members:
    :show-inheritance:
    :member-order: bysource
