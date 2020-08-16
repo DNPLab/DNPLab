@@ -4,6 +4,12 @@ hydrationGUI
 
 Type hydrationGUI at the command line to open an interactive tool for processing ODNP data and calculating hydration parameters. All data processing and calculating is done using buttons, checkboxes, sliders, and edit fields.
 
+Type the command to start the hydrationGUI:
+
+.. code-block:: console
+    
+    > hydrationGUI
+
 .. figure:: _static/images/hydrationGUI_overview.png
     :width: 400
     :alt: Hydration GUI
