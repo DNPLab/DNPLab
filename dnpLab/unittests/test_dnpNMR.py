@@ -26,5 +26,6 @@ class dnpNMR_tester(unittest.TestCase):
     def test_integrate(self):
         values = self.ws['proc'].values
         # Doing so must not change the workspace at all
-        nmr.integrate(self.ws, {})
+        data = self.ws['proc']
+        nmr.integrate(data, {})
         np.testing.assert_array_equal(self.ws['proc'].values, values)
