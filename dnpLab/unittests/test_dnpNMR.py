@@ -23,4 +23,8 @@ class dnpNMR_tester(unittest.TestCase):
         self.ws = nmr.fourier_transform(self.ws, {})
         self.ws = nmr.autophase(self.ws, {})
 
-
+    def test_integrate(self):
+        values = self.ws['proc'].values
+        # Doing so must not change the workspace at all
+        nmr.integrate(self.ws, {})
+        np.testing.assert_array_equal(self.ws['proc'].values, values)
