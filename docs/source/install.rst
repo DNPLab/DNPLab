@@ -11,11 +11,20 @@ Required Packages
 =================
 The following packages are required to run dnpLab:
 
-* NumPy (Version 1.19 or higher)
-* SciPy (Version 1.5 or higher)
-* Matplotlib (Version 3.3 or higher)
-* h5py (Version 2.10 or higher)
-* PyQt5 (Version 5.15 or higher)
+.. list-table::
+   :widths: 40 60
+
+   * - NumPy
+     - Version 1.19 or higher
+   * - SciPy
+     - Version 1.5 or higher
+   * - Matplotlib
+     - Version 3.3 or higher
+   * - h5py
+     - Version 2.10 or higher
+   * - PyQt5
+     - Version 5.15
+
 
 Installing with pip
 ===================
