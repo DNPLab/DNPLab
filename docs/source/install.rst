@@ -26,9 +26,11 @@ The following packages are required to run dnpLab:
      - Version 5.15
 
 
+.. _installing:
+
 Installing with pip
 ===================
-dnpLab can be installed using pip. In a terminal simply typ the following command:
+dnpLab can be installed using pip. In a terminal simply type the following command:
 
 .. code-block:: bash
 
