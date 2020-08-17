@@ -5,6 +5,20 @@ from scipy.optimize import curve_fit
 
 
 def t1Function(t, T1, M_0, M_inf):
+    '''Model for T1 Fit
+
+    .. math::
+        f(t) = M_0 - M_{\infty} e^{- t / T_1}
+        
+    Args:
+        t (numpy.ndarray): Time axis
+        T1 (float): T1 value
+        M_0 (float): Starting magnetization in data
+        M_inf (float): Magetization at time infinity
+
+    Returns:
+        numpy.ndarray: Resulting fit
+    '''
 
     return M_0 - M_inf * _np.exp(-1.*t/T1)
 
@@ -47,11 +61,13 @@ def t1Fit(dataDict):
         return fitData
 
 def enhancementFunction(powerArray, E_max, power_half):
+    '''
+    '''
 
     return E_max * powerArray / (power_half + powerArray)
 
 def enhancementFit(dataDict):
-    '''
+    '''Fit enhancement
     '''
     isDict = False
     if isinstance(dataDict, (dict, dnpdata_collection)):

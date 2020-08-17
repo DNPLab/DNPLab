@@ -19,22 +19,25 @@ orange = '#F37021'
 plt.rcParams['lines.linewidth'] = 1.5
 plt.rcParams['axes.prop_cycle'] = plt.cycler(color = [orange, dark_green, light_green, dark_grey, light_grey])
 
-def plot(data, *args, **kwargs):
-    '''Plot function for dnpdata object
-    '''
-#    coord = data.coords[dim]
-    coord = data.coords[0]
-    dim = data.dims[0]
-
-#    original_order = data.dims
-#    data.reorder([dim])
-    plt.plot(coord, data.values, *args, **kwargs)
-    plt.xlabel(dim)
-#    data.reorder(original_order)
-
-
 def imshow(data, *args, **kwargs):
     '''Image Plot for dnpdata object
+
+    Args:
+        data (dnpdata): dnpdata object for image plot
+        args: args for matplotlib imshow function
+        kwargs: kwargs for matplotlib imshow function
+
+    Example::
+
+       # Plotting a dnpdata object
+       dnp.dnpResults.plt.figure()
+       dnp.dnpResults.imshow(data)
+       dnp.dnpResults.plt.show()
+       
+       # Plotting a workspace (dnpdata_collection)
+       dnp.dnpResults.plt.figure()
+       dnp.dnpResults.imshow(ws['proc'])
+       dnp.dnpResults.plt.show()
     '''
 
     dims = data.dims
@@ -51,6 +54,42 @@ def imshow(data, *args, **kwargs):
     plt.xlabel(dims[1])
     plt.ylabel(dims[0])
 
+def plot(data, *args, **kwargs):
+    '''Plot function for dnpdata object
+
+    Args:
+        data (dnpdata): dnpdata object for matplotlib plot function
+        args: args for matplotlib plot function
+        kwargs: kwargs for matplotlib plot function
+
+    Example::
+
+       # Plotting a dnpdata object
+       dnp.dnpResults.plt.figure()
+       dnp.dnpResults.plot(data)
+       dnp.dnpResults.plt.show()
+
+       # Plotting a workspace (dnpdata_collection)
+       dnp.dnpResults.plt.figure()
+       dnp.dnpResults.plot(ws['proc'])
+       dnp.dnpResults.plt.show()
+
+       # Plotting two curves on the same figure
+       dnp.dnpResults.plt.figure()
+       dnp.dnpResults.plot(ws['proc1'])
+       dnp.dnpResults.plot(ws['proc2'])
+       dnp.dnpResults.plt.show()
+
+       # Plotting with some custom parameters
+       dnp.dnpResults.plt.figure()
+       dnp.dnpResults.plot(ws['proc'], 'k-', linewidth = 3.0, alpha = 0.5)
+       dnp.dnpResults.plt.show()
+
+    '''
+    coord = data.coords[0]
+    dim = data.dims[0]
+
+    plt.plot(coord, data.values, *args, **kwargs)
 
 show = plt.show
 

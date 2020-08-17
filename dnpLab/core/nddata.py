@@ -73,6 +73,12 @@ class nddata_core(object):
 
     def _check_coords(self, coords):
         '''Check that coords is list of 1d numpy arrays
+
+        Args:
+            coords: coords object to check if valid coords
+
+        Returns:
+            bool: True if valid coords. False, otherwise.
         '''
 
         for coord in coords:
@@ -90,7 +96,10 @@ class nddata_core(object):
         '''Check that error attribute is numpy array and it's size matches values
 
         Args:
-            error (numpy.ndarray): Numpy object to check if valid error attribute
+            error: Object to check if valid error
+
+        Returns:
+            bool: True if valid error. False otherwise.
         '''
 
         check_type = isinstance(error, np.ndarray)
@@ -120,6 +129,9 @@ class nddata_core(object):
 
     def _attrs_valid():
         '''Verify attrs attribute is valid. All values in attrs must be list, numpy.ndarray, int, float, complex, or str.
+
+        Returns:
+            bool: True if attrs is valid. False, otherwise.
         '''
 
         for key in self._attrs:
@@ -733,25 +745,4 @@ class nddata_core(object):
         return self.values.ndim
 
 if __name__ == '__main__':
-#    a = np.array(range(9)).reshape(3,3)
-#    b = ['x','y']
-#    c = [np.r_[[1,2,3]],np.r_[[4,5,6]]]
-#    data = nddata_core(np.array(range(27)).reshape(3,3,3), [np.r_[1,2,3],np.r_[4,5,6], np.r_[7,8,9]], ['x','y','z'])
-#    data = nddata_core(np.array(range(27)).reshape(3,3,3), ['x','y','z'], [np.r_[1,2,3],np.r_[4,5,6], np.r_[7,8,9]])
-
-    x = np.r_[0:10:.1]
-    y = np.r_[0:20]
-    z = np.r_[0:15]
-    random_order = np.argsort(np.random.randn(len(x)))
-    x = x[random_order]
-
-#    q = np.r_[0:5]
-#    r = np.r_[0:17]
-#    p = np.r_[0:13]
-#    data = nddata_core(np.array(range(len(x)*len(y)*len(p))).reshape(len(x),len(y),len(p)), ['x','y','p'], [x, y, p])
-    data = nddata_core(np.array(range(len(x)*len(y)*len(z))).reshape(len(x),len(y),len(z)), ['x','y','z'], [x, y, z])
-    data.reorder(['x','y','z'])
-
-    d = nddata_core(x, ['x'], [x])
-    d2 = data['x',0]
-    d3 = d2.squeeze()
+    pass
