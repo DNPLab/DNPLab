@@ -250,10 +250,8 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
         workspace['proc'] *= np.exp(-1j * phase)
 
         ## optCenter: find the optimized integration center
-        workspace.copy('proc', 'proc0')  # FIXME: drop this line, see below
         def f_int(indx:int):
-            y = sum(abs(dnp.dnpNMR.integrate(workspace, {'integrate_center' :  indx, 'integrate_width' : 10})['proc'].values))
-            workspace.copy('proc0', 'proc')  # FIXME: Remove this line when test_dnpNMR.test_integrate pass
+            y = sum(abs(dnp.dnpNMR.integrate(workspace['proc'], {'integrate_center' :  indx, 'integrate_width' : 10}).values))
             return y
         center, _ = find_peak(f_int, -50, 51)
         # intgrl_array = []
@@ -284,6 +282,8 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
         elif folder in folders_Enhancements:
             E.append(np.real(workspace['proc'].values[0]) / p0)
             print('Done with Enhancement(p) folder ' + str(folder) + '...') if verbose else None
+        else:
+            raise Exception('UnknownException')
 
 
     # get powers from .mat files
