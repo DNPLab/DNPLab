@@ -27,7 +27,7 @@ If you installed dnpLab using pip. Otherwise, you have to specify the path to th
    import dnpLab as dnp
 
 .. note::
-   If you downloaded dnpLab via GitHub and haven't installed, you must point to the directory of the package before importing dnpLab. Add the following lines to the beginning of the script:
+   If you downloaded dnpLab via GitHub and haven't installed, you must add the directory for dnpLab to the system path before importing dnpLab. Add the following lines to the beginning of the script:
 
    .. code-block:: python
 
@@ -203,19 +203,3 @@ To plot the inversion-recovery build-up curve (experimental and fitted data):
     :align: center
 
     Inversion recovery build-up (experimental and fit)
-    
-
-Example Data Included with dnpLab
-=================================
-The following experimental sample data is included with dnpLab:
-
-.. list-table::
-   :widths: 40 60
-   :header-rows: 1
-
-   * - Folder
-     - Data Type/Description
-   * - data/h5
-     - test.h5
-       Sample data in h5 format
-
