@@ -91,7 +91,7 @@ You may also load only the results of “Workup” code processing with the Work
 
     Hydration Results from workup
 
-.. figure:: _static/images/hydrationGUI_previous_results1.png
+.. figure:: _static/images/hydrationGUI_previous_results2.png
     :width: 400
     :alt: Importing Hydration Results from h5
     :align: center
