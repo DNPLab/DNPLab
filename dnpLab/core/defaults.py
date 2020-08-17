@@ -6,3 +6,6 @@ _fourier_transform = {
         'shift' : True, # shift dim to center zero frequency
         'convert_to_ppm' : True, # convert dim to ppm
         }
+
+if __name__ == '__main__':
+    pass
