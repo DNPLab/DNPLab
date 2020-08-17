@@ -11,6 +11,10 @@ def t1Function(t, T1, M_0, M_inf):
 def t1Fit(dataDict):
     '''Fits inversion recovery data to extract T1 value in seconds
 
+    .. math::
+
+        f(t) = M_0 - M_{\infty} e^{-t/T_1}
+
     Args:
         workspace after processing inversion recovery data, after integration with dnpNMR.integrate
 
@@ -22,7 +26,7 @@ def t1Fit(dataDict):
 
     .. code-block:: python
         
-        ..INSERT importing and processing..
+        ### INSERT importing and processing ##
         dnpLab.dnpNMR.integrate(workspace, {})
         
         dnpLab.dnpFit.t1Fit(workspace)
@@ -76,29 +80,35 @@ def enhancementFunction(powerArray, E_max, power_half):
 def enhancementFit(dataDict):
     '''Fits enhancement curves to return Emax and power and one half maximum saturation
 
+    .. math::
+
+        f(p) = E_{max} p / (p_{1/2} + p)
+
     Args:
         workspace
 
     Returns:
         all_data (dnpdata, dict): Processed data in container, updated with fit data
         attributes: Emax value and Emax standard deviation
+
                     p_one_half value and p_one_half standard deviation
         
-    Example:
+    Example::
     
-            ..INSERT importing and processing..
-            dnpLab.dnpNMR.integrate(workspace, {})
-            
-            workspace.new_dim('power', power_list)
-            
-            dnpLab.dnpFit.enhancementFit(workspace)
-            
-            Emax_value = workspace['fit'].attrs['E_max']
-            Emax_standard_deviation = workspace['fit'].attrs['E_max_stdd']
-            p_one_half_value = workspace['fit'].attrs['p_half']
-            p_one_half_standard_deviation = workspace['fit'].attrs['p_half_stdd']
-            Emax_fit = workspace['fit'].values
-            Emax_fit_xaxis = workspace['fit'].coords
+        ### INSERT importing and processing ###
+        dnpLab.dnpNMR.integrate(workspace, {})
+        
+        workspace.new_dim('power', power_list)
+        
+        dnpLab.dnpFit.enhancementFit(workspace)
+        
+        Emax_value = workspace['fit'].attrs['E_max']
+        Emax_standard_deviation = workspace['fit'].attrs['E_max_stdd']
+        p_one_half_value = workspace['fit'].attrs['p_half']
+        p_one_half_standard_deviation = workspace['fit'].attrs['p_half_stdd']
+        Emax_fit = workspace['fit'].values
+        Emax_fit_xaxis = workspace['fit'].coords
+
     '''
     
     isDict = False
