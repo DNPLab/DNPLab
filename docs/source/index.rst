@@ -65,6 +65,7 @@ Features
    quick-start
    examples
    dnpData
+   dnpImport
    dnpNMR
    dnpFit
    dnpHydration
