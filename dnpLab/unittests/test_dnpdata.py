@@ -15,7 +15,7 @@ class dnpDataTester(unittest.TestCase):
         assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z'])
 
     def test_coords_get_set(self):
-        self.dnpdata.addAxes('r', np.r_[0:10])
+        self.dnpdata.new_dim('r', np.r_[0:10])
         assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z', 'r'])
         self.dnpdata.rename('r', 's')
         assertArrayEqual(self.dnpdata.dims, ['x', 'y', 'z', 's'])
