@@ -29,7 +29,7 @@
 Welcome to dnpLab
 =================
 
-Welcome to the dnpLab documentation. dnpLab is an Open Source Phython package for importing and processing Dynamic Nuclear Polarization (DNP) data. The aim of the project is to provide a free, turn-key processing package for easy processing and analysis of DMP-NMR data.
+Welcome to the dnpLab documentation. dnpLab is an Open Source Python package for importing and processing Dynamic Nuclear Polarization (DNP) data. The aim of the project is to provide a free, turn-key processing package for easy processing and analysis of DMP-NMR data.
 
 dnpLab is a collaborative project created by
 
@@ -51,7 +51,7 @@ The source code for the project is published at: XXXX Need GitHub Link XXXX
 
 
 Features
-=========
+========
 * Import NMR spectra in various formats (Bruker - TopSpin, Varian - (Open) VnmrJ, Magritek - Kea) 
 * Process NMR data
 * Extract Hydration Dynamics Information
@@ -72,7 +72,7 @@ Features
    hydrationGUI
 
 Index
-==================
+=====
 
 * :ref:`genindex`
 * :ref:`modindex`
@@ -85,4 +85,4 @@ Development of dnpLap is sponsored by grants by the United States and the German
 
 * |B12TLink| acknowledges support from the U.S. National Institutes of Health (NIH), grant |GM116612|.
 * The |HanLabLink| acknowledges support from the U.S. National Science Foundation (NSF), Award No. CHE-1800596 and the German Science Foundation (DFG) as part of the Excellence Initiative under RESOLVDFG-EXC-2033 Project No. 390677874.
-* The |FranckLabLink| acknowledges the receipt of Startup Funds by Syracuse University.
+* The |FranckLabLink| acknowledges the received Startup Funds by Syracuse University.
