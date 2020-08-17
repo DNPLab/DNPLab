@@ -542,15 +542,4 @@ class nddata_coord_collection(object):
             raise ValueError('dim already in dims, cannot append to coords')
 
 if __name__ == '__main__':
-
-    coord = nddata_coord('x',slice(0,10,1))
-
-    a = nddata_coord('a',slice(0,1,50e-3))
-    b = np.r_[1:2:0.25]
-
-#    d = nddata_coord_collection(a,coord)
-    d = nddata_coord_collection(['a', 'x', 'b'],[a, coord, b])
-    d.reorder(['x','a'])
-
-    d.rename('a','test')
-
+    pass

@@ -1,0 +1,61 @@
+:root {
+    --B12T-dark-green:          #46812b;
+    --B12T-dark-green-note:     #e3ebde;
+    --B12T-light-green:         #67ae3e;
+    --B12T-loght-green-fnct:    #f5ffee;
+    --B12T-dark-grey:           #4d4d4f;
+    --B12T-light-grey:          #a7a9ac;
+    --B12T-orange:              #f37021;
+    --B12T-orange-warn:         #ffede0;
+    --B12T-code-background:     #eaeaea;
+}
+
+/* General Settings */
+a{color: var(--B12T-dark-green);}
+a:visited{color: var(--B12T-dark-green);}
+a:hover{color: var(--B12T-orange);}
+a:active{color: var(--B12T-orange);}
+
+/* Side Panel  */
+.wy-side-nav-search{background-color:var(--B12T-dark-green);}
+.wy-side-nav-search a{color: white;}
+
+.wy-nav-top{background: var(--B12T-dark-green);}
+.wy-nav-side{background:var(--B12T-dark-grey);}
+
+.wy-menu-vertical p.caption {
+    color: white;
+    font-weight: bold;
+}
+.wy-menu-vertical a{color: white;}
+.wy-menu-vertical  a:active{background: var(--B12T-orange);}
+
+/* Note and warning top and backround */
+.rst-content .note .admonition-title{background: var(--B12T-dark-green);}
+.rst-content .note {background: var(--B12T-dark-green-note);}
+.rst-content .warning .admonition-title{background: var(--B12T-orange);}
+.rst-content .warning{background: var(--B12T-orange-warn);}
+
+/* Background for code snippets */
+.highlight{background: #eaeaea;}
+
+/* Border and background for functions */
+.rst-content dl:not(.docutils) dt{
+    border-top-color: var(--B12T-dark-green);
+    background-color: var(--B12T-loght-green-fnct);
+    color: var(--B12T-dark-grey);
+}
+
+/* override table width restrictions */
+@media screen and (min-width: 767px) {
+
+    .wy-table-responsive table td {
+       /* !important prevents the common CSS stylesheets from overriding
+          this as on RTD they are loaded after this stylesheet */
+       white-space: normal !important;
+    }
+ 
+    .wy-table-responsive {
+       overflow: visible !important;
+    }
+ }

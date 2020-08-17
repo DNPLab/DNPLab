@@ -4,6 +4,16 @@
 Quick-Start Guide
 ==================
 
+Importing the Package
+=====================
+
+Once the package has been :ref:`installed via pip <installing>`, you should be able to import dnpLab in a python terminal/script.
+
+.. code-block:: python
+
+   import dnpLab as dnp
+
+
 Importing data
 ==============
 .. code-block:: python

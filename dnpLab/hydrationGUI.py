@@ -1427,14 +1427,18 @@ class hydrationGUI(QMainWindow):
             fac = (np.pi / self.gui_dict['processing_spec']['original_phase'])
             self.phaseSlider.setMinimum(round(-1000 * abs(fac)))
             self.phaseSlider.setMaximum(round(1000 * abs(fac)))
-            self.phaseSlider.setValue(self.gui_dict['processing_spec']['original_phase'])
 
-            self.intcenterSlider.setValue(self.gui_dict['processing_spec']['integration_center'])
-            self.intcenterSlider.setMinimum(self.gui_dict['processing_spec']['integration_center'] - 50)
-            self.intcenterSlider.setMaximum(self.gui_dict['processing_spec']['integration_center'] + 50)
-
-            self.intwindowSlider.setValue(self.gui_dict['processing_spec']['integration_width'])
-
+            if self.optphsCheckbox.isChecked():
+                self.phaseSlider.setValue(self.gui_dict['processing_spec']['original_phase'])
+                
+            if self.optcentCheckbox.isChecked():
+                self.intcenterSlider.setValue(self.gui_dict['processing_spec']['integration_center'])
+                self.intcenterSlider.setMinimum(self.gui_dict['processing_spec']['integration_center'] - 50)
+                self.intcenterSlider.setMaximum(self.gui_dict['processing_spec']['integration_center'] + 50)
+                
+            if self.optwidthCheckbox.isChecked():
+                self.intwindowSlider.setValue(self.gui_dict['processing_spec']['integration_width'])
+                
             self.gui_dict['gui_function']['sliders'] = True
 
         self.adjustSliders()
