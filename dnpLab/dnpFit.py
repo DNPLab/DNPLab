@@ -26,7 +26,7 @@ def t1Fit(dataDict):
 
     .. code-block:: python
         
-        ### INSERT importing and processing ##
+        ### INSERT importing and processing ###
         dnpLab.dnpNMR.integrate(workspace, {})
         
         dnpLab.dnpFit.t1Fit(workspace)
