@@ -129,7 +129,7 @@ In the next step load a single FID in Bruker format:
     path = 'path/to/data/topspin/'
     folder = 304
 
-    data = data.dnpImport.topspin.import_topspin(path,folder)
+    data = dnp.dnpImport.topspin.import_topspin(path,folder)
 
 Next, create the workspace:
 
@@ -199,11 +199,6 @@ To plot the inversion-recovery build-up curve (experimental and fitted data):
 
     Inversion recovery build-up (experimental and fit)
     
-
-
-
-
-
 
 Example Data Included with dnpLab
 =================================
