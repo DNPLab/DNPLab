@@ -19,15 +19,20 @@ This example uses the example script: *example_process_1Dbruker.py*. The script 
 #. Perform a Fourier transformation
 #. Phase correct the resulting spectrum
 
-If you installed dnpLab using pip, skip the first two lines. Otherwise, you have to specify the path to the package explicitly:
+If you installed dnpLab using pip. Otherwise, you have to specify the path to the package explicitly:
 
 .. code-block:: python
 
-   import sys
-   sys.path.append('path/to/dnpLab/package')
-
    import numpy as np
    import dnpLab as dnp
+
+.. note::
+   If you downloaded dnpLab via GitHub and haven't installed, you must point to the directory of the package before importing dnpLab. Add the following lines to the beginning of the script:
+
+   .. code-block:: python
+
+      import sys
+      sys.path.append('path/to/dnpLab/package')
 
 In the next step load a single FID in Bruker format:
 
