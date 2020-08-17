@@ -1,3 +1,5 @@
+.. _dnpdata:
+
 =======
 dnpData
 =======
@@ -135,8 +137,8 @@ A workspace can also be loaded with the loadh5 function.
    dnplab.dnpImport.loadh5('test.h5')
 
 
-dnpdata Methods
-===============
+dnpdata_collection Methods
+==========================
 
 .. autoclass:: dnpLab.dnpdata_collection
    :members:

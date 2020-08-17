@@ -35,6 +35,8 @@ Prospa Module
    :show-inheritance:
    :member-order: bysource
 
+.. _h5:
+
 h5 Module
 =========
 
