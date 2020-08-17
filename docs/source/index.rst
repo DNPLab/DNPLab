@@ -60,7 +60,9 @@ Features
 .. toctree::
    :maxdepth: 2
    :caption: Documentation:
+   :numbered:
 
+   introduction
    install
    quick-start
    examples
