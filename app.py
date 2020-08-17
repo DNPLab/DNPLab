@@ -21,19 +21,7 @@ DNPLAB_REPO_LINK = ''
 DNPLAB_DOC_LINK = ''
 
 
-def set_ppar(ppar:ProcParameter):
-    """Prompt for users to choose parameters
-
-    Returns: dict
-
-    """
-    # Processing parameter
-    st.sidebar.markdown("**Peak integration**")
-    ppar.eiw = st.sidebar.slider("Width", min_value=10, max_value=500, value=20, step=10, key='eiw')
-    return ppar
-
-
-def set_hpar(hpar:HydrationParameter):
+def set_par(ppar:ProcParameter, hpar:HydrationParameter):
     """Prompt for users to choose parameters
 
     Returns: tuple(ProcParameter, HydrationParameter)
@@ -42,15 +30,17 @@ def set_hpar(hpar:HydrationParameter):
     # Processing parameter
     st.sidebar.markdown('**Hydration**')
     hpar.spin_C = st.sidebar.number_input("Spin label concentration (uM)", value=500.0, step=1.0, key='spin_C')
-    hpar.field = st.sidebar.number_input("Field (mT)", value=348.5, step=1.0, key='field')
     hpar.T100 = st.sidebar.number_input("T1,0(0) (s)", value=2.5, step=0.05, key='t100')
+    hpar.field = st.sidebar.number_input("Field (mT)", value=348.5, step=1.0, key='field')
+
     hpar.smax_model = st.sidebar.radio('The spin is ', options=['tethered', 'free'], key='smax_model')
-    hpar.t1_interp_method = st.sidebar.radio('T1 interpolation method', options=['linear', 'second_order'], index=0, key='t1_interp_method')
+    hpar.t1_interp_method = st.sidebar.radio('T1 interpolation method', options=['linear', 'second_order'], index=1, key='t1_interp_method')
 
-    # if st.sidebar.button('More'):
-    #     st.write("No more")
+    st.sidebar.markdown("**Peak integration**")
+    ppar.eiw = st.sidebar.slider("Integration Width", min_value=10, max_value=500,
+                                 value=20, step=10, key='eiw')
 
-    return hpar
+    return ppar, hpar
 
 
 def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
@@ -124,6 +114,33 @@ def plot(data:dict):
 
 # =======THE APP=======
 st.title(f'ODNPLab: One-Step ODNP Processing \n {VERSION} \t Powered by DNPLab ')
+
+st.markdown("## Upload a Zip file")
+uploaded_file = st.file_uploader("Here ->", type="zip")
+
+if uploaded_file is not None:
+
+    b_run = st.button("Run")
+
+    if not b_run:
+        st.markdown("^ Click Me ")
+
+    # Parameters
+    ppar = ProcParameter()
+    ppar.verbose = False
+    hpar = HydrationParameter()
+    ppar, hpar = set_par(ppar, hpar)
+
+    if b_run:
+
+        with st.spinner('This should take 10 seconds ...'):
+            results, expname, data = run(uploaded_file, ppar=ppar, hpar=hpar)
+        plot(data)
+        st.markdown(
+            get_table_download_link(dict_to_str(results), filename=expname),
+            unsafe_allow_html=True)
+        st.write(results)
+
 st.markdown(f"""
 ## How to use
 1. Collect your ODNP data on [UCSB CNSI EMXplus]({CNSI_EMX_LINK}).
@@ -144,32 +161,6 @@ my_odnp_exp/
 
 5. Upload the zip file and click run.
 """)
-
-st.markdown("## Upload a Zip file")
-uploaded_file = st.file_uploader("Here ->", type="zip")
-
-if uploaded_file is not None:
-
-    # Parameters
-    ppar = ProcParameter()
-    ppar.verbose = False
-    ppar = set_ppar(ppar)
-
-    hpar = HydrationParameter()
-    hpar = set_hpar(hpar)
-
-    if st.button("Run"):
-
-        procesing_state = st.text('This should take 10 seconds ...')
-        results, expname, data = run(uploaded_file, ppar=ppar, hpar=hpar)
-        procesing_state.text("")
-        plot(data)
-        st.write(results)
-        st.markdown(
-            get_table_download_link(dict_to_str(results), filename=expname),
-            unsafe_allow_html=True)
-    else:
-        st.write("^ Click Me ")
 
 st.markdown(f"""
 ## Demo
