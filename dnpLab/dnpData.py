@@ -69,19 +69,6 @@ class dnpdata(nddata.nddata_core):
 
         self.proc_attrs.append((proc_attr_name,proc_dict))
 
-    def addAxes(self, dim, coord):
-        '''Add new axesLabel to dnpdata object with ax
-
-        This function increases the dimension of the dnpdata object by 1 with the axesValue parameter giving the axes
-
-        Args:
-            axesLabel (str): Name of new axis
-            axesValue (float,int): Axes value for new dimension
-        '''
-
-        self.coords.append(dim, coord)
-        self.values = np.expand_dims(self.values, -1)
-
     def autophase(self):
         '''Multiply dnpdata object by phase
         '''
@@ -90,63 +77,13 @@ class dnpdata(nddata.nddata_core):
         if np.sum(np.real(self.values)) < 0:
             self.values *= -1.
 
-    def concatenateAlong(self,newData,axesLabel):
-        '''Concatenate new dnp data to original data along given axes label
-
-        Args:
-            newData (dnpdata): data to be concatenated to dnp_data object
-            axesLabel (str): axis to concatenate down
-        '''
-        reorderLabels = self.dims
-        
-        self.sort_dims()
-        newData.sort_dims()
-
-
-        if self.dims != newData.dims:
-#            print 'ERROR' # NOTE determine how error handling will work
-            raise ValueError('dims do not match')
-#            return
-        index = self.dims.index(axesLabel)
-
-        self.values = np.concatenate((self.values,newData.values), axis = index)
-        self.coords[axesLabel] = np.concatenate((np.array(self.coords[axesLabel]).reshape(-1),np.array(newData.coords[axesLabel]).reshape(-1)))
-
-        self.reorder(reorderLabels)
-
-    def phase(self,):
+    def phase(self):
         '''Return phase of dnpdata object
 
         Returns:
             phase (float,int): phase of data calculated from sum of imaginary divided by sum of real components
         '''
         return np.arctan(np.sum(np.imag(self.values))/np.sum(np.real(self.values)))
-
-    def range(self,axesLabel,minValue,maxValue):
-        '''Select range of data given axes values
-
-        Args:
-            axesLabel (str): Axes label for indexing
-            minValue (float): Minimum axes value for indexing
-            maxValue (float): Maximum axes value for indexing
-
-        Returns:
-            dnpdata
-        '''
-
-        out = deepcopy(self)
-        index = self.dims.index(axesLabel)
-
-        min_list = list(out.coords[index] > minValue)
-        max_list = list(out.coords[index] < maxValue)
-        inRange = [min_list[i] and max_list[i] for i in range(len(min_list))]
-        #NOTE if no values in range, will cause issues
-
-        keep = [i for i, x in enumerate(inRange) if x]
-        out.values = np.take(out.values,keep,axis=index)
-        out.coords[index] = out.coords[index][keep]
-
-        return out
 
     def squeeze(self):
         '''Remove all length 1 dimensions from data
@@ -245,29 +182,41 @@ class dnpdata_collection(MutableMapping):
 
         self[b] = self[a].copy()
 
-    def move(self, a, b):
-        '''Move data 
+    def move(self, key, new_key):
+        '''Move data from key to new_key
+
+        Args:
+            key (str): Name of data to move
+            new_key (str): Name of new key to move data
         '''
 
         self[b] = self.pop(a)
 
-    def pop(self, b):
-        return self.__data_dict.pop(b)
+    def pop(self, key):
+        '''Pop key. Removes data corresponding to key.
+        '''
+        return self.__data_dict.pop(key)
 
     def dict(self):
+        '''Return dictionary for storing data in dnpdata_collection
+        '''
         return self.__data_dict
 
     def clear(self):
-        '''
+        '''Removes all items
         '''
         self.__data_dict.clear()
 
     get = __getitem__
 
     def items(self):
+        '''Return items
+        '''
         return self.__data_dict.items()
 
     def keys(self):
+        '''Return keys.
+        '''
         return self.__data_dict.keys()
 
     def popitem(self):
@@ -276,12 +225,16 @@ class dnpdata_collection(MutableMapping):
     def values(self):
         return self.__data_dict.values()
 
-    def add(self, name, data):
+    def add(self, key, data):
+        '''Adds new data
+
+        Args:
+            key (str): key corresponding to new data
+            data (dnpdata): data object corresponding to key
         '''
-        '''
-        if (not isinstance(name, str)) or (not isinstance(data, (dnpdata,dict))):
+        if (not isinstance(key, str)) or (not isinstance(data, (dnpdata,dict))):
             raise TypeError('add takes two arguments, a string and dnpLab.dnpdata type')
-        self.__data_dict[name] = data
+        self.__data_dict[key] = data
 
     def __repr__(self):
         return 'dnpdata_collection({})'.format(self.__data_dict)
@@ -292,6 +245,14 @@ class dnpdata_collection(MutableMapping):
 
 
 def create_workspace(*args):
+    '''Create a workspace (dnpdata_collection)
+
+    Args:
+        args: Arguments to send to __init__ method in dnpdata_collection
+
+    Returns:
+        dnpdata_collection: workspace object
+    '''
     return dnpdata_collection(*args)
 
 
