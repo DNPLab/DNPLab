@@ -9,7 +9,7 @@ dnpLab is an open-source, python library for importing and processing DNP-NMR da
 
 # Features
 
-  - Import ODNP Data from Topspin, VnmrJ, and Prospa formats
+  - Import DNP-NMR data from Topspin, VnmrJ, and Prospa formats
   - Construct N-dimensional data objects easily
   - Processing data: including window, zero-filling, Fourier transforms, alignment, etc.
 
@@ -20,7 +20,7 @@ dnpLab is an open-source, python library for importing and processing DNP-NMR da
 
 To install the required packages, perform:
 ```console
-python -m pip install numpy matplotlib scipy h5py PyQt5
+pip install numpy matplotlib scipy h5py PyQt5
 ```
 
 # Installation
@@ -28,7 +28,7 @@ python -m pip install numpy matplotlib scipy h5py PyQt5
 dnpLab can be installed via pip:
 
 ```console
-python -m pip install dnpLab
+pip install dnpLab
 ```
 
 # Developement 
