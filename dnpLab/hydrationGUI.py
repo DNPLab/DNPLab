@@ -676,8 +676,8 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                flname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results hydration_parameters.h5'
-                #flname = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results xODNP.mat'
+                flname = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results hydration_parameters.h5'
+                #flname = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results xODNP.mat'
             else:
                 dirname = QFileDialog.getOpenFileName(self)
 
@@ -753,7 +753,7 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                pthnm = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'Workup'
+                pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'Workup'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
 
@@ -954,7 +954,7 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                pthnm = self.labpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + '304'
+                pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + '304'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
                 
@@ -1026,7 +1026,7 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                pthnm = self.labpath + os.sep + 'data' + os.sep + 'topspin'
+                pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
                 
