@@ -1,0 +1,14 @@
+How to deploy on Linux 
+
+1. log in to linux
+
+2. install the following
+
+```
+sudo apt update
+sudo apt install python3-pip
+
+git clone https://bitbucket.org/tmaly/odnplab/
+python3 -m pip install streamlit
+
+```
