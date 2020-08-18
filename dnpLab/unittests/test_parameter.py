@@ -95,3 +95,8 @@ class TestParameter(TestCase):
         my_param.update({'test': 123, 'test2': 321})
         self.assertEqual(my_param.test, 123)
         self.assertEqual(my_param.test2, 321)
+
+    def test_init_using_kwargs(self):
+        my_param = Parameter(test=123, test2=321)
+        self.assertEqual(my_param.test, 123)
+        self.assertEqual(my_param.test2, 321)

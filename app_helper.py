@@ -14,8 +14,8 @@ class ProcParameter(Parameter):
         verbose (bool): Whether verbose.
 
     """
-    def __init__(self, init=None):  # TODO: enable manual adjustment
-        super().__init__(init=init)
+    def __init__(self, *args, **kwargs):  # TODO: enable manual adjustment
+        super().__init__(*args, **kwargs)
         eic = 0
         eiw = 100
         tic = 0

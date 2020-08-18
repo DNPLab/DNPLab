@@ -4,6 +4,7 @@ import datetime
 import os
 import re
 import time
+from itertools import compress
 
 import numpy as np
 from scipy.io import loadmat
@@ -196,7 +197,9 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
                   field              : float,
                   T100               : float,
                   smax_model         : str,   # ('tethered' or 'free')
-                  t1_interp_method   : str    # ('linear' or 'second_order')
+                  t1_interp_method   : str    # ('linear' or 'second_order'),
+                  drop_e_powers       : list   # a list of Enhancement powers to drop
+                  drop_t1_powers     : list   # a list of T1 powers to drop
                 })
         verbose: whether print intermediate outputs or not
     Returns:
@@ -211,10 +214,50 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
     folder_T10 = 304
 
     # list of folder numbers for Enhancement(p) points in ODNP set
-    folders_Enhancements = range(6,27)
+    folders_Enhancements = list(range(6,27))
 
     # list of folder numbers for T1(p) points in ODNP set
-    folders_T1s = range(28,33)
+    folders_T1s = list(range(28,33))
+
+
+    # get powers from .mat files
+    # for E(p)
+    powerfile = 'power'
+    bufferVal = 2.5
+    ExpNums = folders_Enhancements
+    ## SEPARATE FUNCTION ##
+    Epowers = get_powers(directory,powerfile,ExpNums,bufferVal)
+
+    Epowers = np.add(Epowers, 21.9992)
+    Epowers = np.divide(Epowers, 10)
+    Epowers = np.power(10, Epowers)
+    Epowers = np.multiply(1e-3, Epowers)
+
+    # for T1(p)
+    powerfile = 't1_powers'
+    bufferVal = 20 * 2.5
+    ExpNums = folders_T1s
+    ## SEPARATE FUNCTION ##
+    T1powers = get_powers(directory,powerfile,ExpNums,bufferVal)
+
+    T1powers = np.add(T1powers, 21.9992)
+    T1powers = np.divide(T1powers, 10)
+    T1powers = np.power(10, T1powers)
+    T1powers = np.multiply(1e-3, T1powers)
+
+    # Filter corrupted data points
+    Epowers = Epowers.tolist()
+    T1powers = T1powers.tolist()
+    if 'drop_e_powers' in pars.keys():
+        print("Drop corrupted data ...") if verbose else None
+        E_indexs = [i for i, x in enumerate(Epowers) if any([abs(x - y) < 1e-6 for y in pars['drop_e_powers']])]
+        T1_indexs = [i for i, x in enumerate(T1powers) if any([abs(x - y) < 1e-6 for y in pars['drop_t1_powers']])]
+        [Epowers.pop(i) and folders_Enhancements.pop(i) for i in E_indexs]
+        [T1powers.pop(i) and folders_T1s.pop(i) for i in T1_indexs]
+        # Epowers = tuple(compress(Epowers, E_indexs))
+        # folders_Enhancements = tuple(compress(folders_Enhancements, E_indexs))
+        # T1powers = tuple(compress(T1powers, T1_indexs))
+        # folders_T1s = tuple(compress(folders_T1s, T1_indexs))
 
     total_folders = [folder_p0] + list(folders_Enhancements) + list(folders_T1s) + [folder_T10]
 
@@ -283,20 +326,7 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
             E.append(np.real(workspace['proc'].values[0]) / p0)
             print('Done with Enhancement(p) folder ' + str(folder) + '...') if verbose else None
 
-
-    # get powers from .mat files
-    # for E(p)
-    powerfile = 'power'
-    bufferVal = 2.5
-    ExpNums = folders_Enhancements
-    ## SEPARATE FUNCTION ##
-    Epowers = get_powers(directory,powerfile,ExpNums,bufferVal)
-
-    Epowers = np.add(Epowers, 21.9992)
-    Epowers = np.divide(Epowers, 10)
-    Epowers = np.power(10, Epowers)
-    Epowers = np.multiply(1e-3, Epowers)
-
+    # Sort enhancements based on E_powers
     E = np.array([Epowers, E])
     E = np.transpose(E)
     E = E[E[:,0].argsort()]
@@ -304,25 +334,14 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
     Enhancement_powers = E[:,0]
     Enhancements = E[:,1]
 
-    # for T1(p)
-    powerfile = 't1_powers'
-    bufferVal = 20 * 2.5
-    ExpNums = folders_T1s
-    ## SEPARATE FUNCTION ##
-    T1powers = get_powers(directory,powerfile,ExpNums,bufferVal)
-
-    T1powers = np.add(T1powers, 21.9992)
-    T1powers = np.divide(T1powers, 10)
-    T1powers = np.power(10, T1powers)
-    T1powers = np.multiply(1e-3, T1powers)
-
+    # Sort T1 based on T1_powers
     T1 = np.array([T1powers, T1, T1_stdd])
     T1 = np.transpose(T1)
     T1 = T1[T1[:,0].argsort()]
 
     T1_powers = T1[:,0]
     T1p = T1[:,1]
-    T1p_stdd = T1[:,2]
+    T1_stdd = T1[:,2]
 
     hydration = {
                  'E' : np.array(Enhancements),
@@ -365,7 +384,9 @@ if __name__ == '__main__':
                  'field'              : Magnetic_Field,
                  'T100'               : T100,
                  'smax_model'         : smax_model,
-                 't1_interp_method'   : t1_interp_method
+                 't1_interp_method'   : t1_interp_method,
+                 'drop_e_powers'      : [],
+                 'drop_t1_powers'     : [0.0005987]
                })
 
     hydration_results = hanlab_calculate_odnp(directory, pars)

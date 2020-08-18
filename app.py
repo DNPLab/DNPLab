@@ -97,12 +97,16 @@ def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
         # Process CNSI ODNP and return a str of results
         path = os.path.join(tmpdir, expname)  # path to CNSI data folder
 
-        pars = {'integration_width'  : ppar.eiw,
-                 'spin_C'             : hpar.spin_C,
-                 'field'              : hpar.field,
-                 'T100'               : hpar.T100,
-                 'smax_model'         : hpar.smax_model,
-                 't1_interp_method'   : hpar.t1_interp_method}
+        pars = {
+            'integration_width'  : ppar.eiw,
+             'spin_C'             : hpar.spin_C,
+             'field'              : hpar.field,
+             'T100'               : hpar.T100,
+             'smax_model'         : hpar.smax_model,
+             't1_interp_method'   : hpar.t1_interp_method,
+            'drop_e_powers'       : ppar['drop_e_powers'],
+            'drop_t1_powers'      : ppar['drop_t1_powers']
+        }
         hresults = hanlab_calculate_odnp(path, pars, verbose=ppar.verbose)
         mydict = {k: v for k, v in hresults.items()
                   if type(v) != type(np.ndarray([]))}
@@ -145,11 +149,12 @@ def drop_data(data:dict):
 
 # =======THE APP=======
 ss = stss.get(
-    ppar = ProcParameter(),
+    ppar = ProcParameter(drop_e_powers=[], drop_t1_powers=[]),
     hpar = HydrationParameter(),
     results = {},
     expname = '',
-    data = {}
+    data = {},
+    b_run=False
 )
 
 st.title(f'ODNPLab: One-Step ODNP Processing \n {VERSION} \t Powered by DNPLab ')
@@ -158,27 +163,25 @@ st.markdown("## Upload a Zip file")
 uploaded_file = st.file_uploader("Here ->", type="zip")
 
 if uploaded_file is not None:
-
-    b_run = st.button("Run")
-
-    if not b_run:
-        st.markdown("^ Click Me ")
-
     # Parameters
     ss.ppar.verbose = False
     ss.ppar, ss.hpar = set_par(ss.ppar, ss.hpar)
 
+    b_run = st.button("Run")
     if b_run:
         with st.spinner('This should take 10 seconds ...'):
             ss.results, ss.expname, ss.data = run(uploaded_file, ppar=ss.ppar, hpar=ss.hpar)
+    else:
+        st.markdown("^ Click Me ")
 
-    plot(ss.data)
-    # ppar['drop_es'], ppar['drop_t1s'] = \
-    drop_data(ss.data)
-    st.markdown(
-        get_table_download_link(dict_to_str(ss.results), filename=ss.expname),
-        unsafe_allow_html=True)
-    st.write(ss.results)
+    if b_run or ss.b_run:
+        ss.b_run = True
+        plot(ss.data)
+        st.markdown(
+            get_table_download_link(dict_to_str(ss.results), filename=ss.expname),
+            unsafe_allow_html=True)
+        st.write(ss.results)
+        ss.ppar['drop_e_powers'], ss.ppar['drop_t1_powers'] = drop_data(ss.data)
 
 st.markdown(f"""
 ## How to use
