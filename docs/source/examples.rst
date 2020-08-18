@@ -6,8 +6,14 @@ dnpLab comes with many example scripts to demonstrate how the package can be use
 
 If you installed dnpLab using pip you can download the example scripts and data from the GitHub repository:
 
-Example Scripts:    `Example Scripts <http://link>`_ 
-Example Data:    `Example Data <http://link>`_ 
+.. list-table::
+   :widths: 50 50
+
+   * - Example Scripts:
+     - `Link to Examples <http://link>`_ 
+   * - Example Data:
+     - `Link to Data <http://link>`_ 
+
 
 Import Data and Process FID (Bruker Format)
 ===========================================
