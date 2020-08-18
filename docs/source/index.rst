@@ -36,6 +36,8 @@ dnpLab is a collaborative project created by
 * |B12TLink|
 * The |HanLabLink| at University of California, Santa Barbara
 * The |FranckLabLink| at Syracuse University
+* License: `MIT License <https://en.wikipedia.org/wiki/MIT_License>`_
+
     
 The source code for the project is published at: XXXX Need GitHub Link XXXX
 

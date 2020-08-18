@@ -5,10 +5,12 @@ import h5py
 
 
 def saveh5(dataDict, path, overwrite = False):
-    '''
-    Save All Data in .h5 format
-    Requires a dictionary of dnpData objects
+    '''Save workspace in .h5 format
 
+    Args:
+        dataDict (dnpdata_collection): dnpdata_collection object to save.
+        path (str): Path to save data
+        overwrite (bool): If True, h5 file can be overwritten. Otherwise, h5 file cannot be overwritten
     '''
 
     if overwrite:
@@ -35,6 +37,10 @@ def saveh5(dataDict, path, overwrite = False):
 
 def write_dnpdata(dnpDataGroup, dnpDataObject):
     '''Takes file/group and writes dnpData object to it
+
+    Args:
+        dnpDataGroup: h5 group to save data to
+        dnpDataObject: dnpdata object to save in h5 format
     '''
     dnpDataGroup.attrs['dnpLab_version'] = dnpDataObject.version
     dnpDataGroup.attrs['dnpLab_data_type'] = 'dnpdata'
@@ -80,8 +86,13 @@ def write_dict(dnpDataGroup, dnpDataObject):
 
 
 def loadh5(path):
-    '''
-    Returns Dictionary of dnpDataObjects
+    '''Returns Dictionary of dnpDataObjects
+
+    Args:
+        path (str): Path to h5 file
+
+    Returns:
+        dnpdata_collection: workspace object with data
     '''
 
     dnp_dict = {}

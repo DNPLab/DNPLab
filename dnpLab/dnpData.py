@@ -173,14 +173,19 @@ class dnpdata_collection(MutableMapping):
         else:
             raise TypeError('Processing buffer must be type str, not %s'%str(type(new_processing_buffer)))
 
-    def copy(self, a, b = None):
-        '''Copy data
+    def copy(self, key, new_key = None):
+        '''Copy data from key to new_key. If new_key is not given, by default key will be copied to processing buffer
+
+        Args:
+            key (str): Key to be copied
+            new_key (str, None): New key for copied data
+
         '''
 
-        if b is None:
-            b = self.processing_buffer
+        if new_key is None:
+            new_key = self.processing_buffer
 
-        self[b] = self[a].copy()
+        self[new_key] = self[key].copy()
 
     def move(self, key, new_key):
         '''Move data from key to new_key
@@ -190,7 +195,7 @@ class dnpdata_collection(MutableMapping):
             new_key (str): Name of new key to move data
         '''
 
-        self[b] = self.pop(a)
+        self[new_key] = self.pop(key)
 
     def pop(self, key):
         '''Pop key. Removes data corresponding to key.
@@ -220,9 +225,16 @@ class dnpdata_collection(MutableMapping):
         return self.__data_dict.keys()
 
     def popitem(self):
+        '''Pops item from end of dnpdata_collection
+
+        Returns:
+            tuple: key, item pair that was removed
+        '''
         return self.__data_dict.popitem()
 
     def values(self):
+        '''Return Values
+        '''
         return self.__data_dict.values()
 
     def add(self, key, data):
