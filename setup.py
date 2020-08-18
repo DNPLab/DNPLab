@@ -7,7 +7,7 @@ with open('README.md','r') as f:
 setup(
         name = 'dnpLab',
         packages = setuptools.find_packages(),
-        version = '1.0.6',
+        version = '1.0.8',
         license = 'MIT',
         description = 'dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy',
         long_description=long_description,
