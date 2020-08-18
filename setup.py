@@ -7,7 +7,7 @@ with open('README.md','r') as f:
 setup(
         name = 'dnpLab',
         packages = setuptools.find_packages(),
-        version = '1.0.6',
+        version = '1.0.9',
         license = 'MIT',
         description = 'dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy',
         long_description=long_description,
@@ -29,7 +29,7 @@ setup(
             'scipy>=1.5',
             'matplotlib>=3.3',
             'h5py>=2.10',
-            'PyQt5>=5.15'
+            'PyQt5>=5.14'
             ],
         classifiers = [
             'Development Status :: 3 - Alpha',

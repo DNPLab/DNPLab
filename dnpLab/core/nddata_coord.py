@@ -446,7 +446,8 @@ class nddata_coord_collection(object):
 
     @property
     def coords(self):
-        return np.array(self._coords)
+        return self._coords
+#        return np.array(self._coords)
 
     @coords.setter
     def coords(self, coords):
