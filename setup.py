@@ -3,8 +3,8 @@ from distutils.core import setup
 
 setup(
         name = 'dnpLab',
-        packages = ['dnpLab'],
-        version = '1.0',
+        packages = setuptools.find_packages(),
+        version = '1.0.1',
         license = 'MIT',
         description = 'dnpLab - A NMR Processing Library for ODNP Experiments',
         author = 'Timothy Keller, Tom Casey, Yanxian Lin, Thorsten Maly, John Franck, Songi Han',
