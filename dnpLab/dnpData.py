@@ -182,10 +182,10 @@ class dnpdata_collection(MutableMapping):
 
         '''
 
-        if b is None:
-            b = self.processing_buffer
+        if new_key is None:
+            new_key = self.processing_buffer
 
-        self[b] = self[a].copy()
+        self[new_key] = self[key].copy()
 
     def move(self, key, new_key):
         '''Move data from key to new_key
@@ -195,7 +195,7 @@ class dnpdata_collection(MutableMapping):
             new_key (str): Name of new key to move data
         '''
 
-        self[b] = self.pop(a)
+        self[new_key] = self.pop(key)
 
     def pop(self, key):
         '''Pop key. Removes data corresponding to key.
