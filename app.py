@@ -1,4 +1,5 @@
 import streamlit as st
+import SessionState as stss
 import zipfile
 import tempfile
 import pprint
@@ -8,6 +9,8 @@ import matplotlib.pyplot as plt
 from examples.HanLab_calculate_ODNP import hanlab_calculate_odnp
 from dnpLab.dnpHydration import HydrationParameter
 from app_helper import ProcParameter, dict_to_str, get_table_download_link
+
+st.set_option('deprecation.showfileUploaderEncoding', False)
 
 print = pprint.pprint
 
@@ -27,18 +30,32 @@ def set_par(ppar:ProcParameter, hpar:HydrationParameter):
     Returns: tuple(ProcParameter, HydrationParameter)
 
     """
-    # Processing parameter
-    st.sidebar.markdown('**Hydration**')
-    hpar.spin_C = st.sidebar.number_input("Spin label concentration (uM)", value=500.0, step=1.0, key='spin_C')
-    hpar.T100 = st.sidebar.number_input("T1,0(0) (s)", value=2.5, step=0.05, key='t100')
-    hpar.field = st.sidebar.number_input("Field (mT)", value=348.5, step=1.0, key='field')
+    # Defaults
+    ppar.eiw = 20
+    hpar.field = 348.5
+    hpar.t1_interp_method = 'second_order'
 
-    hpar.smax_model = st.sidebar.radio('The spin is ', options=['tethered', 'free'], key='smax_model')
-    hpar.t1_interp_method = st.sidebar.radio('T1 interpolation method', options=['linear', 'second_order'], index=1, key='t1_interp_method')
+    # st.sidebar.markdown('**Experiments**')
+    hpar.spin_C = st.sidebar.number_input(
+        "Spin label concentration (uM)", min_value = 0.01, value=500.0, step=1.0, key='spin_C'
+    )
+    hpar.T100 = st.sidebar.number_input(
+        "T1,0(0) (s)", min_value=0.1, max_value=3.0, value=2.5, step=0.05, key='t100'
+    )
+    hpar.smax_model = st.sidebar.radio(
+        'The spin is ', options=['tethered', 'free'], key='smax_model'
+    )
 
-    st.sidebar.markdown("**Peak integration**")
-    ppar.eiw = st.sidebar.slider("Integration Width", min_value=10, max_value=500,
-                                 value=20, step=10, key='eiw')
+    if st.sidebar.checkbox("More"):
+        ppar.eiw = st.sidebar.number_input(
+            "Integration Width", min_value=10, max_value=500, value=20, step=10, key='eiw'
+        )
+        hpar.field = st.sidebar.number_input(
+            "Field (mT)", value=348.5, step=1.0, key='field'
+        )
+        hpar.t1_interp_method = st.sidebar.radio(
+            'T1 interpolation method', options=['linear', 'second_order'], index=1, key='t1_interp_method'
+        )
 
     return ppar, hpar
 
@@ -73,7 +90,7 @@ def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
                 
                 If problems are still there, please report the issue below.
                  """)
-                return {}, ''
+                return {}, '', {}
             else:
                 expname = expname[0][0:-2]
 
@@ -98,21 +115,43 @@ def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
 
 def plot(data:dict):
     """Create EDA"""
-    fig, axes = plt.subplots(1, 2, figsize=[6, 3], squeeze=True)
-    # Enhancement plot
-    axes[0].plot(data['E_power'], data['E'], '.k')
-    axes[0].set_xlabel('Power')
-    axes[0].set_ylabel('Enhancement')
-    # T1 plot
-    axes[1].plot(data['T1_power'], data['T1'], '.k')
-    axes[1].set_xlabel('Power')
-    axes[1].set_ylabel('T1 (s)')
+    if len(data) > 0:
+        fig, axes = plt.subplots(1, 2, figsize=[6, 3], squeeze=True)
+        # Enhancement plot
+        axes[0].plot(data['E_power'], data['E'], '.k')
+        axes[0].set_xlabel('Power')
+        axes[0].set_ylabel('Enhancement')
+        # T1 plot
+        axes[1].plot(data['T1_power'], data['T1'], '.k')
+        axes[1].set_xlabel('Power')
+        axes[1].set_ylabel('T1 (s)')
 
-    fig.tight_layout()
-    st.pyplot()
+        fig.tight_layout()
+        st.pyplot()
+
+
+def drop_data(data:dict):
+    """Create selectbox for dropping bad data points"""
+    drop_es, drop_t1s = {}, {}
+    if len(data) > 0:
+        drop_es = st.sidebar.multiselect(
+            'Drop Enhancements at power(s):', data['E_power'], key='drop_es'
+        )
+        drop_t1s = st.sidebar.multiselect(
+            'Drop T1 at power(s):', data['T1_power'], key='drop_t1s'
+        )
+    return drop_es, drop_t1s
 
 
 # =======THE APP=======
+ss = stss.get(
+    ppar = ProcParameter(),
+    hpar = HydrationParameter(),
+    results = {},
+    expname = '',
+    data = {}
+)
+
 st.title(f'ODNPLab: One-Step ODNP Processing \n {VERSION} \t Powered by DNPLab ')
 
 st.markdown("## Upload a Zip file")
@@ -126,20 +165,20 @@ if uploaded_file is not None:
         st.markdown("^ Click Me ")
 
     # Parameters
-    ppar = ProcParameter()
-    ppar.verbose = False
-    hpar = HydrationParameter()
-    ppar, hpar = set_par(ppar, hpar)
+    ss.ppar.verbose = False
+    ss.ppar, ss.hpar = set_par(ss.ppar, ss.hpar)
 
     if b_run:
-
         with st.spinner('This should take 10 seconds ...'):
-            results, expname, data = run(uploaded_file, ppar=ppar, hpar=hpar)
-        plot(data)
-        st.markdown(
-            get_table_download_link(dict_to_str(results), filename=expname),
-            unsafe_allow_html=True)
-        st.write(results)
+            ss.results, ss.expname, ss.data = run(uploaded_file, ppar=ss.ppar, hpar=ss.hpar)
+
+    plot(ss.data)
+    # ppar['drop_es'], ppar['drop_t1s'] = \
+    drop_data(ss.data)
+    st.markdown(
+        get_table_download_link(dict_to_str(ss.results), filename=ss.expname),
+        unsafe_allow_html=True)
+    st.write(ss.results)
 
 st.markdown(f"""
 ## How to use
