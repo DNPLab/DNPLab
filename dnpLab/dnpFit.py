@@ -5,26 +5,39 @@ from scipy.optimize import curve_fit
 
 
 def t1Function(t, T1, M_0, M_inf):
-    '''Model for T1 Fit
-
-    .. math::
-        f(t) = M_0 - M_{\infty} e^{- t / T_1}
-        
-    Args:
-        t (numpy.ndarray): Time axis
-        T1 (float): T1 value
-        M_0 (float): Starting magnetization in data
-        M_inf (float): Magetization at time infinity
-
-    Returns:
-        numpy.ndarray: Resulting fit
-    '''
 
     return M_0 - M_inf * _np.exp(-1.*t/T1)
 
 def t1Fit(dataDict):
+    '''Fits inversion recovery data to extract T1 value in seconds
+
+    .. math::
+
+        f(t) = M_0 - M_{\infty} e^{-t/T_1}
+
+    Args:
+        workspace after processing inversion recovery data, after integration with dnpNMR.integrate
+
+    Returns:
+        all_data (dnpdata, dict): Processed data in container, updated with fit data
+        attributes: T1 value and T1 standard deviation
+        
+    Example:
+
+    .. code-block:: python
+        
+        ### INSERT importing and processing ###
+        dnpLab.dnpNMR.integrate(workspace, {})
+        
+        dnpLab.dnpFit.t1Fit(workspace)
+        
+        T1_value = workspace['fit'].attrs['t1']
+        T1_standard_deviation = workspace['fit'].attrs['t1_stdd']
+        T1_fit = workspace['fit'].values
+        T1_fit_xaxis = workspace['fit'].coords
+        
     '''
-    '''
+    
     isDict = False
     if isinstance(dataDict, (dict, dnpdata_collection)):
         data = dataDict['proc'].copy()
@@ -61,14 +74,43 @@ def t1Fit(dataDict):
         return fitData
 
 def enhancementFunction(powerArray, E_max, power_half):
-    '''
-    '''
 
     return E_max * powerArray / (power_half + powerArray)
 
 def enhancementFit(dataDict):
-    '''Fit enhancement
+    '''Fits enhancement curves to return Emax and power and one half maximum saturation
+
+    .. math::
+
+        f(p) = E_{max} p / (p_{1/2} + p)
+
+    Args:
+        workspace
+
+    Returns:
+        all_data (dnpdata, dict): Processed data in container, updated with fit data
+        attributes: Emax value and Emax standard deviation
+
+                    p_one_half value and p_one_half standard deviation
+        
+    Example::
+    
+        ### INSERT importing and processing ###
+        dnpLab.dnpNMR.integrate(workspace, {})
+        
+        workspace.new_dim('power', power_list)
+        
+        dnpLab.dnpFit.enhancementFit(workspace)
+        
+        Emax_value = workspace['fit'].attrs['E_max']
+        Emax_standard_deviation = workspace['fit'].attrs['E_max_stdd']
+        p_one_half_value = workspace['fit'].attrs['p_half']
+        p_one_half_standard_deviation = workspace['fit'].attrs['p_half_stdd']
+        Emax_fit = workspace['fit'].values
+        Emax_fit_xaxis = workspace['fit'].coords
+
     '''
+    
     isDict = False
     if isinstance(dataDict, (dict, dnpdata_collection)):
         data = dataDict['proc'].copy()
@@ -95,7 +137,7 @@ def enhancementFit(dataDict):
     fitData.attrs['E_max'] = out[0]
     fitData.attrs['E_max_stdd'] = stdd[0]
     fitData.attrs['power_half'] = out[1]
-    itData.attrs['power_half_stdd'] = stdd[1]
+    fitData.attrs['power_half_stdd'] = stdd[1]
 
     if isDict:
         dataDict['fit'] = fitData
