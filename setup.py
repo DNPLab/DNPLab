@@ -4,10 +4,10 @@ from distutils.core import setup
 setup(
         name = 'dnpLab',
         packages = setuptools.find_packages(),
-        version = '1.0.1',
+        version = '1.0.2',
         license = 'MIT',
-        description = 'dnpLab - A NMR Processing Library for ODNP Experiments',
-        author = 'Timothy Keller, Tom Casey, Yanxian Lin, Thorsten Maly, John Franck, Songi Han',
+        description = 'dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy',
+        author = 'Timothy Keller, Thomas Casey, Yanxian Lin, Thorsten Maly, John Franck, Songi Han',
         author_email = 'tkeller@bridge12.com',
         url = '',
         download_url = '',
