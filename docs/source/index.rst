@@ -38,6 +38,7 @@ dnpLab is a collaborative project created by
 * The |FranckLabLink| at Syracuse University
 * License: `MIT License <https://en.wikipedia.org/wiki/MIT_License>`_
 
+Authors: Timothy Keller, Thomas Casey, Yanxian Lin, John Franck, Thorsten Maly, Songi Han
     
 The source code for the project is published at: XXXX Need GitHub Link XXXX
 

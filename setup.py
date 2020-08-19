@@ -12,8 +12,7 @@ setup(
         description = 'dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy',
         long_description=long_description,
         long_description_content_type='text/markdown',
-        author = 'Timothy Keller, Thomas Casey, Yanxian Lin, Thorsten Maly, John Franck, Songi Han',
-        author_email = 'tkeller@bridge12.com',
+        author = 'dnpLab Team',
         url = 'http://dnpLab.net',
         download_url = '',
         project_urls={
@@ -29,7 +28,7 @@ setup(
             'scipy>=1.5',
             'matplotlib>=3.3',
             'h5py>=2.10',
-            'PyQt5>=5.14'
+            'PyQt5==5.14'
             ],
         classifiers = [
             'Development Status :: 3 - Alpha',
