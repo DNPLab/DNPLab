@@ -104,8 +104,8 @@ def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
              'T100'               : hpar.T100,
              'smax_model'         : hpar.smax_model,
              't1_interp_method'   : hpar.t1_interp_method,
-            'drop_e_powers'       : ppar['drop_e_powers'],
-            'drop_t1_powers'      : ppar['drop_t1_powers']
+             'drop_e_powers'       : ppar['drop_e_powers'],
+             'drop_t1_powers'      : ppar['drop_t1_powers']
         }
         hresults = hanlab_calculate_odnp(path, pars, verbose=ppar.verbose)
         mydict = {k: v for k, v in hresults.items()
@@ -134,15 +134,15 @@ def plot(data:dict):
         st.pyplot()
 
 
-def drop_data(data:dict):
+def drop_data(drop_e_powers:list, drop_t1_powers:list):
     """Create selectbox for dropping bad data points"""
     drop_es, drop_t1s = {}, {}
-    if len(data) > 0:
+    if len(drop_e_powers) + len(drop_t1_powers) > 0:
         drop_es = st.sidebar.multiselect(
-            'Drop Enhancements at power(s):', data['E_power'], key='drop_es'
+            'Drop Enhancements at power(s):', drop_e_powers, key='drop_es'
         )
         drop_t1s = st.sidebar.multiselect(
-            'Drop T1 at power(s):', data['T1_power'], key='drop_t1s'
+            'Drop T1 at power(s):', drop_t1_powers, key='drop_t1s'
         )
     return drop_es, drop_t1s
 
@@ -153,7 +153,10 @@ ss = stss.get(
     hpar = HydrationParameter(),
     results = {},
     expname = '',
+    old_expname='',
     data = {},
+    epowers = [],   # E_power from the data
+    t1powers = [],  # T1_power from the data
     b_run=False
 )
 
@@ -163,10 +166,12 @@ st.markdown("## Upload a Zip file")
 uploaded_file = st.file_uploader("Here ->", type="zip")
 
 if uploaded_file is not None:
+
     # Parameters
     ss.ppar.verbose = False
     ss.ppar, ss.hpar = set_par(ss.ppar, ss.hpar)
 
+    # Process the data
     b_run = st.button("Run")
     if b_run:
         with st.spinner('This should take 10 seconds ...'):
@@ -174,14 +179,22 @@ if uploaded_file is not None:
     else:
         st.markdown("^ Click Me ")
 
+    # Present the results
     if b_run or ss.b_run:
         ss.b_run = True
         plot(ss.data)
         st.markdown(
             get_table_download_link(dict_to_str(ss.results), filename=ss.expname),
-            unsafe_allow_html=True)
+            unsafe_allow_html=True
+        )
         st.write(ss.results)
-        ss.ppar['drop_e_powers'], ss.ppar['drop_t1_powers'] = drop_data(ss.data)
+
+        # Filter bad data points when results are present
+        if ss.old_expname != ss.expname:
+            ss.old_expname = ss.expname
+            ss.epowers = ss.data['E_power']
+            ss.t1powers = ss.data['T1_power']
+        ss.ppar['drop_e_powers'], ss.ppar['drop_t1_powers'] = drop_data(ss.epowers, ss.t1powers)
 
 st.markdown(f"""
 ## How to use
