@@ -1,7 +1,7 @@
 import sys
 sys.path.append('..')
-import numpy as np
 
+import numpy as np
 import dnpLab as dnp
 
 path = '../data/prospa/toluene_10mM_Tempone/'
@@ -28,9 +28,12 @@ ws = dnp.dnpNMR.align(ws, {})
 ws.copy('proc', 'ft')
 ws = dnp.dnpNMR.integrate(ws, {'integrate_width': 40})
 
+ws = dnp.dnpFit.enhancementFit(ws)
+
 dnp.dnpResults.plot(ws['ft'])
 dnp.dnpResults.xlim(20,-20)
 dnp.dnpResults.figure()
 dnp.dnpResults.plot(ws['proc'], 'o')
+dnp.dnpResults.plot(ws['fit'])
 dnp.dnpResults.show()
 

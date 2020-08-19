@@ -6,8 +6,14 @@ dnpLab comes with many example scripts to demonstrate how the package can be use
 
 If you installed dnpLab using pip you can download the example scripts and data from the GitHub repository:
 
-Example Scripts:    `Example Scripts <http://link>`_ 
-Example Data:    `Example Data <http://link>`_ 
+.. list-table::
+   :widths: 50 50
+
+   * - Example Scripts:
+     - `Link to Examples <http://link>`_ 
+   * - Example Data:
+     - `Link to Data <http://link>`_ 
+
 
 Import Data and Process FID (Bruker Format)
 ===========================================
@@ -19,15 +25,20 @@ This example uses the example script: *example_process_1Dbruker.py*. The script 
 #. Perform a Fourier transformation
 #. Phase correct the resulting spectrum
 
-If you installed dnpLab using pip, skip the first two lines. Otherwise, you have to specify the path to the package explicitly:
+If you installed dnpLab using pip. Otherwise, you have to specify the path to the package explicitly:
 
 .. code-block:: python
 
-   import sys
-   sys.path.append('path/to/dnpLab/package')
-
    import numpy as np
    import dnpLab as dnp
+
+.. note::
+   If you downloaded dnpLab via GitHub and haven't installed, you must add the directory for dnpLab to the system path before importing dnpLab. Add the following lines to the beginning of the script:
+
+   .. code-block:: python
+
+      import sys
+      sys.path.append('path/to/dnpLab/package')
 
 In the next step load a single FID in Bruker format:
 
@@ -198,19 +209,3 @@ To plot the inversion-recovery build-up curve (experimental and fitted data):
     :align: center
 
     Inversion recovery build-up (experimental and fit)
-    
-
-Example Data Included with dnpLab
-=================================
-The following experimental sample data is included with dnpLab:
-
-.. list-table::
-   :widths: 40 60
-   :header-rows: 1
-
-   * - Folder
-     - Data Type/Description
-   * - data/h5
-     - test.h5
-       Sample data in h5 format
-

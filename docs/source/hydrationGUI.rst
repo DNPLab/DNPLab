@@ -119,3 +119,10 @@ The terminal will display processing and calculation progress as well as standar
 
     Terminal Output from processing
 
+
+Saving Results
+================
+
+After processing is complete and hydration parameters are calculated, the Save results button is available. Your results are saved in .csv, .h5, and .mat formats. The .mat file can be read by the MATLAB app called xODNP that is available at MathWorks File Exchange. The .h5 and .mat files can be read by hydrationGUI.
+
+

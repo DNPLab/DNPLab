@@ -144,5 +144,4 @@ dnpdata_collection Methods
    :members:
    :show-inheritance:
    :member-order: bysource
-   :inherited-members:
 
