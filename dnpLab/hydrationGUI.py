@@ -150,7 +150,7 @@ class hydrationGUI(QMainWindow):
         self.onlyT10Checkbox.setText('Only T1(0)')
 
         # Create a next button
-        self.nextButton = QPushButton('Next Plot', self)
+        self.nextButton = QPushButton('Next', self)
         self.nextButton.setStyleSheet('font : bold 14px; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
         self.nextButton.move(625, 525)
         self.nextButton.resize(100, 40)
@@ -326,6 +326,10 @@ class hydrationGUI(QMainWindow):
 
         # set some default parameters
         self.wrkup_smax = 1
+        
+        self.gui_dict['gui_function']['buttons'] = False
+        self.gui_dict['gui_function']['sliders'] = False
+        self.connect_widgets()
 
         self.intwindowSlider.setMinimum(1)
         self.intwindowSlider.setMaximum(100)
@@ -341,10 +345,6 @@ class hydrationGUI(QMainWindow):
         
         # set blank plots
         self.reset_plots()
-
-        self.gui_dict['gui_function']['buttons'] = False
-        self.gui_dict['gui_function']['sliders'] = False
-        self.connect_widgets()
 
         self.show()
 
@@ -680,8 +680,8 @@ class hydrationGUI(QMainWindow):
                 #flname = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results xODNP.mat'
             else:
                 dirname = QFileDialog.getOpenFileName(self)
-                
-                if dirname:
+
+                if dirname[0]:
                     flname = dirname[0]
                 else:
                     return
@@ -756,7 +756,7 @@ class hydrationGUI(QMainWindow):
                 pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'Workup'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
-                
+
                 if dirname:
                     pthnm = dirname
                 else:
@@ -957,6 +957,7 @@ class hydrationGUI(QMainWindow):
                 pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + '304'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
+                
                 if dirname:
                     pthnm = dirname
                 else:
@@ -1028,6 +1029,7 @@ class hydrationGUI(QMainWindow):
                 pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin'
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
+                
                 if dirname:
                     pthnm = dirname
                 else:
@@ -1046,6 +1048,7 @@ class hydrationGUI(QMainWindow):
             self.gui_dict['gui_function']['addWorkup'] = False
             self.gui_dict['workup_function']['show'] = False
             self.gui_dict['workup_function']['fit'] = False
+            self.nextButton.setText('Next')
 
             if os.path.exists(self.gui_dict['rawdata_function']['directory'] + '40'):
 
@@ -1179,14 +1182,14 @@ class hydrationGUI(QMainWindow):
             self.dnpLab_workspace = self.import_create_workspace(self.gui_dict['rawdata_function']['folder'])
 
             self.processData()
- 
+
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('Han Lab data error ')
             self.gui_dict['gui_function']['buttons'] = False
             self.gui_dict['gui_function']['sliders'] = False
-
+   
         
     def Next_Button(self):
         """Use the Next button to step through the data folders.
@@ -1333,7 +1336,7 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict['folder_structure']['index']]
 
             if self.gui_dict['folder_structure']['index'] == len(self.gui_dict['folder_structure']['all']) - 2:
-                self.nextButton.setText('Next Plot')
+                self.nextButton.setText('Next')
 
             self.plot_setter()
             if self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['enh']:
@@ -1606,30 +1609,30 @@ class hydrationGUI(QMainWindow):
         self.gui_dict['enhancement_plot']['plotEpfit'] = True
 
         if self.gui_dict['gui_function']['isWorkup']:
-            print('---workup Standard Deviations in T1---')
+            print('---workup Standard Deviations in T1s---')
             print('T10: ' + str(round(self.gui_dict['workup_data']['T10'], 2)) + ' +/- ' + str(
                 round(self.gui_dict['workup_data']['T10_stdd'], 4)))
             for k in range(0, len(self.gui_dict['workup_data']['T1p'])):
                 print(str(round(self.gui_dict['workup_data']['T1p'][k], 2)) + ' +/- ' + str(
                     round(self.gui_dict['workup_data']['T1p_stdd'][k], 4)))
         else:
-            print('---Standard Deviations in T1---')
+            print('---Standard Deviations in T1s---')
             print('T10: ' + str(round(self.gui_dict['dnpLab_data']['T10'], 2)) + ' +/- ' + str(
                 round(self.gui_dict['dnpLab_data']['T10_stdd'], 4)))
             for k in range(0, len(self.T1p)):
                 print(str(round(self.T1p[k], 2)) + ' +/- ' + str(round(self.T1p_stdd[k], 4)))
 
             if self.gui_dict['gui_function']['addWorkup']:
-                print('---workup Standard Deviations in T1---')
+                print('---workup Standard Deviations in T1s---')
                 print('T10: ' + str(round(self.gui_dict['workup_data']['T10'], 2)) + ' +/- ' + str(
                     round(self.gui_dict['workup_data']['T10_stdd'], 4)))
                 for k in range(0, len(self.gui_dict['workup_data']['T1p'])):
                     print(str(round(self.gui_dict['workup_data']['T1p'][k], 2)) + ' +/- ' + str(
                         round(self.gui_dict['workup_data']['T1p_stdd'][k], 4)))
 
-        self.Hydration_Button()
+        self.Hydration_Calculator()
 
-    def Hydration_Button(self):
+    def Hydration_Calculator(self):
         """Pass the processed data to the dnpHydration module.
         
         The GUI builds the input structure:
@@ -1817,7 +1820,7 @@ class hydrationGUI(QMainWindow):
         self.plot_enh()
         self.plot_t1()
 
-        print('-----Standard Deviations in ksigma-----')
+        print('-----Standard Deviation in ksigma-----')
         if self.gui_dict['gui_function']['isWorkup']:
             print('Workup (dnpHydration): ' + str(
                 round(self.gui_dict['workup_hydration_results']['ksigma'], 2)) + ' +/- ' + str(
@@ -1960,7 +1963,7 @@ class hydrationGUI(QMainWindow):
             self.order2fitCheckbox.setChecked(True)
 
         if self.gui_dict['gui_function']['hydrationEdits']:
-            self.Hydration_Button()
+            self.Hydration_Calculator()
         else:
             pass
 
@@ -1972,14 +1975,14 @@ class hydrationGUI(QMainWindow):
             self.linearfitCheckbox.setChecked(True)
 
         if self.gui_dict['gui_function']['hydrationEdits']:
-            self.Hydration_Button()
+            self.Hydration_Calculator()
         else:
             pass
 
     def Exclude_FirstT1_Checkbox(self):
         """Exclude the first T1 point from the interpolation if it deviates significantly from the trend of the other points."""
         if self.gui_dict['gui_function']['hydrationEdits']:
-            self.Hydration_Button()
+            self.Hydration_Calculator()
         else:
             pass
 
@@ -1991,7 +1994,7 @@ class hydrationGUI(QMainWindow):
             self.freeCheckbox.setChecked(True)
 
         if self.gui_dict['gui_function']['hydrationEdits']:
-            self.Hydration_Button()
+            self.Hydration_Calculator()
         else:
             pass
 
@@ -2003,14 +2006,14 @@ class hydrationGUI(QMainWindow):
             self.tetheredCheckbox.setChecked(True)
 
         if self.gui_dict['gui_function']['hydrationEdits']:
-            self.Hydration_Button()
+            self.Hydration_Calculator()
         else:
             pass
 
     def Edit_Hydration_Inputs(self):
         """This function passes the text from the various edit boxes to dnpHydration as floats and re-calculates hydration parameters."""
         if self.gui_dict['gui_function']['hydrationEdits']:
-            self.Hydration_Button()
+            self.Hydration_Calculator()
         else:
             pass
 
@@ -2024,7 +2027,7 @@ class hydrationGUI(QMainWindow):
             self.fit_wrkupCheckbox.setChecked(False)
 
         if self.gui_dict['gui_function']['hydrationEdits']:
-            self.Hydration_Button()
+            self.Hydration_Calculator()
         else:
             pass
 
@@ -2037,7 +2040,7 @@ class hydrationGUI(QMainWindow):
             self.fit_wrkupCheckbox.setChecked(False)
 
         if self.gui_dict['gui_function']['hydrationEdits']:
-            self.Hydration_Button()
+            self.Hydration_Calculator()
         else:
             pass
 
