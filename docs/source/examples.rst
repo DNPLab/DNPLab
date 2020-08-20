@@ -2,6 +2,15 @@
 dnpLab Examples
 ===============
 
+.. |ExamplesLink| raw:: html
+
+   <a href="https://github.com/DNPLab/dnpLab/tree/master/examples" target="_blank"> Link to Examples</a>
+
+.. |DataLink| raw:: html
+
+   <a href="https://github.com/DNPLab/dnpLab/tree/master/data" target="_blank"> Link to Data</a>
+
+
 dnpLab comes with many example scripts to demonstrate how the package can be used to import data from different spectrometer platform, process NMR data and extract enhancement data or hydration information. The example scripts are located in the *examples* folder using sample data located in the *data* folder.
 
 If you installed dnpLab using pip you can download the example scripts and data from the GitHub repository:
@@ -10,9 +19,9 @@ If you installed dnpLab using pip you can download the example scripts and data 
    :widths: 50 50
 
    * - Example Scripts:
-     - `Link to Examples <http://link>`_ 
+     - |ExamplesLink|
    * - Example Data:
-     - `Link to Data <http://link>`_ 
+     - |DataLink|
 
 
 Import Data and Process FID (Bruker Format)
