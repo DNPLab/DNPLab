@@ -7,19 +7,18 @@ with open('README.md','r') as f:
 setup(
         name = 'dnpLab',
         packages = setuptools.find_packages(),
-        version = '1.0.9',
+        version = '1.0.1',
         license = 'MIT',
         description = 'dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy',
         long_description=long_description,
         long_description_content_type='text/markdown',
-        author = 'Timothy Keller, Thomas Casey, Yanxian Lin, Thorsten Maly, John Franck, Songi Han',
-        author_email = 'tkeller@bridge12.com',
+        author = 'dnpLab Team',
         url = 'http://dnpLab.net',
         download_url = '',
         project_urls={
             'Documentation':'http://docs.dnpLab.net',
             'Examples':'http://examples.dnplab.net/',
-            'Source Code':'http://gitHub.com',
+            'Source Code':'https://github.com/DNPLab/dnpLab',
             'Web App':'http://odnplab.com/',
             },
         keywords = ['ODNP','DNP','NMR'],
@@ -29,7 +28,7 @@ setup(
             'scipy>=1.5',
             'matplotlib>=3.3',
             'h5py>=2.10',
-            'PyQt5>=5.14'
+            'PyQt5==5.14'
             ],
         classifiers = [
             'Development Status :: 3 - Alpha',
