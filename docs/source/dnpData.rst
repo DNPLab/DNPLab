@@ -9,6 +9,8 @@ dnpdata Class Overview
 
 The dnpdata class is a flexible data container for N-dimensional data. The dnpdata class stores data, axes, parameters and processing information in a single object. 
 
+The dnpdata class integrates some concepts from, and designed for ongoing compatibility with, `pySpecData <https://jmfrancklab.github.io/pyspecdata/>`_, an object-oriented spectral data processing package developed by the Franck Lab at Syracuse University, with ongoing collaborations between the development teams at Bridge12 Technologies, Inc. and the Han Lab at University of California, Santa Barabara.
+
 dnpdata Attributes
 ==================
 
