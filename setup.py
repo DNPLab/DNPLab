@@ -5,7 +5,7 @@ with open('README.md','r') as f:
     long_description = f.read()
 
 setup(
-        name = 'dnpLab',
+        name = 'dnplab',
         packages = setuptools.find_packages(),
         version = '1.0.2',
         license = 'MIT',
