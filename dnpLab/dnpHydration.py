@@ -82,7 +82,7 @@ class HydrationParameter(Parameter):
     """float: Static magnetic field in mT, needed to find omega_e and _H"""
 
     spin_C = None
-    """float: (Eq. 1-2) unit is microM, spin label concentration for scaling
+    """float: unit is microM, spin label concentration for scaling
     relaxations to get "relaxivities" """
 
     __smax_model = 'tethered'  # either 'tethered' or 'free'
@@ -95,20 +95,23 @@ class HydrationParameter(Parameter):
     """float: T1 without spin label and without mw E_power, unit is sec"""
 
     ksigma_bulk = 95.4
-    """float: unit is s^-1 M^-1 (Figure 3 caption)"""
-
+    """float: unit is s^-1 M^-1"""
+    
+    krho_bulk = 353.4
+    """float: unit is s^-1 M^-1"""
+    
     klow_bulk = 366
-    """float: unit is s^-1 M^-1 (Figure 3 caption)"""
+    """float: unit is s^-1 M^-1"""
 
     tcorr_bulk = 54
-    """float: Corrected bulk tcorr, unit is ps, (section 2.5)"""
+    """float: Corrected bulk tcorr, unit is ps"""
 
     D_H2O = 2.3e-9
-    """float: (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is
+    """float: bulk water diffusivity, unit is d^2/s where d is
     distance in meters."""
 
     D_SL = 4.1e-10
-    """float: (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is
+    """float: spin label diffusivity, unit is d^2/s where d is
     distance in meters."""
 
     __t1_interp_method = 'second_order'
@@ -117,7 +120,6 @@ class HydrationParameter(Parameter):
     def __init__(self):
         """"""
         super().__init__()
-        # Fixme: Remove the default field, spin concentration etc. Set them as required arguments
         self.field = 348.5
         self.spin_C = 100
         self.T10 = 1.5
@@ -183,6 +185,7 @@ class HydrationResults(AttrDict):
         ksigma_stdd (float)             : standard deviation in ksigma,
         ksigma_bulk_ratio (float)       : ratio ksigma / ksigma_bulk,
         krho (float)                    : krho,
+        krho_bulk_ratio (float)         : ratio krho / krho_bulk,
         klow (float)                    : klow,
         klow_bulk_ratio (float)         : ratio klow / klow_bulk,
         coupling_factor (float)         : coupling_factor,
@@ -202,6 +205,7 @@ class HydrationResults(AttrDict):
         self.ksigma_stdd = None
         self.ksigma_bulk_ratio = None
         self.krho = None
+        self.krho_bulk_ratio = None
         self.klow = None
         self.klow_bulk_ratio = None
         self.coupling_factor = None
@@ -368,24 +372,16 @@ class HydrationCalculator:
         ksigma_stdd = ksigma_std[0] / s_max
 
         ksigma_fit = (ksigma_smax * power) / (p_12 + power)
-        # (Eq. 42) calculate the "corrected" ksigma*s(p) array using the fit parameters,
-        # this can be used to plot over the data ksigma_array array to assess the quality of fit.
-        # This would correspond to the corrected curves in Figure 9
         
         ksigma = ksigma_smax / s_max
-        
-        # ksig_uncorr = ((1 - Ep) / (spin_C * omega_ratio * T10)) / s_max
-        # (Eq. 44) the "uncorrected" model, this can also be plotted with the corrected
-        # curve to determine the severity of heating effects, as in Figure 9.
-        # Notice the division by T10 instead of the T1 array
-        #################
 
         ksigma_bulk = self.hp.ksigma_bulk  # unit is s^-1 M^-1
-        # "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023. Figure 3 caption
 
-        krho = ((1/T10) - (1/T100)) / spin_C  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
-
-        coupling_factor = ksigma / krho  # (Eq. 3) this is the coupling factor, unitless
+        krho = ((1/T10) - (1/T100)) / spin_C  # "self" relaxivity, unit is s^-1 M^-1
+        
+        krho_bulk = self.hp.krho_bulk  # unit is s^-1 M^-1
+        
+        coupling_factor = ksigma / krho  # coupling factor, unitless
 
         tcorr = self.get_tcorr(coupling_factor, omega_e, omega_H)
         # (Eq. 21-23) this calls the fit to the spectral density functions. The fit
@@ -421,7 +417,6 @@ class HydrationCalculator:
         ############################################################################
 
         klow_bulk = self.hp.klow_bulk  # unit is s^-1 M^-1
-        # "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023. Figure 3 caption
         
         results = self.get_uncorrected_xi(Ep, power, T10, T100, omega_ratio, s_max)
         xi_unc = results.x[0]
@@ -447,6 +442,7 @@ class HydrationCalculator:
             'ksigma_stdd'       : ksigma_stdd,
             'ksigma_bulk_ratio' : ksigma/ksigma_bulk,
             'krho'              : krho,
+            'krho_bulk_ratio'   : krho/krho_bulk,
             'klow'              : klow,
             'klow_bulk_ratio'   : klow / klow_bulk,
             'coupling_factor'   : coupling_factor,

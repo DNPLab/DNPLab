@@ -17,8 +17,8 @@ Type the command to start the hydrationGUI:
 
     hydrationGUI
 
-Processing a single topspin data folder, 1D spectrum or 2D inversion recovery data
-==================================================================================
+Processing a single topspin data folder, 1D spectrum or 2D inversion recovery 
+==============================================================================
 
 To work on a single topspin spectrum use the Bruker button to select a numbered folder containing a single spectrum, either 1D or 2D. You may make adjustments to the data phase and integration window center using the sliders. Use the “Optimize” checkboxes to search for and apply the “optimal” parameters. 
 
@@ -39,7 +39,23 @@ To work on a single topspin spectrum use the Bruker button to select a numbered 
 Processing Han lab datasets
 ===========================
 
-To load a dataset collected in the CNSI facility at University of California Santa Barbara using the ‘rb_dnp1’ command, use the Han Lab button and select the base folder.
+To load a dataset collected in the CNSI facility at University of California Santa Barbara using the ‘rb_dnp1’ command, use the Han Lab button and select the base folder. The folder must have at least the elements:
+
++------------------+-------------------------------+-----------------------------------------------------------------------------+
+| **Folder/File**  | **type**                      | **description**                         				         |
++------------------+-------------------------------+-----------------------------------------------------------------------------+
+| 5                | Folder: 1D, FID               | Spectrum at microwave power = 0                                             |
++------------------+-------------------------------+-----------------------------------------------------------------------------+
+| 6-26             | Folder: 1D, FID               | FIDs collected at increasing microwave powers                               |
++------------------+-------------------------------+-----------------------------------------------------------------------------+
+| 28-32            | Folder: 2D inversion recovery | T1 measurements collected at increasing microwave powers                    | 
++------------------+-------------------------------+-----------------------------------------------------------------------------+
+| 304              | Folder: 2D inversion recovery | T1 measurement at microwave power = 0                                       |
++------------------+-------------------------------+-----------------------------------------------------------------------------+
+| power.mat        | File: MATLAB workspace        | list of power measurements made during collecting the data in folders 6-26  |          
++------------------+-------------------------------+-----------------------------------------------------------------------------+
+| t1_powers.mat    | File: MATLAB workspace        | list of power measurements made during collecting the data in folders 28-32 |   
++------------------+-------------------------------+-----------------------------------------------------------------------------+
 
 .. figure:: _static/images/hydrationGUI_importing_rbdnp1.png
     :width: 400
@@ -79,24 +95,55 @@ The results are displayed when finished. If a “Workup” is also present in th
 The Restart button will return you to the beginning of processing. If the Only T1(0) checkbox is selected, Restart will return you to the final folder that is the T1(0) measurement while all other processing will be retained. If the Only T1(p) is selected you will return to the beginning of the series of T1 measurements and previous processing of the enhancement points is retained. 
 
 
-Analyzing previous GUI results Workup results
-=============================================
+Analyzing Workup results or previously saved GUI results
+=========================================================
 
-You may also load only the results of “Workup” code processing with the Workup button, or you may select the .mat or .h5 files of a previously saved session with the GUI Result button. 
+You may also load the results of “Workup” code processing with the Workup button, or you may select the .mat or .h5 files of a previously saved hydrationGUI session with the GUI Result button. The workup folder must have at least the following elements:
+
++-------------------------+------------------+-----------------------------------------------------------+
+| **Filename**            | **File type**    | **description**                                           |
++-------------------------+------------------+-----------------------------------------------------------+
+| enhancementPowers.csv   | .csv file        | list of enhancements and corresponding power measurements |                     
++-------------------------+------------------+-----------------------------------------------------------+
+| kSigma.csv              | .csv file        | ksigma array and corresponding power measurements         |
++-------------------------+------------------+-----------------------------------------------------------+
+| t1Powers.csv            | .csv file        |  list of T1s and corresponding powers			 |
++-------------------------+------------------+-----------------------------------------------------------+
 
 .. figure:: _static/images/hydrationGUI_previous_results1.png
     :width: 400
     :alt: Importing Hydration Results from Workup
     :align: center
 
-    Hydration Results from workup
+    Select a workup folder
+
+
+If the .mat workspace was not saved from hydrationGUI, it can still be read and analyzed if it has a structure named "odnp" with at least the following elements:
+
++------------------+-----------------+--------------------------------------+
+| **Variable**     | **type**        | **description**                      |
++------------------+-----------------+--------------------------------------+
+| odnp.Ep          | #x1 Double      | list of signal enhancements          |      
++------------------+-----------------+--------------------------------------+
+| odnp.Epowers     | #x1 Double      | list of powers used to collect Ep    |                 
++------------------+-----------------+--------------------------------------+
+| odnp.T1p         | #x1 Double      | list of T1 values                    |
++------------------+-----------------+--------------------------------------+
+| odnp.T1p_stdd    | #x1 Double      | list of standard deviations in T1p   |              
++------------------+-----------------+--------------------------------------+
+| odnp.T1powers    | #x1 Double      | list of powers used to collect T1p   |                 
++------------------+-----------------+--------------------------------------+
+| odnp.T10         | single number   | T1 value for power = 0, i.e. T1(0)   |               
++------------------+-----------------+--------------------------------------+
+| odnp.T10_stdd    | single number   | standard deviation in T10            |     
++------------------+-----------------+--------------------------------------+
 
 .. figure:: _static/images/hydrationGUI_previous_results2.png
     :width: 400
     :alt: Importing Hydration Results from h5
     :align: center
 
-    Hydration Results from h5
+    Select a saved mat or h5 file
 
 The results of previous processing will be used to calculate hydration parameters.
 
@@ -105,7 +152,7 @@ The results of previous processing will be used to calculate hydration parameter
     :alt: Imported Hydration Results
     :align: center
 
-    Imported results from h5 file
+    Imported results from mat workspace or h5
 
 Terminal outputs
 ================
