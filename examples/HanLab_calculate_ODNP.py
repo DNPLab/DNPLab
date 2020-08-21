@@ -8,13 +8,15 @@ import time
 import numpy as np
 from scipy.io import loadmat
 
+import sys
+sys.path.append('..')
 import dnpLab as dnp
-### DO NOT EDIT
+### DO NOT EDIT ABOVE ###
 
 '''
 INPUT YOUR PARAMS HERE:
 '''
-directory = 'data/topspin/' # path to data folder
+directory = '..' # path to data folder
 
 Spin_Concentration = 100  # micro molar
 Magnetic_Field = 348.5  # mT
@@ -192,14 +194,13 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
         directory: A string of the odnp experiment folder. e.g. '../data/topspin/'
         pars: A dictionary of the processing parameters (including integration width etc)
             Attr:
-                ({integration_width  : int,   # set the default starting point to 20
+                ({integration_width  : int,
                   spin_C             : float,
                   field              : float,
                   T100               : float,
-                  smax_model         : str,   # ('tethered' or 'free')
-                  t1_interp_method   : str    # ('linear' or 'second_order'),
-                  drop_e_powers       : list   # a list of Enhancement powers to drop
-                  drop_t1_powers     : list   # a list of T1 powers to drop
+                  smax_model         : str,    # ('tethered' or 'free')
+                  t1_interp_method   : str,    # ('linear' or 'second_order')
+                  drop_first_T1      : bool    # (True or False)
                 })
         verbose: whether print intermediate outputs or not
     Returns:
