@@ -16,13 +16,14 @@ import dnpLab as dnp
 '''
 INPUT YOUR PARAMS HERE:
 '''
-directory = '..data/topspin/' # path to data folder
+directory = '..' # path to data folder
 
 Spin_Concentration = 100  # micro molar
 Magnetic_Field = 348.5  # mT
 T100 = 2.5  # T1 without spin label, without microwaves, commonly called T1,0(0)
 smax_model = 'free' # ('tethered' or 'free')
 t1_interp_method = 'linear' # ('linear' or 'second_order')
+drop_first_T1 = False # True if you want to exclude the first T1(p), False if not
 
 
 ### DO NOT EDIT BELOW ###
@@ -193,12 +194,13 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
         directory: A string of the odnp experiment folder. e.g. '../data/topspin/'
         pars: A dictionary of the processing parameters (including integration width etc)
             Attr:
-                ({integration_width  : int,   # set the default starting point to 20
+                ({integration_width  : int,
                   spin_C             : float,
                   field              : float,
                   T100               : float,
-                  smax_model         : str,   # ('tethered' or 'free')
-                  t1_interp_method   : str    # ('linear' or 'second_order')
+                  smax_model         : str,    # ('tethered' or 'free')
+                  t1_interp_method   : str,    # ('linear' or 'second_order')
+                  drop_first_T1      : bool    # (True or False)
                 })
         verbose: whether print intermediate outputs or not
     Returns:
@@ -213,11 +215,43 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
     folder_T10 = 304
 
     # list of folder numbers for Enhancement(p) points in ODNP set
-    folders_Enhancements = range(6,27)
+    folders_Enhancements = list(range(6,27))
 
     # list of folder numbers for T1(p) points in ODNP set
-    folders_T1s = range(28,33)
+    folders_T1s = list(range(28,33))
 
+
+    # get powers from .mat files
+    # for E(p)
+    powerfile = 'power'
+    bufferVal = 2.5
+    ExpNums = folders_Enhancements
+    ## SEPARATE FUNCTION ##
+    Epowers = get_powers(directory,powerfile,ExpNums,bufferVal)
+
+    Epowers = np.add(Epowers, 21.9992)
+    Epowers = np.divide(Epowers, 10)
+    Epowers = np.power(10, Epowers)
+    Epowers = np.multiply(1e-3, Epowers)
+
+    # for T1(p)
+    powerfile = 't1_powers'
+    bufferVal = 20 * 2.5
+    ExpNums = folders_T1s
+    ## SEPARATE FUNCTION ##
+    T1powers = get_powers(directory,powerfile,ExpNums,bufferVal)
+
+    T1powers = np.add(T1powers, 21.9992)
+    T1powers = np.divide(T1powers, 10)
+    T1powers = np.power(10, T1powers)
+    T1powers = np.multiply(1e-3, T1powers)
+
+    # Drop first T1(p)
+    if pars['drop_first_T1']:
+        print('Dropping First T1(p).')
+        T1powers = T1powers[1:len(T1powers)+1]
+        folders_T1s = folders_T1s[1:len(folders_T1s)+1]
+        
     total_folders = [folder_p0] + list(folders_Enhancements) + list(folders_T1s) + [folder_T10]
 
     T1 = []
@@ -250,32 +284,21 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
         workspace['proc'] *= np.exp(-1j * phase)
 
         ## optCenter: find the optimized integration center
-        workspace.copy('proc', 'proc0')  # FIXME: drop this line, see below
         def f_int(indx:int):
-            y = sum(abs(dnp.dnpNMR.integrate(workspace, {'integrate_center' :  indx, 'integrate_width' : 10})['proc'].values))
-            workspace.copy('proc0', 'proc')  # FIXME: Remove this line when test_dnpNMR.test_integrate pass
+            y = sum(abs(dnp.dnpNMR.integrate(workspace['proc'], {'integrate_center' :  indx, 'integrate_width' : 10}).values))
             return y
         center, _ = find_peak(f_int, -50, 51)
-        # intgrl_array = []
-        # indxes = range(-50, 51)
-        # workspace.copy('proc', 'proc0')
-        # for indx in indxes:
-        #     workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  indx, 'integrate_width' : 10})
-        #     intgrl_array.append(sum(abs(workspace['proc'].values)))
-        #     workspace.copy('proc0', 'proc')
-        # cent = np.argmax(intgrl_array)
-        # center = indxes[cent]
 
         workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  center, 'integrate_width' : pars['integration_width']})
 
         if  folder == folder_p0:
             p0 = np.real(workspace['proc'].values[0])
-            print('Done with p0 folder...') if verbose else None
+            print('Done with p0 folder 5...') if verbose else None
         elif  folder == folder_T10:
             workspace = dnp.dnpFit.t1Fit(workspace)
             T10 = workspace['fit'].attrs['t1']
             T10_stdd = workspace['fit'].attrs['t1_stdd']
-            print('Done with T1(0) folder...') if verbose else None
+            print('Done with T1(0) folder 304...') if verbose else None
         elif folder in folders_T1s:
             workspace = dnp.dnpFit.t1Fit(workspace)
             T1.append(workspace['fit'].attrs['t1'])
@@ -284,21 +307,10 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
         elif folder in folders_Enhancements:
             E.append(np.real(workspace['proc'].values[0]) / p0)
             print('Done with Enhancement(p) folder ' + str(folder) + '...') if verbose else None
+        else:
+            raise Exception('UnknownException')
 
-
-    # get powers from .mat files
-    # for E(p)
-    powerfile = 'power'
-    bufferVal = 2.5
-    ExpNums = folders_Enhancements
-    ## SEPARATE FUNCTION ##
-    Epowers = get_powers(directory,powerfile,ExpNums,bufferVal)
-
-    Epowers = np.add(Epowers, 21.9992)
-    Epowers = np.divide(Epowers, 10)
-    Epowers = np.power(10, Epowers)
-    Epowers = np.multiply(1e-3, Epowers)
-
+    # Sort enhancements based on E_powers
     E = np.array([Epowers, E])
     E = np.transpose(E)
     E = E[E[:,0].argsort()]
@@ -306,48 +318,42 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
     Enhancement_powers = E[:,0]
     Enhancements = E[:,1]
 
-    # for T1(p)
-    powerfile = 't1_powers'
-    bufferVal = 20 * 2.5
-    ExpNums = folders_T1s
-    ## SEPARATE FUNCTION ##
-    T1powers = get_powers(directory,powerfile,ExpNums,bufferVal)
-
-    T1powers = np.add(T1powers, 21.9992)
-    T1powers = np.divide(T1powers, 10)
-    T1powers = np.power(10, T1powers)
-    T1powers = np.multiply(1e-3, T1powers)
-
+    # Sort T1 based on T1_powers
     T1 = np.array([T1powers, T1, T1_stdd])
     T1 = np.transpose(T1)
     T1 = T1[T1[:,0].argsort()]
 
     T1_powers = T1[:,0]
     T1p = T1[:,1]
-    T1p_stdd = T1[:,2]
+    T1_stdd = T1[:,2]
 
     hydration = {
                  'E' : np.array(Enhancements),
                  'E_power' : np.array(Enhancement_powers),
                  'T1' : np.array(T1p),
-                 'T1_power' : np.array(T1_powers)
-                 }
-
-    hydration.update({
-                      'T10': T10,
-                      'T100': pars['T100'],
-                      'spin_C': pars['spin_C'],
-                      'field': pars['field'],
-                      'smax_model': pars['smax_model'],
-                      't1_interp_method': pars['t1_interp_method']
-                      })
+                 'T1_power' : np.array(T1_powers),
+                 'T10': T10,
+                 'T100': pars['T100'],
+                 'spin_C': pars['spin_C'],
+                 'field': pars['field'],
+                 'smax_model': pars['smax_model'],
+                 't1_interp_method': pars['t1_interp_method']
+                }
 
     hydration_workspace = dnp.create_workspace()
     hydration_workspace.add('hydration_inputs', hydration)
 
     hydration_results = dnp.dnpHydration.hydration(hydration_workspace)
 
-    hydration_results.update({'T1p_stdd': T1_stdd, 'T10_stdd': T10_stdd})
+    hydration_results.update({
+        'E': np.array(Enhancements),
+        'E_power': np.array(Enhancement_powers),
+        'T1_std': np.array(T1_stdd),
+        'T1': np.array(T1p),
+        'T1_power': np.array(T1_powers),
+        'T10': T10,
+        'T10_std': T10_stdd
+    })
 
     return hydration_results
 
@@ -359,7 +365,8 @@ if __name__ == '__main__':
                  'field'              : Magnetic_Field,
                  'T100'               : T100,
                  'smax_model'         : smax_model,
-                 't1_interp_method'   : t1_interp_method
+                 't1_interp_method'   : t1_interp_method,
+                 'drop_first_T1'      : drop_first_T1
                })
 
     hydration_results = hanlab_calculate_odnp(directory, pars)
@@ -373,4 +380,3 @@ if __name__ == '__main__':
     print('Dlocal = ' + str(round(hydration_results['Dlocal'] * 1e10,2)) + ' x 10^-10 (m^2/s)')
     print('-----------------------')
     print('-----------------------')
-
