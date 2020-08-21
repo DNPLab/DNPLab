@@ -2,7 +2,7 @@ import sys
 sys.path.append('..')
 import numpy as np
 
-import dnpLab as dnp
+import dnplab as dnp
 
 path = '../data/prospa/toluene_10mM_Tempone/'
 exp_list = [str(x) for x in range(1,43)]

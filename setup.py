@@ -36,7 +36,7 @@ setup(
             'Programming Language :: Python :: 3',
             ],
         entry_points=dict(console_scripts=
-            ['hydrationGUI=dnpLab.hydrationGUI:main_func',
+            ['hydrationGUI=dnplab.hydrationGUI:main_func',
             ]
             )
 

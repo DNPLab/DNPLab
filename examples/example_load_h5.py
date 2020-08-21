@@ -2,7 +2,7 @@ import sys
 sys.path.append('..')
 import numpy as np
 
-import dnpLab as dnp
+import dnplab as dnp
 
 filename = 'test.h5'
 

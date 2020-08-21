@@ -28,7 +28,7 @@ import re
 import datetime
 import time
 
-import dnpLab as dnp
+import dnplab
 
 class hydrationGUI(QMainWindow):
 
@@ -37,7 +37,7 @@ class hydrationGUI(QMainWindow):
         super().__init__()
         
         self.testmode = False # set to True for testing, False for normal use
-        self.testpath = '..'  # same as sys path to dnpLab
+        self.testpath = '..'  # same as sys path to dnplab
         
         #self.setStyleSheet('background-color : #A7A9AC')
         
@@ -177,7 +177,7 @@ class hydrationGUI(QMainWindow):
         self.backButton.move(625, 575)
         self.backButton.resize(100, 40)
 
-        # dnpLab error
+        # dnplab error
         self.dnpLab_errorLabel = QLabel(self)
         self.dnpLab_errorLabel.setStyleSheet('font : bold 14px')
         self.dnpLab_errorLabel.move(615, 545)
@@ -638,8 +638,8 @@ class hydrationGUI(QMainWindow):
         
     def import_create_workspace(self, folder):
 
-        data = dnp.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'], folder)
-        workspace = dnp.create_workspace('raw', data)
+        data = dnplab.dnpImport.topspin.import_topspin(self.gui_dict['rawdata_function']['directory'], folder)
+        workspace = dnplab.create_workspace('raw', data)
         workspace.copy('raw', 'proc')
 
         return workspace
@@ -647,16 +647,16 @@ class hydrationGUI(QMainWindow):
     @staticmethod
     def proc_workspace(workspace, proc_params):
 
-        workspace = dnp.dnpNMR.remove_offset(workspace, {})
-        workspace = dnp.dnpNMR.window(workspace, {'linewidth': proc_params['window_linewidth']})
-        workspace = dnp.dnpNMR.fourier_transform(workspace, {'zero_fill_factor': proc_params['zero_fill_factor']})
+        workspace = dnplab.dnpNMR.remove_offset(workspace, {})
+        workspace = dnplab.dnpNMR.window(workspace, {'linewidth': proc_params['window_linewidth']})
+        workspace = dnplab.dnpNMR.fourier_transform(workspace, {'zero_fill_factor': proc_params['zero_fill_factor']})
 
         return workspace
 
     @staticmethod
     def int_workspace(workspace, int_params):
 
-        dnp.dnpNMR.integrate(workspace, {'integrate_center': int_params['integrate_center'],
+        dnplab.dnpNMR.integrate(workspace, {'integrate_center': int_params['integrate_center'],
                                           'integrate_width': int_params['integrate_width']})
         workspace['proc'].values = np.real(workspace['proc'].values)
 
@@ -721,7 +721,7 @@ class hydrationGUI(QMainWindow):
                 self.T1p_stdd = np.ravel(t1perr[0])
 
             elif 'h5' in exten:
-                h5in = dnp.dnpImport.h5.loadh5(flname)
+                h5in = dnplab.dnpImport.h5.loadh5(flname)
 
                 self.t10Edit.setText(str(round(float(h5in['hydration_inputs']['T10']), 4)))
 
@@ -969,8 +969,8 @@ class hydrationGUI(QMainWindow):
             self.singlefolder = x[len(x) - 2]
             path = pthnm.replace(str(self.singlefolder) + os.sep, '')
 
-            data = dnp.dnpImport.topspin.import_topspin(path, self.singlefolder)
-            self.dnpLab_workspace = dnp.create_workspace('raw', data)
+            data = dnplab.dnpImport.topspin.import_topspin(path, self.singlefolder)
+            self.dnpLab_workspace = dnplab.create_workspace('raw', data)
             self.dnpLab_workspace.copy('raw', 'proc')
 
             if self.dnpLab_workspace['proc'].ndim == 2:
@@ -1120,14 +1120,14 @@ class hydrationGUI(QMainWindow):
                 try:
                     Eplist = []
                     for k in self.gui_dict['folder_structure']['enh']:
-                        title = dnp.dnpImport.topspin.load_title(self.gui_dict['rawdata_function']['directory'],
+                        title = dnplab.dnpImport.topspin.load_title(self.gui_dict['rawdata_function']['directory'],
                                                                 expNum=k)
                         splitTitle = title.split(' ')
                         Eplist.append(float(splitTitle[-1]))
 
                     T1plist = []
                     for k in self.gui_dict['folder_structure']['T1']:
-                        title = dnp.dnpImport.topspin.load_title(self.gui_dict['rawdata_function']['directory'],
+                        title = dnplab.dnpImport.topspin.load_title(self.gui_dict['rawdata_function']['directory'],
                                                                 expNum=k)
                         splitTitle = title.split(' ')
                         T1plist.append(float(splitTitle[-1]))
@@ -1222,7 +1222,7 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict['rawdata_function']['folder'] == self.gui_dict['folder_structure']['T10']:
                 
                 try:
-                    dnp.dnpFit.t1Fit(nextproc_workspace)
+                    dnplab.dnpFit.t1Fit(nextproc_workspace)
                     
                     if self.gui_dict['rawdata_function']['folder'] in self.gui_dict['folder_structure']['T1']:
                         self.T1p.append(nextproc_workspace['fit'].attrs['t1'])
@@ -1406,7 +1406,7 @@ class hydrationGUI(QMainWindow):
         self.processing_workspace = self.proc_workspace(self.processing_workspace, proc_params)
         
         if self.processing_workspace['proc'].ndim == 2:
-            self.processing_workspace = dnp.dnpNMR.align(self.processing_workspace, {})
+            self.processing_workspace = dnplab.dnpNMR.align(self.processing_workspace, {})
         
         if self.optphsCheckbox.isChecked() or self.gui_dict['gui_function']['autoProcess']:
             self.workupPhaseOpt()
@@ -1476,7 +1476,7 @@ class hydrationGUI(QMainWindow):
             self.gui_dict['t1_fit']['t1Amps'] = adjslider_workspace['proc'].values
             
             try:
-                dnp.dnpFit.t1Fit(adjslider_workspace)
+                dnplab.dnpFit.t1Fit(adjslider_workspace)
             except:
                 self.gui_dict['data_plot']['xmin'] = int(round(
                    self.gui_dict['processing_spec']['integration_center'] - np.abs(
@@ -1722,11 +1722,11 @@ class hydrationGUI(QMainWindow):
                 'smax_model': smax_model,
                 't1_interp_method': t1_interp_method
             })
-            hyd = dnp.create_workspace()
+            hyd = dnplab.create_workspace()
             hyd.add('hydration_inputs', hydration)
 
             try:
-                self.gui_dict['hydration_results'] = dnp.dnpHydration.hydration(hyd)
+                self.gui_dict['hydration_results'] = dnplab.dnpHydration.hydration(hyd)
                 self.addHyd_workspace = copy.deepcopy(hyd)
                 self.addHyd_workspace.add('hydration_results', self.gui_dict['hydration_results'])
             except:
@@ -1768,11 +1768,11 @@ class hydrationGUI(QMainWindow):
                     'smax_model': smax_model,
                     't1_interp_method': t1_interp_method
                 })
-                whyd = dnp.create_workspace()
+                whyd = dnplab.create_workspace()
                 whyd.add('hydration_inputs', whydration)
 
                 try:
-                    self.gui_dict['workup_hydration_results'] = dnp.dnpHydration.hydration(whyd)
+                    self.gui_dict['workup_hydration_results'] = dnplab.dnpHydration.hydration(whyd)
                     if self.gui_dict['workup_function']['fit'] or self.gui_dict['gui_function']['isWorkup']:
                         self.addHyd_workspace = copy.deepcopy(whyd)
                         self.addHyd_workspace.add('hydration_results', self.gui_dict['workup_hydration_results'])
@@ -1875,7 +1875,7 @@ class hydrationGUI(QMainWindow):
             svpthnm = pthnm + '_COPY' + ' hydrationGUI Results'
         os.mkdir(svpthnm)
 
-        dnp.dnpImport.h5.saveh5(self.addHyd_workspace, svpthnm + os.sep + flnm + ' hydration_parameters.h5')
+        dnplab.dnpImport.h5.saveh5(self.addHyd_workspace, svpthnm + os.sep + flnm + ' hydration_parameters.h5')
 
         savemat(svpthnm + os.sep + flnm + ' xODNP.mat', {'odnp': odnpData, 'ksig': odnpResults}, oned_as='column')
 

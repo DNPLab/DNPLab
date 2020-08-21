@@ -24,7 +24,7 @@ def fourier_transform(data, proc_parameters):
         proc_parameters['shift'] = True
         proc_parameters['convert_to_ppm'] = True
 
-        all_data = dnpLab.dnpNMR.fourier_transform(all_data, proc_parameters)
+        all_data = dnplab.dnpNMR.fourier_transform(all_data, proc_parameters)
     '''
 
     required_parameters = defaults._fourier_transform

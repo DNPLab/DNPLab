@@ -10,7 +10,7 @@ from scipy.io import loadmat
 
 import sys
 sys.path.append('..')
-import dnpLab as dnp
+import dnplab as dnp
 ### DO NOT EDIT ABOVE ###
 
 '''
@@ -204,7 +204,7 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
                 })
         verbose: whether print intermediate outputs or not
     Returns:
-        HydrationResults: A dnpLab.hydration.HydrationResults object.
+        HydrationResults: A dnplab.hydration.HydrationResults object.
     '''
 
 
