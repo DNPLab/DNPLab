@@ -1,4 +1,4 @@
-.. odnplab documentation master file, created by
+.. odnpLab documentation master file, created by
    sphinx-quickstart on Fri Jan 10 17:26:18 2020.
 
 .. .. image:: b12logo.png
@@ -26,22 +26,22 @@
    <a href="https://jmfrancklab.github.io/" target="_blank"> Franck Lab</a>
 
 
-.. |dnplabGitLink| raw:: html
+.. |dnpLabGitLink| raw:: html
 
-   <a href="https://github.com/DNPLab/dnplab" target="_blank"> dnplab on Git Lab</a>
+   <a href="https://github.com/DNPLab/dnpLab" target="_blank"> dnplab on Git Lab</a>
 
-.. |dnplabGitIssueTrackerLink| raw:: html
+.. |dnpLabGitIssueTrackerLink| raw:: html
 
-   <a href="https://github.com/DNPLab/dnplab/issues" target="_blank"> dnplab Git Issue Tracker</a>
+   <a href="https://github.com/DNPLab/dnpLab/issues" target="_blank"> dnplab Git Issue Tracker</a>
 
 
 =================
-Welcome to dnplab
+Welcome to dnpLab
 =================
 
-Welcome to the dnplab documentation. dnplab is an Open Source Python package for importing and processing Dynamic Nuclear Polarization (DNP) data. The aim of the project is to provide a free, turn-key processing package for easy processing and analysis of DMP-NMR data.
+Welcome to the dnpLab documentation. dnpLab is an Open Source Python package for importing and processing Dynamic Nuclear Polarization (DNP) data. The aim of the project is to provide a free, turn-key processing package for easy processing and analysis of DMP-NMR data.
 
-dnplab is a collaborative project created by
+dnpLab is a collaborative project created by
 
 * |B12TLink|
 * The |HanLabLink| at University of California, Santa Barbara
@@ -50,9 +50,9 @@ dnplab is a collaborative project created by
 
 Authors: Timothy Keller, Thomas Casey, Yanxian Lin, John Franck, Thorsten Maly, Songi Han
     
-The source code for the project is published here: |dnplabGitLink|
+The source code for the project is published here: |dnpLabGitLink|
 
-Please report all issues related to dnplab using the: |dnplabGitIssueTrackerLink|
+Please report all issues related to dnpLab using the: |dnpLabGitIssueTrackerLink|
 
 .. list-table::
    :widths: 60 40
