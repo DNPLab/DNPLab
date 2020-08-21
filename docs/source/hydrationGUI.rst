@@ -120,7 +120,7 @@ You may also load the results of “Workup” code processing with the Workup bu
 
 If the mat workspace or h5 file were not saved from hydrationGUI, they can still be read and analyzed if they have the appropriate data arrangement. 
 
-The mat workspace must contain a structure named "odnp" with at least the following elements (this matches the output of the MATLAB App called xODNP, visit https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp):
+The mat workspace must contain a structure named "odnp" with at least the following elements (this matches the structure accepted and saved by the MATLAB App called xODNP, visit https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp):
 
 +------------------+-----------------+--------------------------------------+
 | **Variable**     | **type**        | **description**                      |
