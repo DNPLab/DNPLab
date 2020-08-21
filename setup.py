@@ -18,7 +18,7 @@ setup(
         project_urls={
             'Documentation':'http://docs.dnpLab.net',
             'Examples':'http://examples.dnplab.net/',
-            'Source Code':'https://github.com/DNPLab/dnpLab',
+            'Source Code':'https://github.com/DNPLab/dnplab',
             'Web App':'http://odnplab.com/',
             },
         keywords = ['ODNP','DNP','NMR'],
