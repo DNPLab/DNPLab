@@ -100,15 +100,15 @@ Analyzing Workup results or previously saved GUI results
 
 You may also load the results of “Workup” code processing with the Workup button, or you may select the .mat or .h5 files of a previously saved hydrationGUI session with the GUI Result button. The Workup folder must have at least the following elements:
 
-+-------------------------+------------------+-----------------------------------------------------------+
-| **Filename**            | **File type**    | **description**                                           |
-+-------------------------+------------------+-----------------------------------------------------------+
-| enhancementPowers.csv   | .csv file        | list of enhancements and corresponding power measurements |                     
-+-------------------------+------------------+-----------------------------------------------------------+
-| kSigma.csv              | .csv file        | ksigma array and corresponding power measurements         |
-+-------------------------+------------------+-----------------------------------------------------------+
-| t1Powers.csv            | .csv file        |  list of T1s and corresponding powers			 |
-+-------------------------+------------------+-----------------------------------------------------------+
++-------------------------+------------------+-------------------------------------------------------------------------------+
+| **Filename**            | **File type**    | **File contains**                                                             |
++-------------------------+------------------+-------------------------------------------------------------------------------+
+| enhancementPowers.csv   | .csv file        | list of enhancements and corresponding power measurements                     |                     
++-------------------------+------------------+-------------------------------------------------------------------------------+
+| kSigma.csv              | .csv file        | list of [spin_concentration * κ\ :sub:`σ` * s(p)] values			     |
++-------------------------+------------------+-------------------------------------------------------------------------------+
+| t1Powers.csv            | .csv file        | list of T1s and corresponding powers			                     |
++-------------------------+------------------+-------------------------------------------------------------------------------+
 
 .. figure:: _static/images/hydrationGUI_previous_results1.png
     :width: 400
@@ -179,7 +179,7 @@ The results of previous processing will be used to calculate hydration parameter
 Terminal outputs
 ================
 
-The terminal will display processing and calculation progress as well as standard deviations of the T1 fits and κσ, including the imported κσ if a Workup was found. 
+The terminal will display processing and calculation progress as well as standard deviations of the T1 fits and κ\ :sub:`σ`, including the imported κ\ :sub:`σ` if a Workup was found. 
 
 .. figure:: _static/images/hydrationGUI_terminal.png
     :width: 400
