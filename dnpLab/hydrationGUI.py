@@ -8,9 +8,14 @@ import os
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 
-from PyQt5.QtWidgets import QApplication, QMainWindow, QSizePolicy, QWidget, QPushButton, QLineEdit, QSlider, QLabel, \
-    QCheckBox, QFileDialog, QLineEdit
+from PyQt5.QtWidgets import QApplication, QMainWindow, QSizePolicy, QWidget, QPushButton, QLineEdit, QSlider, QLabel, QCheckBox, QFileDialog, QLineEdit
 from PyQt5.QtCore import Qt
+
+if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+
+if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+    QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -1663,6 +1668,7 @@ class hydrationGUI(QMainWindow):
 
         self.dnpLab_errorLabel.setVisible(False)
         self.workup_errorLabel.setVisible(False)
+        self.gui_dict['gui_function']['hydrationEdits'] = True
 
         try:
             spin_C = float(self.slcEdit.text())
@@ -1841,7 +1847,6 @@ class hydrationGUI(QMainWindow):
                     round(self.gui_dict['workup_data']['kSigma'] / spin_C / self.wrkup_smax, 2)) + ' +/- ' + str(
                     round(self.gui_dict['workup_data']['kSigma_stdd'] / spin_C / self.wrkup_smax, 4)))
 
-        self.gui_dict['gui_function']['hydrationEdits'] = True
 
     def Save_Results_Button(self):
         """Save the results of processing to a format that can be read by the hydrationGUI using the 'GUI Result' button or by the MATLAB App called xODNP.
