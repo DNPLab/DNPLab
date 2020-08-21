@@ -22,9 +22,9 @@ print(sys.path)
 
 # -- Project information -----------------------------------------------------
 
-project = u'dnpLab'
-copyright = u'2020, dnpLab'
-author = u'dnpLab Team'
+project = u'dnplab'
+copyright = u'2020, dnplab'
+author = u'dnplab Team'
 
 from datetime import datetime
 
@@ -43,7 +43,7 @@ print(u'Release: ' + release)
 
 rst_epilog_list = [
         ('date',date),
-        ('author','The dnpLab Team'),
+        ('author','The dnplab Team'),
         ]
 
 def make_rst_epilog(rst_epilog_list):
@@ -175,7 +175,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'dnpLab.tex', u'dnpLab Documentation',
+    (master_doc, 'dnplab.tex', u'dnplab Documentation',
      u'Timothy Keller', 'manual'),
 ]
 
@@ -185,7 +185,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'dnplab', u'dnpLab Documentation',
+    (master_doc, 'dnplab', u'dnplab Documentation',
      [author], 1)
 ]
 
@@ -196,8 +196,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'dnpLab', u'dnpLab Documentation',
-     author, 'dnpLab', 'One line description of project.',
+    (master_doc, 'dnplab', u'dnplab Documentation',
+     author, 'dnplab', 'One line description of project.',
      'Miscellaneous'),
 ]
 

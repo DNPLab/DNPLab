@@ -1,7 +1,7 @@
 import sys
 sys.path.append('..')
 import unittest
-from dnpLab.dnpHydration import HydrationParameter
+from dnplab.dnpHydration import HydrationParameter
 
 
 class TestHydrationParameter(unittest.TestCase):

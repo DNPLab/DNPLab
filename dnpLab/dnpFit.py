@@ -27,9 +27,9 @@ def t1Fit(dataDict):
     .. code-block:: python
         
         ### INSERT importing and processing ###
-        dnpLab.dnpNMR.integrate(workspace, {})
+        dnplab.dnpNMR.integrate(workspace, {})
         
-        dnpLab.dnpFit.t1Fit(workspace)
+        dnplab.dnpFit.t1Fit(workspace)
         
         T1_value = workspace['fit'].attrs['t1']
         T1_standard_deviation = workspace['fit'].attrs['t1_stdd']
@@ -96,11 +96,11 @@ def enhancementFit(dataDict):
     Example::
     
         ### INSERT importing and processing ###
-        dnpLab.dnpNMR.integrate(workspace, {})
+        dnplab.dnpNMR.integrate(workspace, {})
         
         workspace.new_dim('power', power_list)
         
-        dnpLab.dnpFit.enhancementFit(workspace)
+        dnplab.dnpFit.enhancementFit(workspace)
         
         Emax_value = workspace['fit'].attrs['E_max']
         Emax_standard_deviation = workspace['fit'].attrs['E_max_stdd']

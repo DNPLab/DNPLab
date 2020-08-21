@@ -1,10 +1,10 @@
 import unittest
 from numpy.testing import assert_array_equal
-from dnpLab.core import nddata
+from dnplab.core import nddata
 import numpy as np
 import random
 
-from dnpLab.core.nddata_coord import nddata_coord, nddata_coord_collection
+from dnplab.core.nddata_coord import nddata_coord, nddata_coord_collection
 
 test_dims = ['x', 'y', 'z', 'p', 'q', 'r']
 num_random_tests = 10

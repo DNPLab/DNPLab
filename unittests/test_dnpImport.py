@@ -1,7 +1,7 @@
 import unittest
-import dnpLab.dnpImport.topspin as topspin
-import dnpLab.dnpImport.prospa as prospa
-import dnpLab.dnpImport.vnmrj as vnmrj
+import dnplab.dnpImport.topspin as topspin
+import dnplab.dnpImport.prospa as prospa
+import dnplab.dnpImport.vnmrj as vnmrj
 import os
 from numpy.testing import assert_array_equal
 

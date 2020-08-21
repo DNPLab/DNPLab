@@ -7,15 +7,15 @@ Summary
 
 The following table summarizes all available functions in this module
 
-.. .. autosummary:: dnpLab.dnpResults
-..    dnpLab.dnpResults.imshow
-..    dnpLab.dnpResults.plot
+.. .. autosummary:: dnplab.dnpResults
+..    dnplab.dnpResults.imshow
+..    dnplab.dnpResults.plot
 
 
 Detailed Description of Functions
 =================================
 
-.. automodule:: dnpLab.dnpResults
+.. automodule:: dnplab.dnpResults
    :members:
    :show-inheritance:
    :member-order: bysource

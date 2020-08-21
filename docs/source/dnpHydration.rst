@@ -7,23 +7,23 @@ Summary
 
 The following table summarizes all available functions in this module
 
-.. .. autosummary:: dnpLab.dnpHydration
+.. .. autosummary:: dnplab.dnpHydration
 
-..    dnpLab.dnpHydration.AttrDict
-..    dnpLab.dnpHydration.FitError
-..    dnpLab.dnpHydration.hydration
-..    dnpLab.dnpHydration.HydrationCalculator
-..    dnpLab.dnpHydration.HydrationParameter
-..    dnpLab.dnpHydration.HydrationResults
-..    dnpLab.dnpHydration.Parameter
+..    dnplab.dnpHydration.AttrDict
+..    dnplab.dnpHydration.FitError
+..    dnplab.dnpHydration.hydration
+..    dnplab.dnpHydration.HydrationCalculator
+..    dnplab.dnpHydration.HydrationParameter
+..    dnplab.dnpHydration.HydrationResults
+..    dnplab.dnpHydration.Parameter
 
 
 Detailed Description of Functions
 =================================
 
-.. automodule:: dnpLab.dnpHydration
+.. automodule:: dnplab.dnpHydration
 
-.. autofunction:: dnpLab.dnpHydration.hydration
+.. autofunction:: dnplab.dnpHydration.hydration
 
 .. autoclass:: HydrationParameter
    :members:

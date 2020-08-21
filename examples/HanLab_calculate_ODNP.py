@@ -10,7 +10,7 @@ from scipy.io import loadmat
 
 import sys
 sys.path.append('..')
-import dnpLab as dnp
+import dnplab
 ### DO NOT EDIT ABOVE ###
 
 '''
@@ -204,7 +204,7 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
                 })
         verbose: whether print intermediate outputs or not
     Returns:
-        HydrationResults: A dnpLab.hydration.HydrationResults object.
+        HydrationResults: A dnplab.hydration.HydrationResults object.
     '''
 
 
@@ -259,16 +259,16 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
     E = []
     for i, folder in enumerate(total_folders):
 
-        data = dnp.dnpImport.topspin.import_topspin(directory, folder)
-        workspace = dnp.create_workspace('raw',data)
+        data = dnplab.dnpImport.topspin.import_topspin(directory, folder)
+        workspace = dnplab.create_workspace('raw',data)
         workspace.copy('raw','proc')
 
-        dnp.dnpNMR.remove_offset(workspace,{})
-        dnp.dnpNMR.window(workspace,{'linewidth' : 10})
-        dnp.dnpNMR.fourier_transform(workspace,{'zero_fill_factor' : 2})
+        dnplab.dnpNMR.remove_offset(workspace,{})
+        dnplab.dnpNMR.window(workspace,{'linewidth' : 10})
+        dnplab.dnpNMR.fourier_transform(workspace,{'zero_fill_factor' : 2})
 
         if workspace['proc'].ndim == 2:
-            workspace = dnp.dnpNMR.align(workspace, {})
+            workspace = dnplab.dnpNMR.align(workspace, {})
 
         ## phase opt: optimize the phase
         curve = workspace['proc'].values
@@ -285,22 +285,22 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
 
         ## optCenter: find the optimized integration center
         def f_int(indx:int):
-            y = sum(abs(dnp.dnpNMR.integrate(workspace['proc'], {'integrate_center' :  indx, 'integrate_width' : 10}).values))
+            y = sum(abs(dnplab.dnpNMR.integrate(workspace['proc'], {'integrate_center' :  indx, 'integrate_width' : 10}).values))
             return y
         center, _ = find_peak(f_int, -50, 51)
 
-        workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  center, 'integrate_width' : pars['integration_width']})
+        workspace = dnplab.dnpNMR.integrate(workspace,{'integrate_center' :  center, 'integrate_width' : pars['integration_width']})
 
         if  folder == folder_p0:
             p0 = np.real(workspace['proc'].values[0])
             print('Done with p0 folder 5...') if verbose else None
         elif  folder == folder_T10:
-            workspace = dnp.dnpFit.t1Fit(workspace)
+            workspace = dnplab.dnpFit.t1Fit(workspace)
             T10 = workspace['fit'].attrs['t1']
             T10_stdd = workspace['fit'].attrs['t1_stdd']
             print('Done with T1(0) folder 304...') if verbose else None
         elif folder in folders_T1s:
-            workspace = dnp.dnpFit.t1Fit(workspace)
+            workspace = dnplab.dnpFit.t1Fit(workspace)
             T1.append(workspace['fit'].attrs['t1'])
             T1_stdd.append(workspace['fit'].attrs['t1_stdd'])
             print('Done with T1(p) folder ' + str(folder) + '...') if verbose else None
@@ -340,10 +340,10 @@ def hanlab_calculate_odnp(directory:str, pars:dict, verbose=True):
                  't1_interp_method': pars['t1_interp_method']
                 }
 
-    hydration_workspace = dnp.create_workspace()
+    hydration_workspace = dnplab.create_workspace()
     hydration_workspace.add('hydration_inputs', hydration)
 
-    hydration_results = dnp.dnpHydration.hydration(hydration_workspace)
+    hydration_results = dnplab.dnpHydration.hydration(hydration_workspace)
 
     hydration_results.update({
         'E': np.array(Enhancements),
