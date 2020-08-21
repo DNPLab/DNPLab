@@ -7,7 +7,7 @@ with open('README.md','r') as f:
 setup(
         name = 'dnpLab',
         packages = setuptools.find_packages(),
-        version = '1.0.0',
+        version = '1.0.1',
         license = 'MIT',
         description = 'dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy',
         long_description=long_description,
@@ -18,7 +18,7 @@ setup(
         project_urls={
             'Documentation':'http://docs.dnpLab.net',
             'Examples':'http://examples.dnplab.net/',
-            'Source Code':'http://gitHub.com',
+            'Source Code':'https://github.com/DNPLab/dnpLab',
             'Web App':'http://odnplab.com/',
             },
         keywords = ['ODNP','DNP','NMR'],
