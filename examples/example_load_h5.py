@@ -4,7 +4,7 @@ import numpy as np
 
 import dnplab as dnp
 
-filename = 'test.h5'
+filename = '..data/h5/test.h5'
 
 ws = dnp.dnpImport.h5.loadh5(filename)
 
