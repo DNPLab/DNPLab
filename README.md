@@ -31,7 +31,7 @@ pip install numpy matplotlib scipy h5py PyQt5
 dnpLab can be installed via pip:
 
 ```console
-pip install dnpLab
+pip install dnplab
 ```
 
 # Documenation
