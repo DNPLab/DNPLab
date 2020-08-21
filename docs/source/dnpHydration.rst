@@ -6,6 +6,7 @@ dnpHydration
 Call the dnpHydration module by first creating a parameter dictionary and hydration_inputs workspace as follows,
 
 .. code-block:: console
+
     > import dnplab
     >
     > Enhancements = # list of signal enhancements
