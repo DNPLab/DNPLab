@@ -75,7 +75,7 @@ class Parameter(AttrDict):
 class HydrationParameter(Parameter):
     """Hydration Parameters
 
-        Franck, JM, et. al.; "Anomalously Rapid Hydration Water Diffusion Dynamics Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023.
+        Franck, JM, et. al.; "Quantitative cw Overhauser effect dynamic nuclear polarization for the analysis of local water dynamics" Prog. Nuc. Mag. Res. Spec. 74 (2013) 33–5.
     """
 
     field = None

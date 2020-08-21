@@ -35,20 +35,25 @@ class hydrationGUI(QMainWindow):
     def __init__(self):
 
         super().__init__()
-        self.left = 10
-        self.top = 10
-        self.title = 'ODNP Processing'
-        self.width = 1050
-        self.height = 625
-
-        # self.setStyleSheet('background-color : rgb(255,255,255)')
         
-        self.testmode = False  # set to True for testing, False for normal use
-        self.testpath = '..'  # path to test data folder
+        self.testmode = False # set to True for testing, False for normal use
+        self.testpath = '..'  # same as sys path to dnpLab
         
+        #self.setStyleSheet('background-color : #A7A9AC')
+        
+        self.setWindowTitle('ODNP Processing')
+        self.setGeometry(10, 10, 1050, 625)
+        self.setContentsMargins(0, 0, 0, 0)
+        
+        # main plot
         self.dataplt = PlotCanvas(self, width=7.2, height=4.8)
+        self.dataplt.move(5, 40)
+        # Enh plot
         self.enhplt = PlotCanvas(self, width=3.15, height=2)
+        self.enhplt.move(730, 40)
+        # t1 plot
         self.t1plt = PlotCanvas(self, width=3.15, height=2)
+        self.t1plt.move(730, 260)
         
         # Create a load hydrationGUI button
         self.hanlabButton = QPushButton('GUI Result', self)
@@ -313,17 +318,6 @@ class hydrationGUI(QMainWindow):
 
     def initUI(self):
 
-        self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top, self.width, self.height)
-        self.setContentsMargins(0, 0, 0, 0)
-
-        # main plot
-        self.dataplt.move(5, 40)
-        # Enh plot
-        self.enhplt.move(730, 40)
-        # t1 plot
-        self.t1plt.move(730, 260)
-
         # Define main dictionary
         self.gui_dict = {'gui_function': {}, 'folder_structure': {}, 'rawdata_function': {}, 'processing_spec': {},
                          'workup_function': {}, 'dnpLab_function': {}, 'workup_data': {}, 'dnpLab_data': {},
@@ -334,7 +328,6 @@ class hydrationGUI(QMainWindow):
         
         self.gui_dict['gui_function']['buttons'] = False
         self.gui_dict['gui_function']['sliders'] = False
-        self.connect_widgets()
 
         self.intwindowSlider.setMinimum(1)
         self.intwindowSlider.setMaximum(100)
@@ -350,6 +343,7 @@ class hydrationGUI(QMainWindow):
         
         # set blank plots
         self.reset_plots()
+        self.connect_widgets()
 
         self.show()
 
@@ -1160,7 +1154,7 @@ class hydrationGUI(QMainWindow):
                     print('No power readings available. E[p] and T1[p] are indexed by folder #.')
                     Epowers = self.gui_dict['folder_structure']['enh']
                     T1powers = self.gui_dict['folder_structure']['T1']
-
+            
             self.gui_dict['folder_structure']['all'] = []
             self.gui_dict['folder_structure']['all'].append(self.gui_dict['folder_structure']['p0'])
             for k in self.gui_dict['folder_structure']['enh']:
@@ -1168,7 +1162,7 @@ class hydrationGUI(QMainWindow):
             for k in self.gui_dict['folder_structure']['T1']:
                 self.gui_dict['folder_structure']['all'].append(k)
             self.gui_dict['folder_structure']['all'].append(self.gui_dict['folder_structure']['T10'])
-
+            
             self.Ep = []
             self.T1p = []
             self.T1p_stdd = []
@@ -1194,7 +1188,7 @@ class hydrationGUI(QMainWindow):
             self.pathLabel.setText('Han Lab data error ')
             self.gui_dict['gui_function']['buttons'] = False
             self.gui_dict['gui_function']['sliders'] = False
-   
+
         
     def Next_Button(self):
         """Use the Next button to step through the data folders.

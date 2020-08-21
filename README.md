@@ -34,7 +34,10 @@ dnpLab can be installed via pip:
 pip install dnpLab
 ```
 
+# Documenation
+
+Find the online documentation at: http://docs.dnplab.net
+
 # Developement 
 
-  - Clone the git repository from https://bitbucket.org/tmaly/odnplab/
-
+  - Clone the git repository from https://github.com/DNPLab/dnpLab
