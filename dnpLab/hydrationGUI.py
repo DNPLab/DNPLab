@@ -725,7 +725,6 @@ class hydrationGUI(QMainWindow):
 
                 self.t10Edit.setText(str(round(float(h5in['hydration_inputs']['T10']), 4)))
 
-                self.gui_dict['dnpLab_data']['T100'] = float(h5in['hydration_inputs']['T100'])
                 self.gui_dict['dnpLab_data']['T10'] = float(h5in['hydration_inputs']['T10'])
                 self.gui_dict['dnpLab_data']['T10_stdd'] = float(h5in['hydration_results']['T10_stdd'])
                 self.gui_dict['dnpLab_data']['Epowers'] = h5in['hydration_inputs']['E_power']
@@ -739,13 +738,13 @@ class hydrationGUI(QMainWindow):
             self.finishProcessing()
 
             self.gui_dict['gui_function']['buttons'] = True
-
+    
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('File type error ')
             self.gui_dict['gui_function']['buttons'] = False
-
+   
         
     def Workup_Button(self):
         """Select the "Workup" folder that is the output of workup software used by the Han Lab.
