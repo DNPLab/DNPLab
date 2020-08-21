@@ -104,22 +104,28 @@ class HydrationParameter(Parameter):
     """float: Corrected bulk tcorr, unit is ps, (section 2.5)"""
 
     D_H2O = 2.3e-9
-    """float: (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is 
+    """float: (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is
     distance in meters."""
 
     D_SL = 4.1e-10
-    """float: (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is 
+    """float: (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is
     distance in meters."""
 
     __t1_interp_method = 'second_order'
-    """str: Method used to interpolate T1, either linear or 'second_order'"""
+    """str: Method used to interpolate the T1 array, either linear or 'second_order'"""
 
-    def __init__(self, init=None):
-        super().__init__(init=init)
+    def __init__(self):
+        """"""
+        super().__init__()
+        # Fixme: Remove the default field, spin concentration etc. Set them as required arguments
+        self.field = 348.5
+        self.spin_C = 100
+        self.T10 = 1.5
+        self.T100 = 2.5
 
     @property
     def t1_interp_method(self):
-        """str: Method used to interpolate T1, either `linear` or `second_order`"""
+        """str: Method used to interpolate the T1 array, either `linear` or `second_order`"""
         return self.__t1_interp_method
 
     @t1_interp_method.setter
@@ -128,7 +134,7 @@ class HydrationParameter(Parameter):
             self.__t1_interp_method = value
         else:
             raise ValueError('t1_interp_method should be either `linear` or `second_order`')
-
+            
     @property
     def smax_model(self):
         """str: Method used to determine smax. Either `tethered` or `free`"""
@@ -136,6 +142,7 @@ class HydrationParameter(Parameter):
 
     @smax_model.setter
     def smax_model(self, value: str):
+    
         if value == 'tethered':
             self.__smax_model = value
         elif value == 'free':
@@ -143,7 +150,7 @@ class HydrationParameter(Parameter):
         else:
             raise ValueError(f'smax_model must be either `tethered` or `free`. '
                              f'Got {value}')
-
+    
     # These two function enable dictionary-like getting and setting properties.
     def __getitem__(self, key):
         if key in ['smax_model']:
@@ -165,27 +172,29 @@ class HydrationResults(AttrDict):
     """Class for handling hydration related quantities
 
     Attributes:
-        uncorrected_Ep (numpy.array)    : Fit of Ep array
-        interpolated_T1 (numpy.array)   : T1 values interpolated on E_power,
+        uncorrected_Ep (numpy.array)    : fit of enhancement array,
+        uncorrected_xi (float)          : coupling factor for fit of enhancement array,
+        interpolated_T1 (numpy.array)   : T1 values interpolated on enhancement powers,
         ksigma_array (numpy.array)      :
             numpy array that is the result of ~(1-E) / [ (constants*T1) ],
             used in ksigma(E_power) fit,
-        ksigma_fit (numpy.array)        : ksig_fit,
+        ksigma_fit (numpy.array)        : fit of ksigma_array,
         ksigma (float)                  : ksigma,
-        ksigma_stdd (float)             : ksigma_stdd,
-        ksigma_bulk_ratio (float)       : ksigma/ksigma_bulk,
+        ksigma_stdd (float)             : standard deviation in ksigma,
+        ksigma_bulk_ratio (float)       : ratio ksigma / ksigma_bulk,
         krho (float)                    : krho,
         klow (float)                    : klow,
-        klow_bulk_ratio (float)         : klow / klow_bulk,
+        klow_bulk_ratio (float)         : ratio klow / klow_bulk,
         coupling_factor (float)         : coupling_factor,
         tcorr (float)                   : tcorr,
-        tcorr_bulk_ratio (float)        : tcorr / tcorr_bulk,
+        tcorr_bulk_ratio (float)        : ratio tcorr / tcorr_bulk,
         Dlocal (float)                  : Dlocal
 
     """
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__()
         self.uncorrected_Ep = None
+        self.uncorrected_xi = None
         self.interpolated_T1 = None
         self.ksigma_array = None
         self.ksigma_fit = None
@@ -206,16 +215,6 @@ class HydrationResults(AttrDict):
 
     def values(self):
         return self.__dict__.values()
-
-    def to_dict_str(self):
-        """Create a dictionary of string representation of the results"""
-        # Create dictionary of results
-        mydict = {k:v for k, v in self.__dict__.items()
-                  if type(v) != type(np.ndarray([]))}
-        mydict.update({k: ', '.join([f"{vi:.4f}" for vi in v])
-                       for k, v in self.__dict__.items()
-                       if type(v) == type(np.ndarray([]))})
-        return mydict
 
 
 class HydrationCalculator:
@@ -440,11 +439,12 @@ class HydrationCalculator:
         
         return HydrationResults({
             'uncorrected_Ep'    : uncorrected_Ep,
+            'uncorrected_xi'    : xi_unc,
             'interpolated_T1'   : T1p,
             'ksigma_array'      : ksigma_array,
             'ksigma_fit'        : ksigma_fit,
             'ksigma'            : ksigma,
-            'ksigma_stdd'      : ksigma_stdd,
+            'ksigma_stdd'       : ksigma_stdd,
             'ksigma_bulk_ratio' : ksigma/ksigma_bulk,
             'krho'              : krho,
             'klow'              : klow,
@@ -618,10 +618,10 @@ def hydration(ws):
     """Calculating Hydration Results
 
     Args:
-        ws: Workspace
+        ws: Workspace containing hydration_inputs dictionary
 
     Returns:
-        dict: A dictionary of hydration results
+        dict: A dictionary of hydration_results
     """
 
     # Hydration required data

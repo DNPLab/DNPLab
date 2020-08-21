@@ -373,8 +373,10 @@ if __name__ == '__main__':
 
     print('-----------------------')
     print('--------Results--------')
+    print('uncorrected xi = ' + str(round(hydration_results['uncorrected_xi'],4)))
     print('krho = ' + str(round(hydration_results['krho'],2)) + ' (s-1M-1)')
     print('ksigma = ' + str(round(hydration_results['ksigma'],2)) + ' (s-1M-1), standard dev = ' + str(round(hydration_results['ksigma_stdd'],4)))
+    print('klow = ' + str(round(hydration_results['klow'],2)) + ' (s-1M-1)')
     print('coupling factor = ' + str(round(hydration_results['coupling_factor'],5)))
     print('tcorr = ' + str(round(hydration_results['tcorr'],2)) + ' ps')
     print('Dlocal = ' + str(round(hydration_results['Dlocal'] * 1e10,2)) + ' x 10^-10 (m^2/s)')
