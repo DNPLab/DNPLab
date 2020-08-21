@@ -25,7 +25,7 @@ The following packages are required to run dnpLab:
    * - h5py
      - 2.10 or higher
    * - PyQt5
-     - 5.15
+     - 5.14
 
 
 .. _installing:
