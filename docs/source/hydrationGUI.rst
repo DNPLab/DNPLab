@@ -124,7 +124,7 @@ You may also load the results of “Workup” code processing with the Workup bu
 +-------------------------+------------------+-------------------------------------------------------------------------------+
 | kSigma.csv              | .csv file        | list of [spin_concentration * κ\ :sub:`σ` * s(p)] values			     |
 +-------------------------+------------------+-------------------------------------------------------------------------------+
-| t1Powers.csv            | .csv file        | list of T1s and corresponding powers			                     |
+| t1Powers.csv            | .csv file        | list of T1s and corresponding power measurements			             |
 +-------------------------+------------------+-------------------------------------------------------------------------------+
 >>>>>>> develop
 
@@ -142,7 +142,7 @@ If the .mat workspace was not saved from hydrationGUI, it can still be read and 
     Select a Workup folder
 
 
-If the mat workspace or h5 file were not saved from hydrationGUI, they can still be read and analyzed if they have the appropriate data arrangement. 
+If the mat workspace or h5 file were not saved from hydrationGUI, they can still be read and analyzed if they have the same elements. 
 
 The mat workspace must contain a structure named "odnp" with at least the following elements (this matches the structure accepted and saved by the MATLAB App called xODNP, visit https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp):
 >>>>>>> develop
@@ -178,13 +178,19 @@ The h5 must contain a dictionary named 'hydration_inputs' with at least the foll
 +------------------+-----------------+--------------------------------------+
 | T1               | numpy array     | list of T1 values                    |
 +------------------+-----------------+--------------------------------------+
-| T1_stdd          | numpy array     | list of standard deviations in T1    |              
-+------------------+-----------------+--------------------------------------+
 | T1_power         | numpy array     | list of powers used to collect T1p   |                 
 +------------------+-----------------+--------------------------------------+
 | T10              | float           | T1 value for power = 0, i.e. T1(0)   |               
 +------------------+-----------------+--------------------------------------+
-| T10_stdd         | float           | standard deviation in T10            |     
+
+and a separate dictionary named 'hydration_results' with at least the following elements:
+
++------------------+-----------------+--------------------------------------+
+| **key**          | **type**        | **description**                      |
++------------------+-----------------+--------------------------------------+
+| T1_stdd          | numpy array     | list of standard deviations in T1    |     
++------------------+-----------------+--------------------------------------+
+| T10_stdd         | float           | standard deviation in T10            |                 
 +------------------+-----------------+--------------------------------------+
 >>>>>>> develop
 
