@@ -23,7 +23,11 @@ Importing data
 
    # import Topspin Data
    path = 'path/to/data'
+<<<<<<< HEAD
    data = dnplab.dnpImport.topspin.import_topspin(path)
+=======
+   data = dnp.dnpImport.topspin.import_topspin(path)
+>>>>>>> develop
 
    # create workspace for processing data
    workspace = dnp.create_workspace('raw', data)
@@ -33,11 +37,19 @@ Processing NMR Data
 .. code-block:: python
 
    # Remove DC offset from FID
+<<<<<<< HEAD
    workspace = dnplab.dnpNMR.remove_offset(workspace, {})
    # Apply Exponential Apodization to data
    workspace = dnplab.dnpNMR.window(workspace, {})
    # Apply Fourier Transform to direct dimension by default (t2)
    workspace = dnplab.dnpNMR.fourier_transform(workspace, {})
+=======
+   workspace = dnp.dnpNMR.remove_offset(workspace, {})
+   # Apply Exponential Apodization to data
+   workspace = dnp.dnpNMR.window(workspace, {})
+   # Apply Fourier Transform to direct dimension by default (t2)
+   workspace = dnp.dnpNMR.fourier_transform(workspace, {})
+>>>>>>> develop
 
 Example Script
 ==============

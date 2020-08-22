@@ -69,7 +69,11 @@ In the next step the workspace is set up and the imported data is added to the *
 
 .. note::
 
+<<<<<<< HEAD
     When working with dnplab one of the first steps is to copy the imported data to the *raw* workspace. That way the raw data and all it's attributes will be always accessible to the user. When saving data with dnplab the raw data is safed toegether with the processed data. dnplab uses the h5 format to store data. 
+=======
+    When working with dnpLab one of the first steps is to copy the imported data to the *raw* workspace. That way the raw data and all its attributes will be always accessible to the user. When saving data with dnpLab the raw data is saved together with the processed data. dnpLab uses the h5 format to store data. 
+>>>>>>> develop
 
 In the following steps, the FID is processed and the spectrum is plotted.
 

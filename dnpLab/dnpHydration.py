@@ -440,9 +440,13 @@ class HydrationCalculator:
             'ksigma_fit'        : ksigma_fit,
             'ksigma'            : ksigma,
             'ksigma_stdd'       : ksigma_stdd,
-            'ksigma_bulk_ratio' : ksigma/ksigma_bulk,
+            'ksigma_bulk_ratio' : ksigma / ksigma_bulk,
             'krho'              : krho,
+<<<<<<< HEAD
             'krho_bulk_ratio'   : krho/krho_bulk,
+=======
+            'krho_bulk_ratio'   : krho / krho_bulk,
+>>>>>>> develop
             'klow'              : klow,
             'klow_bulk_ratio'   : klow / klow_bulk,
             'coupling_factor'   : coupling_factor,

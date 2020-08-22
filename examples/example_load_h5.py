@@ -2,9 +2,13 @@ import sys
 sys.path.append('..')
 import numpy as np
 
+<<<<<<< HEAD
 import dnplab
+=======
+import dnplab as dnp
+>>>>>>> develop
 
-filename = 'test.h5'
+filename = '..data/h5/test.h5'
 
 ws = dnplab.dnpImport.h5.loadh5(filename)
 

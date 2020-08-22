@@ -1,6 +1,10 @@
 import sys
 sys.path.append('..')
 import dnplab
+<<<<<<< HEAD
+=======
+from dnplab import create_workspace
+>>>>>>> develop
 import numpy as np
 
 ws = dnplab.create_workspace()

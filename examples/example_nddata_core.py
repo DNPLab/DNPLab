@@ -1,8 +1,13 @@
 import sys
 sys.path.append('..')
 
+<<<<<<< HEAD
 from dnpLab.core.nddata import nddata_core
 import dnplab
+=======
+from dnplab.core.nddata import nddata_core
+import dnplab as dnp
+>>>>>>> develop
 
 import numpy as np
 

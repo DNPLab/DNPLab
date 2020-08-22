@@ -6,7 +6,11 @@ import copy
 import numpy as np
 
 sys.path.append('..')
+<<<<<<< HEAD
 import dnplab
+=======
+import dnplab as dnp
+>>>>>>> develop
 
 # directory of base folder containing the numbered folders listed below
 directory = '..topspin'

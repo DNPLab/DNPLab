@@ -10,7 +10,7 @@ test_dims = ['x', 'y', 'z', 'p', 'q', 'r']
 num_random_tests = 10
 
 
-class dnpLab_nddata_core_tester(unittest.TestCase):
+class dnplab_nddata_core_tester(unittest.TestCase):
     def setUp(self):
         self.dims = test_dims
         random.sample(test_dims, random.randint(1,len(test_dims)))
@@ -138,7 +138,7 @@ class dnpLab_nddata_core_tester(unittest.TestCase):
             assert_array_equal((random_array/data).values, random_array/values)
 
 
-class dnpLab_nddata_coord_tester(unittest.TestCase):
+class dnplab_nddata_coord_tester(unittest.TestCase):
     def setUp(self):
         self.coord_inst_a    = nddata_coord('a', slice(0, 10, 1))
         self.coord_inst_b    = nddata_coord('b', slice(0, 1, 50e-3))

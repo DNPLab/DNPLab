@@ -178,11 +178,19 @@ class hydrationGUI(QMainWindow):
         self.backButton.resize(100, 40)
 
         # dnplab error
+<<<<<<< HEAD
         self.dnplab_errorLabel = QLabel(self)
         self.dnplab_errorLabel.setStyleSheet('font : bold 14px')
         self.dnplab_errorLabel.move(615, 545)
         self.dnplab_errorLabel.resize(500, 20)
         self.dnplab_errorLabel.setText('dnplab fit Error')
+=======
+        self.dnpLab_errorLabel = QLabel(self)
+        self.dnpLab_errorLabel.setStyleSheet('font : bold 14px')
+        self.dnpLab_errorLabel.move(615, 545)
+        self.dnpLab_errorLabel.resize(500, 20)
+        self.dnpLab_errorLabel.setText('dnpLab fit Error')
+>>>>>>> develop
         # workup error
         self.workup_errorLabel = QLabel(self)
         self.workup_errorLabel.setStyleSheet('font : bold 14px')
@@ -725,27 +733,33 @@ class hydrationGUI(QMainWindow):
 
                 self.t10Edit.setText(str(round(float(h5in['hydration_inputs']['T10']), 4)))
 
+<<<<<<< HEAD
                 self.gui_dict['dnplab_data']['T100'] = float(h5in['hydration_inputs']['T100'])
                 self.gui_dict['dnplab_data']['T10'] = float(h5in['hydration_inputs']['T10'])
                 self.gui_dict['dnplab_data']['T10_stdd'] = float(h5in['hydration_results']['T10_stdd'])
                 self.gui_dict['dnplab_data']['Epowers'] = h5in['hydration_inputs']['E_power']
+=======
+                self.gui_dict['dnpLab_data']['T10'] = float(h5in['hydration_inputs']['T10'])
+                self.gui_dict['dnpLab_data']['T10_stdd'] = float(h5in['hydration_results']['T10_stdd'])
+                self.gui_dict['dnpLab_data']['Epowers'] = h5in['hydration_inputs']['E_power']
+>>>>>>> develop
                 self.Ep = h5in['hydration_inputs']['E']
                 self.gui_dict['dnplab_data']['T1powers'] = h5in['hydration_inputs']['T1_power']
                 self.T1p = h5in['hydration_inputs']['T1']
-                self.T1p_stdd = h5in['hydration_results']['T1p_stdd']
+                self.T1p_stdd = h5in['hydration_results']['T1_stdd']
 
             self.gui_dict['rawdata_function']['nopowers'] = False
 
             self.finishProcessing()
 
             self.gui_dict['gui_function']['buttons'] = True
-
+        
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('File type error ')
             self.gui_dict['gui_function']['buttons'] = False
-
+      
         
     def Workup_Button(self):
         """Select the "Workup" folder that is the output of workup software used by the Han Lab.
@@ -971,8 +985,13 @@ class hydrationGUI(QMainWindow):
             path = pthnm.replace(str(self.singlefolder) + os.sep, '')
 
             data = dnplab.dnpImport.topspin.import_topspin(path, self.singlefolder)
+<<<<<<< HEAD
             self.dnplab_workspace = dnplab.create_workspace('raw', data)
             self.dnplab_workspace.copy('raw', 'proc')
+=======
+            self.dnpLab_workspace = dnplab.create_workspace('raw', data)
+            self.dnpLab_workspace.copy('raw', 'proc')
+>>>>>>> develop
 
             if self.dnplab_workspace['proc'].ndim == 2:
                 print('T1 Measurement: ' + pthnm)
@@ -1853,15 +1872,19 @@ class hydrationGUI(QMainWindow):
             return
 
         if self.gui_dict['workup_function']['fit'] or self.gui_dict['gui_function']['isWorkup']:
-            self.addHyd_workspace['hydration_results'].update({'T1p_stdd': self.gui_dict['workup_data']['T1p_stdd'], 'T10_stdd': self.gui_dict['workup_data']['T10_stdd']})
+            self.addHyd_workspace['hydration_results'].update({'T1_stdd': self.gui_dict['workup_data']['T1p_stdd'], 'T10_stdd': self.gui_dict['workup_data']['T10_stdd']})
         else:
+<<<<<<< HEAD
             self.addHyd_workspace['hydration_results'].update({'T1p_stdd': self.gui_dict['dnplab_data']['T1p_stdd'], 'T10_stdd': self.gui_dict['dnplab_data']['T10_stdd']})
+=======
+            self.addHyd_workspace['hydration_results'].update({'T1_stdd': self.gui_dict['dnpLab_data']['T1p_stdd'], 'T10_stdd': self.gui_dict['dnpLab_data']['T10_stdd']})
+>>>>>>> develop
 
         odnpData = {'Epowers': self.addHyd_workspace['hydration_inputs']['E_power'],
                     'Ep': self.addHyd_workspace['hydration_inputs']['E'],
                     'T1powers': self.addHyd_workspace['hydration_inputs']['T1_power'],
                     'T1p': self.addHyd_workspace['hydration_inputs']['T1'],
-                    'T1p_stdd': self.addHyd_workspace['hydration_results']['T1p_stdd'],
+                    'T1p_stdd': self.addHyd_workspace['hydration_results']['T1_stdd'],
                     'T10': self.addHyd_workspace['hydration_inputs']['T10'],
                     'T10_stdd': self.addHyd_workspace['hydration_results']['T10_stdd'],
                     'T100': self.addHyd_workspace['hydration_inputs']['T100']}
@@ -1889,7 +1912,7 @@ class hydrationGUI(QMainWindow):
 
         dfT1 = np.vstack((self.addHyd_workspace['hydration_inputs']['T1_power'],
                           self.addHyd_workspace['hydration_inputs']['T1'],
-                          self.addHyd_workspace['hydration_results']['T1p_stdd'][
+                          self.addHyd_workspace['hydration_results']['T1_stdd'][
                           0:len(self.addHyd_workspace['hydration_inputs']['T1_power'])])).T
         np.savetxt(svpthnm + os.sep + flnm + ' T1s.csv', dfT1, fmt='%10.10f', delimiter=',',
                    header='T1 powers,T1(p),T1(p) Std dev', comments='')

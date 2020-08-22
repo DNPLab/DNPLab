@@ -12,29 +12,33 @@ Type the command to start the hydrationGUI:
 
 .. figure:: _static/images/hydrationGUI_overview.png
     :width: 400
-    :alt: Hydration GUI
+    :alt: Opening hydrationGUI
     :align: center
 
-    hydrationGUI
+    Opening hydrationGUI
 
+<<<<<<< HEAD
 Processing a single topspin data folder, 1D spectrum or 2D inversion recovery 
+=======
+Processing a single topspin data folder, either a 1D spectrum or 2D inversion recovery 
+>>>>>>> develop
 ==============================================================================
 
 To work on a single topspin spectrum use the Bruker button to select a numbered folder containing a single spectrum, either 1D or 2D. You may make adjustments to the data phase and integration window center using the sliders. Use the “Optimize” checkboxes to search for and apply the “optimal” parameters. 
 
 .. figure:: _static/images/hydrationGUI_importing_1d_2d.png
     :width: 400
-    :alt: Loading 1d or 2d data
+    :alt: Loading 1D or 2D data
     :align: center
 
-    Importing 1d or 2d data
+    Selecting data folder
 
 .. figure:: _static/images/hydrationGUI_experiment_304.png
     :width: 400
-    :alt: Example Processing T1 data
+    :alt: Example processing and fitting 2D inversion recovery experiment
     :align: center
 
-    Processing T1 experiment
+    Example processing and fitting 2D inversion recovery experiment
 
 Processing Han lab datasets
 ===========================
@@ -77,17 +81,17 @@ The title of the main plot will let you know which folder you are currently work
 
 You may make adjustments to the data phase, integration window width, and integration window center using the sliders. Use the “Optimize” checkboxes to search for and apply the “optimal” parameters. For optimizing the width, checking Optimize selects the window that encompasses roughly 2/3 of the peak while unchecking selects the default width. If processing an ODNP dataset the width that is displayed in the plot will be used if the Next or Auto Process buttons are pressed. 
 
-The results are displayed when finished. If a “Workup” is also present in the data folder it will be imported for comparison. Use the corresponding checkboxes to interact with the Workup results. Interaction with any parameter edit field or checkbox, as well as the T1 interpolation checkboxes, automatically updates the calculations. 
+The results are displayed when finished. If a “Workup" folder is also present in the data folder it will be imported for comparison. Use the corresponding checkboxes to interact with the Workup results. Interaction with any parameter edit field or checkbox, as well as the T1 interpolation checkboxes, automatically updates the calculations. 
 
 
 The title of the main plot will let you know which folder you are currently working on. Use the Next button to advance through the dataset towards calculating hydration parameters, and the Back button to regress through the dataset. Auto Process will run through the entire dataset automatically and calculate hydration parameters.
 
 .. figure:: _static/images/hydrationGUI_ksigma.png
     :width: 400
-    :alt: Generating Hydration Results
+    :alt: Generating dnpHydration Results
     :align: center
 
-    Hydration Results
+    Presentation of dnpHydration results
 
 The results are displayed when finished. If a “Workup” is also present in the data folder it will be imported for comparison. Use the corresponding checkboxes to interact with the Workup results. Interaction with any parameter edit field or checkbox, as well as the T1 interpolation checkboxes, automatically updates the calculations. 
 
@@ -98,6 +102,7 @@ The Restart button will return you to the beginning of processing. If the Only T
 Analyzing Workup results or previously saved GUI results
 =========================================================
 
+<<<<<<< HEAD
 You may also load the results of “Workup” code processing with the Workup button, or you may select the .mat or .h5 files of a previously saved hydrationGUI session with the GUI Result button. The workup folder must have at least the following elements:
 
 +-------------------------+------------------+-----------------------------------------------------------+
@@ -109,16 +114,38 @@ You may also load the results of “Workup” code processing with the Workup bu
 +-------------------------+------------------+-----------------------------------------------------------+
 | t1Powers.csv            | .csv file        |  list of T1s and corresponding powers			 |
 +-------------------------+------------------+-----------------------------------------------------------+
+=======
+You may also load the results of “Workup” code processing with the Workup button, or you may select the .mat or .h5 files of a previously saved hydrationGUI session with the GUI Result button. The Workup folder must have at least the following elements:
+
++-------------------------+------------------+-------------------------------------------------------------------------------+
+| **Filename**            | **File type**    | **File contains**                                                             |
++-------------------------+------------------+-------------------------------------------------------------------------------+
+| enhancementPowers.csv   | .csv file        | list of enhancements and corresponding power measurements                     |                     
++-------------------------+------------------+-------------------------------------------------------------------------------+
+| kSigma.csv              | .csv file        | list of [spin_concentration * κ\ :sub:`σ` * s(p)] values			     |
++-------------------------+------------------+-------------------------------------------------------------------------------+
+| t1Powers.csv            | .csv file        | list of T1s and corresponding powers			                     |
++-------------------------+------------------+-------------------------------------------------------------------------------+
+>>>>>>> develop
 
 .. figure:: _static/images/hydrationGUI_previous_results1.png
     :width: 400
-    :alt: Importing Hydration Results from Workup
+    :alt: Importing processing results from Workup
     :align: center
 
+<<<<<<< HEAD
     Select a workup folder
 
 
 If the .mat workspace was not saved from hydrationGUI, it can still be read and analyzed if it has a structure named "odnp" with at least the following elements:
+=======
+    Select a Workup folder
+
+
+If the mat workspace or h5 file were not saved from hydrationGUI, they can still be read and analyzed if they have the appropriate data arrangement. 
+
+The mat workspace must contain a structure named "odnp" with at least the following elements (this matches the structure accepted and saved by the MATLAB App called xODNP, visit https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp):
+>>>>>>> develop
 
 +------------------+-----------------+--------------------------------------+
 | **Variable**     | **type**        | **description**                      |
@@ -137,10 +164,33 @@ If the .mat workspace was not saved from hydrationGUI, it can still be read and 
 +------------------+-----------------+--------------------------------------+
 | odnp.T10_stdd    | single number   | standard deviation in T10            |     
 +------------------+-----------------+--------------------------------------+
+<<<<<<< HEAD
+=======
+
+The h5 must contain a dictionary named 'hydration_inputs' with at least the following elements:
+
++------------------+-----------------+--------------------------------------+
+| **key**          | **type**        | **description**                      |
++------------------+-----------------+--------------------------------------+
+| E                | numpy array     | list of signal enhancements          |      
++------------------+-----------------+--------------------------------------+
+| E_power          | numpy array     | list of powers used to collect Ep    |                 
++------------------+-----------------+--------------------------------------+
+| T1               | numpy array     | list of T1 values                    |
++------------------+-----------------+--------------------------------------+
+| T1_stdd          | numpy array     | list of standard deviations in T1    |              
++------------------+-----------------+--------------------------------------+
+| T1_power         | numpy array     | list of powers used to collect T1p   |                 
++------------------+-----------------+--------------------------------------+
+| T10              | float           | T1 value for power = 0, i.e. T1(0)   |               
++------------------+-----------------+--------------------------------------+
+| T10_stdd         | float           | standard deviation in T10            |     
++------------------+-----------------+--------------------------------------+
+>>>>>>> develop
 
 .. figure:: _static/images/hydrationGUI_previous_results2.png
     :width: 400
-    :alt: Importing Hydration Results from h5
+    :alt: Importing Hydration Results saved from GUI
     :align: center
 
     Select a saved mat or h5 file
@@ -149,22 +199,26 @@ The results of previous processing will be used to calculate hydration parameter
 
 .. figure:: _static/images/hydrationGUI_results_from_h5.png
     :width: 400
-    :alt: Imported Hydration Results
+    :alt: Imported hydrationGUI Results
     :align: center
 
+<<<<<<< HEAD
     Imported results from mat workspace or h5
+=======
+    Analyzed results from previously saved Workup, mat workspace, or h5
+>>>>>>> develop
 
 Terminal outputs
 ================
 
-The terminal will display processing and calculation progress as well as standard deviations of the T1 fits and κσ, including the imported κσ if a Workup was found. 
+The terminal will display processing and calculation progress as well as standard deviations of the T1 fits and κ\ :sub:`σ`, including the imported κ\ :sub:`σ` if a Workup was found. 
 
 .. figure:: _static/images/hydrationGUI_terminal.png
     :width: 400
-    :alt: Terminal Output
+    :alt: Terminal Outputs
     :align: center
 
-    Terminal Output from processing
+    Terminal outputs during processing and calculations
 
 
 Saving Results
