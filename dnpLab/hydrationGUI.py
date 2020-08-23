@@ -28,7 +28,7 @@ import re
 import datetime
 import time
 
-import dnplab
+import dnpLab
 
 class hydrationGUI(QMainWindow):
 
