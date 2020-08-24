@@ -6,7 +6,7 @@ with open('README.md','r') as f:
 
 with open('dnplab/version.py', 'r') as f:
     version_string = f.read()
-    version = split('=')[1].strip().replace('"', '').replace('\'', '')
+    version = version_string.split('=')[1].strip().replace('"', '').replace('\'', '')
 
 setup(
         name = 'dnplab',
