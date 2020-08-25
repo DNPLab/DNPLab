@@ -245,7 +245,7 @@ class dnpdata_collection(MutableMapping):
             data (dnpdata): data object corresponding to key
         '''
         if (not isinstance(key, str)) or (not isinstance(data, (dnpdata,dict))):
-            raise TypeError('add takes two arguments, a string and dnpLab.dnpdata type')
+            raise TypeError('add takes two arguments, a string and dnplab.dnpdata type')
         self.__data_dict[key] = data
 
     def __repr__(self):

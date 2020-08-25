@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal as assertArrayEqual
 from .testing import get_gauss_3d
-from dnpLab.dnpData import dnpdata
+from dnplab.dnpData import dnpdata
 
 
 class dnpDataTester(unittest.TestCase):

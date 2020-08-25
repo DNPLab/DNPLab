@@ -1,8 +1,8 @@
 import sys
 sys.path.append('..')
 
-from dnpLab.core.nddata import nddata_core
-import dnpLab as dnp
+from dnplab.core.nddata import nddata_core
+import dnplab as dnp
 
 import numpy as np
 

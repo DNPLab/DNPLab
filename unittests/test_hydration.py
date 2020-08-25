@@ -3,8 +3,8 @@ sys.path.append('..')
 
 import unittest
 import numpy as np
-from dnpLab.dnpData import create_workspace
-from dnpLab.dnpHydration import HydrationCalculator, HydrationParameter, hydration
+from dnplab.dnpData import create_workspace
+from dnplab.dnpHydration import HydrationCalculator, HydrationParameter, hydration
 
 
 TESTSET = {

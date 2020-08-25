@@ -93,7 +93,7 @@ def remove_offset(all_data, proc_parameters):
        proc_parameters['dim'] = 't2'
        proc_parameters['offset_points'] = 10
 
-       workspace = dnpLab.dnpNMR.remove_offset(workspace, proc_parameters)
+       workspace = dnplab.dnpNMR.remove_offset(workspace, proc_parameters)
     '''
     # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
@@ -154,7 +154,7 @@ def fourier_transform(all_data, proc_parameters):
         proc_parameters['shift'] = True
         proc_parameters['convert_to_ppm'] = True
 
-        all_data = dnpLab.dnpNMR.fourier_transform(all_data, proc_parameters)
+        all_data = dnplab.dnpNMR.fourier_transform(all_data, proc_parameters)
     '''
 
     # Determine if data is dictionary or dnpdata object
@@ -223,7 +223,7 @@ def window(all_data,proc_parameters):
                 'linewidth' : 10,
                 'dim' : 't2',
                 }
-        all_data = dnpLab.dnpNMR.window(all_data,proc_parameters)
+        all_data = dnplab.dnpNMR.window(all_data,proc_parameters)
         
     '''
 
@@ -282,7 +282,7 @@ def integrate(all_data,proc_parameters):
             'integrate_center' : 0,
             'integrate_width' : 100,
             }
-        dnpLab.dnpNMR.integrate(all_data,proc_parameters)
+        dnplab.dnpNMR.integrate(all_data,proc_parameters)
 
     '''
 

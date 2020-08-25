@@ -7,3 +7,4 @@ from . import dnpHydration
 from . import hydrationGUI
 from . import core
 from . import dnpResults
+from .version import __version__

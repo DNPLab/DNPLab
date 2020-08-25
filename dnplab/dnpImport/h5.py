@@ -42,8 +42,8 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
         dnpDataGroup: h5 group to save data to
         dnpDataObject: dnpdata object to save in h5 format
     '''
-    dnpDataGroup.attrs['dnpLab_version'] = dnpDataObject.version
-    dnpDataGroup.attrs['dnpLab_data_type'] = 'dnpdata'
+    dnpDataGroup.attrs['dnplab_version'] = dnpDataObject.version
+    dnpDataGroup.attrs['dnplab_data_type'] = 'dnpdata'
     dims_group = dnpDataGroup.create_group('dims') # dimension names e.g. x,y,z
     attrs_group = dnpDataGroup.create_group('attrs') # dictionary information
     dnp_dataset = dnpDataGroup.create_dataset('values', data = dnpDataObject.values)
@@ -76,9 +76,9 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
 def write_dict(dnpDataGroup, dnpDataObject):
     '''Writes dictionary to h5 file
     '''
-#    dnpDataGroup.attrs['dnpLab_version'] = dnpDataObject.version
-    dnpDataGroup.attrs['dnpLab_data_type'] = 'dict'
-#    dnpDataGroup.attrs['dnpLab_version'] = dnpDataObject.version
+#    dnpDataGroup.attrs['dnplab_version'] = dnpDataObject.version
+    dnpDataGroup.attrs['dnplab_data_type'] = 'dict'
+#    dnpDataGroup.attrs['dnplab_version'] = dnpDataObject.version
     attrs_group = dnpDataGroup.create_group('attrs')
 
     for key in dnpDataObject.keys():
@@ -102,9 +102,9 @@ def loadh5(path):
 
     for key in keys_list:
 
-        if f[key].attrs['dnpLab_data_type'] == 'dnpdata':
+        if f[key].attrs['dnplab_data_type'] == 'dnpdata':
             data = read_dnpdata(f[key])
-        elif f[key].attrs['dnpLab_data_type'] == 'dict':
+        elif f[key].attrs['dnplab_data_type'] == 'dict':
             data = read_dict(f[key])
         else:
             warnings.warn('could not import key: %s'%str(key))
@@ -117,7 +117,7 @@ def read_dnpdata(dnpdata_group):
     dims = []
     attrs = {}
     values = dnpdata_group['values'][:]
-    version = dnpdata_group.attrs['dnpLab_version']
+    version = dnpdata_group.attrs['dnplab_version']
 
     for index in range(len(np.shape(values))):
         dim_key = dnpdata_group['values'].dims[index].keys()[0] # assumes 1 key only

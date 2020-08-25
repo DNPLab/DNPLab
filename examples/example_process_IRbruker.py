@@ -1,12 +1,12 @@
 # dnpLab example script to process inversion recovery data (Bruker format)
  
 # Import python modules
-# If dnpLab is installed using pip, the first two lines are not required
+# If dnplab is installed using pip, the first two lines are not required
 import sys
 sys.path.append('..')
 
 import numpy as np
-import dnpLab as dnp
+import dnplab as dnp
 
 # Import data
 path = '\path\to\topsin\data\'

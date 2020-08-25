@@ -4,10 +4,14 @@ from distutils.core import setup
 with open('README.md','r') as f:
     long_description = f.read()
 
+with open('dnplab/version.py', 'r') as f:
+    version_string = f.read()
+    version = version_string.split('=')[1].strip().replace('"', '').replace('\'', '')
+
 setup(
-        name = 'dnpLab',
+        name = 'dnplab',
         packages = setuptools.find_packages(),
-        version = '1.0.2',
+        version = version,
         license = 'MIT',
         description = 'dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy',
         long_description=long_description,
@@ -18,7 +22,7 @@ setup(
         project_urls={
             'Documentation':'http://docs.dnpLab.net',
             'Examples':'http://examples.dnplab.net/',
-            'Source Code':'https://github.com/DNPLab/dnpLab',
+            'Source Code':'https://github.com/DNPLab/dnplab',
             'Web App':'http://odnplab.com/',
             },
         keywords = ['ODNP','DNP','NMR'],
@@ -36,7 +40,7 @@ setup(
             'Programming Language :: Python :: 3',
             ],
         entry_points=dict(console_scripts=
-            ['hydrationGUI=dnpLab.hydrationGUI:main_func',
+            ['hydrationGUI=dnplab.hydrationGUI:main_func',
             ]
             )
 
