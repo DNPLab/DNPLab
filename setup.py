@@ -4,10 +4,14 @@ from distutils.core import setup
 with open('README.md','r') as f:
     long_description = f.read()
 
+with open('dnplab/version.py', 'r') as f:
+    version_string = f.read()
+    version = version_string.split('=')[1].strip().replace('"', '').replace('\'', '')
+
 setup(
         name = 'dnplab',
         packages = setuptools.find_packages(),
-        version = '1.0.2',
+        version = version,
         license = 'MIT',
         description = 'dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy',
         long_description=long_description,
