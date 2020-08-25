@@ -4,7 +4,7 @@ hydrationGUI
 
 Type hydrationGUI at the command line to open an interactive tool for processing ODNP data and calculating hydration parameters. All data processing and calculating is done using buttons, checkboxes, sliders, and edit fields.
 
-Type the command to start the hydrationGUI:
+To start the hydrationGUI type the command:
 
 .. code-block:: console
     
@@ -21,8 +21,12 @@ Type the command to start the hydrationGUI:
 Processing a single topspin data folder, 1D spectrum or 2D inversion recovery 
 =======
 Processing a single topspin data folder, either a 1D spectrum or 2D inversion recovery 
+<<<<<<< HEAD
 >>>>>>> develop
 ==============================================================================
+=======
+======================================================================================
+>>>>>>> develop
 
 To work on a single topspin spectrum use the Bruker button to select a numbered folder containing a single spectrum, either 1D or 2D. You may make adjustments to the data phase and integration window center using the sliders. Use the “Optimize” checkboxes to search for and apply the “optimal” parameters. 
 
@@ -100,7 +104,7 @@ The Restart button will return you to the beginning of processing. If the Only T
 
 
 Analyzing Workup results or previously saved GUI results
-=========================================================
+========================================================
 
 <<<<<<< HEAD
 You may also load the results of “Workup” code processing with the Workup button, or you may select the .mat or .h5 files of a previously saved hydrationGUI session with the GUI Result button. The workup folder must have at least the following elements:
@@ -228,7 +232,7 @@ The terminal will display processing and calculation progress as well as standar
 
 
 Saving Results
-================
+==============
 
 After processing is complete and hydration parameters are calculated, the Save results button is available. Your results are saved in .csv, .h5, and .mat formats. The .mat file can be read by the MATLAB app called xODNP that is available at MathWorks File Exchange. The .h5 and .mat files can be read by hydrationGUI.
 
