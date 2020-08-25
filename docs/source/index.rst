@@ -1,4 +1,4 @@
-.. odnpLab documentation master file, created by
+.. dnpLab documentation master file, created by
    sphinx-quickstart on Fri Jan 10 17:26:18 2020.
 
 .. .. image:: b12logo.png

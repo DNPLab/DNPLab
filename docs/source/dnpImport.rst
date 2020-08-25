@@ -1,4 +1,4 @@
-.. _import:
+dnplab.. _import:
 
 =========
 dnpImport
@@ -10,7 +10,7 @@ dnpImport
 Topspin Module
 ==============
 
-.. automodule:: dnpLab.dnpImport.topspin
+.. automodule:: dnplab.dnpImport.topspin
    :members:
    :show-inheritance:
    :member-order: bysource
@@ -20,7 +20,7 @@ Topspin Module
 (Open) VnmrJ Module
 ===================
 
-.. automodule:: dnpLab.dnpImport.vnmrj
+.. automodule:: dnplab.dnpImport.vnmrj
    :members:
    :show-inheritance:
    :member-order: bysource
@@ -30,7 +30,7 @@ Topspin Module
 Prospa Module
 =============
 
-.. automodule:: dnpLab.dnpImport.prospa
+.. automodule:: dnplab.dnpImport.prospa
    :members:
    :show-inheritance:
    :member-order: bysource
@@ -40,7 +40,7 @@ Prospa Module
 h5 Module
 =========
 
-.. automodule:: dnpLab.dnpImport.h5
+.. automodule:: dnplab.dnpImport.h5
    :members:
    :show-inheritance:
    :member-order: bysource

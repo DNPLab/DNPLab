@@ -36,7 +36,7 @@ dnpLab can be installed using pip. In a terminal simply type the following comma
 
 .. code-block:: bash
 
-   $ python -m pip install dnpLab
+   $ python -m pip install dnplab
 
 
 If you prefer to install dnpLab from the source code, check out our GitHub repository: |dnpLabGitLink|.
