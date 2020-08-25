@@ -1,17 +1,17 @@
 ===============
-dnplab Examples
+dnpLab Examples
 ===============
 
 .. |ExamplesLink| raw:: html
 
-   <a href="https://github.com/DNPLab/dnplab/tree/master/examples" target="_blank"> Link to Examples</a>
+   <a href="https://github.com/DNPLab/dnpLab/tree/master/examples" target="_blank"> Link to Examples</a>
 
 .. |DataLink| raw:: html
 
-   <a href="https://github.com/DNPLab/dnplab/tree/master/data" target="_blank"> Link to Data</a>
+   <a href="https://github.com/DNPLab/dnpLab/tree/master/data" target="_blank"> Link to Data</a>
 
 
-dnplab comes with many example scripts to demonstrate how the package can be used to import data from different spectrometer platform, process NMR data and extract enhancement data or hydration information. The example scripts are located in the *examples* folder using sample data located in the *data* folder.
+dnpLab comes with many example scripts to demonstrate how the package can be used to import data from different spectrometer platform, process NMR data and extract enhancement data or hydration information. The example scripts are located in the *examples* folder using sample data located in the *data* folder.
 
 If you installed dnplab using pip you can download the example scripts and data from the GitHub repository:
 
@@ -26,7 +26,7 @@ If you installed dnplab using pip you can download the example scripts and data 
 
 Import Data and Process FID (Bruker Format)
 ===========================================
-This example uses the example script: *example_process_1Dbruker.py*. The script demonstrates the following features of dnplab:
+This example uses the example script: *example_process_1Dbruker.py*. The script demonstrates the following features of dnpLab:
 
 #. Load a single FID (Bruker format)
 #. Perform an offset correction
@@ -69,11 +69,7 @@ In the next step the workspace is set up and the imported data is added to the *
 
 .. note::
 
-<<<<<<< HEAD
-    When working with dnplab one of the first steps is to copy the imported data to the *raw* workspace. That way the raw data and all it's attributes will be always accessible to the user. When saving data with dnplab the raw data is safed toegether with the processed data. dnplab uses the h5 format to store data. 
-=======
     When working with dnpLab one of the first steps is to copy the imported data to the *raw* workspace. That way the raw data and all its attributes will be always accessible to the user. When saving data with dnpLab the raw data is saved together with the processed data. dnpLab uses the h5 format to store data. 
->>>>>>> develop
 
 In the following steps, the FID is processed and the spectrum is plotted.
 

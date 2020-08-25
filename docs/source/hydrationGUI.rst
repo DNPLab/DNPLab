@@ -17,16 +17,8 @@ To start the hydrationGUI type the command:
 
     Opening hydrationGUI
 
-<<<<<<< HEAD
-Processing a single topspin data folder, 1D spectrum or 2D inversion recovery 
-=======
 Processing a single topspin data folder, either a 1D spectrum or 2D inversion recovery 
-<<<<<<< HEAD
->>>>>>> develop
-==============================================================================
-=======
 ======================================================================================
->>>>>>> develop
 
 To work on a single topspin spectrum use the Bruker button to select a numbered folder containing a single spectrum, either 1D or 2D. You may make adjustments to the data phase and integration window center using the sliders. Use the “Optimize” checkboxes to search for and apply the “optimal” parameters. 
 
@@ -106,19 +98,6 @@ The Restart button will return you to the beginning of processing. If the Only T
 Analyzing Workup results or previously saved GUI results
 ========================================================
 
-<<<<<<< HEAD
-You may also load the results of “Workup” code processing with the Workup button, or you may select the .mat or .h5 files of a previously saved hydrationGUI session with the GUI Result button. The workup folder must have at least the following elements:
-
-+-------------------------+------------------+-----------------------------------------------------------+
-| **Filename**            | **File type**    | **description**                                           |
-+-------------------------+------------------+-----------------------------------------------------------+
-| enhancementPowers.csv   | .csv file        | list of enhancements and corresponding power measurements |                     
-+-------------------------+------------------+-----------------------------------------------------------+
-| kSigma.csv              | .csv file        | ksigma array and corresponding power measurements         |
-+-------------------------+------------------+-----------------------------------------------------------+
-| t1Powers.csv            | .csv file        |  list of T1s and corresponding powers			 |
-+-------------------------+------------------+-----------------------------------------------------------+
-=======
 You may also load the results of “Workup” code processing with the Workup button, or you may select the .mat or .h5 files of a previously saved hydrationGUI session with the GUI Result button. The Workup folder must have at least the following elements:
 
 +-------------------------+------------------+-------------------------------------------------------------------------------+
@@ -130,26 +109,18 @@ You may also load the results of “Workup” code processing with the Workup bu
 +-------------------------+------------------+-------------------------------------------------------------------------------+
 | t1Powers.csv            | .csv file        | list of T1s and corresponding power measurements			             |
 +-------------------------+------------------+-------------------------------------------------------------------------------+
->>>>>>> develop
 
 .. figure:: _static/images/hydrationGUI_previous_results1.png
     :width: 400
     :alt: Importing processing results from Workup
     :align: center
 
-<<<<<<< HEAD
-    Select a workup folder
-
-
-If the .mat workspace was not saved from hydrationGUI, it can still be read and analyzed if it has a structure named "odnp" with at least the following elements:
-=======
     Select a Workup folder
 
 
 If the mat workspace or h5 file were not saved from hydrationGUI, they can still be read and analyzed if they have the same elements. 
 
 The mat workspace must contain a structure named "odnp" with at least the following elements (this matches the structure accepted and saved by the MATLAB App called xODNP, visit https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp):
->>>>>>> develop
 
 +------------------+-----------------+--------------------------------------+
 | **Variable**     | **type**        | **description**                      |
@@ -168,8 +139,6 @@ The mat workspace must contain a structure named "odnp" with at least the follow
 +------------------+-----------------+--------------------------------------+
 | odnp.T10_stdd    | single number   | standard deviation in T10            |     
 +------------------+-----------------+--------------------------------------+
-<<<<<<< HEAD
-=======
 
 The h5 must contain a dictionary named 'hydration_inputs' with at least the following elements:
 
@@ -196,7 +165,6 @@ and a separate dictionary named 'hydration_results' with at least the following 
 +------------------+-----------------+--------------------------------------+
 | T10_stdd         | float           | standard deviation in T10            |                 
 +------------------+-----------------+--------------------------------------+
->>>>>>> develop
 
 .. figure:: _static/images/hydrationGUI_previous_results2.png
     :width: 400
@@ -212,11 +180,7 @@ The results of previous processing will be used to calculate hydration parameter
     :alt: Imported hydrationGUI Results
     :align: center
 
-<<<<<<< HEAD
-    Imported results from mat workspace or h5
-=======
     Analyzed results from previously saved Workup, mat workspace, or h5
->>>>>>> develop
 
 Terminal outputs
 ================
