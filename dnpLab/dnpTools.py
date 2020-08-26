@@ -7,7 +7,6 @@ import math
 
 
 def mrProperties(nucleus, *args):
-# def mrProperty(nucleus, field):
     '''Return magnetic resonance property of specified isotope.
     This function is model after the Matlab function gmr written by Mirko Hrovat
     https://www.mathworks.com/matlabcentral/fileexchange/12078-gmr-m-nmr-mri-properties
@@ -222,3 +221,29 @@ def mrProperties(nucleus, *args):
 
     elif len(args) > 1:
         print("Too many input arguments")
+
+
+
+def radicaProperties(name):
+    '''Return properties of different radicals
+
+    Args:
+
+    Returns:
+
+    '''
+    radicalDict = {}
+    # radicalDict['Name']' = [giso, Ispin, nucleus]
+
+    radicalDict['TEMPO'] = [2.0023, 1, '14N']
+
+    if isinstance(name, str):
+        if nucleus in mrProperties:
+            giso = radialDict.get(name)[1]
+        else:
+            print("Isotope doesn't exist in list")
+            return
+    else:            
+        print("ERROR: String expected")            
+    
+    return giso
