@@ -321,12 +321,6 @@ class hydrationGUI(QMainWindow):
                          'workup_function': {}, 'dnpLab_function': {}, 'workup_data': {}, 'dnpLab_data': {},
                          'hydration_results': {}, 'data_plot': {}, 'enhancement_plot': {}, 't1_plot': {}, 't1_fit': {}}
 
-<<<<<<< HEAD:dnpLab/hydrationGUI.py
-        # set some default parameters
-        self.wrkup_smax = 1
-
-=======
->>>>>>> develop:dnplab/hydrationGUI.py
         self.initUI()
 
     def initUI(self):
