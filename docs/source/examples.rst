@@ -1,5 +1,5 @@
 ===============
-dnpLab Examples
+DNPLab Examples
 ===============
 
 .. |ExamplesLink| raw:: html
@@ -11,9 +11,9 @@ dnpLab Examples
    <a href="https://github.com/DNPLab/dnpLab/tree/master/data" target="_blank"> Link to Data</a>
 
 
-dnpLab comes with many example scripts to demonstrate how the package can be used to import data from different spectrometer platform, process NMR data and extract enhancement data or hydration information. The example scripts are located in the *examples* folder using sample data located in the *data* folder.
+DNPLab comes with many example scripts to demonstrate how the package can be used to import data from different spectrometer platform, process NMR data and extract enhancement data or hydration information. The example scripts are located in the *examples* folder using sample data located in the *data* folder.
 
-If you installed dnplab using pip you can download the example scripts and data from the GitHub repository:
+If you installed DNPlab using pip you can download the example scripts and data from the GitHub repository:
 
 .. list-table::
    :widths: 50 50
@@ -34,7 +34,7 @@ This example uses the example script: *example_process_1Dbruker.py*. The script 
 #. Perform a Fourier transformation
 #. Phase correct the resulting spectrum
 
-If you installed dnplab using pip. Otherwise, you have to specify the path to the package explicitly:
+If you installed DNPlab using pip. Otherwise, you have to specify the path to the package explicitly:
 
 .. code-block:: python
 
@@ -42,7 +42,7 @@ If you installed dnplab using pip. Otherwise, you have to specify the path to th
    import dnplab as dnp
 
 .. note::
-   If you downloaded dnplab via GitHub and haven't installed, you must add the directory for dnplab to the system path before importing dnplab. Add the following lines to the beginning of the script:
+   If you downloaded DNPLab via GitHub and haven't installed, you must add the directory for DNPLab to the system path before importing DNPLab. Add the following lines to the beginning of the script:
 
    .. code-block:: python
 
@@ -69,7 +69,7 @@ In the next step the workspace is set up and the imported data is added to the *
 
 .. note::
 
-    When working with dnpLab one of the first steps is to copy the imported data to the *raw* workspace. That way the raw data and all its attributes will be always accessible to the user. When saving data with dnpLab the raw data is saved together with the processed data. dnpLab uses the h5 format to store data. 
+    When working with DNPLab one of the first steps is to copy the imported data to the *raw* workspace. That way the raw data and all its attributes will be always accessible to the user. When saving data with DNPLab the raw data is saved together with the processed data. DNPLab uses the h5 format to store data. 
 
 In the following steps, the FID is processed and the spectrum is plotted.
 
@@ -132,7 +132,7 @@ Determine T1 from an Inversion Recovery Experiment
 
 In this example, the data from an inversion recovery experiment is analyzed to extract the longitudinal relaxation time T1 from the polarization build up. This example uses the example script: *example_process_IRbruker.py*.
 
-First, import the experimental data (Bruker format) (if dnplab is installed through pip, ignore the first two lines):
+First, import the experimental data (Bruker format) (if DNPlab is installed through pip, ignore the first two lines):
 
 .. code-block:: python
 

@@ -1,4 +1,4 @@
-dnplab.. _import:
+.. _import:
 
 =========
 dnpImport
