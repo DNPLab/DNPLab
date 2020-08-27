@@ -3,7 +3,7 @@ Collection of tools and functions useful to process DNP-NMR data
 '''
 
 import inspect
-import math
+import numpy as np
 
 gmrProperties = {}
 # 'label', 'spin', 'GMR 10^7r/Ts', 'Qmom fm^2', '%NatAbun', 'relH', 'moment', 'Qlw'
@@ -231,7 +231,7 @@ def mrProperties(nucleus, *args):
                 print("Keyword not recognize")
 
         else:
-            vLarmor = args[0] * gmr * 1e7 / 2 / math.pi
+            vLarmor = args[0] * gmr * 1e7 / 2 / np.pi
             return vLarmor
 
     elif len(args) > 1:
