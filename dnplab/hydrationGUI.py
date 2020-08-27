@@ -59,35 +59,35 @@ class hydrationGUI(QMainWindow):
 
         # Create a load hydrationGUI button
         self.hanlabButton = QPushButton('GUI Result', self)
-        self.hanlabButton.setStyleSheet('font : bold ; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
+        self.hanlabButton.setStyleSheet('font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)')
         self.hanlabButton.move(5, 5)
         self.hanlabButton.resize(80, 30)
         self.hanlabButton.clicked.connect(self.GUI_Result_Button)
 
         # Create a load workup button
         self.workupButton = QPushButton('Workup', self)
-        self.workupButton.setStyleSheet('font : bold ; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
+        self.workupButton.setStyleSheet('font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)')
         self.workupButton.move(90, 5)
         self.workupButton.resize(80, 30)
         self.workupButton.clicked.connect(self.Workup_Button)
 
         # Create a load single button
         self.singleButton = QPushButton('Bruker', self)
-        self.singleButton.setStyleSheet('font : bold ; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
+        self.singleButton.setStyleSheet('font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)')
         self.singleButton.move(175, 5)
         self.singleButton.resize(80, 30)
         self.singleButton.clicked.connect(self.Bruker_Button)
 
         # Create a load button
         self.rawdataButton = QPushButton('Han Lab', self)
-        self.rawdataButton.setStyleSheet('font : bold ; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
+        self.rawdataButton.setStyleSheet('font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)')
         self.rawdataButton.move(260, 5)
         self.rawdataButton.resize(80, 30)
         self.rawdataButton.clicked.connect(self.Han_Lab_Button)
 
         # Dataname label
         self.pathLabel = QLabel(self)
-        self.pathLabel.setStyleSheet('font : bold 14px; color : rgb(0, 77, 159)')
+        self.pathLabel.setStyleSheet('font : bold 14px; color : rgb(0, 54, 96)')
         self.pathLabel.move(345, 13)
         self.pathLabel.resize(700, 20)
         self.pathLabel.setText('Data folder path')
@@ -95,37 +95,37 @@ class hydrationGUI(QMainWindow):
         # Phase slider label
         self.phaseLabel = QLabel(self)
         self.phaseLabel.setStyleSheet(
-            'font : bold 14px')  # ; color : rgb(255,184,20)') ; background-color : rgb(0, 77, 159)')
+            'font : bold 14px')  # ; color : rgb(254, 188, 17)') ; background-color : rgb(0, 54, 96)')
         self.phaseLabel.move(10, 520)  # 123, 590
         self.phaseLabel.resize(490, 30)
         self.phaseLabel.setText('   Phase Adjust:')
         # Phase slider
         self.phaseSlider = QSlider(Qt.Horizontal, self)
-        # self.phaseSlider.setStyleSheet('background-color : rgb(0, 77, 159)')
+        # self.phaseSlider.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.phaseSlider.setGeometry(120, 526, 365, 20)
 
         # int center slider label
         self.intcenterLabel = QLabel(self)
         self.intcenterLabel.setStyleSheet(
-            'font : bold 14px')  # ; color : rgb(255,184,20)') ; background-color : rgb(0, 77, 159)')
+            'font : bold 14px')  # ; color : rgb(254, 188, 17)') ; background-color : rgb(0, 54, 96)')
         self.intcenterLabel.move(5, 551)
         self.intcenterLabel.resize(490, 30)
         self.intcenterLabel.setText(' Window center:')
         # int center slider
         self.intcenterSlider = QSlider(Qt.Horizontal, self)
-        # self.intcenterSlider.setStyleSheet('background-color : rgb(0, 77, 159)')
+        # self.intcenterSlider.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.intcenterSlider.setGeometry(120, 557, 365, 20)
 
         # int window slider label
         self.intwindowLabel = QLabel(self)
         self.intwindowLabel.setStyleSheet(
-            'font : bold 14px')  # ; color : rgb(255,184,20)') ; background-color : rgb(0, 77, 159)')
+            'font : bold 14px')  # ; color : rgb(254, 188, 17)') ; background-color : rgb(0, 54, 96)')
         self.intwindowLabel.move(6, 582)
         self.intwindowLabel.resize(490, 30)
         self.intwindowLabel.setText('  Window width:')
         # int window slider
         self.intwindowSlider = QSlider(Qt.Horizontal, self)
-        # self.intwindowSlider.setStyleSheet('background-color : rgb(0, 77, 159)')
+        # self.intwindowSlider.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.intwindowSlider.setGeometry(120, 588, 365, 20)
 
         # optimize phase checkbox
@@ -163,19 +163,19 @@ class hydrationGUI(QMainWindow):
 
         # Create a next button
         self.nextButton = QPushButton('Next', self)
-        self.nextButton.setStyleSheet('font : bold 14px; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
+        self.nextButton.setStyleSheet('font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)')
         self.nextButton.move(625, 525)
         self.nextButton.resize(100, 40)
 
         # Create a next button
         self.autoButton = QPushButton('Auto Process', self)
-        self.autoButton.setStyleSheet('font : bold 14px; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
+        self.autoButton.setStyleSheet('font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)')
         self.autoButton.move(740, 525)
         self.autoButton.resize(100, 40)
 
         # Create a back button
         self.backButton = QPushButton('Back', self)
-        self.backButton.setStyleSheet('font : bold 14px; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
+        self.backButton.setStyleSheet('font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)')
         self.backButton.move(625, 575)
         self.backButton.resize(100, 40)
 
@@ -312,7 +312,7 @@ class hydrationGUI(QMainWindow):
         # MATLAB output button
         self.matoutButton = QPushButton('Save results', self)
         self.matoutButton.setStyleSheet(
-            'font : bold 14px; color : rgb(255,184,20) ; background-color : rgb(0, 77, 159)')
+            'font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)')
         self.matoutButton.move(925, 590)
         self.matoutButton.resize(120, 30)
 
@@ -330,7 +330,7 @@ class hydrationGUI(QMainWindow):
 
         self.intwindowSlider.setMinimum(1)
         self.intwindowSlider.setMaximum(100)
-        self.gui_dict['processing_spec']['integration_width'] = 10
+        self.gui_dict['processing_spec']['integration_width'] = 20
         self.intwindowSlider.setValue(self.gui_dict['processing_spec']['integration_width'])
 
         self.gui_dict['processing_spec']['integration_center'] = 0
@@ -1940,7 +1940,7 @@ class hydrationGUI(QMainWindow):
             if self.optwidthCheckbox.isChecked():
                 pass
             else:
-                self.gui_dict['processing_spec']['integration_width'] = 10
+                self.gui_dict['processing_spec']['integration_width'] = 20
             self.processData()
         else:
             pass
@@ -2053,7 +2053,8 @@ class hydrationGUI(QMainWindow):
     # dark_grey = '#4D4D4F'
     # light_grey = '#A7A9AC'
     # orange = '#F37021'
-    # ucsb blue = '#004D9F'
+    # ucsb navy = '#003660'
+    # ucsb yellow = '#FEBC11'
 
     def plot_data(self):
 
@@ -2067,7 +2068,7 @@ class hydrationGUI(QMainWindow):
             indexes = [.11, .21, .31, .41, .51, .61]
             if self.gui_dict['gui_function']['addWorkup'] and self.gui_dict['workup_function']['show']:
                 self.dataplt.axes.plot(self.gui_dict['workup_data']['Epowers'],
-                                       self.gui_dict['workup_hydration_results']['ksigma_array'], color='#004D9F',
+                                       self.gui_dict['workup_hydration_results']['ksigma_array'], color='#003660',
                                        marker='o', linestyle='none', label=r'Workup $k_\sigma$[p]')
 
                 self.dataplt.axes.text(max(self.gui_dict['dnpLab_data']['Epowers']) * .645, indx_h - (.21 * indx_h),
@@ -2078,7 +2079,7 @@ class hydrationGUI(QMainWindow):
 
             if self.gui_dict['gui_function']['isWorkup']:
                 self.dataplt.axes.plot(self.gui_dict['workup_data']['Epowers'],
-                                       self.gui_dict['workup_hydration_results']['ksigma_array'], color='#004D9F',
+                                       self.gui_dict['workup_hydration_results']['ksigma_array'], color='#003660',
                                        marker='o', linestyle='none', label=r'Workup $k_\sigma$[p]')
                 self.dataplt.axes.plot(self.gui_dict['workup_data']['Epowers'],
                                        self.gui_dict['workup_hydration_results']['ksigma_fit'], color='#F37021',
@@ -2145,11 +2146,11 @@ class hydrationGUI(QMainWindow):
             if self.gui_dict['enhancement_plot']['plotEpfit']:
                 if self.gui_dict['gui_function']['addWorkup'] and self.gui_dict['workup_function']['show']:
                     self.enhplt.axes.plot(self.gui_dict['workup_data']['Epowers'], self.gui_dict['workup_data']['Ep'],
-                                          color='#004D9F', marker='o', linestyle='none', label='Workup')
+                                          color='#003660', marker='o', linestyle='none', label='Workup')
 
                 if self.gui_dict['gui_function']['isWorkup']:
                     self.enhplt.axes.plot(self.gui_dict['workup_data']['Epowers'], self.gui_dict['workup_data']['Ep'],
-                                          color='#004D9F', marker='o', linestyle='none', label='Workup')
+                                          color='#003660', marker='o', linestyle='none', label='Workup')
                     self.enhplt.axes.plot(self.gui_dict['workup_data']['Epowers'],
                                           self.gui_dict['workup_hydration_results']['uncorrected_Ep'], color='#F37021',
                                           label='dnpHydration Fit')
@@ -2183,11 +2184,11 @@ class hydrationGUI(QMainWindow):
         if self.gui_dict['t1_plot']['plotT1interp']:
             if self.gui_dict['gui_function']['addWorkup'] and self.gui_dict['workup_function']['show']:
                 self.t1plt.axes.plot(self.gui_dict['workup_data']['T1powers'], self.gui_dict['workup_data']['T1p'],
-                                     color='#004D9F', marker='o', linestyle='none', label='Workup')
+                                     color='#003660', marker='o', linestyle='none', label='Workup')
 
             if self.gui_dict['gui_function']['isWorkup']:
                 self.t1plt.axes.plot(self.gui_dict['workup_data']['T1powers'], self.gui_dict['workup_data']['T1p'],
-                                     color='#004D9F', marker='o', linestyle='none', label='Workup')
+                                     color='#003660', marker='o', linestyle='none', label='Workup')
                 self.t1plt.axes.plot(self.gui_dict['workup_data']['Epowers'],
                                      self.gui_dict['workup_hydration_results']['interpolated_T1'], '#F37021',
                                      label='Interpolation')
