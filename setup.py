@@ -5,13 +5,13 @@ with open('README.md','r') as f:
     long_description = f.read()
 
 with open('dnplab/version.py', 'r') as f:
-    version_string = f.read()
-    version = version_string.split('=')[1].strip().replace('"', '').replace('\'', '')
+    # Define __version__
+    exec(f.read())
 
 setup(
         name = 'dnplab',
         packages = setuptools.find_packages(),
-        version = version,
+        version = __version__,
         license = 'MIT',
         description = 'dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy',
         long_description=long_description,
