@@ -24,7 +24,6 @@ from matplotlib.figure import Figure
 
 import numpy as np
 from scipy.io import loadmat, savemat
-from scipy import optimize
 import copy
 import re
 import datetime
