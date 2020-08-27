@@ -3,14 +3,10 @@
 # Import python modules
 # If dnplab is installed using pip, the first two lines are not required
 import sys
-sys.path.append('..')
-
 import numpy as np
-<<<<<<< HEAD
+
+sys.path.append('..')
 import dnplab
-=======
-import dnplab as dnp
->>>>>>> develop
 
 # Import data
 path = '\path\to\topsin\data\'

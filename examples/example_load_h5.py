@@ -1,12 +1,8 @@
 import sys
-sys.path.append('..')
 import numpy as np
 
-<<<<<<< HEAD
+sys.path.append('..')
 import dnplab
-=======
-import dnplab as dnp
->>>>>>> develop
 
 filename = '..data/h5/test.h5'
 

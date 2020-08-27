@@ -1,10 +1,6 @@
 import sys
 sys.path.append('..')
-<<<<<<< HEAD
 import dnplab
-=======
-import dnplab as dnp
->>>>>>> develop
 
 exp_num = 40
 path = '../data/prospa/toluene_10mM_Tempone/%i/'
