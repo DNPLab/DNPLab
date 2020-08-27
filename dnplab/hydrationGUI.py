@@ -1061,7 +1061,7 @@ class hydrationGUI(QMainWindow):
                     Epowers = self.gui_dict['workup_data']['Epowers']
                     T1powers = self.gui_dict['workup_data']['T1powers']
 
-                    print('Found workup output, using power values from workup.')
+                    print('Found Workup output, using power values from Workup.')
                     self.gui_dict['rawdata_function']['nopowers'] = False
 
             if self.gui_dict['rawdata_function']['nopowers']:
@@ -1071,7 +1071,7 @@ class hydrationGUI(QMainWindow):
                     if os.path.isfile(
                             self.gui_dict['rawdata_function']['directory'] + 't1_powers.mat') or os.path.isfile(
                         self.gui_dict['rawdata_function']['directory'] + 't1_powers.csv'):
-                        print('No workup output found, using power readings files.')
+                        print('No Workup output found, using power readings files.')
 
                         E_power_List = self.get_powers(self.gui_dict['rawdata_function']['directory'], 'power', 2.5,
                                                        self.gui_dict['folder_structure']['enh'])
@@ -1637,22 +1637,22 @@ class hydrationGUI(QMainWindow):
         self.gui_dict['enhancement_plot']['plotEpfit'] = True
 
         if self.gui_dict['gui_function']['isWorkup']:
-            print('---workup Standard Deviations in T1s---')
-            print('T10: ' + str(round(self.gui_dict['workup_data']['T10'], 2)) + ' +/- ' + str(
+            print('---Workup Standard Deviations in T1s---')
+            print('T1(0): ' + str(round(self.gui_dict['workup_data']['T10'], 2)) + ' +/- ' + str(
                 round(self.gui_dict['workup_data']['T10_stdd'], 4)))
             for k in range(0, len(self.gui_dict['workup_data']['T1p'])):
                 print(str(round(self.gui_dict['workup_data']['T1p'][k], 2)) + ' +/- ' + str(
                     round(self.gui_dict['workup_data']['T1p_stdd'][k], 4)))
         else:
             print('---Standard Deviations in T1s---')
-            print('T10: ' + str(round(self.gui_dict['dnpLab_data']['T10'], 2)) + ' +/- ' + str(
+            print('T1(0): ' + str(round(self.gui_dict['dnpLab_data']['T10'], 2)) + ' +/- ' + str(
                 round(self.gui_dict['dnpLab_data']['T10_stdd'], 4)))
             for k in range(0, len(self.T1p)):
                 print(str(round(self.T1p[k], 2)) + ' +/- ' + str(round(self.T1p_stdd[k], 4)))
 
             if self.gui_dict['gui_function']['addWorkup']:
-                print('---workup Standard Deviations in T1s---')
-                print('T10: ' + str(round(self.gui_dict['workup_data']['T10'], 2)) + ' +/- ' + str(
+                print('---Workup Standard Deviations in T1s---')
+                print('T1(0): ' + str(round(self.gui_dict['workup_data']['T10'], 2)) + ' +/- ' + str(
                     round(self.gui_dict['workup_data']['T10_stdd'], 4)))
                 for k in range(0, len(self.gui_dict['workup_data']['T1p'])):
                     print(str(round(self.gui_dict['workup_data']['T1p'][k], 2)) + ' +/- ' + str(
@@ -1862,19 +1862,19 @@ class hydrationGUI(QMainWindow):
             print('Workup (dnpHydration): ' + str(
                 round(self.gui_dict['workup_hydration_results']['ksigma'], 2)) + ' +/- ' + str(
                 round(self.gui_dict['workup_hydration_results']['ksigma_stdd'], 4)))
-            print('workup = ' + str(
+            print('Workup = ' + str(
                 round(self.gui_dict['workup_data']['kSigma'] / spin_C / self.wrkup_smax, 2)) + ' +/- ' + str(
                 round(self.gui_dict['workup_data']['kSigma_stdd'] / spin_C / self.wrkup_smax, 4)))
         else:
-            print('DNPLab (dnpHydration): = ' + str(
+            print('DNPLab = ' + str(
                 round(self.gui_dict['hydration_results']['ksigma'], 2)) + ' +/- ' + str(
                 round(self.gui_dict['hydration_results']['ksigma_stdd'], 4)))
             if self.gui_dict['workup_function']['fit']:
-                print('Workup (dnpHydration): ' + str(
+                print('Workup (dnpHydration) = ' + str(
                     round(self.gui_dict['workup_hydration_results']['ksigma'], 2)) + ' +/- ' + str(
                     round(self.gui_dict['workup_hydration_results']['ksigma_stdd'], 4)))
             if self.gui_dict['gui_function']['addWorkup']:
-                print('workup = ' + str(
+                print('Workup = ' + str(
                     round(self.gui_dict['workup_data']['kSigma'] / spin_C / self.wrkup_smax, 2)) + ' +/- ' + str(
                     round(self.gui_dict['workup_data']['kSigma_stdd'] / spin_C / self.wrkup_smax, 4)))
 
