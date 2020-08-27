@@ -15,7 +15,7 @@ Call the dnpHydration module by first creating a parameter dictionary and hydrat
     > T1_powers = # list of T1 values powers in Watts
     > T10 = # T1(0) value in seconds, i.e. T1 measured with power=0
     >
-    > pars = dict() # initiate input parameters dictionary
+    > pars = {} # initialize the input parameters dictionary
     > pars['T100'] = # T10(0) value in seconds, i.e. T1 measured with SL=0 and power=0
     > pars['spin_C'] = # spin concentration in micromolar
     > pars['field'] = # magnetic field in mT
