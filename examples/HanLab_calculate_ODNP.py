@@ -10,11 +10,8 @@ from scipy.io import loadmat
 
 import sys
 sys.path.append('..')
-<<<<<<< HEAD
 import dnplab
-=======
-import dnplab as dnp
->>>>>>> develop
+
 ### DO NOT EDIT ABOVE ###
 
 '''

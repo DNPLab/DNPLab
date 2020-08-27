@@ -1,12 +1,9 @@
 import sys
-sys.path.append('..')
-
-<<<<<<< HEAD
 import numpy as np
+
+sys.path.append('..')
 import dnplab
-=======
-import dnplab as dnp
->>>>>>> develop
+
 
 path = '../data/prospa/toluene_10mM_Tempone/'
 exp_list = [str(x) for x in range(1,43)]
