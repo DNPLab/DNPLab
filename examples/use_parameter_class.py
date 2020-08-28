@@ -1,5 +1,5 @@
 """This example shows ways to use Parameter class"""
-from dnpLab.dnpHydration import Parameter
+from dnplab.dnpHydration import Parameter
 
 """1. Create a Child Parameter Class"""
 class MyParam(Parameter):

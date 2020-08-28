@@ -1,5 +1,5 @@
 import numpy as np
-from dnpLab.dnpData import dnpdata
+from dnplab.dnpData import dnpdata
 
 
 def get_gauss_3d(std_noise = 0.):

@@ -9,6 +9,8 @@ dnpdata Class Overview
 
 The dnpdata class is a flexible data container for N-dimensional data. The dnpdata class stores data, axes, parameters and processing information in a single object. 
 
+The dnpdata class integrates some concepts from, and designed for ongoing compatibility with, `pySpecData <https://jmfrancklab.github.io/pyspecdata/>`_, an object-oriented spectral data processing package developed by the Franck Lab at Syracuse University, with ongoing collaborations between the development teams at Bridge12 Technologies, Inc. and the Han Lab at University of California, Santa Barabara.
+
 dnpdata Attributes
 ==================
 
@@ -35,7 +37,7 @@ A dnpdata object can be defined as follows:
 
 .. code-block:: python
 
-   import dnpLab as dnp
+   import dnplab as dnp
    import numpy as np
 
    x = np.r_[-10:10:100j]
@@ -83,7 +85,7 @@ A number of methods can be used to index the data based on the coordinates.
 dnpdata Methods
 ===============
 
-.. autoclass:: dnpLab.dnpdata
+.. autoclass:: dnplab.dnpdata
    :members:
    :show-inheritance:
    :member-order: bysource
@@ -97,7 +99,7 @@ To store multiple data objects, the user can create a workspace which is a dict 
 
 .. code-block:: python
 
-   import dnpLab as dnp
+   import dnplab as dnp
    
    ws = dnp.create_workspace()
    ws['raw'] = data
@@ -140,7 +142,7 @@ A workspace can also be loaded with the loadh5 function.
 dnpdata_collection Methods
 ==========================
 
-.. autoclass:: dnpLab.dnpdata_collection
+.. autoclass:: dnplab.dnpdata_collection
    :members:
    :show-inheritance:
    :member-order: bysource

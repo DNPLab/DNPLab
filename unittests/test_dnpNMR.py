@@ -1,10 +1,10 @@
 
 import unittest
 from numpy.testing import assert_array_equal
-from dnpLab.core import nddata
-import dnpLab.dnpImport.vnmrj as vnmrj
-import dnpLab.dnpNMR as nmr
-import dnpLab as dnp
+from dnplab.core import nddata
+import dnplab.dnpImport.vnmrj as vnmrj
+import dnplab.dnpNMR as nmr
+import dnplab as dnp
 import numpy as np
 import random
 

@@ -5,6 +5,9 @@ dnpLab is a collaboration between:
 - [Han Lab UCSB](https://han.chem.ucsb.edu/)
 - [Franck Lab Syracuse University](https://jmfrancklab.github.io/)
 
+Authors:
+Timothy Keller, Thomas Casey, Yanxian Lin, John Franck, Thorsten Maly, Songi Han
+
 dnpLab is an open-source, python library for importing and processing DNP-NMR data.
 
 # Features
@@ -28,10 +31,13 @@ pip install numpy matplotlib scipy h5py PyQt5
 dnpLab can be installed via pip:
 
 ```console
-pip install dnpLab
+pip install dnplab
 ```
+
+# Documenation
+
+Find the online documentation at: http://docs.dnplab.net
 
 # Developement 
 
-  - Clone the git repository from https://bitbucket.org/tmaly/odnplab/
-
+  - Clone the git repository from https://github.com/DNPLab/dnpLab
