@@ -29,19 +29,19 @@ if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
 if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
     QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
-with open('isotopes_data.csv', 'r') as f:
+with open('isotopes_data.txt', 'r') as f:
 
     elements = {}
 
     header_line = f.readline()
-    header_list = header_line.strip().split(',')
+    header_list = header_line.strip().split('\t')
 
     while True:
         isotope = {}
         line = f.readline()
         if line == '':
             break
-        data = line.strip().split(',')
+        data = line.strip('\n').split('\t')
         for column, header in enumerate(header_list):
             isotope[header] = data[column]
 
@@ -50,12 +50,12 @@ with open('isotopes_data.csv', 'r') as f:
 
         elements[isotope['Symbol']].append(isotope)
  
-with open('atomic_number_symbol_row_column.csv', 'r') as f:
+with open('atomic_number_symbol_row_column.txt', 'r') as f:
 
     periodic_table_data = {}
 
     header_line = f.readline()
-    header_list = header_line.strip().split(',')
+    header_list = header_line.strip().split('\t')
 
     line = ''
     while True:
@@ -64,7 +64,7 @@ with open('atomic_number_symbol_row_column.csv', 'r') as f:
         if line == '':
             break
 
-        data = line.strip().split(',')
+        data = line.strip().split('\t')
 
         info = {}
         for column, header in enumerate(header_list):
@@ -150,8 +150,8 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
                     element_height * 13 + border_height*14)
 
         self.frequency_header = 'Frequency (MHz)'
-        self.table_column_header = ['Mass Number', 'Symbol', 'Isotope', 'Spin', self.frequency_header, 'Magnetogyric ratio (10^7 rad / (T s))', 'Quadrupole Moment (Q/fm^2)','Frequency Ratio', 'Natural Abundance', 'Relative Receptivity 1H', 'Relative Receptivity 13C']
-        self.table_column_header_alias = ['', 'Symbol','Isotope', 'Spin', 'Frequency (MHz)', 'Magnetogyric ratio (10^7 rad / (T s))', 'Quadrupole Moment (Q/fm^2)', 'Frequency Ratio', 'Natural Abundance', 'Relative Receptivity 1H', 'Relative Receptivity 13C']
+        self.table_column_header = ['Mass Number', 'Symbol', 'Isotope', 'Spin', self.frequency_header, 'Magnetogyric ratio (10^7 rad / (T s))', 'Quadrupole Moment (Q/fm^2)','Frequency Ratio', 'Natural Abundance', 'Line-width Factor (l/fm^4)', 'Relative Receptivity 1H', 'Relative Receptivity 13C']
+        self.table_column_header_alias = ['', 'Symbol','Isotope', 'Spin', 'Frequency (MHz)', 'Magnetogyric ratio (10^7 rad / (T s))', 'Quadrupole Moment (Q/fm^2)', 'Frequency Ratio', 'Natural Abundance', 'Line-width Factor (l/fm^4)', 'Relative Receptivity 1H', 'Relative Receptivity 13C']
 
         self.frequency_ix = self.table_column_header.index(self.frequency_header)
         self.gyro_ix = self.table_column_header.index('Magnetogyric ratio (10^7 rad / (T s))')
