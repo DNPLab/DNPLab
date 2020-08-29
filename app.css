@@ -1,0 +1,177 @@
+/*Color Code*/
+:root {
+ --ucsb-blue: #003660;
+ --ucsb-gold: #FEBC11;
+ --ucsb-gold-light: #fff8e6;
+ --ucsb-light-light-gray: #EEF0F2;
+ --b12-green: #67AE3E;
+ --b12-green-light: #f1f8ec;
+ --b12-orange: #F37021;
+ --bold-text-color: var(--ucsb-blue);
+ --highlight-color: var(--b12-green);
+ --background-color: var(--ucsb-light-light-gray);
+ --value-color: black;
+}
+
+/*UCSB font-face*/
+@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-35Light.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-35Light.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-35Light.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-35Light.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-35Light.ttf) format("truetype");font-weight:100;font-style:normal;font-stretch:normal}@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-35LightOblique.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-35LightOblique.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-35LightOblique.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-35LightOblique.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-35LightOblique.ttf) format("truetype");font-weight:100;font-style:italic;font-stretch:normal}@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-45Book.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-45Book.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-45Book.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-45Book.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-45Book.ttf) format("truetype");font-weight:200;font-style:normal;font-stretch:normal}@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-45BookOblique.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-45BookOblique.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-45BookOblique.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-45BookOblique.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-45BookOblique.ttf) format("truetype");font-weight:200;font-style:italic;font-stretch:normal}@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-55Roman.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-55Roman.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-55Roman.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-55Roman.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-55Roman.ttf) format("truetype");font-weight:300;font-style:normal;font-stretch:normal}@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-55Oblique.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-55Oblique.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-55Oblique.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-55Oblique.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-55Oblique.ttf) format("truetype");font-weight:300;font-style:italic;font-stretch:normal}@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-65Medium.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-65Medium.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-65Medium.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-65Medium.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-65Medium.ttf) format("truetype");font-weight:400;font-style:normal;font-stretch:normal}@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-65MediumOblique.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-65MediumOblique.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-65MediumOblique.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-65MediumOblique.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-65MediumOblique.ttf) format("truetype");font-weight:400;font-style:italic;font-stretch:normal}@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-85Heavy.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-85Heavy.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-85Heavy.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-85Heavy.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-85Heavy.ttf) format("truetype");font-weight:500;font-style:normal;font-stretch:normal}@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-85HeavyOblique.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-85HeavyOblique.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-85HeavyOblique.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-85HeavyOblique.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-85HeavyOblique.ttf) format("truetype");font-weight:500;font-style:italic;font-stretch:normal}@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-95Black.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-95Black.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-95Black.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-95Black.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-95Black.ttf) format("truetype");font-weight:600;font-style:normal;font-stretch:normal}@font-face{font-family:Avenir;src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-95BlackOblique.eot?#iefix);src:url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-95BlackOblique.eot?#iefix) format("eot"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-95BlackOblique.woff2) format("woff2"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-95BlackOblique.woff) format("woff"),url(https://webfonts.brand.ucsb.edu/Avenir/AvenirLTW04-95BlackOblique.ttf) format("truetype");font-weight:600;font-style:italic;font-stretch:normal}@font-face{font-family:Produkt;src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Thin-Web.eot);src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Thin-Web.eot?#iefix) format('embedded-opentype'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Thin-Web.woff2) format('woff2'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Thin-Web.woff) format('woff');font-weight:100;font-style:normal;font-stretch:normal}@font-face{font-family:Produkt;src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Extralight-Web.eot);src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Extralight-Web.eot?#iefix) format('embedded-opentype'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Extralight-Web.woff2) format('woff2'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Extralight-Web.woff) format('woff');font-weight:200;font-style:normal;font-stretch:normal}@font-face{font-family:Produkt;src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Light-Web.eot);src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Light-Web.eot?#iefix) format('embedded-opentype'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Light-Web.woff2) format('woff2'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Light-Web.woff) format('woff');font-weight:300;font-style:normal;font-stretch:normal}@font-face{font-family:Produkt;src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Regular-Web.eot);src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Regular-Web.eot?#iefix) format('embedded-opentype'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Regular-Web.woff2) format('woff2'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Regular-Web.woff) format('woff');font-weight:400;font-style:normal;font-stretch:normal}@font-face{font-family:Produkt;src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Medium-Web.eot);src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Medium-Web.eot?#iefix) format('embedded-opentype'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Medium-Web.woff2) format('woff2'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Medium-Web.woff) format('woff');font-weight:500;font-style:normal;font-stretch:normal}@font-face{font-family:Produkt;src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Semibold-Web.eot);src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Semibold-Web.eot?#iefix) format('embedded-opentype'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Semibold-Web.woff2) format('woff2'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Semibold-Web.woff) format('woff');font-weight:600;font-style:normal;font-stretch:normal}@font-face{font-family:Produkt;src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Bold-Web.eot);src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Bold-Web.eot?#iefix) format('embedded-opentype'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Bold-Web.woff2) format('woff2'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Bold-Web.woff) format('woff');font-weight:700;font-style:normal;font-stretch:normal}@font-face{font-family:Produkt;src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Black-Web.eot);src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Black-Web.eot?#iefix) format('embedded-opentype'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Black-Web.woff2) format('woff2'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Black-Web.woff) format('woff');font-weight:800;font-style:normal;font-stretch:normal}@font-face{font-family:Produkt;src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Super-Web.eot);src:url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Super-Web.eot?#iefix) format('embedded-opentype'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Super-Web.woff2) format('woff2'),url(https://webfonts.brand.ucsb.edu/Produkt/Produkt-Super-Web.woff) format('woff');font-weight:900;font-style:normal;font-stretch:normal}
+
+.avenir-light {
+  font-family:Avenir, "Century Gothic", sans-serif;
+  font-weight:100;
+  font-style:normal;
+}
+
+.avenir-black-oblique {
+  font-family:Avenir, "Century Gothic", sans-serif;
+  font-weight:600;
+  font-style:italic;
+}
+
+.produkt-thin {
+  font-family:Produkt, serif;
+  font-weight:100;
+  font-style:normal;
+}
+
+body {
+ /*color: #3d4952;*/
+ /*
+ color: black;
+ font-family: Avenir, "Century Gothic", sans-serif;
+ font-weight: 200;
+ font-style: normal;
+ font-size: 16px;
+ */
+    font-weight: normal;
+    color: #404040;
+    min-height: 100%;
+}
+
+h1, h2, h3, h4 {
+  font-family: Avenir, "Century Gothic", sans-serif;
+}
+
+/*
+h1 {
+  color: var(--ucsb-blue);
+  font-family: Avenir, "Century Gothic", sans-serif;
+  font-weight: 600;
+  font-size: 38px;
+  letter-spacing: -0.1pt;
+}
+
+
+h2 {
+  color: var(--ucsb-blue);
+  font-family: Avenir, "Century Gothic", sans-serif;
+  font-weight: 600;
+  font-size: 27px;
+  letter-spacing: -0.1pt;
+  margin: 26px 0 10px 0;
+}
+
+
+h3 { font-family: Avenir, "Century Gothic", sans-serif; font-weight: 600; font-size: 21px; margin: 20px 0 10px 0; }
+
+
+h4 { font-family: Avenir, "Century Gothic", sans-serif; font-weight: 600; font-size: 16px; margin: 16px 0 8px 0; }
+
+
+h5 { font-family: Avenir, "Century Gothic", sans-serif; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+
+
+h6 { font-family: Avenir, "Century Gothic", sans-serif; font-weight: 400; font-size: 12px; text-transform: uppercase; }
+*/
+
+/*body text*/
+.reportview-container .markdown-text-container {
+ font-family: Avenir, "Century Gothic", sans-serif;
+ margin-bottom: -1rem;
+}
+
+html {
+  -webkit-tap-highlight-color: var(--highlight-color);
+}
+
+.reportview-container .markdown-text-container a {
+    color: var(--highlight-color);
+}
+
+.st-cf {
+    color: var(--highlight-color);
+}
+
+.st-cs {
+    border: var(--highlight-color);
+}
+
+.st-f5:focus {
+    box-shadow: var(--background-color);
+}
+.st-f6:focus {
+    color: var(--highlight-color);
+}
+.st-bg:focus {
+    border-color: var(--highlight-color);
+}
+
+.st-cn {
+    background: var(--highlight-color);
+}
+
+.st-ak {
+    background-color: var(--background-color);
+}
+
+/* black code */
+code {
+  color: black;
+}
+
+code, pre {
+  background: var(--background-color);
+}
+
+/* side bar */
+.sidebar .sidebar-content {
+  background-color: var(--background-color);
+  background-image: none;
+}
+/* button */
+.st-dn {
+  background-color: var(--highlight-color);
+}
+.stNumberInput div.input-container div.controls .control:focus, .stNumberInput
+div.input-container div.controls .control:hover {
+  background-color: var(--highlight-color);
+}
+/* hovering */
+.st-f0:hover {
+  color: var(--highlight-color);
+  /*color: var(--b12-orange);*/
+}
+.st-ez:hover {
+  border-color: var(--highlight-color);
+}
+.btn-outline-info:not(:disabled):not(.disabled):focus,
+.btn-outline-info:not(:disabled):not(.disabled):hover,
+.btn-outline-primary:not(:disabled):not(.disabled):focus,
+.btn-outline-primary:not(:disabled):not(.disabled):hover,
+.btn-outline-secondary:not(:disabled):not(.disabled):focus,
+.btn-outline-secondary:not(:disabled):not(.disabled):hover {
+  color: var(--highlight-color);
+  border-color: var(--highlight-color);
+}
+
+.stFileUploader .uploadStatus .btn {
+  color: var(--highlight-color);
+}
+
+element.style {
+  color: var(--value-color);
+}
+
+span.string-value {
+  color: var(--value-color);
+}

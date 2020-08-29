@@ -8,7 +8,7 @@ import time
 import numpy as np
 from scipy.io import loadmat
 
-import dnplab
+import dnpLab as dnplab
 ### DO NOT EDIT
 
 '''

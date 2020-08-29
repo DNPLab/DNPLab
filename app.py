@@ -6,7 +6,7 @@ import pprint
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from examples.HanLab_calculate_ODNP import hanlab_calculate_odnp
+from examples.HanLab_calculate_ODNP_FilterCorruptData import hanlab_calculate_odnp
 from dnpLab.dnpHydration import HydrationParameter
 from app_helper import ProcParameter, dict_to_str, get_table_download_link
 
@@ -16,12 +16,12 @@ print = pprint.pprint
 
 # TEMPDIR = '/tmp/odnplab/'
 TEMPDIR = None
-VERSION = "v1.0"
+VERSION = "v1.3"
 CNSI_EMX_LINK = 'https://www.mrl.ucsb.edu/spectroscopy-facility/instruments/7-bruker-emxplus-epr-spectrometer'
 DEMO_DATA_LINK = 'https://github.com/ylin00/odnplab/raw/master/20190821_TW_4OH-TEMPO_500uM_.zip'
 ISSUE_COMPLAINT_LINK = 'https://github.com/ylin00/odnplab/issues'
-DNPLAB_REPO_LINK = ''
-DNPLAB_DOC_LINK = ''
+DNPLAB_REPO_LINK = 'https://github.com/DNPLab/dnpLab'
+DNPLAB_DOC_LINK = 'http://dnplab.net/'
 
 
 def set_par(ppar:ProcParameter, hpar:HydrationParameter):
@@ -160,7 +160,8 @@ ss = stss.get(
     b_run=False
 )
 
-st.title(f'ODNPLab: One-Step ODNP Processing \n {VERSION} \t Powered by DNPLab ')
+st.markdown('<style>' + open('app.css').read() + '</style>', unsafe_allow_html=True)
+st.title(f'ODNPLab: One-Step ODNP Processing \n {VERSION} \t Powered by [DNPLab]({DNPLAB_DOC_LINK}) ')
 
 st.markdown("## Upload a Zip file")
 uploaded_file = st.file_uploader("Here ->", type="zip")
