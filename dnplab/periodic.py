@@ -11,6 +11,19 @@ dark_grey = QtGui.QColor(88, 89, 91)
 
 orange = QtGui.QColor(243, 112, 33)
 
+group_block_color_dict = {
+        'Nonmetal' : QtGui.QColor(255, 255, 186),
+        'Halogen' : QtGui.QColor(255, 255, 186),
+        'Alkali metal' : QtGui.QColor(255, 201, 201),
+        'Alkaline earth metal' : QtGui.QColor(210, 210, 255),
+        'Transition metal' : QtGui.QColor(185, 220, 255),
+        'Metalloid' : QtGui.QColor(224, 237, 186),
+        'Noble gas' : QtGui.QColor(255, 227, 186),
+        'Post-transition metal' : QtGui.QColor(187, 255, 187),
+        'Lanthanide' : QtGui.QColor(174, 255, 255),
+        'Actinide' : QtGui.QColor(194, 255, 235),
+        }
+
 element_width = 40
 element_height = 50
 atomic_number_height = 15
@@ -49,7 +62,7 @@ with open('isotopes_data.txt', 'r') as f:
 
         elements[isotope['Symbol']].append(isotope)
  
-with open('atomic_number_symbol_row_column.txt', 'r') as f:
+with open('atomic_number_symbol_row_column_groupblock.txt', 'r') as f:
 
     periodic_table_data = {}
 
@@ -180,13 +193,14 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
             atomic_number = data['Atomic Number']
             symbol = element_symbol
+            color = group_block_color_dict[data['GroupBlock']]
 
             row = data['Row']
             column = data['Column']
 
             if element_symbol in elements:
                 isotopes = elements[element_symbol]
-                color = light_green
+#                color = light_green
             else:
                 isotopes = {}
                 color = dark_grey
