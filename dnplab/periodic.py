@@ -229,7 +229,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         for row in range(self.list_data.rowCount()):
             try:
                 gyro = float(self.list_data.item(row, self.gyro_ix).text())
-                frequency = gyro * float(self.field_spinbox.value()) / (2.*np.pi) * 10.
+                frequency = abs(gyro) * float(self.field_spinbox.value()) / (2.*np.pi) * 10.
                 self.list_data.setItem(row, self.frequency_ix, QtWidgets.QTableWidgetItem('%0.05f'%frequency))
             except:
                 pass
