@@ -19,7 +19,7 @@ border_height = 5
 font = "Arial"
 symbol_point_size = 14
 atomic_number_point_size = 8
-field_point_size = 8
+field_point_size = 12
 
 # 4k display
 if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
@@ -158,7 +158,6 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.frequency_ix = self.table_column_header.index(self.frequency_header)
         self.gyro_ix = self.table_column_header.index('Magnetogyric ratio (10^7 rad / (T s))')
 
-        self.statusBar().showMessage('Ready')
 
         self.list_data = QtWidgets.QTableWidget(self)
         self.list_data.setGeometry(QtCore.QRect(int(element_width * 0 + border_width * 1),
@@ -170,31 +169,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.list_data.horizontalHeader().setVisible(False)
         self.list_data.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
 
-
-        self.field_label = QtWidgets.QLabel(self)
-        self.field_label.setGeometry(QtCore.QRect(int(element_width * 0 + border_width * 1),
-                                                  int(element_height * 7.5 + border_height*8),
-                                                  int(element_width * 2 + border_width * 3),
-                                                  int(element_height * 0.5 + border_height*1)))
-        self.field_label.setText('Field (T)')
-        field_font = QtGui.QFont()
-        field_font.setFamily(font)
-        field_font.setPointSize(field_point_size)
-        self.field_label.setFont(field_font)
-        self.field_label.setAlignment(QtCore.Qt.AlignCenter)
-
-        self.field_spinbox = QtWidgets.QDoubleSpinBox(self)
-        self.field_spinbox.setGeometry(QtCore.QRect(int(element_width * 0 + border_width * 1),
-                                                    int(element_height * 8 + border_height*8.5),
-                                                    int(element_width * 2 + border_width * 3),
-                                                    int(element_height * 0.5 + border_height*1)))
-
-        self.field_spinbox.setValue(0.35)
-        self.field_spinbox.setSingleStep(0.0001)
-        self.field_spinbox.setDecimals(6)
-        self.field_spinbox.setRange(0,1000)
-
-        self.field_spinbox.valueChanged.connect(self.update_table)
+        self.setup_field_spinbox()
 
         selected_element_symbol = 'H'
 
@@ -221,6 +196,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         self.set_selected_element(element_dict[selected_element_symbol])
 
         self.setup_table()
+        self.statusBar().showMessage('Ready')
 
     def set_selected_element(self, element):
         if hasattr(self, 'selected_element'):
@@ -231,16 +207,41 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
     def update_table(self):
         for row in range(self.list_data.rowCount()):
-            try:
+            if row != 0:
                 gyro = float(self.list_data.item(row, self.gyro_ix).text())
                 frequency = abs(gyro) * float(self.field_spinbox.value()) / (2.*np.pi) * 10.
                 self.list_data.setItem(row, self.frequency_ix, QtWidgets.QTableWidgetItem('%0.05f'%frequency))
-            except:
-                pass
 
         header = self.list_data.horizontalHeader()
         for column in range(self.list_data.columnCount()):
             header.setSectionResizeMode(column, QtWidgets.QHeaderView.ResizeToContents)
+
+    def setup_field_spinbox(self):
+        self.field_label = QtWidgets.QLabel(self)
+        self.field_label.setGeometry(QtCore.QRect(int(element_width * 0 + border_width * 1),
+                                                  int(element_height * 7.5 + border_height*8),
+                                                  int(element_width * 2 + border_width * 3),
+                                                  int(element_height * 0.5 + border_height*1)))
+        self.field_label.setText('Field (T)')
+        field_font = QtGui.QFont()
+        field_font.setFamily(font)
+        field_font.setPointSize(field_point_size)
+        self.field_label.setFont(field_font)
+        self.field_label.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.field_spinbox = QtWidgets.QDoubleSpinBox(self)
+        self.field_spinbox.setGeometry(QtCore.QRect(int(element_width * 0 + border_width * 1),
+                                                    int(element_height * 8 + border_height*8.5),
+                                                    int(element_width * 2 + border_width * 3),
+                                                    int(element_height * 0.5 + border_height*1)))
+
+        self.field_spinbox.setValue(0.35)
+        self.field_spinbox.setSingleStep(0.0001)
+        self.field_spinbox.setDecimals(6)
+        self.field_spinbox.setRange(0,1000)
+        self.field_spinbox.setFont(field_font)
+
+        self.field_spinbox.valueChanged.connect(self.update_table)
 
     def setup_table(self):
         isotopes = self.selected_element.isotopes
