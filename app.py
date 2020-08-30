@@ -61,14 +61,15 @@ def set_par(ppar:ProcParameter, hpar:HydrationParameter):
 
 
 def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
-    """
+    """Process uploaded zipfile
 
     Args:
         uploaded_file: zip file object
 
-    Returns: tuple(dict, str, HydrationResults)
-        mydict: dictionary of results
+    Returns: tuple(dict, str, dict)
+        mydict: dictionary of hydration results in strings
         expname: name of the experiment
+        hresults: dictionary of hydration results
 
     """
     # print(f"You just upload this file -> {uploaded_file}")
@@ -82,12 +83,9 @@ def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
             # Select the first folder ended with '/1/', no matter how deep
             expname = sorted([x for x in zip_ref.namelist() if x[-3:] == '/1/' and 'pdata' not in x])
             if expname is None or len(expname) == 0:
-                st.markdown(f"""
-                ## Error
-                I could not find a folder with experiment number 1.
-                
-                Could you double check if you have `my_odnp_exp/1/`?
-                
+                st.warning(f"""
+                I could not find a folder with experiment number 1. \n
+                Could you double check if you have `my_odnp_exp/1/`? \n
                 If problems are still there, please report the issue below.
                  """)
                 return {}, '', {}
@@ -96,7 +94,6 @@ def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
 
         # Process CNSI ODNP and return a str of results
         path = os.path.join(tmpdir, expname)  # path to CNSI data folder
-
         pars = {
             'integration_width'  : ppar.eiw,
              'spin_C'             : hpar.spin_C,
@@ -106,8 +103,16 @@ def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
              't1_interp_method'   : hpar.t1_interp_method,
              'drop_e_powers'       : ppar['drop_e_powers'],
              'drop_t1_powers'      : ppar['drop_t1_powers']
-        }
+        }  # TODO: creating a dictionary is error-prone, replace it with a parameter class
         hresults = hanlab_calculate_odnp(path, pars, verbose=ppar.verbose)
+        # Check T1,0 vs T1,0,0
+        t10, t10std, t100 = hresults['T10'], hresults['T10_std'], hpar.T100
+        if t10 + t10std > t100:
+            st.warning(
+                r"Error: $T_{1,0,0}$ must no less than T_{1,0} + stdev(T_{1,0}) \n"+
+                r"$T_{1,0,0}, T_{1,0}, stdev(T_{1,0}) = "+
+                rf"{round(t100,2)}, {round(t10,2)}, {round(t10std,2)}$")
+            return {}, '', {}
         mydict = {k: v for k, v in hresults.items()
                   if type(v) != type(np.ndarray([]))}
         mydict.update({k: ', '.join([f"{vi:.4f}" for vi in v])
@@ -118,24 +123,99 @@ def run(uploaded_file, ppar:ProcParameter, hpar:HydrationParameter):
 
 
 def plot(data:dict):
-    """Create EDA"""
-    if len(data) > 0:
-        fig, axes = plt.subplots(1, 2, figsize=[6, 3], squeeze=True)
-        # Enhancement plot
-        axes[0].plot(data['E_power'], data['E'], '.k')
-        axes[0].set_xlabel('Power')
-        axes[0].set_ylabel('Enhancement')
-        # T1 plot
-        axes[1].plot(data['T1_power'], data['T1'], '.k')
-        axes[1].set_xlabel('Power')
-        axes[1].set_ylabel('T1 (s)')
+    """Create a plot
 
-        fig.tight_layout()
-        st.pyplot()
+        +-----------+
+        |     A     |
+        |           |
+        +-----+-----+
+        |  B  |  C  |
+        +-----+-----+
+
+        A: ksigma ~ power
+        B: E ~ power
+        C: T1 ~ power
+
+    Args:
+        data: a dictionary of hydration results
+
+    """
+    if not data:
+        return
+
+    def plot_t1(ax, x, y, label=None):
+        ax.plot(x, y, color = '#003660', marker = 'o', linestyle = 'none', label=label)
+
+    def plot_t1_fit(ax, x, y, label=None):
+        ax.plot(x, y, color = '#F37021', label=label)
+
+    def plot_enhancement(ax, x, y, label=None):
+        ax.plot(x, y, color='#003660', marker='o', linestyle='none', label=label)
+
+    def plot_enhancement_fit(ax, x, y, label='Fit'):
+        plot_t1_fit(ax, x, y, label)
+
+    def plot_ksigma(ax, x, y, label=r'DNPLab $k_\sigma$[p]'):
+        plot_t1(ax, x, y, label)
+
+    def plot_ksigma_fit(ax, x, y, label=r'dnpHydration Fit'):
+        plot_t1_fit(ax, x, y, label)
+
+    fig = plt.figure(constrained_layout=True)
+    gs = fig.add_gridspec(2, 3)
+    f3_ax1 = fig.add_subplot(gs[:, 0:2])
+    f3_ax2 = fig.add_subplot(gs[0, 2])
+    f3_ax3 = fig.add_subplot(gs[1, 2])
+    # ksigma plot
+    plot_ksigma(f3_ax1, data['E_power'], data['ksigma_array'], label=None)
+    plot_ksigma_fit(f3_ax1, data['E_power'], data['ksigma_fit'], label='Fit')
+    f3_ax1.set_xlabel('Power')
+    f3_ax1.set_ylabel(r'$k_\sigma$ ($s^{-1} M^{-1}$)')
+    f3_ax1.legend()
+    # text in ksigma plot
+    x_max, y_max = max(data['E_power']), max(data['ksigma_array'])
+    for offset, text in zip([0, 0.05, 0.10, 0.15, 0.2, 0.25], [
+        rf"$k_\sigma = {round(data['ksigma'], 2)} \pm {round(data['ksigma_stdd'])}$" + r" $s^{-1} M^{-1}$",
+        rf"$k_\rho = {round(data['krho'], 2)}$" + r" $s^{-1} M^{-1}$",
+        r"$k_{low}"+rf"= {round(data['klow'], 2)}$" + r" $s^{-1} M^{-1}$",
+        r"$t_{corr}"+rf"= {round(data['tcorr'], 2)}$ ps",
+        r"$D_{local}"+rf"= {round(data['Dlocal']*1e9, 3)}$"+r"$\times10^{-9}d^2/s$",
+        rf"$\xi = {round(data['coupling_factor'], 4)}$"
+    ]):
+        f3_ax1.text(x_max * 0.4, y_max * (0.5 - offset), text, fontsize=12)
+    # Enhancement plot
+    plot_enhancement(f3_ax2, data['E_power'], data['E'], label=None)
+    plot_enhancement_fit(f3_ax2, data['E_power'], data['uncorrected_Ep'], label='Fit')
+    f3_ax2.set_xlabel('Power')
+    f3_ax2.set_ylabel('Enhancement')
+    f3_ax2.legend()
+    # T1 plot
+    plot_t1(f3_ax3, data['T1_power'], data['T1'], label=None)
+    plot_t1_fit(f3_ax3, data['E_power'], data['interpolated_T1'], label='Fit')
+    f3_ax3.set_xlabel('Power')
+    f3_ax3.set_ylabel(r'$T_1$ (s)')
+    f3_ax3.legend()
+    # text in T1 plot
+    x_max = max(data['E_power'])
+    y_min, y_max = min(data['interpolated_T1']), max(data['interpolated_T1'])
+    f3_ax3.text(
+        x_max * 0.15, y_min + (y_max-y_min) * 0.05,
+        r"$T_{1,0}"+rf" = {round(data['T10'], 2)} \pm {round(data['T10_std'], 2)} s$"
+    )
+    st.pyplot(fig=fig)
 
 
 def drop_data(drop_e_powers:list, drop_t1_powers:list):
-    """Create selectbox for dropping bad data points"""
+    """Create selectbox for dropping bad data points
+
+    Args:
+        drop_t1_powers: list of T1 powers to choose from
+        drop_e_powers: list of Enhancement powers to choose from
+
+    Returns:
+        Tuple(list, list): Tuple of selected list of enhancement powers and list of T1 powers
+
+    """
     drop_es, drop_t1s = {}, {}
     if len(drop_e_powers) + len(drop_t1_powers) > 0:
         drop_es = st.sidebar.multiselect(
