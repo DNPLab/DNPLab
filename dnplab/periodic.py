@@ -13,7 +13,6 @@ orange = QtGui.QColor(243, 112, 33)
 
 element_width = 40
 element_height = 50
-#symbol_height = 80
 atomic_number_height = 15
 border_width = 5
 border_height = 5
@@ -237,40 +236,38 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
         header = self.list_data.horizontalHeader()
         for column in range(self.list_data.columnCount()):
             header.setSectionResizeMode(column, QtWidgets.QHeaderView.ResizeToContents)
-        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
 
     def setup_table(self):
         isotopes = self.selected_element.isotopes
-        self.list_data.clear()
-        while (self.list_data.rowCount() > 0):
-            self.list_data.removeRow(0)
-
-        while (self.list_data.columnCount() > 0):
-            self.list_data.removeColumn(0)
-
-        for ix in range(len(self.table_column_header)):
-            self.list_data.insertColumn(ix)
-        
         font = QtGui.QFont()
         font.setBold(True)
+        # Add Header
+        if self.list_data.rowCount() == 0:
+            self.list_data.insertRow(0)
+            for header_ix, header in enumerate(self.table_column_header_alias):
+                self.list_data.insertColumn(header_ix)
+                item = QtWidgets.QTableWidgetItem(str(header))
+                item.setFont(font)
+                self.list_item = self.list_data.setItem(0, header_ix, item)
 
-        self.list_data.insertRow(self.list_data.rowCount())
-        for header_ix, header in enumerate(self.table_column_header_alias):
-            item = QtWidgets.QTableWidgetItem(str(header))
-            item.setFont(font)
-            self.list_item = self.list_data.setItem(self.list_data.rowCount() - 1, header_ix, item)
+        # Clear everything except header
+        else:
+            while self.list_data.rowCount() > 1:
+                self.list_data.removeRow(self.list_data.rowCount() - 1)
 
+        # Add Data
         for row_ix, isotope in enumerate(isotopes):
-            self.list_data.insertRow(self.list_data.rowCount())
+            self.list_data.insertRow(row_ix + 1)
 
             for header_ix, header in enumerate(self.table_column_header):
                 if header != self.frequency_header:
                     item = QtWidgets.QTableWidgetItem(str(isotopes[row_ix][header]))
                     if header_ix == 0:
                         item.setTextAlignment(int(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter))
+#
+                    self.list_data.setItem(row_ix + 1, header_ix, item)
 
-                    self.list_data.setItem(self.list_data.rowCount() - 1, header_ix, item)
-
+        # Update Frequency in table
         self.update_table()
 
 if __name__ == '__main__':
