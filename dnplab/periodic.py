@@ -85,6 +85,7 @@ class ElementWidget(QWidget):
 
         self.column_ix = column_ix
         self.row_ix = row_ix
+        self.default_color = color
         self.color = color
 
         self.set_symbol(symbol)
@@ -134,7 +135,9 @@ class ElementWidget(QWidget):
         self.parent.set_selected_element(self)
         self.parent.statusBar().showMessage('Clicked on %s'%str(self.symbol.text()))
 
-    def set_color(self, color):
+    def set_color(self, color = None):
+        if color is None:
+            color = self.default_color
         self.color = color
         p = self.palette()
         p.setColor(self.backgroundRole(), self.color)
@@ -195,6 +198,7 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
         selected_element_symbol = 'H'
 
+        element_dict = {}
         for element_symbol in periodic_table_data:
 
             data = periodic_table_data[element_symbol]
@@ -207,19 +211,20 @@ class Ui_MainWindow(QtWidgets.QMainWindow):
 
             if element_symbol in elements:
                 isotopes = elements[element_symbol]
+                color = light_green
             else:
                 isotopes = {}
-            if symbol == selected_element_symbol:
-                self.selected_element = ElementWidget(self, symbol = symbol, atomic_number = atomic_number, row_ix = float(row), column_ix = float(column), color = light_green, isotopes = isotopes)
-            else:
-                self.element = ElementWidget(self, symbol = symbol, atomic_number = atomic_number, row_ix = float(row), column_ix = float(column), color = light_green, isotopes = isotopes)
+                color = dark_grey
 
-        self.set_selected_element(self.selected_element)
+            element_dict[symbol] = ElementWidget(self, symbol = symbol, atomic_number = atomic_number, row_ix = float(row), column_ix = float(column), color = color, isotopes = isotopes)
+
+        self.set_selected_element(element_dict[selected_element_symbol])
 
         self.setup_table()
 
     def set_selected_element(self, element):
-        self.selected_element.set_color(light_green)
+        if hasattr(self, 'selected_element'):
+            self.selected_element.set_color() # set to default color
         self.selected_element = element
         self.selected_element.set_color(orange)
         self.setup_table()
