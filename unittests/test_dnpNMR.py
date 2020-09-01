@@ -1,12 +1,12 @@
 
 import unittest
+from dnplab import dnpdata
 from numpy.testing import assert_array_equal
-from dnplab.core import nddata
 import dnplab.dnpImport.vnmrj as vnmrj
 import dnplab.dnpNMR as nmr
 import dnplab as dnp
 import numpy as np
-import random
+
 
 class dnpNMR_tester(unittest.TestCase):
     def setUp(self):
@@ -29,3 +29,22 @@ class dnpNMR_tester(unittest.TestCase):
         data = self.ws['proc']
         nmr.integrate(data, {})
         np.testing.assert_array_equal(self.ws['proc'].values, values)
+
+
+class dnpNMR_tester_sim(unittest.TestCase):
+    def setUp(self):
+        p1 = np.array([0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0])
+        p2 = np.array([0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0, 0, 0])
+        p3 = np.array([0, 0, 0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0])
+        self.data = dnpdata(np.array([p1,p2,p3]).T, [np.arange(0, len(p1)), np.arange(0,3)], ['x', 't2'])
+        self.ws = dnp.create_workspace()
+        self.ws['raw'] = self.data
+        self.ws.copy('raw','proc')
+
+    def test_align(self):
+        nmr.align(self.ws, {'dim': 'x'})
+        assert_array_equal(self.ws['proc'].values, np.array([
+            [0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0],
+            [0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0],
+            [0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0]
+        ]).T)

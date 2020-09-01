@@ -1,10 +1,10 @@
 import sys
-sys.path.append('..')
-import dnplab
-from dnplab import create_workspace
 import numpy as np
 
-ws = create_workspace()
+sys.path.append('..')
+import dnplab
+
+ws = dnplab.create_workspace()
 
 # Create test data.
 hydration = {
