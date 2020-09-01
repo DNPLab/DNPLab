@@ -341,7 +341,7 @@ def align(all_data,proc_parameters):
 
         corrData = _np.correlate(_np.abs(tempData),_np.abs(refData),mode='same')
         shiftIx = _np.argmax(corrData) - (len(corrData)/2) # subtract half length so spectrum is shifted relative to center, not edge
-        shiftData = _np.roll(tempData,-1*int(shiftIx))
+        shiftData = _np.roll(tempData,-1*int(_np.round(shiftIx,0)))
         data.values[:,ix] = shiftData
     data.reorder(originalAxesOrder)
 
