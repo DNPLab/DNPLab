@@ -36,7 +36,7 @@ class dnpNMR_tester_sim(unittest.TestCase):
         p1 = np.array([0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0])
         p2 = np.array([0, 1, 2, 3, 4, 3, 2, 1, 0, 0, 0, 0, 0])
         p3 = np.array([0, 0, 0, 0, 0, 1, 2, 3, 4, 3, 2, 1, 0])
-        self.data = dnpdata(np.array([p1,p2,p3]).T, [np.arange(0, len(p1)), np.arange(1,3)], ['x', 't2'])
+        self.data = dnpdata(np.array([p1,p2,p3]).T, [np.arange(0, len(p1)), np.arange(0,3)], ['x', 't2'])
         self.ws = dnp.create_workspace()
         self.ws['raw'] = self.data
         self.ws.copy('raw','proc')
