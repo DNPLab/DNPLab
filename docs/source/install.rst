@@ -1,15 +1,15 @@
 .. |dnpLabGitLink| raw:: html
 
-   <a href="https://github.com/DNPLab" target="_blank"> dnpLab </a>
+   <a href="https://github.com/DNPLab" target="_blank"> DNPLab </a>
 
 
 ==================
-Installing dnpLab
+Installing DNPLab
 ==================
 
 Required Packages
 =================
-The following packages are required to run dnpLab:
+The following packages are required to run DNPLab:
 
 .. list-table::
    :widths: 40 60
@@ -25,19 +25,19 @@ The following packages are required to run dnpLab:
    * - h5py
      - 2.10 or higher
    * - PyQt5
-     - 5.15
+     - 5.14
 
 
 .. _installing:
 
 Installing with pip
 ===================
-dnpLab can be installed using pip. In a terminal simply type the following command:
+DNPLab can be easily installed using pip. In a terminal simply type the following command:
 
 .. code-block:: bash
 
-   $ python -m pip install dnpLab
+   $ python -m pip install dnplab
 
 
-If you prefer to install dnpLab from the source code, check out our GitHub repository: |dnpLabGitLink|.
+If you prefer to install DNPLab from the source code, check out our GitHub repository: |dnpLabGitLink|.
 

@@ -1,10 +1,10 @@
 import sys
-sys.path.append('..')
-import dnpLab
-from dnpLab import create_workspace
 import numpy as np
 
-ws = create_workspace()
+sys.path.append('..')
+import dnplab
+
+ws = dnplab.create_workspace()
 
 # Create test data.
 hydration = {
@@ -76,12 +76,12 @@ hydration.update({
 ws.add('hydration_inputs', hydration)
 
 # Run hydration calculation
-res = dnpLab.dnpHydration.hydration(ws)
+res = dnplab.dnpHydration.hydration(ws)
 
 # Observe results, ksigma, etc
 print(''.join([f'{k} = {res[k]}\n' for k in ['ksigma', 'krho', 'klow', 'tcorr']]))
 
 
-dnpLab.dnpImport.h5.saveh5(ws, 'hydration_parameters.h5')
+dnplab.dnpImport.h5.saveh5(ws, 'hydration_parameters.h5')
 
 assert abs(res['ksigma'] - 20.18) < 0.01

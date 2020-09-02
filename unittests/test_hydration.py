@@ -3,8 +3,8 @@ sys.path.append('..')
 
 import unittest
 import numpy as np
-from dnpLab.dnpData import create_workspace
-from dnpLab.dnpHydration import HydrationCalculator, HydrationParameter, hydration
+from dnplab.dnpData import create_workspace
+from dnplab.dnpHydration import HydrationCalculator, HydrationParameter, hydration
 
 
 TESTSET = {
@@ -83,7 +83,6 @@ class TestHydration(unittest.TestCase):
     def test_ws(self):
         """assert working space running well"""
         res = hydration(self.ws)
-        print(res.keys())
         self.assertAlmostEqual(res['ksigma'], 20.18, places=2)
 
 
