@@ -936,7 +936,6 @@ class hydrationGUI(QMainWindow):
                     return
             
             pthnm = pthnm + os.sep
-            print(pthnm)
             x = pthnm.split(os.sep)
             self.pathLabel.setText('DATA DIRECTORY: ' + x[len(x) - 3] + ' ' + os.sep + ' ' + x[len(x) - 2])
 
@@ -1011,7 +1010,6 @@ class hydrationGUI(QMainWindow):
                     return
             
             pthnm = pthnm + os.sep
-            print(pthnm)
             print(os.path.join(pthnm + os.sep))
             self.gui_dict['rawdata_function']['directory'] = pthnm
             print('Data: ' + pthnm)
