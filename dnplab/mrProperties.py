@@ -140,5 +140,15 @@ radicalProperties = {}
 
 # Add reference for each entry
 
-radicalProperties['TEMPO'] = [2.0023, 1, '14N']
+# http://physics.nist.gov/constants
+radicalProperties['gfree'] = [2.00231930436153, None, None]
+
+# TEMPO in Toluene (table 1, page 243 in Lebedev et al., Bioactive Spinlabels, Springer Verlag, 1992)
+radicalProperties['TEMPO1'] = [[2.00980, 2.00622, 2.00220], '14N', [16.8, 20.5, 95.9]]
+
+# TEMPO in Methanol (table 1, page 243 in Lebedev et al., Bioactive Spinlabels, Springer Verlag, 1992)
+radicalProperties['TEMPO2'] = [[2.00909, 2.00621, 2.00222], '14N', [20.2, 20.2, 102.1]]
+
+# BDPA in Polystyrene, Bennati et al., JMR, 1999. (2H couplings were scaled to 1H)
+radicalProperties['BDPA'] = [[2.00263, 2.00260, 2.00257], '1H', [50.2, 34.5, 13.0]]
 
