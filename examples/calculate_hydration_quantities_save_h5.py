@@ -76,12 +76,14 @@ hydration.update({
 ws.add('hydration_inputs', hydration)
 
 # Run hydration calculation
-res = dnplab.dnpHydration.hydration(ws)
+results = dnplab.dnpHydration.hydration(ws)
+
+ws.add('hydration_results', results)
 
 # Observe results, ksigma, etc
-print(''.join([f'{k} = {res[k]}\n' for k in ['ksigma', 'krho', 'klow', 'tcorr']]))
+print(''.join([f'{k} = {results[k]}\n' for k in ['ksigma', 'krho', 'klow', 'tcorr']]))
 
 
 dnplab.dnpImport.h5.saveh5(ws, 'hydration_parameters.h5')
 
-assert abs(res['ksigma'] - 20.18) < 0.01
+assert abs(results['ksigma'] - 20.18) < 0.01
