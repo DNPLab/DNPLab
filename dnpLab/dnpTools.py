@@ -99,7 +99,17 @@ def mrProperties(nucleus, *args):
             vLarmor = args[0] * gmr * 1e7 / 2 / np.pi
             return vLarmor
 
-    elif len(args) > 1:
+    elif len(args) == 2:
+
+        if args[1] == True:
+            print(" ")
+            print("Nucleus                    : ", nucleus)
+            print("Spin                       : ", gmrProperties.get(nucleus)[0])
+            print("Gyromagnetic Ratio [kHz/T] : %5.2f" %(gmrProperties.get(nucleus)[1]*10/2/np.pi))
+            print("Natural Abundance      [%%] : %5.2f" %(gmrProperties.get(nucleus)[3] ) )
+            print("")
+
+    elif len(args) > 2:
         print("Too many input arguments")
 
 
