@@ -141,7 +141,7 @@ radicalProperties = {}
 # Add reference for each entry
 
 # http://physics.nist.gov/constants
-radicalProperties['gfree'] = [2.00231930436153, None, None]
+radicalProperties['gfree'] = [2.00231930436153, None, [0]]
 
 # TEMPO in Toluene (table 1, page 243 in Lebedev et al., Bioactive Spinlabels, Springer Verlag, 1992)
 radicalProperties['TEMPO1'] = [[2.00980, 2.00622, 2.00220], '14N', [16.8, 20.5, 95.9]]

@@ -132,3 +132,64 @@ def getRadicalProperties(name):
         print("ERROR: String expected")            
     
     return giso
+
+def getDnpProperties(radical,mwFrequency,dnpNucleus):
+    '''Calculate DNP Properties
+    Only for liquid state currently
+    Only S = 0.5 currently
+
+    Args:
+        Type of radical
+        mwFreguency
+        Type of nucleus for DNP
+    Returns:
+
+    '''
+
+
+    # http://physics.nist.gov/constants
+    mub = 9.27400968e-24
+    planck = 6.62606957e-34
+
+    # Get radical properties
+    glist = radicalProperties.get(radical)[0]
+    nucleus = radicalProperties.get(radical)[1]
+    Alist = radicalProperties.get(radical)[2]
+
+    # Get g-value
+    g = np.array(glist)
+    giso = np.sum(g)/g.size
+
+    B0 = mwFrequency*planck/giso/mub
+
+    # Get hyperfine coupling
+    A = np.array(Alist)
+    Aiso = np.sum(A)/A.size
+
+    if nucleus != None:
+        print("Do nothing for now")
+        nucSpin = mrProperties(nucleus,'spin')
+
+
+
+
+    else:
+        nucSpin = 0
+        B = B0
+
+     
+
+
+
+    print("")
+    print("Input Parameters: ")
+    print("Radical                  : ", radical)
+    print("giso                     : ", giso)
+    print("Nucleus                  : ", nucleus)
+    print("Nuc Spin                 : ", nucSpin)
+    print("Aiso               [MHz] : ", Aiso)
+    print("")
+    print("Predicted Field Values for DNP: ")
+    print("B0 (no hyperfine)    [T] : ", B0)
+
+
