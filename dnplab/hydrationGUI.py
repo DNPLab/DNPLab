@@ -652,8 +652,8 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                flname = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results hydration_parameters.h5'
-                # flname = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'GUI_results hydrationGUI Results' + os.sep + 'GUI_results xODNP.mat'
+                flname = os.path.join(self.testpath, 'data', 'topspin', 'GUI_results hydrationGUI Results', 'GUI_results hydration_parameters.h5')
+                # flname = os.path.join(self.testpath, 'data', 'topspin', 'GUI_results hydrationGUI Results', 'GUI_results xODNP.mat')
             else:
                 dirname = QFileDialog.getOpenFileName(self)
 
@@ -727,7 +727,7 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + 'Workup'
+                pthnm = os.path.join(self.testpath, 'data', 'topspin', 'Workup')
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
 
@@ -736,8 +736,7 @@ class hydrationGUI(QMainWindow):
                 else:
                     return
 
-            pthnm = os.path.join(pthnm + os.sep)
-            self.gui_dict['workup_function']['directory'] = pthnm
+            self.gui_dict['workup_function']['directory'] = pthnm + os.sep
             print('Workup: ' + pthnm)
             x = pthnm.split(os.sep)
             self.pathLabel.setText('WORKUP DIRECTORY: ' + x[len(x) - 3] + ' ' + os.sep + ' ' + x[len(x) - 2])
@@ -837,7 +836,7 @@ class hydrationGUI(QMainWindow):
         expTime = []
         absTime = []
         for exp in exps:
-            opened = open(fullPath + str(exp) + os.sep + 'audita.txt')
+            opened = open(os.path.join(fullPath + str(exp), 'audita.txt'))
             lines = opened.readlines()
             absStart = lines[8].split(' ')[2] + ' ' + lines[8].split(' ')[3]
             splitup = re.findall(r"[\w']+", absStart)
@@ -869,14 +868,14 @@ class hydrationGUI(QMainWindow):
 
         if os.path.isfile(fullPath + powerFile + '.mat'):  # This is a matlab file from cnsi
             print('Extracted powers from ' + powerFile + '.mat file')
-            openfile = loadmat(fullPath + os.sep + powerFile + '.mat')
+            openfile = loadmat(os.path.join(fullPath, powerFile + '.mat'))
             power = openfile.pop('powerlist')
             power = np.array([x for i in power for x in i])
             exptime = openfile.pop('timelist')
             exptime = np.array([x for i in exptime for x in i])
         elif os.path.isfile(fullPath + powerFile + '.csv'):  # This is a csv file
             print('Extracted powers from ' + powerFile + '.csv file')
-            openfile = open(fullPath + os.sep + powerFile + '.csv', 'r')
+            openfile = open(os.path.join(fullPath, powerFile + '.csv', 'r'))
             lines = openfile.readlines()
             if len(lines) == 1:
                 lines = lines[0].split('\r')  # this might not be what I want to do...
@@ -927,7 +926,7 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin' + os.sep + '304'
+                pthnm = os.path.join(self.testpath, 'data', 'topspin','304')
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
 
@@ -935,9 +934,8 @@ class hydrationGUI(QMainWindow):
                     pthnm = dirname
                 else:
                     return
-
-            pthnm = os.path.join(pthnm + os.sep)
-
+            
+            pthnm = pthnm + os.sep
             x = pthnm.split(os.sep)
             self.pathLabel.setText('DATA DIRECTORY: ' + x[len(x) - 3] + ' ' + os.sep + ' ' + x[len(x) - 2])
 
@@ -1002,7 +1000,7 @@ class hydrationGUI(QMainWindow):
         """
         try:
             if self.testmode:
-                pthnm = self.testpath + os.sep + 'data' + os.sep + 'topspin'
+                pthnm = os.path.join(self.testpath, 'data', 'topspin')
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
 
@@ -1010,8 +1008,9 @@ class hydrationGUI(QMainWindow):
                     pthnm = dirname
                 else:
                     return
-
-            pthnm = os.path.join(pthnm + os.sep)
+            
+            pthnm = pthnm + os.sep
+            print(os.path.join(pthnm + os.sep))
             self.gui_dict['rawdata_function']['directory'] = pthnm
             print('Data: ' + pthnm)
             x = pthnm.split(os.sep)
@@ -1041,17 +1040,12 @@ class hydrationGUI(QMainWindow):
 
             self.gui_dict['rawdata_function']['nopowers'] = True
 
-            if os.path.exists(self.gui_dict['rawdata_function']['directory'] + 'Workup') and os.path.isfile(
-                    self.gui_dict['rawdata_function'][
-                        'directory'] + 'Workup' + os.sep + 'enhancementPowers.csv') and os.path.isfile(
-                self.gui_dict['rawdata_function'][
-                    'directory'] + 'Workup' + os.sep + 'kSigma.csv') and os.path.isfile(
-                self.gui_dict['rawdata_function']['directory'] + 'Workup' + os.sep + 't1Powers.csv'):
+            if os.path.exists(pthnm + 'Workup' + os.sep) and os.path.isfile(os.path.join(pthnm + 'Workup', 'enhancementPowers.csv')) and os.path.isfile(os.path.join(pthnm + 'Workup', 'kSigma.csv')) and os.path.isfile(os.path.join(pthnm + 'Workup', 't1Powers.csv')):
 
                 self.gui_dict['gui_function']['addWorkup'] = True
                 self.gui_dict['workup_function']['show'] = True
 
-                self.gui_dict['workup_function']['directory'] = os.path.join(pthnm + 'Workup' + os.sep)
+                self.gui_dict['workup_function']['directory'] = pthnm + 'Workup' + os.sep
 
                 self.processWorkup()
 
@@ -1065,12 +1059,9 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict['rawdata_function']['nopowers'] = False
 
             if self.gui_dict['rawdata_function']['nopowers']:
-                if os.path.isfile(self.gui_dict['rawdata_function']['directory'] + 'power.mat') or os.path.isfile(
-                        self.gui_dict['rawdata_function']['directory'] + 'power.csv'):
+                if os.path.isfile(os.path.join(pthnm, 'power.mat')) or os.path.isfile(os.path.join(pthnm, 'power.csv')):
 
-                    if os.path.isfile(
-                            self.gui_dict['rawdata_function']['directory'] + 't1_powers.mat') or os.path.isfile(
-                        self.gui_dict['rawdata_function']['directory'] + 't1_powers.csv'):
+                    if os.path.isfile(pthnm + 't1_powers.mat') or os.path.isfile(pthnm + 't1_powers.csv'):
                         print('No Workup output found, using power readings files.')
 
                         E_power_List = self.get_powers(self.gui_dict['rawdata_function']['directory'], 'power', 2.5,
@@ -1099,15 +1090,13 @@ class hydrationGUI(QMainWindow):
                 try:
                     Eplist = []
                     for k in self.gui_dict['folder_structure']['enh']:
-                        title = dnplab.dnpImport.topspin.load_title(self.gui_dict['rawdata_function']['directory'],
-                                                                    expNum=k)
+                        title = dnplab.dnpImport.topspin.load_title(pthnm, expNum=k)
                         splitTitle = title.split(' ')
                         Eplist.append(float(splitTitle[-1]))
 
                     T1plist = []
                     for k in self.gui_dict['folder_structure']['T1']:
-                        title = dnplab.dnpImport.topspin.load_title(self.gui_dict['rawdata_function']['directory'],
-                                                                    expNum=k)
+                        title = dnplab.dnpImport.topspin.load_title(pthnm, expNum=k)
                         splitTitle = title.split(' ')
                         T1plist.append(float(splitTitle[-1]))
 
@@ -1129,7 +1118,7 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict['rawdata_function']['nopowers'] = False
 
                 except:
-                    print('No power readings available. E[p] and T1[p] are indexed by folder #.')
+                    print('No power readings available. E[p] and T1[p] are indexed by folder #. *WARNING: this is not accurate!')
                     Epowers = self.gui_dict['folder_structure']['enh']
                     T1powers = self.gui_dict['folder_structure']['T1']
 
@@ -1163,14 +1152,15 @@ class hydrationGUI(QMainWindow):
                                                                  self.gui_dict['rawdata_function']['folder'])
 
             self.processData()
-
+ 
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
             self.pathLabel.setText('Han Lab data error ')
             self.gui_dict['gui_function']['buttons'] = False
             self.gui_dict['gui_function']['sliders'] = False
-
+ 
+        
     def Next_Button(self):
         """Use the Next button to step through the data folders.
         """
@@ -1913,23 +1903,26 @@ class hydrationGUI(QMainWindow):
         if os.path.isdir(svpthnm):
             svpthnm = pthnm + '_COPY' + ' hydrationGUI Results'
         os.mkdir(svpthnm)
+        
+        print('Save name: ' + flnm)
+        print('Save path: ' + svpthnm)
+        
+        dnplab.dnpImport.h5.saveh5(self.addHyd_workspace, os.path.join(svpthnm, flnm + ' hydration_parameters.h5'))
 
-        dnplab.dnpImport.h5.saveh5(self.addHyd_workspace, svpthnm + os.sep + flnm + ' hydration_parameters.h5')
-
-        savemat(svpthnm + os.sep + flnm + ' xODNP.mat', {'odnp': odnpData, 'ksig': odnpResults}, oned_as='column')
+        savemat(os.path.join(svpthnm, flnm + ' xODNP.mat'), {'odnp': odnpData, 'ksig': odnpResults}, oned_as='column')
 
         dfE = np.vstack((self.addHyd_workspace['hydration_inputs']['E_power'],
                          self.addHyd_workspace['hydration_inputs']['E'],
                          self.addHyd_workspace['hydration_results']['ksigma_array'],
                          self.addHyd_workspace['hydration_results']['ksigma_fit'])).T
-        np.savetxt(svpthnm + os.sep + flnm + ' E_ksig.csv', dfE, fmt='%10.10f', delimiter=',',
+        np.savetxt(os.path.join(svpthnm, flnm + ' E_ksig.csv'), dfE, fmt='%10.10f', delimiter=',',
                    header='E powers,E(p),ksigma(p),ksigma(p) fit', comments='')
 
         dfT1 = np.vstack((self.addHyd_workspace['hydration_inputs']['T1_power'],
                           self.addHyd_workspace['hydration_inputs']['T1'],
                           self.addHyd_workspace['hydration_results']['T1_stdd'][
                           0:len(self.addHyd_workspace['hydration_inputs']['T1_power'])])).T
-        np.savetxt(svpthnm + os.sep + flnm + ' T1s.csv', dfT1, fmt='%10.10f', delimiter=',',
+        np.savetxt(os.path.join(svpthnm, flnm + ' T1s.csv'), dfT1, fmt='%10.10f', delimiter=',',
                    header='T1 powers,T1(p),T1(p) Std dev', comments='')
 
     def Spectrum_Phase_Slider(self, pvalue):
