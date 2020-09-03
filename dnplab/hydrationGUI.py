@@ -286,7 +286,7 @@ class hydrationGUI(QMainWindow):
         self.slcEdit = QLineEdit(self)
         self.slcEdit.move(140, 595)
         self.slcEdit.resize(65, 25)
-        self.slcEdit.setText('100')
+        self.slcEdit.setText('1')
 
         # magnetic field label
         self.fieldLabel = QLabel(self)
@@ -929,7 +929,7 @@ class hydrationGUI(QMainWindow):
                 pthnm = os.path.join(self.testpath, 'data', 'topspin','304')
             else:
                 dirname = QFileDialog.getExistingDirectory(self)
-
+                
                 if dirname:
                     pthnm = dirname
                 else:
@@ -947,7 +947,7 @@ class hydrationGUI(QMainWindow):
             self.dnpLab_workspace.copy('raw', 'proc')
 
             if self.dnpLab_workspace['proc'].ndim == 2:
-                print(r'$T_1$ Measurement: ' + pthnm)
+                print('T1 Measurement: ' + pthnm)
                 self.gui_dict['rawdata_function']['folder'] = -1
             elif self.dnpLab_workspace['proc'].ndim == 1:
                 print('1D Data: ' + pthnm)
@@ -979,7 +979,7 @@ class hydrationGUI(QMainWindow):
                 self.enhplt.setVisible(False)
             elif self.gui_dict['rawdata_function']['folder'] == -1:
                 self.enhplt.setVisible(True)
- 
+
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
