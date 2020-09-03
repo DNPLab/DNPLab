@@ -1,7 +1,6 @@
-# dnplab example script to process inversion recovery data (Bruker format)
+# DNPLab example script to process inversion recovery data (Bruker format)
  
 # Import python modules
-# If dnplab is installed using pip, the first two lines are not required
 import sys
 import numpy as np
 
