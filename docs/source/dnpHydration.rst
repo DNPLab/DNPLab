@@ -5,38 +5,38 @@ dnpHydration
 
 Call the dnpHydration module by first creating a parameter dictionary and hydration_inputs workspace as follows,
 
-.. code-block:: console
+.. code-block:: python
 
-    > import dnplab
-    >
-    > Enhancements = # list of signal enhancements
-    > Enhancement_powers = # list of signal enhancements powers in Watts
-    > T1 = # list of T1 values in seconds
-    > T1_powers = # list of T1 values powers in Watts
-    > T10 = # T1(0) value in seconds, i.e. T1 measured with power=0
-    >
-    > pars = {} # initialize the input parameters dictionary
-    > pars['T100'] = # T10(0) value in seconds, i.e. T1 measured with SL=0 and power=0
-    > pars['spin_C'] = # spin concentration in micromolar
-    > pars['field'] = # magnetic field in mT
-    > pars['smax_model'] = # choice of smax model, 'tethered' or 'free'
-    > pars['t1_interp_method'] = # choice of interpolation, 'linear' or 'second_order'
-    >
-    > hydration = {
-                   'E' : np.array(Enhancements),
-                   'E_power' : np.array(Enhancement_powers),
-                   'T1' : np.array(T1),
-                   'T1_power' : np.array(T1_powers),
-                   'T10': T10,
-                   'T100': pars['T100'],
-                   'spin_C': pars['spin_C'],
-                   'field': pars['field'],
-                   'smax_model': pars['smax_model'],
-                   't1_interp_method': pars['t1_interp_method']
-                  }
-    >
-    > hydration_workspace = dnplab.create_workspace()
-    > hydration_workspace.add('hydration_inputs', hydration)
+    import dnplab
+    
+    Enhancements = # list of signal enhancements
+    Enhancement_powers = # list of signal enhancements powers in Watts
+    T1 = # list of T1 values in seconds
+    T1_powers = # list of T1 values powers in Watts
+    T10 = # T1(0) value in seconds, i.e. T1 measured with power=0
+    
+    pars = {} # initialize the input parameters dictionary
+    pars['T100'] = # T10(0) value in seconds, i.e. T1 measured with SL=0 and power=0
+    pars['spin_C'] = # spin concentration in micromolar
+    pars['field'] = # magnetic field in mT
+    pars['smax_model'] = # choice of smax model, 'tethered' or 'free'
+    pars['t1_interp_method'] = # choice of interpolation, 'linear' or 'second_order'
+    
+    hydration = {
+                 'E' : np.array(Enhancements),
+                 'E_power' : np.array(Enhancement_powers),
+                 'T1' : np.array(T1),
+                 'T1_power' : np.array(T1_powers),
+                 'T10': T10,
+                 'T100': pars['T100'],
+                 'spin_C': pars['spin_C'],
+                 'field': pars['field'],
+                 'smax_model': pars['smax_model'],
+                 't1_interp_method': pars['t1_interp_method']
+                }
+    
+    hydration_workspace = dnplab.create_workspace()
+    hydration_workspace.add('hydration_inputs', hydration)
 
 
 (for explanation of 'smax_model' see https://doi.org/10.1039/c0cp02126a, for explanations of 't1_interp_method' options see http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 and https://doi.org/10.1016/bs.mie.2018.09.024)
@@ -44,9 +44,9 @@ Call the dnpHydration module by first creating a parameter dictionary and hydrat
 
 Perform calculations with,
 
-.. code-block:: console
+.. code-block:: python
 
-     > hydration_results = dnplab.dnpHydration.hydration(hydration_workspace)
+    hydration_results = dnplab.dnpHydration.hydration(hydration_workspace)
 
 You will receive a hydration_results dictionary having the elements listed in the table below. (see http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for referenced equations) 
 
@@ -88,9 +88,9 @@ You will receive a hydration_results dictionary having the elements listed in th
 
 Access the results as follows,
 
-.. code-block:: console
+.. code-block:: python
 
-     > ksigma = hydration_results['ksigma']
-     > ksigma_array = hydration_results['ksigma_array']
-     > coupling_factor = hydration_results['coupling_factor']
-     > etc.
+     ksigma = hydration_results['ksigma']
+     ksigma_array = hydration_results['ksigma_array']
+     coupling_factor = hydration_results['coupling_factor']
+     etc.

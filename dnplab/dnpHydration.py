@@ -117,13 +117,8 @@ class HydrationParameter(Parameter):
     __t1_interp_method = 'second_order'
     """str: Method used to interpolate the T1 array, either linear or 'second_order'"""
 
-    def __init__(self):
-        """"""
-        super().__init__()
-        self.field = 348.5
-        self.spin_C = 100
-        self.T10 = 1.5
-        self.T100 = 2.5
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
     @property
     def t1_interp_method(self):

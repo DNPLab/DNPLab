@@ -1,13 +1,12 @@
-# dnpLab example script to import 1D Bruker data, process FID and display NMR spectrum
+# DNPLab example script to import 1D Bruker data, process FID and display NMR spectrum
 
 # Import python modules
-# If dnplab is installed using pip, the first two lines are not required
+
 import sys
 import numpy as np
 
 sys.path.append('..')
 import dnplab
-
 
 # Import data
 path = '\path\to\topsin\data\'
@@ -25,18 +24,9 @@ dnplab.dnpNMR.window(ws,{'linewidth' : 10})
 dnplab.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
 dnplab.dnpNMR.autophase(ws,{})
 
-<<<<<<< HEAD
 dnplab.dnpResults.figure()
 dnplab.dnpResults.plot(ws['proc'].real)
 dnplab.dnpResults.xlim([-35,50])
 dnplab.dnpResults.plt.xlabel('Chemical Shift [ppm]')
 dnplab.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
 dnplab.dnpResults.show()
-=======
-dnp.dnpResults.figure()
-dnp.dnpResults.plot(ws['proc'].real)
-dnp.dnpResults.xlim([-35,50])
-dnp.dnpResults.plt.xlabel('Chemical Shift [ppm]')
-dnp.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
-dnp.dnpResults.show()
->>>>>>> develop
