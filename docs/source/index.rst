@@ -1,4 +1,4 @@
-.. odnpLab documentation master file, created by
+.. dnpLab documentation master file, created by
    sphinx-quickstart on Fri Jan 10 17:26:18 2020.
 
 .. .. image:: b12logo.png
@@ -28,20 +28,20 @@
 
 .. |dnpLabGitLink| raw:: html
 
-   <a href="https://github.com/DNPLab/dnpLab" target="_blank"> dnpLab on Git Lab</a>
+   <a href="https://github.com/DNPLab/dnpLab" target="_blank"> DNPLab on Git Lab</a>
 
 .. |dnpLabGitIssueTrackerLink| raw:: html
 
-   <a href="https://github.com/DNPLab/dnpLab/issues" target="_blank"> dnpLab Git Issue Tracker</a>
+   <a href="https://github.com/DNPLab/dnpLab/issues" target="_blank"> DNPLab Git Issue Tracker</a>
 
 
 =================
-Welcome to dnpLab
+Welcome to DNPLab
 =================
 
-Welcome to the dnpLab documentation. dnpLab is an Open Source Python package for importing and processing Dynamic Nuclear Polarization (DNP) data. The aim of the project is to provide a free, turn-key processing package for easy processing and analysis of DMP-NMR data.
+Welcome to the DNPLab documentation. DNPLab is an Open Source Python package for importing and processing Dynamic Nuclear Polarization (DNP) data. The aim of the project is to provide a free, turn-key processing package for easy processing and analysis of DMP-NMR data.
 
-dnpLab is a collaborative project created by
+DNPLab is a collaborative project created by
 
 * |B12TLink|
 * The |HanLabLink| at University of California, Santa Barbara
@@ -99,7 +99,7 @@ Index
 Acknowledgements
 ================
 
-Development of dnpLap is sponsored by grants by the United States and the Germany. In particular:
+Development of DNPLap is sponsored by grants by the United States and the Germany. In particular:
 
 * |B12TLink| acknowledges support from the U.S. National Institutes of Health (NIH), grant |GM116612|.
 * The |HanLabLink| acknowledges support from the U.S. National Science Foundation (NSF), Award No. CHE-1800596 and the German Science Foundation (DFG) as part of the Excellence Initiative under RESOLVDFG-EXC-2033 Project No. 390677874.

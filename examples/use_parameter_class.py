@@ -1,5 +1,8 @@
 """This example shows ways to use Parameter class"""
-from dnpLab.dnpHydration import Parameter
+import sys
+sys.path.append('..')
+import dnplab
+from dnplab.dnpHydration import Parameter
 
 """1. Create a Child Parameter Class"""
 class MyParam(Parameter):
@@ -30,7 +33,7 @@ print(param1.egg, param2.egg, 'should be 1 1')
 
 # Or from existing dictionary
 param3 = MyParam({'egg': 1})
-print(param1.egg, param2.egg, param3.egg, 'should be 1, 1, 1')
+print(param1.egg, param2.egg, param3.egg, 'should be 1 1 1')
 
 # Or from casual keywords
 param4 = MyParam(egg=1, ham=2)

@@ -1,5 +1,5 @@
 ===============
-dnpLab Examples
+DNPLab Examples
 ===============
 
 .. |ExamplesLink| raw:: html
@@ -11,9 +11,9 @@ dnpLab Examples
    <a href="https://github.com/DNPLab/dnpLab/tree/master/data" target="_blank"> Link to Data</a>
 
 
-dnpLab comes with many example scripts to demonstrate how the package can be used to import data from different spectrometer platform, process NMR data and extract enhancement data or hydration information. The example scripts are located in the *examples* folder using sample data located in the *data* folder.
+DNPLab comes with many example scripts to demonstrate how the package can be used to import data from different spectrometer platforms, process NMR data, and extract enhancement data or hydration information. The example scripts are located in the *examples* folder using sample data located in the *data* folder.
 
-If you installed dnpLab using pip you can download the example scripts and data from the GitHub repository:
+If you installed DNPlab using pip you can download the example scripts and data from the GitHub repository:
 
 .. list-table::
    :widths: 50 50
@@ -26,7 +26,7 @@ If you installed dnpLab using pip you can download the example scripts and data 
 
 Import Data and Process FID (Bruker Format)
 ===========================================
-This example uses the example script: *example_process_1Dbruker.py*. The script demonstrates the following features of dnpLab:
+This example uses the example script: *example_process_1Dbruker.py*. The script demonstrates the following features of DNPLab:
 
 #. Load a single FID (Bruker format)
 #. Perform an offset correction
@@ -34,20 +34,25 @@ This example uses the example script: *example_process_1Dbruker.py*. The script 
 #. Perform a Fourier transformation
 #. Phase correct the resulting spectrum
 
-If you installed dnpLab using pip. Otherwise, you have to specify the path to the package explicitly:
+
+If you installed DNPlab using pip, you only need to import NumPy and DNPLab using:
 
 .. code-block:: python
 
    import numpy as np
-   import dnpLab as dnp
+   import dnplab
 
-.. note::
-   If you downloaded dnpLab via GitHub and haven't installed, you must add the directory for dnpLab to the system path before importing dnpLab. Add the following lines to the beginning of the script:
 
-   .. code-block:: python
+If you downloaded DNPLab via GitHub and have not installed, you must add the directory for DNPLab to the system path before importing DNPLab. Instead of the above, use:
 
-      import sys
-      sys.path.append('path/to/dnpLab/package')
+.. code-block:: python
+
+   import sys
+   sys.path.append('path/to/dnplab/package')
+
+   import numpy as np
+   import dnplab
+
 
 In the next step load a single FID in Bruker format:
 
@@ -56,43 +61,44 @@ In the next step load a single FID in Bruker format:
     path = 'path/to/data/topspin/'
     folder = 20
 
-    data = data.dnpImport.topspin.import_topspin(path,folder)
+    data = dnplab.dnpImport.topspin.import_topspin(path,folder)
 
 The topspin import module requires the path and the folder number.
+
 In the next step the workspace is set up and the imported data is added to the *raw* workspace and the same data is copied to the *proc* workspace.
 
 .. code-block:: python
 
-    ws = dnp.create_workspace()
+    ws = dnplab.create_workspace()
     ws.add('raw', data)
     ws.copy('raw', 'proc')
 
 .. note::
 
-    When working with dnpLab one of the first steps is to copy the imported data to the *raw* workspace. That way the raw data and all it's attributes will be always accessible to the user. When saving data with dnpLab the raw data is safed toegether with the processed data. dnpLab uses the h5 format to store data. 
+    When working with DNPLab one of the first steps is to copy the imported data to the *raw* workspace. That way the raw data and all its attributes will be always accessible to the user. When saving data with DNPLab the raw data is saved together with the processed data. DNPLab uses the h5 format to store data. 
 
 In the following steps, the FID is processed and the spectrum is plotted.
 
 .. code-block:: python
 
-    dnp.dnpNMR.remove_offset(ws,{})
-    dnp.dnpNMR.window(ws,{'linewidth' : 10})
-    dnp.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
-    dnp.dnpNMR.autophase(ws,{})
+    dnplab.dnpNMR.remove_offset(ws,{})
+    dnplab.dnpNMR.window(ws,{'linewidth' : 10})
+    dnplab.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
+    dnplab.dnpNMR.autophase(ws,{})
 
 
-In this example first a baseline correction is performed (dnpNMR.remove_offset) and apodization is applied ot the FID (dnpNMR.window). In this example a line broadening of 10 Hz is applied. The next step is to Fourier transform the FID (dnpNMR.fourier_transform) and phase the spectrum (dnpNMR.autophase).
+In this example, a baseline correction is performed (dnpNMR.remove_offset), apodization is applied to the FID (dnpNMR.window) and a line broadening of 10 Hz is applied. The next step is to Fourier transform the FID (dnpNMR.fourier_transform) and phase the spectrum (dnpNMR.autophase).
 
 To plot the NMR spectrum: 
 
 .. code-block:: python
 
-    dnp.dnpResults.figure()
-    dnp.dnpResults.plot(ws['proc'].real)
-    dnp.dnpResults.xlim([-35,50])
-    dnp.dnpResults.plt.xlabel('Chemical Shift [ppm]')
-    dnp.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
-    dnp.dnpResults.show()
+    dnplab.dnpResults.figure()
+    dnplab.dnpResults.plot(ws['proc'].real)
+    dnplab.dnpResults.xlim([-35,50])
+    dnplab.dnpResults.plt.xlabel('Chemical Shift [ppm]')
+    dnplab.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
+    dnplab.dnpResults.show()
 
 .. _Index_1DBrukerReal:
 .. figure:: _static/images/example_process_1dbruker_real.png
@@ -106,17 +112,17 @@ Here only the real part of the spectrum is displayed (dnpResults.plot(ws['proc']
 
 .. code-block:: python
 
-    dnpResults.plot(ws['proc'].imag)
+    dnplab.dnpResults.plot(ws['proc'].imag)
 
 To display the unprocessed raw FID:
 
 .. code-block::
 
-    dnp.dnpResults.figure()
-    dnp.dnpResults.plot(ws['raw'].real)
-    dnp.dnpResults.plt.xlabel('t2 [s]')
-    dnp.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
-    dnp.dnpResults.show()
+    dnplab.dnpResults.figure()
+    dnplab.dnpResults.plot(ws['raw'].real)
+    dnplab.dnpResults.plt.xlabel('t2 [s]')
+    dnplab.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
+    dnplab.dnpResults.show()
 
 .. _Index_1DFIDBrukerReal:
 .. figure:: _static/images/example_FID_1dbruker_real.png
@@ -130,54 +136,29 @@ To display the unprocessed raw FID:
 Determine T1 from an Inversion Recovery Experiment
 ==================================================
 
-In this example, the data from an inversion recovery experiment is analyzed to extract the longitudinal relaxation time T1 from the polarization build up. This example uses the example script: *example_process_IRbruker.py*.
+In this example, the data from an inversion recovery experiment is analyzed to extract the longitudinal relaxation time T1. This example uses the example script: *example_process_IRbruker.py*.
 
-First, import the experimental data (Bruker format) (if dnpLab is installed through pip, ignore the first two lines):
+Import DNPLab, load data, and create a workspace in the same manner as demonstrated above in the first example.
 
-.. code-block:: python
-
-   import sys
-   sys.path.append('path/to/dnpLab/package')
-
-   import numpy as np
-   import dnpLab as dnp
-
-In the next step load a single FID in Bruker format:
+For the 2D dataset, add the align function to the processing:
 
 .. code-block:: python
 
-    path = 'path/to/data/topspin/'
-    folder = 304
-
-    data = dnp.dnpImport.topspin.import_topspin(path,folder)
-
-Next, create the workspace:
-
-.. code-block:: python
-
-    ws = dnp.create_workspace()
-    ws.add('raw', data)
-    ws.copy('raw', 'proc')
-
-Next, process the FID, perform Fourier transformation, align and phase the NMR spectra:
-
-.. code-block:: python
-
-    dnp.dnpNMR.remove_offset(ws,{})
-    dnp.dnpNMR.window(ws,{'linewidth' : 10})
-    dnp.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
-    dnp.dnpNMR.align(ws, {})
-    dnp.dnpNMR.autophase(ws,{})
+    dnplab.dnpNMR.remove_offset(ws,{})
+    dnplab.dnpNMR.window(ws,{'linewidth' : 10})
+    dnplab.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
+    dnplab.dnpNMR.align(ws, {})
+    dnplab.dnpNMR.autophase(ws,{})
 
 To plot the processed NMR spectra:
 
 .. code-block:: python
 
-    dnp.dnpResults.plot(ws['ft'].real)
-    dnp.dnpResults.xlim([-30,50])
-    dnp.dnpResults.plt.xlabel('Chemical Shift [ppm]')
-    dnp.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
-    dnp.dnpResults.figure()
+    dnplab.dnpResults.plot(ws['ft'].real)
+    dnplab.dnpResults.xlim([-30,50])
+    dnplab.dnpResults.plt.xlabel('Chemical Shift [ppm]')
+    dnplab.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
+    dnplab.dnpResults.figure()
 
 .. _Index_IRBruker:
 .. figure:: _static/images/example_process_IRbruker.png
@@ -192,8 +173,8 @@ Next, the processed NMR spectra are copied to *ft* within the workspace, the sig
 .. code-block:: python
 
     ws.copy('proc', 'ft')
-    dnp.dnpNMR.integrate(ws, {'integrate_width' : 100, 'integrate_center' : 0})
-    dnp.dnpFit.t1Fit(ws)
+    dnplab.dnpNMR.integrate(ws, {'integrate_width' : 100, 'integrate_center' : 0})
+    dnplab.dnpFit.t1Fit(ws)
 
 The T1 value can be displayed using:
 
@@ -207,9 +188,9 @@ To plot the inversion-recovery build-up curve (experimental and fitted data):
 
 .. code-block:: python
 
-    dnp.dnpResults.plot(ws['proc'].real, 'o')
-    dnp.dnpResults.plot(ws['fit'])
-    dnp.dnpResults.show()
+    dnplab.dnpResults.plot(ws['proc'].real, 'o')
+    dnplab.dnpResults.plot(ws['fit'])
+    dnplab.dnpResults.show()
 
 .. _Index_IRBuildUp:
 .. figure:: _static/images/example_process_IRbuildup.png

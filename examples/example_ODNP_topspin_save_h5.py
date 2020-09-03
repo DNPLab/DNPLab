@@ -6,7 +6,7 @@ import copy
 import numpy as np
 
 sys.path.append('..')
-import dnpLab as dnp
+import dnplab
 
 # directory of base folder containing the numbered folders listed below
 directory = '..topspin'
@@ -111,7 +111,7 @@ def optCenter(workspace):
     int_params = {'integrate_width': 10}
     for k in range(0, len(indx)):
         iterativeopt_workspace = copy.deepcopy(workspace)
-        iterativeopt_workspace = dnp.dnpNMR.integrate(iterativeopt_workspace,{'integrate_center' :  indx[k], 'integrate_width' : 10})
+        iterativeopt_workspace = dnplab.dnpNMR.integrate(iterativeopt_workspace,{'integrate_center' :  indx[k], 'integrate_width' : 10})
         if len(iterativeopt_workspace['proc'].values) > 1:
             intgrl_array.append(sum(abs(iterativeopt_workspace['proc'].values)))
         else:
@@ -133,33 +133,33 @@ T1_stdd = []
 E = []
 for f in range(0, len(total_folders)):
 
-    data = dnp.dnpImport.topspin.import_topspin(directory  + os.sep,total_folders[f])
-    workspace = dnp.create_workspace('raw',data)
+    data = dnplab.dnpImport.topspin.import_topspin(directory, total_folders[f])
+    workspace = dnplab.create_workspace('raw',data)
     workspace.copy('raw','proc')
 
-    dnp.dnpNMR.remove_offset(workspace,{})
-    dnp.dnpNMR.window(workspace,{'linewidth' : proc_params['window_linewidth']})
-    dnp.dnpNMR.fourier_transform(workspace,{'zero_fill_factor' : proc_params['zero_fill_factor']})
+    dnplab.dnpNMR.remove_offset(workspace,{})
+    dnplab.dnpNMR.window(workspace,{'linewidth' : proc_params['window_linewidth']})
+    dnplab.dnpNMR.fourier_transform(workspace,{'zero_fill_factor' : proc_params['zero_fill_factor']})
     
     if workspace['proc'].ndim == 2:
-        workspace = dnp.dnpNMR.align(workspace, {})
+        workspace = dnplab.dnpNMR.align(workspace, {})
         
     phase = workupPhaseOpt(workspace)
     workspace['proc'] *= np.exp(-1j * phase)
      
     int_params['integrate_center'] = optCenter(workspace)
-    workspace = dnp.dnpNMR.integrate(workspace,{'integrate_center' :  int_params['integrate_center'], 'integrate_width' : int_params['integrate_width']})
+    workspace = dnplab.dnpNMR.integrate(workspace,{'integrate_center' :  int_params['integrate_center'], 'integrate_width' : int_params['integrate_width']})
 
     if  total_folders[f] == folder_p0:
         p0 = np.real(workspace['proc'].values[0])
         print('Done with p0 folder...')
     elif  total_folders[f] == folder_T10:
-        workspace = dnp.dnpFit.t1Fit(workspace)
+        workspace = dnplab.dnpFit.t1Fit(workspace)
         T10 = workspace['fit'].attrs['t1']
         T10_stdd = workspace['fit'].attrs['t1_stdd']
         print('Done with T1(0) folder...')
     elif total_folders[f] in folders_T1s:
-        workspace = dnp.dnpFit.t1Fit(workspace)
+        workspace = dnplab.dnpFit.t1Fit(workspace)
         T1.append(workspace['fit'].attrs['t1'])
         T1_stdd.append(workspace['fit'].attrs['t1_stdd'])
         print('Done with T1(p) folder ' + str(total_folders[f]) + '...')
@@ -199,10 +199,10 @@ hydration.update({
 't1_interp_method': t1_interp_method
 })
 
-hydration_workspace = dnp.create_workspace()
+hydration_workspace = dnplab.create_workspace()
 hydration_workspace.add('hydration_inputs', hydration)
                      
-hydration_results = dnp.dnpHydration.hydration(hydration_workspace)
+hydration_results = dnplab.dnpHydration.hydration(hydration_workspace)
 
 hydration_workspace.add('hydration_results', hydration_results)
 hydration_workspace['hydration_results'].update({'T1p_stdd': T1_stdd, 'T10_stdd': T10_stdd})
@@ -211,7 +211,7 @@ svpthnm = directory + save_name
 if os.path.isfile(directory + save_name + '.h5'):
     svpthnm = svpthnm + '_COPY'
     
-dnp.dnpImport.h5.saveh5(hydration_workspace, svpthnm + '.h5')
+dnplab.dnpImport.h5.saveh5(hydration_workspace, svpthnm + '.h5')
 
 print('Done with dnpHydration.')
 print('T1(0) = ' + str(T10) + ', stdd = ' + str(T10_stdd))

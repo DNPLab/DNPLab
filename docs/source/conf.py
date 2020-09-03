@@ -22,18 +22,18 @@ print(sys.path)
 
 # -- Project information -----------------------------------------------------
 
-project = u'dnpLab'
-copyright = u'2020, dnpLab'
-author = u'dnpLab Team'
+project = u'DNPLab'
+copyright = u'2020, DNPLab'
+author = u'DNPLab Team'
 
 from datetime import datetime
 
 date = datetime.now().strftime(u'%m/%d/%Y, %H:%M:%S')
 
 # The short X.Y version
-version = u'1.0'
+version = u'1.0.2'
 # The full version, including alpha/beta/rc tags
-release = u'1.0.0'
+release = u'1.0.2'
 
 print(u'Build Time: ' + date)
 print(u'Version: ' + version)
@@ -43,7 +43,7 @@ print(u'Release: ' + release)
 
 rst_epilog_list = [
         ('date',date),
-        ('author','The dnpLab Team'),
+        ('author','The DNPLab Team'),
         ]
 
 def make_rst_epilog(rst_epilog_list):
@@ -175,7 +175,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'dnpLab.tex', u'dnpLab Documentation',
+    (master_doc, 'dnpLab.tex', u'DNPLab Documentation',
      u'Timothy Keller', 'manual'),
 ]
 
@@ -185,7 +185,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'dnplab', u'dnpLab Documentation',
+    (master_doc, 'DNPlab', u'DNPLab Documentation',
      [author], 1)
 ]
 
@@ -196,8 +196,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'dnpLab', u'dnpLab Documentation',
-     author, 'dnpLab', 'One line description of project.',
+    (master_doc, 'DNPLab', u'DNPLab Documentation',
+     author, 'DNPLab', 'Bringing the Power of Python to DNP-NMR Spectroscopy',
      'Miscellaneous'),
 ]
 

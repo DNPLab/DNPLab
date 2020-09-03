@@ -1,32 +1,32 @@
-# dnpLab example script to import 1D Bruker data, process FID and display NMR spectrum
+# DNPLab example script to import 1D Bruker data, process FID and display NMR spectrum
 
 # Import python modules
-# If dnpLab is installed using pip, the first two lines are not required
-import sys
-sys.path.append('..')
 
+import sys
 import numpy as np
-import dnpLab as dnp
+
+sys.path.append('..')
+import dnplab
 
 # Import data
 path = '\path\to\topsin\data\'
 folder = 20
-data = dnp.dnpImport.topspin.import_topspin(path,folder)
+data = dnplab.dnpImport.topspin.import_topspin(path,folder)
 
 # Create workspace
-ws = dnp.create_workspace()
+ws = dnplab.create_workspace()
 ws.add('raw', data)
 ws.copy('raw', 'proc')
 
 # Process FID and display spectrum
-dnp.dnpNMR.remove_offset(ws,{})
-dnp.dnpNMR.window(ws,{'linewidth' : 10})
-dnp.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
-dnp.dnpNMR.autophase(ws,{})
+dnplab.dnpNMR.remove_offset(ws,{})
+dnplab.dnpNMR.window(ws,{'linewidth' : 10})
+dnplab.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
+dnplab.dnpNMR.autophase(ws,{})
 
-dnp.dnpResults.figure()
-dnp.dnpResults.plot(ws['proc'].real)
-dnp.dnpResults.xlim([-35,50])
-dnp.dnpResults.plt.xlabel('Chemical Shift [ppm]')
-dnp.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
-dnp.dnpResults.show()
+dnplab.dnpResults.figure()
+dnplab.dnpResults.plot(ws['proc'].real)
+dnplab.dnpResults.xlim([-35,50])
+dnplab.dnpResults.plt.xlabel('Chemical Shift [ppm]')
+dnplab.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
+dnplab.dnpResults.show()
