@@ -1010,7 +1010,6 @@ class hydrationGUI(QMainWindow):
                     return
             
             pthnm = pthnm + os.sep
-            print(os.path.join(pthnm + os.sep))
             self.gui_dict['rawdata_function']['directory'] = pthnm
             print('Data: ' + pthnm)
             x = pthnm.split(os.sep)
