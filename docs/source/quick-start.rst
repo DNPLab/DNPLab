@@ -38,7 +38,3 @@ Processing NMR Data
    workspace = dnp.dnpNMR.window(workspace, {})
    # Apply Fourier Transform to direct dimension by default (t2)
    workspace = dnp.dnpNMR.fourier_transform(workspace, {})
-
-Example Script
-==============
-

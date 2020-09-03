@@ -1,13 +1,12 @@
-# dnpLab example script to import 1D Bruker data, process FID and display NMR spectrum
+# DNPLab example script to import 1D Bruker data, process FID and display NMR spectrum
 
 # Import python modules
-# If dnplab is installed using pip, the first two lines are not required
+
 import sys
 import numpy as np
 
 sys.path.append('..')
 import dnplab
-
 
 # Import data
 path = '\path\to\topsin\data\'

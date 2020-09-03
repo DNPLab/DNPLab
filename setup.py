@@ -13,10 +13,10 @@ setup(
         packages = setuptools.find_packages(),
         version = __version__,
         license = 'MIT',
-        description = 'dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy',
+        description = 'DNPLab - Bringing the Power of Python to DNP-NMR Spectroscopy',
         long_description=long_description,
         long_description_content_type='text/markdown',
-        author = 'dnpLab Team',
+        author = 'DNPLab Team',
         url = 'http://dnpLab.net',
         download_url = '',
         project_urls={
