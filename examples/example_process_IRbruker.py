@@ -11,7 +11,7 @@ import dnplab
 # Import data
 path = '\path\to\topsin\data\'
 folder = 304
-data = dnplab.dnpImport.topspin.import_topspin(path + os.sep,folder)
+data = dnplab.dnpImport.topspin.import_topspin(path,folder)
 
 # Create workspace
 ws = dnplab.create_workspace()
@@ -38,18 +38,9 @@ dnplab.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
 dnplab.dnpFit.t1Fit(ws)
 print('T1 value (sec) = ' + str(ws['fit'].attrs['t1']))
 
-<<<<<<< HEAD
 dnplab.dnpResults.figure()
 dnplab.dnpResults.plot(ws['proc'].real, 'o')
 dnplab.dnpResults.plot(ws['fit'])
 dnplab.dnpResults.plt.xlabel('Time t1 [s]')
 dnplab.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
 dnplab.dnpResults.show()
-=======
-dnp.dnpResults.figure()
-dnp.dnpResults.plot(ws['proc'].real, 'o')
-dnp.dnpResults.plot(ws['fit'])
-dnp.dnpResults.plt.xlabel('Time t1 [s]')
-dnp.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
-dnp.dnpResults.show()
->>>>>>> develop

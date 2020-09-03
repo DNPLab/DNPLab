@@ -25,18 +25,9 @@ dnplab.dnpNMR.window(ws,{'linewidth' : 10})
 dnplab.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
 dnplab.dnpNMR.autophase(ws,{})
 
-<<<<<<< HEAD
 dnplab.dnpResults.figure()
 dnplab.dnpResults.plot(ws['proc'].real)
 dnplab.dnpResults.xlim([-35,50])
 dnplab.dnpResults.plt.xlabel('Chemical Shift [ppm]')
 dnplab.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
 dnplab.dnpResults.show()
-=======
-dnp.dnpResults.figure()
-dnp.dnpResults.plot(ws['proc'].real)
-dnp.dnpResults.xlim([-35,50])
-dnp.dnpResults.plt.xlabel('Chemical Shift [ppm]')
-dnp.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
-dnp.dnpResults.show()
->>>>>>> develop

@@ -133,7 +133,7 @@ T1_stdd = []
 E = []
 for f in range(0, len(total_folders)):
 
-    data = dnplab.dnpImport.topspin.import_topspin(directory  + os.sep,total_folders[f])
+    data = dnplab.dnpImport.topspin.import_topspin(directory, total_folders[f])
     workspace = dnplab.create_workspace('raw',data)
     workspace.copy('raw','proc')
 

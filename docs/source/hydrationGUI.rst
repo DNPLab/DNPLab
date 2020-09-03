@@ -41,21 +41,21 @@ Processing Han lab datasets
 
 To load a dataset collected in the CNSI facility at University of California Santa Barbara using the ‘rb_dnp1’ command, use the **Han Lab** button and select the base folder. The folder must have at least the elements:
 
-+------------------+-------------------------------+-----------------------------------------------------------------------------+
-| **Folder/File**  | **type**                      | **description**                         				         |
-+------------------+-------------------------------+-----------------------------------------------------------------------------+
-| 5                | Folder: 1D, FID               | Spectrum at microwave power = 0                                             |
-+------------------+-------------------------------+-----------------------------------------------------------------------------+
-| 6-26             | Folder: 1D, FID               | FIDs collected at increasing microwave powers                               |
-+------------------+-------------------------------+-----------------------------------------------------------------------------+
-| 28-32            | Folder: 2D inversion recovery | T\ :sub:`1` measurements collected at increasing microwave powers           | 
-+------------------+-------------------------------+-----------------------------------------------------------------------------+
-| 304              | Folder: 2D inversion recovery | T\ :sub:`1` measurement at microwave power = 0                              |
-+------------------+-------------------------------+-----------------------------------------------------------------------------+
-| power.mat        | File: MATLAB workspace        | list of power measurements made during collecting the data in folders 6-26  |          
-+------------------+-------------------------------+-----------------------------------------------------------------------------+
-| t1_powers.mat    | File: MATLAB workspace        | list of power measurements made during collecting the data in folders 28-32 |   
-+------------------+-------------------------------+-----------------------------------------------------------------------------+
++-------------------+--------------------------------+-----------------------------------------------------------------------------+
+| **Folder/File**   | **Type**                       | **Description**                         				           |
++-------------------+--------------------------------+-----------------------------------------------------------------------------+
+| 5                 | Folder: 1D, FID                | Spectrum at microwave power = 0                                             |
++-------------------+--------------------------------+-----------------------------------------------------------------------------+
+| 6-26              | Folder: 1D, FID                | FIDs collected at increasing microwave powers                               |
++-------------------+--------------------------------+-----------------------------------------------------------------------------+
+| 28-32             | Folder: 2D inversion recovery  | T\ :sub:`1` measurements collected at increasing microwave powers           | 
++-------------------+--------------------------------+-----------------------------------------------------------------------------+
+| 304               | Folder: 2D inversion recovery  | T\ :sub:`1` measurement at microwave power = 0                              |
++-------------------+--------------------------------+-----------------------------------------------------------------------------+
+| power.mat/csv     | File: MATLAB workspace or .csv | list of power measurements made during collecting the data in folders 6-26  |          
++-------------------+--------------------------------+-----------------------------------------------------------------------------+
+| t1_powers.mat/csv | File: MATLAB workspace or .csv | list of power measurements made during collecting the data in folders 28-32 |   
++-------------------+--------------------------------+-----------------------------------------------------------------------------+
 
 .. figure:: _static/images/hydrationGUI_importing_rbdnp1.png
     :width: 720
@@ -77,9 +77,6 @@ The title of the main plot will let you know which folder you are currently work
 
 You may make adjustments to the data phase, integration window width, and integration window center using the sliders and window width edit box. Use the “Optimize” checkboxes to search for and apply the “optimal” parameters. For optimizing the width, checking Optimize selects the window that encompasses roughly 2/3 of the peak area while unchecking selects the default width of 10 ppm. For NMR at ~15MHz, 10 ppm corresponds to ~150MHz, which is a typical peak width for data collected at CNSI. If processing data collected at CNSI it is recommended you use the default 10 ppm window width. Regardless of the chosen width, it is always recommended that you be consistent to ensure comparability between data. When the **Next** or **Auto Process** buttons are pressed the width that is displayed in the plot will be used for integration. 
 
-The results are displayed when finished. If a “Workup" folder is also present in the data folder it will be imported for comparison. Use the corresponding checkboxes to interact with the Workup results. Interaction with any parameter edit field or checkbox, as well as the T1 interpolation checkboxes, automatically updates the calculations. 
-
-
 The title of the main plot will let you know which folder you are currently working on. Use the Next button to advance through the dataset towards calculating hydration parameters, and the Back button to regress through the dataset. Auto Process will run through the entire dataset automatically and calculate hydration parameters.
 
 .. figure:: _static/images/hydrationGUI_ksigma.png
@@ -90,7 +87,6 @@ The title of the main plot will let you know which folder you are currently work
     Presentation of dnpHydration results
 
 The results are displayed when finished. If a “Workup” is also present in the data folder it will be imported for comparison. Use the corresponding checkboxes to interact with the Workup results. Interaction with any parameter edit field or checkbox, as well as the T1 interpolation checkboxes, automatically updates the calculations. 
-
 
 The **Restart** button will return you to the beginning of processing. If the **Only T1(0)** checkbox is selected, Restart will return you to the final folder that is the T\ :sub:`1` (0) measurement while all other processing will be retained. If the **Only T1(p)** checkbox is selected you will return to the beginning of the series of T\ :sub:`1` measurements and previous processing of the enhancement points is retained. 
 
@@ -120,10 +116,10 @@ You may also load the results of “Workup” code processing with the **Workup*
 
 If the mat workspace or h5 file were not saved from hydrationGUI, they can still be read and analyzed if they have the same elements. 
 
-The mat workspace must contain a structure named "odnp" with at least the following elements (this matches the structure accepted and saved by the MATLAB App called xODNP, visit https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp):
+The mat workspace must contain a structure named "odnp" with at least the following elements (the same structure accepted and saved by the MATLAB App called xODNP, available at MathWorks File Exchange https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp):
 
 +------------------+-----------------+-------------------------------------------------------+
-| **Variable**     | **type**        | **description**                             	     |
+| **Variable**     | **Type**        | **Description**                             	     |
 +------------------+-----------------+-------------------------------------------------------+
 | odnp.Ep          | #x1 Double      | list of signal enhancements                           |      
 +------------------+-----------------+-------------------------------------------------------+
@@ -143,7 +139,7 @@ The mat workspace must contain a structure named "odnp" with at least the follow
 The h5 must contain a dictionary named 'hydration_inputs' with at least the following elements:
 
 +------------------+-----------------+-------------------------------------------------------+
-| **key**          | **type**        | **description**                                       |
+| **Key**          | **Type**        | **Description**                                       |
 +------------------+-----------------+-------------------------------------------------------+
 | E                | numpy array     | list of signal enhancements                           |      
 +------------------+-----------------+-------------------------------------------------------+
@@ -159,7 +155,7 @@ The h5 must contain a dictionary named 'hydration_inputs' with at least the foll
 and a separate dictionary named 'hydration_results' with at least the following elements:
 
 +------------------+-----------------+--------------------------------------+
-| **key**          | **type**        | **description**                      |
+| **Key**          | **Type**        | **Description**                      |
 +------------------+-----------------+--------------------------------------+
 | T1_stdd          | numpy array     | list of standard deviations in T1    |     
 +------------------+-----------------+--------------------------------------+
@@ -198,6 +194,6 @@ The terminal will display processing and calculation progress as well as standar
 Saving Results
 ==============
 
-After processing is complete and hydration parameters are calculated, the **Save results** button is available. Your results are saved in .csv, .h5, and .mat formats. The .mat file can be read by the MATLAB app called xODNP that is available at MathWorks File Exchange. The .h5 and .mat files can be read by hydrationGUI.
+After processing is complete and hydration parameters are calculated, the **Save results** button is available. Your results are saved in .csv, .h5, and .mat formats. The .h5 and .mat files can be imported by hydrationGUI. The .mat file can be imported by the MATLAB app called xODNP that is available at MathWorks File Exchange: https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp
 
 
