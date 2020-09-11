@@ -68,12 +68,7 @@ class AttrDict(object):
 
 
 class Parameter(AttrDict):
-    """Parent Parameter Class
-
-     J. W. Cooley and J. W. Tukey, *An algorithm for the machine calculation
-    of complex Fourier series*,
-    `Math. Comput. 19, 297–301 (1965) <https://doi.org/10.2307/2003354>`_
-    """
+    """Parent Parameter Class"""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
