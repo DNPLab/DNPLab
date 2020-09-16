@@ -47,8 +47,8 @@ class hydrationGUI(QMainWindow):
     def __init__(self):
 
         super().__init__()
-        self.testmode = False  # set to True for testing, False for normal use
-        self.testpath = ".."  # same as sys path to dnplab
+        self.testmode = False # set to True for testing, False for normal use
+        self.testpath = '..'  # same as sys path to dnplab
 
         # self.setStyleSheet('background-color : #A7A9AC')
 
@@ -377,6 +377,7 @@ class hydrationGUI(QMainWindow):
 
         self.gui_dict["gui_function"]["buttons"] = False
         self.gui_dict["gui_function"]["sliders"] = False
+        self.gui_dict["gui_function"]["T100_process"] = False
 
         self.intwindowSlider.setMinimum(1)
         self.intwindowSlider.setMaximum(100)
@@ -737,6 +738,31 @@ class hydrationGUI(QMainWindow):
         workspace["proc"].values = workspace["proc"].values * np.exp(-1j * phase)
 
         return workspace
+
+    def proc_T100(self):
+
+        data = dnplab.dnpImport.topspin.import_topspin(
+            self.gui_dict["rawdata_function"]["directory"], 100
+        )
+        self.dnpLab_workspace = dnplab.create_workspace("raw", data)
+        self.dnpLab_workspace.copy("raw", "proc")
+
+        self.processData()
+
+        int_params = {
+            "integrate_center": self.gui_dict["processing_spec"]["integration_center"],
+            "integrate_width": self.gui_dict["processing_spec"]["integration_width"],
+        }
+
+        t100proc_workspace = self.phs_workspace(
+            self.processing_workspace, self.gui_dict["processing_spec"]["phase"]
+        )
+        t100proc_workspace = self.int_workspace(t100proc_workspace, int_params)
+
+        dnplab.dnpFit.t1Fit(t100proc_workspace)
+
+        T100 = t100proc_workspace["fit"].attrs["t1"]
+        self.t100Edit.setText(str(round(T100, 4)))
 
     def GUI_Result_Button(self):
         """Select either the h5 or the .mat files previously saved using the 'Save results' button."""
@@ -1142,6 +1168,7 @@ class hydrationGUI(QMainWindow):
 
             self.gui_dict["gui_function"]["buttons"] = False
             self.gui_dict["gui_function"]["sliders"] = True
+            self.gui_dict["gui_function"]["T100_process"] = False
             self.optcentCheckbox.setChecked(True)
             self.optphsCheckbox.setChecked(True)
             self.gui_dict["gui_function"]["isWorkup"] = False
@@ -1201,6 +1228,7 @@ class hydrationGUI(QMainWindow):
             )
 
             self.gui_dict["folder_structure"] = {}
+            self.gui_dict["gui_function"]["T100_process"] = False
             self.gui_dict["gui_function"]["isWorkup"] = False
             self.gui_dict["gui_function"]["isLab"] = False
             self.gui_dict["gui_function"]["addWorkup"] = False
@@ -1553,7 +1581,14 @@ class hydrationGUI(QMainWindow):
             if self.gui_dict["folder_structure"]["index"] >= len(
                 self.gui_dict["folder_structure"]["all"]
             ):
+                if os.path.exists(
+                    self.gui_dict["rawdata_function"]["directory"] + "100" + os.sep
+                ):
+                    self.gui_dict["gui_function"]["T100_process"] = True
+                    self.proc_T100()
+
                 self.finishProcessing()
+
             else:
                 self.gui_dict["rawdata_function"]["folder"] = self.gui_dict[
                     "folder_structure"
@@ -1726,7 +1761,6 @@ class hydrationGUI(QMainWindow):
                     + ", resetting to folder # "
                     + str(self.gui_dict["folder_structure"]["p0"])
                 )
-
         else:
             pass
 
@@ -1811,7 +1845,10 @@ class hydrationGUI(QMainWindow):
             self.optCenter(self.gui_dict["processing_spec"]["integration_width"])
             self.optcentCheckbox.setChecked(True)
 
-        if self.gui_dict["gui_function"]["autoProcess"]:
+        if (
+            self.gui_dict["gui_function"]["autoProcess"]
+            or self.gui_dict["gui_function"]["T100_process"]
+        ):
             self.gui_dict["processing_spec"]["phase"] = self.gui_dict[
                 "processing_spec"
             ]["original_phase"]
@@ -1848,7 +1885,10 @@ class hydrationGUI(QMainWindow):
 
             self.gui_dict["gui_function"]["sliders"] = True
 
-        self.adjustSliders()
+        if self.gui_dict["gui_function"]["T100_process"]:
+            pass
+        else:
+            self.adjustSliders()
 
     def adjustSliders(self):
 
@@ -2103,6 +2143,7 @@ class hydrationGUI(QMainWindow):
                     + " +/- "
                     + str(round(self.gui_dict["workup_data"]["T1p_stdd"][k], 4))
                 )
+
         else:
             print("---Standard Deviations in T1s---")
             print(
@@ -2132,6 +2173,8 @@ class hydrationGUI(QMainWindow):
                         + " +/- "
                         + str(round(self.gui_dict["workup_data"]["T1p_stdd"][k], 4))
                     )
+
+        self.exclude1T1Checkbox.setChecked(False)
 
         self.Hydration_Calculator()
 
