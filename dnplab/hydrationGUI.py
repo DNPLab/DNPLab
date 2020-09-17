@@ -899,7 +899,9 @@ class hydrationGUI(QMainWindow):
 
             self.reset_plots()
             self.processWorkup()
-
+            
+            self.t10Edit.setText(str(round(self.gui_dict["workup_data"]["T10"], 4)))
+            
             self.gui_dict["rawdata_function"]["nopowers"] = False
 
             self.finishProcessing()
