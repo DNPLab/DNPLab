@@ -1152,7 +1152,7 @@ class hydrationGUI(QMainWindow):
             )
 
             self.singlefolder = x[len(x) - 2]
-            path = pthnm.replace(str(self.singlefolder) + os.sep, "")
+            path = pthnm.replace(os.sep + str(self.singlefolder) + os.sep, os.sep)
 
             data = dnplab.dnpImport.topspin.import_topspin(path, self.singlefolder)
             self.dnpLab_workspace = dnplab.create_workspace("raw", data)
