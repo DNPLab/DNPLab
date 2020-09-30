@@ -47,8 +47,8 @@ class hydrationGUI(QMainWindow):
     def __init__(self):
 
         super().__init__()
-        self.testmode = False # set to True for testing, False for normal use
-        self.testpath = '..'  # same as sys path to dnplab
+        self.testmode = False  # set to True for testing, False for normal use
+        self.testpath = ".."  # same as sys path to dnplab
 
         # self.setStyleSheet('background-color : #A7A9AC')
 
@@ -899,9 +899,9 @@ class hydrationGUI(QMainWindow):
 
             self.reset_plots()
             self.processWorkup()
-            
+
             self.t10Edit.setText(str(round(self.gui_dict["workup_data"]["T10"], 4)))
-            
+
             self.gui_dict["rawdata_function"]["nopowers"] = False
 
             self.finishProcessing()
@@ -1192,7 +1192,6 @@ class hydrationGUI(QMainWindow):
                 self.enhplt.setVisible(False)
             elif self.gui_dict["rawdata_function"]["folder"] == -1:
                 self.enhplt.setVisible(True)
-
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
@@ -2596,6 +2595,31 @@ class hydrationGUI(QMainWindow):
             fmt="%10.10f",
             delimiter=",",
             header="T1 powers,T1(p),T1(p) Std dev",
+            comments="",
+        )
+
+        dfPars = np.vstack(
+            (
+                self.addHyd_workspace["hydration_inputs"]["spin_C"],
+                self.addHyd_workspace["hydration_inputs"]["field"],
+                self.addHyd_workspace["hydration_inputs"]["T100"],
+                self.addHyd_workspace["hydration_inputs"]["T10"],
+                self.addHyd_workspace["hydration_results"]["T10_stdd"],
+                self.addHyd_workspace["hydration_results"]["krho"],
+                self.addHyd_workspace["hydration_results"]["ksigma"],
+                self.addHyd_workspace["hydration_results"]["ksigma_stdd"],
+                self.addHyd_workspace["hydration_results"]["klow"],
+                self.addHyd_workspace["hydration_results"]["coupling_factor"],
+                self.addHyd_workspace["hydration_results"]["tcorr"],
+                self.addHyd_workspace["hydration_results"]["Dlocal"],
+            )
+        ).T
+        np.savetxt(
+            os.path.join(svpthnm, flnm + " params.csv"),
+            dfPars,
+            fmt="%10.2f,%10.2f,%10.4f,%10.4f,%10.4f,%10.2f,%10.2f,%10.4f,%10.2f,%1.5f,%10.2f,%1.3e",
+            delimiter=",",
+            header="spin concentration (uM),Field (mT),T10(0) (s),T1(0) (s),T1(0) stdd, krho (s^-1M^-1),ksigma (s^-1M^-1),ksigma stdd,klow (s^-1M^-1),coupling factor,tcorr (ps),Dlocal (m^2/s)",
             comments="",
         )
 
