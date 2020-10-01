@@ -56,26 +56,23 @@ class hydrationGUI(QMainWindow):
         self.setGeometry(10, 10, 1050, 625)
         self.setContentsMargins(0, 0, 0, 0)
 
-        # main plot
         self.dataplt = PlotCanvas(self, width=7.2, height=4.8)
         self.dataplt.move(5, 40)
-        # Enh plot
+
         self.enhplt = PlotCanvas(self, width=3.15, height=2)
         self.enhplt.move(730, 40)
-        # t1 plot
+
         self.t1plt = PlotCanvas(self, width=3.15, height=2)
         self.t1plt.move(730, 260)
 
-        # Create a load hydrationGUI button
-        self.hanlabButton = QPushButton("GUI Result", self)
-        self.hanlabButton.setStyleSheet(
+        self.guiresultButton = QPushButton("GUI Result", self)
+        self.guiresultButton.setStyleSheet(
             "font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
         )
-        self.hanlabButton.move(5, 5)
-        self.hanlabButton.resize(80, 30)
-        self.hanlabButton.clicked.connect(self.GUI_Result_Button)
+        self.guiresultButton.move(5, 5)
+        self.guiresultButton.resize(80, 30)
+        self.guiresultButton.clicked.connect(self.GUI_Result_Button)
 
-        # Create a load workup button
         self.workupButton = QPushButton("Workup", self)
         self.workupButton.setStyleSheet(
             "font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
@@ -84,7 +81,6 @@ class hydrationGUI(QMainWindow):
         self.workupButton.resize(80, 30)
         self.workupButton.clicked.connect(self.Workup_Button)
 
-        # Create a load single button
         self.singleButton = QPushButton("Bruker", self)
         self.singleButton.setStyleSheet(
             "font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
@@ -93,23 +89,20 @@ class hydrationGUI(QMainWindow):
         self.singleButton.resize(80, 30)
         self.singleButton.clicked.connect(self.Bruker_Button)
 
-        # Create a load button
-        self.rawdataButton = QPushButton("Han Lab", self)
-        self.rawdataButton.setStyleSheet(
+        self.hanlabButton = QPushButton("Han Lab", self)
+        self.hanlabButton.setStyleSheet(
             "font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
         )
-        self.rawdataButton.move(260, 5)
-        self.rawdataButton.resize(80, 30)
-        self.rawdataButton.clicked.connect(self.Han_Lab_Button)
+        self.hanlabButton.move(260, 5)
+        self.hanlabButton.resize(80, 30)
+        self.hanlabButton.clicked.connect(self.Han_Lab_Button)
 
-        # Dataname label
         self.pathLabel = QLabel(self)
         self.pathLabel.setStyleSheet("font : bold 14px; color : rgb(0, 54, 96)")
         self.pathLabel.move(345, 13)
         self.pathLabel.resize(700, 20)
         self.pathLabel.setText("Data folder path")
 
-        # Phase slider label
         self.phaseLabel = QLabel(self)
         self.phaseLabel.setStyleSheet(
             "font : bold 14px"
@@ -117,12 +110,11 @@ class hydrationGUI(QMainWindow):
         self.phaseLabel.move(10, 520)  # 123, 590
         self.phaseLabel.resize(490, 30)
         self.phaseLabel.setText("   Phase Adjust:")
-        # Phase slider
+
         self.phaseSlider = QSlider(Qt.Horizontal, self)
         # self.phaseSlider.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.phaseSlider.setGeometry(120, 526, 365, 20)
 
-        # int center slider label
         self.intcenterLabel = QLabel(self)
         self.intcenterLabel.setStyleSheet(
             "font : bold 14px"
@@ -130,12 +122,11 @@ class hydrationGUI(QMainWindow):
         self.intcenterLabel.move(5, 551)
         self.intcenterLabel.resize(490, 30)
         self.intcenterLabel.setText(" Window center:")
-        # int center slider
+
         self.intcenterSlider = QSlider(Qt.Horizontal, self)
         # self.intcenterSlider.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.intcenterSlider.setGeometry(120, 557, 365, 20)
 
-        # int window slider label
         self.intwindowLabel = QLabel(self)
         self.intwindowLabel.setStyleSheet(
             "font : bold 14px"
@@ -143,56 +134,53 @@ class hydrationGUI(QMainWindow):
         self.intwindowLabel.move(6, 582)
         self.intwindowLabel.resize(490, 30)
         self.intwindowLabel.setText("  Window width:")
-        # int window slider
+
         self.intwindowSlider = QSlider(Qt.Horizontal, self)
         # self.intwindowSlider.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.intwindowSlider.setGeometry(195, 588, 290, 20)
-        # Create integration window text edit
+
         self.intwindowEdit = QLineEdit(self)
         self.intwindowEdit.move(120, 588)
         self.intwindowEdit.resize(35, 25)
         self.intwindowEdit.setText("10")
-        # int window edit units
+
         self.inteditLabel = QLabel(self)
         self.inteditLabel.setStyleSheet("font : bold 14px")
         self.inteditLabel.move(160, 585)
         self.inteditLabel.resize(50, 30)
         self.inteditLabel.setText("ppm")
 
-        # optimize phase checkbox
         self.optphsCheckbox = QCheckBox(self)
         self.optphsCheckbox.setStyleSheet("font : bold 14px")
         self.optphsCheckbox.move(490, 526)
         self.optphsCheckbox.resize(100, 20)
         self.optphsCheckbox.setText("Optimize")
-        # optimize center checkbox
+
         self.optcentCheckbox = QCheckBox(self)
         self.optcentCheckbox.setStyleSheet("font : bold 14px")
         self.optcentCheckbox.move(490, 557)
         self.optcentCheckbox.resize(100, 20)
         self.optcentCheckbox.setText("Optimize")
-        # opt window button
+
         self.optwidthCheckbox = QCheckBox(self)
         self.optwidthCheckbox.setStyleSheet("font : bold 14px")
         self.optwidthCheckbox.move(490, 588)
         self.optwidthCheckbox.resize(100, 20)
         self.optwidthCheckbox.setText("Optimize")
 
-        # autophase checkbox
         self.onlyT1pCheckbox = QCheckBox(self)
         self.onlyT1pCheckbox.setStyleSheet("font : bold 14px")
         self.onlyT1pCheckbox.move(727, 575)
         self.onlyT1pCheckbox.resize(100, 20)
         self.onlyT1pCheckbox.setText("Only T1(p)")
         self.onlyT1pCheckbox.setChecked(False)
-        # autophase checkbox
+
         self.onlyT10Checkbox = QCheckBox(self)
         self.onlyT10Checkbox.setStyleSheet("font : bold 14px")
         self.onlyT10Checkbox.move(727, 595)
         self.onlyT10Checkbox.resize(100, 20)
         self.onlyT10Checkbox.setText("Only T1(0)")
 
-        # Create a next button
         self.nextButton = QPushButton("Next", self)
         self.nextButton.setStyleSheet(
             "font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
@@ -200,7 +188,6 @@ class hydrationGUI(QMainWindow):
         self.nextButton.move(625, 525)
         self.nextButton.resize(100, 40)
 
-        # Create a next button
         self.autoButton = QPushButton("Auto Process", self)
         self.autoButton.setStyleSheet(
             "font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
@@ -208,7 +195,6 @@ class hydrationGUI(QMainWindow):
         self.autoButton.move(740, 525)
         self.autoButton.resize(100, 40)
 
-        # Create a back button
         self.backButton = QPushButton("Back", self)
         self.backButton.setStyleSheet(
             "font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
@@ -216,137 +202,127 @@ class hydrationGUI(QMainWindow):
         self.backButton.move(625, 575)
         self.backButton.resize(100, 40)
 
-        # dnplab error
         self.dnpLab_errorLabel = QLabel(self)
         self.dnpLab_errorLabel.setStyleSheet("font : bold 14px")
         self.dnpLab_errorLabel.move(615, 545)
         self.dnpLab_errorLabel.resize(500, 20)
         self.dnpLab_errorLabel.setText("DNPLab fit Error")
-        # workup error
+
         self.workup_errorLabel = QLabel(self)
         self.workup_errorLabel.setStyleSheet("font : bold 14px")
         self.workup_errorLabel.move(615, 525)
         self.workup_errorLabel.resize(500, 20)
         self.workup_errorLabel.setText("Workup fit Error")
 
-        # T1 interpolation label
         self.t1fitLabel = QLabel(self)
         self.t1fitLabel.setStyleSheet("font : bold 14px")
         self.t1fitLabel.move(750, 470)
         self.t1fitLabel.resize(230, 20)
         self.t1fitLabel.setText("T1 interpolation:")
-        # linear interpolation checkbox
+
         self.linearfitCheckbox = QCheckBox(self)
         self.linearfitCheckbox.setStyleSheet("font : bold 14px")
         self.linearfitCheckbox.move(865, 470)
         self.linearfitCheckbox.resize(100, 20)
         self.linearfitCheckbox.setText("Linear")
-        # 2nd order interpolation checkbox
+
         self.order2fitCheckbox = QCheckBox(self)
         self.order2fitCheckbox.setStyleSheet("font : bold 14px")
         self.order2fitCheckbox.move(930, 470)
         self.order2fitCheckbox.resize(100, 20)
         self.order2fitCheckbox.setText("2nd Order")
-        # Exclude first T1(p) checkbox
+
         self.exclude1T1Checkbox = QCheckBox(self)
         self.exclude1T1Checkbox.setStyleSheet("font : bold 14px")
         self.exclude1T1Checkbox.move(865, 500)
         self.exclude1T1Checkbox.resize(150, 20)
         self.exclude1T1Checkbox.setText("Exclude first T1(p)")
 
-        # T1(0) label
         self.t10Label = QLabel(self)
         self.t10Label.setStyleSheet("font : bold 14px")
         self.t10Label.move(73, 525)
         self.t10Label.resize(80, 20)
         self.t10Label.setText("T1(0) (s):")
-        # Create a T10(0) text edit
+
         self.t10Edit = QLineEdit(self)
         self.t10Edit.move(140, 525)
         self.t10Edit.resize(65, 25)
         self.t10Edit.setText("2.5")
 
-        # T1(0) label
         self.workupt10Label = QLabel(self)
         self.workupt10Label.setStyleSheet("font : bold 14px")
         self.workupt10Label.move(420, 525)
         self.workupt10Label.resize(150, 20)
         self.workupt10Label.setText("workup T1(0) (s):")
-        # Create a T10(0) text edit
+
         self.workupt10Edit = QLineEdit(self)
         self.workupt10Edit.move(545, 525)
         self.workupt10Edit.resize(65, 25)
         self.workupt10Edit.setText("2.5")
 
-        # show workup checkbox
         self.show_wrkupCheckbox = QCheckBox(self)
         self.show_wrkupCheckbox.setStyleSheet("font : bold 14px")
         self.show_wrkupCheckbox.move(420, 550)
         self.show_wrkupCheckbox.resize(130, 20)
         self.show_wrkupCheckbox.setText("Show workup")
-        # fit workup checkbox
+
         self.fit_wrkupCheckbox = QCheckBox(self)
         self.fit_wrkupCheckbox.setStyleSheet("font : bold 14px")
         self.fit_wrkupCheckbox.move(420, 570)
         self.fit_wrkupCheckbox.resize(130, 20)
         self.fit_wrkupCheckbox.setText("Fit workup")
 
-        # T10(0) label
         self.t100Label = QLabel(self)
         self.t100Label.setStyleSheet("font : bold 14px")
         self.t100Label.move(68, 560)
         self.t100Label.resize(80, 20)
         self.t100Label.setText("T1<sub>0</sub>(0) (s):")
-        # Create a T10(0) text edit
+
         self.t100Edit = QLineEdit(self)
         self.t100Edit.move(140, 560)
         self.t100Edit.resize(65, 25)
         self.t100Edit.setText("2.5")
 
-        # concentration label
         self.slcLabel = QLabel(self)
         self.slcLabel.setStyleSheet("font : bold 14px")
         self.slcLabel.move(43, 595)
         self.slcLabel.resize(150, 20)
         self.slcLabel.setText("Spin [C] (uM):")
-        # Create a concentration text edit
+
         self.slcEdit = QLineEdit(self)
         self.slcEdit.move(140, 595)
         self.slcEdit.resize(65, 25)
         self.slcEdit.setText("1")
 
-        # magnetic field label
         self.fieldLabel = QLabel(self)
         self.fieldLabel.setStyleSheet("font : bold 14px")
         self.fieldLabel.move(225, 525)
         self.fieldLabel.resize(150, 20)
         self.fieldLabel.setText("Field (mT):")
-        # Create a magnetic field text edit
+
         self.fieldEdit = QLineEdit(self)
         self.fieldEdit.move(305, 525)
         self.fieldEdit.resize(65, 25)
         self.fieldEdit.setText("348.5")
 
-        # smax label
         self.smaxLabel = QLabel(self)
         self.smaxLabel.setStyleSheet("font : bold 14px")
         self.smaxLabel.move(225, 560)
         self.smaxLabel.resize(100, 20)
         self.smaxLabel.setText("s<sub>max</sub> model:")
-        # tethered checkbox
+
         self.tetheredCheckbox = QCheckBox(self)
         self.tetheredCheckbox.setStyleSheet("font : bold 14px")
         self.tetheredCheckbox.move(305, 560)
         self.tetheredCheckbox.resize(100, 20)
         self.tetheredCheckbox.setText("Tethered")
-        # free checkbox
+
         self.freeCheckbox = QCheckBox(self)
         self.freeCheckbox.setStyleSheet("font : bold 14px")
         self.freeCheckbox.move(305, 580)
         self.freeCheckbox.resize(100, 20)
         self.freeCheckbox.setText("Free")
 
-        # MATLAB output button
         self.matoutButton = QPushButton("Save results", self)
         self.matoutButton.setStyleSheet(
             "font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
@@ -354,7 +330,6 @@ class hydrationGUI(QMainWindow):
         self.matoutButton.move(925, 590)
         self.matoutButton.resize(120, 30)
 
-        # Define main dictionary
         self.gui_dict = {
             "gui_function": {},
             "folder_structure": {},
