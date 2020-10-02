@@ -1756,6 +1756,8 @@ class hydrationGUI(QMainWindow):
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
             curve = self.processing_workspace["proc"].values
+            self.gui_dict["processing_spec"]["original_phase"] = np.arctan(np.sum(np.imag(curve)) / np.sum(np.real(curve)))
+            """
             phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
             rotated_data = (curve.reshape(-1, 1)) * np.exp(-1j * phases)
             success = (np.real(rotated_data) ** 2).sum(axis=0) / (
@@ -1764,6 +1766,7 @@ class hydrationGUI(QMainWindow):
             bestindex = np.argmax(success)
 
             self.gui_dict["processing_spec"]["original_phase"] = phases[0, bestindex]
+            """
 
         if (
             self.optcentCheckbox.isChecked()
