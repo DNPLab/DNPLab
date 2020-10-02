@@ -20,7 +20,6 @@ from PyQt5.QtWidgets import (
     QLabel,
     QCheckBox,
     QFileDialog,
-    QLineEdit,
 )
 from PyQt5.QtCore import Qt
 
@@ -1744,7 +1743,7 @@ class hydrationGUI(QMainWindow):
 
         self.processing_workspace = copy.deepcopy(self.dnpLab_workspace)
         dnplab.dnpNMR.remove_offset(self.processing_workspace, {})
-        dnplab.dnpNMR.window(self.processing_workspace, {"linewidth": 10})
+        dnplab.dnpNMR.window(self.processing_workspace, {"linewidth": 5})
         dnplab.dnpNMR.fourier_transform(
             self.processing_workspace, {"zero_fill_factor": 2}
         )
