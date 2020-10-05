@@ -1,21 +1,20 @@
 import sys
-sys.path.append('..')
 import numpy as np
 
-import dnplab as dnp
+sys.path.append("..")
+import dnplab
 
-filename = '..data/h5/test.h5'
+filename = "..data/h5/test.h5"
 
-ws = dnp.dnpImport.h5.loadh5(filename)
+ws = dnplab.dnpImport.h5.loadh5(filename)
 
-dnp.dnpResults.plot(ws['ft'])
-dnp.dnpResults.xlim(20,-20)
-dnp.dnpResults.figure()
-dnp.dnpResults.plot(ws['proc'], 'o')
+dnplab.dnpResults.plot(ws["ft"])
+dnplab.dnpResults.xlim(20, -20)
+dnplab.dnpResults.figure()
+dnplab.dnpResults.plot(ws["proc"], "o")
 
-dnp.dnpResults.figure()
-ws['ft'].reorder(['power'])
-dnp.dnpResults.imshow(ws['ft'].abs)
+dnplab.dnpResults.figure()
+ws["ft"].reorder(["power"])
+dnplab.dnpResults.imshow(ws["ft"].abs)
 
-dnp.dnpResults.show()
-
+dnplab.dnpResults.show()
