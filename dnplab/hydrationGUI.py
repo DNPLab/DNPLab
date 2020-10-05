@@ -890,7 +890,6 @@ class hydrationGUI(QMainWindow):
 
     def processWorkup(self):
 
-        # load enhancementPowers.csv
         Etest = np.loadtxt(
             self.gui_dict["workup_function"]["directory"] + "enhancementPowers.csv",
             delimiter=",",
@@ -920,7 +919,6 @@ class hydrationGUI(QMainWindow):
                     skiprows=1,
                 )
 
-        # load t1Powers.csv
         T1test = np.loadtxt(
             self.gui_dict["workup_function"]["directory"] + "t1Powers.csv",
             delimiter=",",
@@ -964,7 +962,6 @@ class hydrationGUI(QMainWindow):
         ePows = Eraw[:, 0].reshape(-1)
         eP = Eraw[:, 1].reshape(-1)
         self.gui_dict["workup_data"]["Epowers"] = ePows[1 : len(ePows)]
-        # take real enhancement points
         self.gui_dict["workup_data"]["Ep"] = eP[1 : len(ePows)]
 
         t1Pows = T1raw[:, 0].reshape(-1)
@@ -1014,15 +1011,13 @@ class hydrationGUI(QMainWindow):
                 int(splitup[5]),
                 int(splitup[6]),
             )
-            absStart = time.mktime(
-                absStart.utctimetuple()
-            )  # this returns seconds since the epoch
+            absStart = time.mktime(absStart.utctimetuple())
             start = lines[8].split(" ")[3]
-            start = start.split(":")  # hours,min,second
+            start = start.split(":")
             hour = int(start[0], 10) * 3600
             minute = int(start[1], 10) * 60
             second = int(start[2].split(".")[0], 10)
-            start = second + minute + hour  # in seconds
+            start = second + minute + hour
             absStop = lines[6].split("<")[1].split(">")[0].split(" ")
             absStop = absStop[0] + " " + absStop[1]
             splitup = re.findall(r"[\w']+", absStop)
@@ -1035,35 +1030,31 @@ class hydrationGUI(QMainWindow):
                 int(splitup[5]),
                 int(splitup[6]),
             )
-            absStop = time.mktime(
-                absStop.utctimetuple()
-            )  # this returns seconds since the epoch
+            absStop = time.mktime(absStop.utctimetuple())
             stop = lines[6].split(" ")[4]
             stop = stop.split(":")
             hour = int(stop[0], 10) * 3600
             minute = int(stop[1], 10) * 60
             second = int(stop[2].split(".")[0], 10)
-            stop = second + minute + hour  # in seconds
+            stop = second + minute + hour
             expTime.append(stop - start)
             absTime.append((absStart, absStop))
 
         threshold = 20
 
-        if os.path.isfile(
-            fullPath + powerFile + ".mat"
-        ):  # This is a matlab file from cnsi
+        if os.path.isfile(fullPath + powerFile + ".mat"):
             print("Extracted powers from " + powerFile + ".mat file")
             openfile = loadmat(os.path.join(fullPath, powerFile + ".mat"))
             power = openfile.pop("powerlist")
             power = np.array([x for i in power for x in i])
             exptime = openfile.pop("timelist")
             exptime = np.array([x for i in exptime for x in i])
-        elif os.path.isfile(fullPath + powerFile + ".csv"):  # This is a csv file
+        elif os.path.isfile(fullPath + powerFile + ".csv"):
             print("Extracted powers from " + powerFile + ".csv file")
             openfile = open(os.path.join(fullPath, powerFile + ".csv", "r"))
             lines = openfile.readlines()
             if len(lines) == 1:
-                lines = lines[0].split("\r")  # this might not be what I want to do...
+                lines = lines[0].split("\r")
             lines.pop(0)
             timeList = []
             powerList = []
@@ -1074,23 +1065,19 @@ class hydrationGUI(QMainWindow):
             exptime = np.array(timeList)
             power = np.array(powerList)
 
-        #### Take the derivative of the power list
         step = exptime[1] - exptime[0]
         dp = []
         for i in range(len(power) - 1):
             dp.append((power[i + 1] - power[i]) / step)
         dp = abs(np.array(dp))
-        ### Go through and threshold the powers
-        timeBreak = []
 
+        timeBreak = []
         for i in range(len(dp)):
             if dp[i] >= threshold:
                 timeBreak.append(exptime[i])
+
         timeBreak.sort()
-
         absTime.sort(key=lambda tup: tup[0])
-
-        # align to the last spike
         offSet = absTime[-1][1] - timeBreak[-1] + bufferVal
 
         power_List = []
@@ -1756,7 +1743,9 @@ class hydrationGUI(QMainWindow):
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
             curve = self.processing_workspace["proc"].values
-            self.gui_dict["processing_spec"]["original_phase"] = np.arctan(np.sum(np.imag(curve)) / np.sum(np.real(curve)))
+            self.gui_dict["processing_spec"]["original_phase"] = np.arctan(
+                np.sum(np.imag(curve)) / np.sum(np.real(curve))
+            )
             """
             phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
             rotated_data = (curve.reshape(-1, 1)) * np.exp(-1j * phases)
@@ -1853,7 +1842,6 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict["processing_spec"]["integration_center"] + 50
                 )
 
-            # if self.optwidthCheckbox.isChecked():
             self.intwindowSlider.setValue(
                 self.gui_dict["processing_spec"]["integration_width"]
             )
