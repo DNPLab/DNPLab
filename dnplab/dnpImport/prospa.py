@@ -32,7 +32,7 @@ def import_prospa(path, parameters_filename=None, verbose=False):
         if len(filesList) == 0:
             raise ValueError("No binary data file in directory:")
         elif len(filesList) > 1:
-            raise ValueError("More than one binary data file in directory:", fileList)
+            raise ValueError("More than one binary data file in directory:", filesList)
         else:
             data_filename = filesList[0]
             filename, extension = os.path.splitext(os.path.split(data_filename)[-1])

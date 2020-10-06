@@ -17,6 +17,6 @@ def get_gauss_3d(std_noise=0.0):
 
 
 def test3d(std_noise=0.0):
-    gauss_3d = get_gauss_3d(std_noise)
+    x, y, z, gauss_3d = get_gauss_3d(std_noise)
     test_data = dnpdata(gauss_3d, [x, y, z], ["x", "y", "z"])
     return test_data
