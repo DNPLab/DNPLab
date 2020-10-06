@@ -88,6 +88,7 @@ Features
    dnpHydration
    dnpResults
    hydrationGUI
+   auto_examples/index
 
 Index
 =====
