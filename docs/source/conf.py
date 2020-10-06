@@ -110,11 +110,12 @@ exclude_patterns = []
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
 
-
+# -- Options for Sphinx Gallery output -------------------------------------------------
 
 sphinx_gallery_conf = {
      'examples_dirs': '../../examples',   # path to your example scripts
      'gallery_dirs': 'auto_examples',  # path to where to save gallery generated output
+     'remove_config_comments': True,
 }
 
 

@@ -9,34 +9,52 @@
     .. _sphx_glr_auto_examples_plot_exampleDNPOnOff.py:
 
 
-"This" is my example-script
-===========================
+01 - Microwave On/Off Signal
+============================
 
-This example doesn't do much, it just makes a simple plot
+This first example demonstrates how to import two NMR spectra, one recorded with a microwave power of 0 W (off-signal) and one with a microwave power of 2 W (on-signal). The spectra are recorded using a Magritek Kea system.
 
+The example script has three different sections:
 
+#. Script header
+#. Import and Process Off-Signal
+#. Import and Process On-Signal
+#. Create a Figure and Plot On/Off Spectra
 
-.. image:: /auto_examples/images/sphx_glr_plot_exampleDNPOnOff_001.png
-    :alt: DNP On/Off Signal, 10 mM TEMPO in Water
-    :class: sphx-glr-single-img
+Script Header
+-------------
 
-
-
-
+Every DNPLab script will have at least one header row to import the DNPLab package. Importing DNPLab will also import other scripts (e.g. numpy, matplotlib, etc.) for internal use. You can also add other packages to be imported.
 
 
 .. code-block:: default
+   :lineno-start: 23
 
 
-    import numpy as np
+
+    # Import numpy as np
     import dnplab as dnp
 
 
+
+
+
+
+
+
+Import and Process Off-Signal
+-----------------------------
+
+The next section demonstrates how a FID is imported into DNPLab (lines 35) and how a workspace is created (line 37). Many functions within DNPLab work by default on the processing buffer ('proc') and leave the raw data untouched. After importing, the data is first copied to the 'rawOff' buffer (line 38) and then the 'rawOff' buffer is copied to the 'proc' buffer (line 39).
+Afterwards the FID is processed, first by removing any DC offset (line 41), then a 15 Hz linewidth is applied (line 42) before performing the Fourier transformation (line 43). At the end the processed data in the 'proc' buffer is copied to a results buffer called 'offSignal' 9line 45).
+
+
+.. code-block:: default
+   :lineno-start: 34
+
+
     ########## OFF Signal (P = 0 W) ##########
-
     data = dnp.dnpImport.prospa.import_prospa('../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/35/data.1d')
-
-    # data = dnp.dnpImport.prospa.import_prospa('data/1Pulse_20200929/35/data.1d')
 
     ws = dnp.create_workspace()
     ws.add('rawOff',data)
@@ -49,10 +67,25 @@ This example doesn't do much, it just makes a simple plot
     ws.copy('proc','offSignal')
 
 
-    ########## ON Signal (P = 0 W) ##########
-    data = dnp.dnpImport.prospa.import_prospa('../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/51/data.1d')
 
-    # data = dnp.dnpImport.prospa.import_prospa('data/1Pulse_20200929/51/data.1d')
+
+
+
+
+
+
+Import and Process ON-Signal
+----------------------------
+
+Importing the on-signal involves the same steps as importing the off-signal. Once processed the data is copied to the results buffer 'onSignal'.
+
+
+.. code-block:: default
+   :lineno-start: 54
+
+
+    ########## ON Signal (P = 2 W) ##########
+    data = dnp.dnpImport.prospa.import_prospa('../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/51/data.1d')
 
     ws.add('rawOn',data)
     ws.copy('rawOn')
@@ -64,7 +97,23 @@ This example doesn't do much, it just makes a simple plot
     ws.copy('proc','onSignal')
 
 
-    # ########## Plot Spectra ##########
+
+
+
+
+
+
+
+Create a Figure and Plot On/Off Spectra
+---------------------------------------
+
+
+########## Plot Spectra ##########
+
+
+.. code-block:: default
+   :lineno-start: 73
+
     dnp.dnpResults.figure()
     dnp.dnpResults.plot(ws['offSignal'].real * 10 - 100, label = 'Off Signal x 10')
     dnp.dnpResults.plot(ws['onSignal'].real, label = 'On Signal')
@@ -76,9 +125,19 @@ This example doesn't do much, it just makes a simple plot
     dnp.dnpResults.plt.grid(True)
     dnp.dnpResults.show()
 
+
+.. image:: /auto_examples/images/sphx_glr_plot_exampleDNPOnOff_001.png
+    :alt: DNP On/Off Signal, 10 mM TEMPO in Water
+    :class: sphx-glr-single-img
+
+
+
+
+
+
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  1.022 seconds)
+   **Total running time of the script:** ( 0 minutes  0.463 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_exampleDNPOnOff.py:

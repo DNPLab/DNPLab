@@ -4,21 +4,20 @@
 
 .. _sphx_glr_auto_examples:
 
-
-This is my gallery
-==================
+DNPLab Examples
+===============
 
 Below is a gallery of examples
 
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example doesn&#x27;t do much, it just makes a simple plot">
+    <div class="sphx-glr-thumbcontainer" tooltip="This first example demonstrates how to import two NMR spectra, one recorded with a microwave po...">
 
 .. only:: html
 
  .. figure:: /auto_examples/images/thumb/sphx_glr_plot_exampleDNPOnOff_thumb.png
-     :alt: "This" is my example-script
+     :alt: 01 - Microwave On/Off Signal
 
      :ref:`sphx_glr_auto_examples_plot_exampleDNPOnOff.py`
 
