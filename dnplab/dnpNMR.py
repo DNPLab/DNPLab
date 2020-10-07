@@ -318,7 +318,6 @@ def integrate(all_data, proc_parameters):
 
     data = data[dim, (integrateMin, integrateMax)]
 
-    # data = data.sum(dim)
     data.values = _sp.trapz(data.values, x=data.coords[dim], axis=0)
 
     proc_attr_name = "integrate"
