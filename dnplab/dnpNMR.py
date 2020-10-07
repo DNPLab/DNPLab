@@ -1,5 +1,6 @@
 from . import dnpdata, dnpdata_collection
 import numpy as _np
+import scipy as _sp
 
 _default_fourier_transform_parameters = {
     "dim": "t2",
@@ -317,7 +318,8 @@ def integrate(all_data, proc_parameters):
 
     data = data[dim, (integrateMin, integrateMax)]
 
-    data = data.sum(dim)
+    # data = data.sum(dim)
+    data.values = _sp.trapz(data.values, x=data.coords[dim], axis=0)
 
     proc_attr_name = "integrate"
     proc_dict = {k: proc_parameters[k] for k in proc_parameters if k in requiredList}

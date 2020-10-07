@@ -1375,8 +1375,9 @@ class hydrationGUI(QMainWindow):
         """Use the Next button to step through the data folders."""
         if self.gui_dict["gui_function"]["buttons"]:
 
-            phase = self.gui_dict["processing_spec"]["phase"]
-            nextproc_workspace = self.phs_workspace(self.processing_workspace, phase)
+            nextproc_workspace = self.phs_workspace(
+                self.processing_workspace, self.gui_dict["processing_spec"]["phase"]
+            )
 
             int_params = {
                 "integrate_center": self.gui_dict["processing_spec"][
@@ -1773,18 +1774,18 @@ class hydrationGUI(QMainWindow):
             optwidth_workspace = self.phs_workspace(
                 optwidth_workspace, self.gui_dict["processing_spec"]["original_phase"]
             )
-            xdata = optwidth_workspace["proc"].coords
+
             ydata = abs(np.real(optwidth_workspace["proc"].values))
             qual_factor = 1 / 3
             if optwidth_workspace["proc"].ndim == 1:
-                xdata = np.ravel(xdata)
+                xdata = np.ravel(optwidth_workspace["proc"].coords)
                 one_third = np.where(ydata > max(ydata) * qual_factor)
                 one_third = np.ravel(one_third)
 
                 best_width = xdata[one_third[-1]] - xdata[one_third[0]]
 
             else:
-                xdata = np.ravel(xdata[0])
+                xdata = np.ravel(optwidth_workspace["proc"].coords[0])
                 min_x = []
                 max_x = []
                 for k in range(0, len(ydata[0, :])):
@@ -1876,8 +1877,9 @@ class hydrationGUI(QMainWindow):
                 * self.gui_dict["processing_spec"]["original_phase"]
             )
 
-            xdata = adjslider_workspace["proc"].coords
-            self.gui_dict["data_plot"]["xdata"] = np.reshape(xdata["t2"], -1)
+            self.gui_dict["data_plot"]["xdata"] = np.reshape(
+                adjslider_workspace["proc"].coords["t2"], -1
+            )
 
             ydata = adjslider_workspace["proc"].values * np.exp(
                 -1j * self.gui_dict["processing_spec"]["phase"]
@@ -1933,7 +1935,7 @@ class hydrationGUI(QMainWindow):
             else:
 
                 self.gui_dict["t1_fit"]["tau"] = np.reshape(
-                    adjslider_workspace["proc"].coords, -1
+                    adjslider_workspace["proc"].coords["t1"], -1
                 )
                 self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
 
@@ -2617,7 +2619,6 @@ class hydrationGUI(QMainWindow):
             self.gui_dict["processing_spec"]["integration_width"] = wvalue
             self.intwindowEdit.setText(str(wvalue))
             self.optwidthCheckbox.setChecked(False)
-            self.optcentCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
