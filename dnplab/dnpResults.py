@@ -56,6 +56,33 @@ def imshow(data, *args, **kwargs):  # TODO: drop unused args and kwargs
     plt.xlabel(dims[1])
     plt.ylabel(dims[0])
 
+def stack(data, *args, offset=None, **kwargs):
+    '''Stack Plot for 2D data
+
+    Args:
+        data (dnpdata): dnpdata object for matplotlib plot function
+        args: args for matplotlib plot function
+        offset: Value to offset each spectra, by default maximum of absolute value
+        kwargs: kwargs for matplotlib plot function
+
+    Example::
+
+       dnp.dnpResults.plt.figure()
+       dnp.dnpResults.stack(data)
+       dnp.dnpResults.plt.show()
+
+    '''
+
+    coord = data.coords[0]
+    dim = data.dims[0]
+
+    if offset == None:
+        offset = np.max(data.abs)
+
+    offset_matrix = offset * np.ones(coord.size).reshape(-1, 1) * np.r_[0:data.coords[1].size]
+
+    plt.plot(coord, data.values + offset_matrix, *args, **kwargs)
+
 
 def plot(data, *args, **kwargs):
     """Plot function for dnpdata object
