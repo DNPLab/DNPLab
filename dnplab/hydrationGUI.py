@@ -663,9 +663,12 @@ class hydrationGUI(QMainWindow):
     def optCenter(self, width):
 
         optcenter_workspace = copy.deepcopy(self.processing_workspace)
-
         intgrl_array = []
-        indx = range(-50, 51)
+        max_index = np.argmax(optcenter_workspace["proc"].values, axis=0)
+        if max_index.size != 1:
+            max_index = max_index[0]
+        starting_center = round(optcenter_workspace["proc"].coords["t2"][max_index])
+        indx = range(starting_center - 50, starting_center + 50)
         optcenter_workspace = self.phs_workspace(
             optcenter_workspace, self.gui_dict["processing_spec"]["original_phase"]
         )
@@ -1361,7 +1364,6 @@ class hydrationGUI(QMainWindow):
             )
 
             self.processData()
-
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
@@ -1742,7 +1744,9 @@ class hydrationGUI(QMainWindow):
             self.optphsCheckbox.isChecked()
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
+
             curve = self.processing_workspace["proc"].values
+
             self.gui_dict["processing_spec"]["original_phase"] = np.arctan(
                 np.sum(np.imag(curve)) / np.sum(np.real(curve))
             )
@@ -1831,15 +1835,16 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict["processing_spec"]["original_phase"]
                 )
 
+            self.intcenterSlider.setMinimum(
+                self.gui_dict["processing_spec"]["integration_center"] - 50
+            )
+            self.intcenterSlider.setMaximum(
+                self.gui_dict["processing_spec"]["integration_center"] + 50
+            )
+
             if self.optcentCheckbox.isChecked():
                 self.intcenterSlider.setValue(
                     self.gui_dict["processing_spec"]["integration_center"]
-                )
-                self.intcenterSlider.setMinimum(
-                    self.gui_dict["processing_spec"]["integration_center"] - 50
-                )
-                self.intcenterSlider.setMaximum(
-                    self.gui_dict["processing_spec"]["integration_center"] + 50
                 )
 
             self.intwindowSlider.setValue(
