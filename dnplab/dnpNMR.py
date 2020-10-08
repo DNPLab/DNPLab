@@ -1,6 +1,5 @@
 from . import dnpdata, dnpdata_collection
 import numpy as _np
-import scipy as _sp
 
 
 def return_data(all_data):
@@ -270,7 +269,7 @@ def integrate(all_data, dim = "t2", integrate_center = 0, integrate_width = 100)
     data = data[dim, (integrateMin, integrateMax)]
 
     index = data.index(dim)
-    data.values = _sp.trapz(data.values, x=data.coords[dim], axis=index)
+    data.values = _np.trapz(data.values, x=data.coords[dim], axis=index)
 
     data.coords.pop(dim)
 
