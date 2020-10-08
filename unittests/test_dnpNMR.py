@@ -45,7 +45,7 @@ class dnpNMR_tester_sim(unittest.TestCase):
         self.ws.copy("raw", "proc")
 
     def test_align(self):
-        nmr.align(self.ws, dim = "x")
+        nmr.align(self.ws, dim="x")
         assert_array_equal(
             self.ws["proc"].values,
             np.array(
