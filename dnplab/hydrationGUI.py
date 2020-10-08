@@ -663,9 +663,12 @@ class hydrationGUI(QMainWindow):
     def optCenter(self, width):
 
         optcenter_workspace = copy.deepcopy(self.processing_workspace)
-
         intgrl_array = []
-        indx = range(-50, 51)
+        max_index = np.argmax(optcenter_workspace["proc"].values, axis=0)
+        if max_index.size != 1:
+            max_index = max_index[0]
+        starting_center = round(optcenter_workspace["proc"].coords["t2"][max_index])
+        indx = range(starting_center - 50, starting_center + 50)
         optcenter_workspace = self.phs_workspace(
             optcenter_workspace, self.gui_dict["processing_spec"]["original_phase"]
         )
@@ -890,7 +893,6 @@ class hydrationGUI(QMainWindow):
 
     def processWorkup(self):
 
-        # load enhancementPowers.csv
         Etest = np.loadtxt(
             self.gui_dict["workup_function"]["directory"] + "enhancementPowers.csv",
             delimiter=",",
@@ -920,7 +922,6 @@ class hydrationGUI(QMainWindow):
                     skiprows=1,
                 )
 
-        # load t1Powers.csv
         T1test = np.loadtxt(
             self.gui_dict["workup_function"]["directory"] + "t1Powers.csv",
             delimiter=",",
@@ -964,7 +965,6 @@ class hydrationGUI(QMainWindow):
         ePows = Eraw[:, 0].reshape(-1)
         eP = Eraw[:, 1].reshape(-1)
         self.gui_dict["workup_data"]["Epowers"] = ePows[1 : len(ePows)]
-        # take real enhancement points
         self.gui_dict["workup_data"]["Ep"] = eP[1 : len(ePows)]
 
         t1Pows = T1raw[:, 0].reshape(-1)
@@ -1014,15 +1014,13 @@ class hydrationGUI(QMainWindow):
                 int(splitup[5]),
                 int(splitup[6]),
             )
-            absStart = time.mktime(
-                absStart.utctimetuple()
-            )  # this returns seconds since the epoch
+            absStart = time.mktime(absStart.utctimetuple())
             start = lines[8].split(" ")[3]
-            start = start.split(":")  # hours,min,second
+            start = start.split(":")
             hour = int(start[0], 10) * 3600
             minute = int(start[1], 10) * 60
             second = int(start[2].split(".")[0], 10)
-            start = second + minute + hour  # in seconds
+            start = second + minute + hour
             absStop = lines[6].split("<")[1].split(">")[0].split(" ")
             absStop = absStop[0] + " " + absStop[1]
             splitup = re.findall(r"[\w']+", absStop)
@@ -1035,35 +1033,31 @@ class hydrationGUI(QMainWindow):
                 int(splitup[5]),
                 int(splitup[6]),
             )
-            absStop = time.mktime(
-                absStop.utctimetuple()
-            )  # this returns seconds since the epoch
+            absStop = time.mktime(absStop.utctimetuple())
             stop = lines[6].split(" ")[4]
             stop = stop.split(":")
             hour = int(stop[0], 10) * 3600
             minute = int(stop[1], 10) * 60
             second = int(stop[2].split(".")[0], 10)
-            stop = second + minute + hour  # in seconds
+            stop = second + minute + hour
             expTime.append(stop - start)
             absTime.append((absStart, absStop))
 
         threshold = 20
 
-        if os.path.isfile(
-            fullPath + powerFile + ".mat"
-        ):  # This is a matlab file from cnsi
+        if os.path.isfile(fullPath + powerFile + ".mat"):
             print("Extracted powers from " + powerFile + ".mat file")
             openfile = loadmat(os.path.join(fullPath, powerFile + ".mat"))
             power = openfile.pop("powerlist")
             power = np.array([x for i in power for x in i])
             exptime = openfile.pop("timelist")
             exptime = np.array([x for i in exptime for x in i])
-        elif os.path.isfile(fullPath + powerFile + ".csv"):  # This is a csv file
+        elif os.path.isfile(fullPath + powerFile + ".csv"):
             print("Extracted powers from " + powerFile + ".csv file")
             openfile = open(os.path.join(fullPath, powerFile + ".csv", "r"))
             lines = openfile.readlines()
             if len(lines) == 1:
-                lines = lines[0].split("\r")  # this might not be what I want to do...
+                lines = lines[0].split("\r")
             lines.pop(0)
             timeList = []
             powerList = []
@@ -1074,23 +1068,19 @@ class hydrationGUI(QMainWindow):
             exptime = np.array(timeList)
             power = np.array(powerList)
 
-        #### Take the derivative of the power list
         step = exptime[1] - exptime[0]
         dp = []
         for i in range(len(power) - 1):
             dp.append((power[i + 1] - power[i]) / step)
         dp = abs(np.array(dp))
-        ### Go through and threshold the powers
-        timeBreak = []
 
+        timeBreak = []
         for i in range(len(dp)):
             if dp[i] >= threshold:
                 timeBreak.append(exptime[i])
+
         timeBreak.sort()
-
         absTime.sort(key=lambda tup: tup[0])
-
-        # align to the last spike
         offSet = absTime[-1][1] - timeBreak[-1] + bufferVal
 
         power_List = []
@@ -1374,7 +1364,6 @@ class hydrationGUI(QMainWindow):
             )
 
             self.processData()
-
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
@@ -1386,8 +1375,9 @@ class hydrationGUI(QMainWindow):
         """Use the Next button to step through the data folders."""
         if self.gui_dict["gui_function"]["buttons"]:
 
-            phase = self.gui_dict["processing_spec"]["phase"]
-            nextproc_workspace = self.phs_workspace(self.processing_workspace, phase)
+            nextproc_workspace = self.phs_workspace(
+                self.processing_workspace, self.gui_dict["processing_spec"]["phase"]
+            )
 
             int_params = {
                 "integrate_center": self.gui_dict["processing_spec"][
@@ -1755,7 +1745,13 @@ class hydrationGUI(QMainWindow):
             self.optphsCheckbox.isChecked()
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
+
             curve = self.processing_workspace["proc"].values
+
+            self.gui_dict["processing_spec"]["original_phase"] = np.arctan(
+                np.sum(np.imag(curve)) / np.sum(np.real(curve))
+            )
+            """
             phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
             rotated_data = (curve.reshape(-1, 1)) * np.exp(-1j * phases)
             success = (np.real(rotated_data) ** 2).sum(axis=0) / (
@@ -1764,6 +1760,7 @@ class hydrationGUI(QMainWindow):
             bestindex = np.argmax(success)
 
             self.gui_dict["processing_spec"]["original_phase"] = phases[0, bestindex]
+            """
 
         if (
             self.optcentCheckbox.isChecked()
@@ -1777,18 +1774,18 @@ class hydrationGUI(QMainWindow):
             optwidth_workspace = self.phs_workspace(
                 optwidth_workspace, self.gui_dict["processing_spec"]["original_phase"]
             )
-            xdata = optwidth_workspace["proc"].coords
+
             ydata = abs(np.real(optwidth_workspace["proc"].values))
             qual_factor = 1 / 3
             if optwidth_workspace["proc"].ndim == 1:
-                xdata = np.ravel(xdata)
+                xdata = np.ravel(optwidth_workspace["proc"].coords)
                 one_third = np.where(ydata > max(ydata) * qual_factor)
                 one_third = np.ravel(one_third)
 
                 best_width = xdata[one_third[-1]] - xdata[one_third[0]]
 
             else:
-                xdata = np.ravel(xdata[0])
+                xdata = np.ravel(optwidth_workspace["proc"].coords[0])
                 min_x = []
                 max_x = []
                 for k in range(0, len(ydata[0, :])):
@@ -1839,18 +1836,18 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict["processing_spec"]["original_phase"]
                 )
 
+            self.intcenterSlider.setMinimum(
+                self.gui_dict["processing_spec"]["integration_center"] - 50
+            )
+            self.intcenterSlider.setMaximum(
+                self.gui_dict["processing_spec"]["integration_center"] + 50
+            )
+
             if self.optcentCheckbox.isChecked():
                 self.intcenterSlider.setValue(
                     self.gui_dict["processing_spec"]["integration_center"]
                 )
-                self.intcenterSlider.setMinimum(
-                    self.gui_dict["processing_spec"]["integration_center"] - 50
-                )
-                self.intcenterSlider.setMaximum(
-                    self.gui_dict["processing_spec"]["integration_center"] + 50
-                )
 
-            # if self.optwidthCheckbox.isChecked():
             self.intwindowSlider.setValue(
                 self.gui_dict["processing_spec"]["integration_width"]
             )
@@ -1880,8 +1877,9 @@ class hydrationGUI(QMainWindow):
                 * self.gui_dict["processing_spec"]["original_phase"]
             )
 
-            xdata = adjslider_workspace["proc"].coords
-            self.gui_dict["data_plot"]["xdata"] = np.reshape(xdata["t2"], -1)
+            self.gui_dict["data_plot"]["xdata"] = np.reshape(
+                adjslider_workspace["proc"].coords["t2"], -1
+            )
 
             ydata = adjslider_workspace["proc"].values * np.exp(
                 -1j * self.gui_dict["processing_spec"]["phase"]
@@ -1937,7 +1935,7 @@ class hydrationGUI(QMainWindow):
             else:
 
                 self.gui_dict["t1_fit"]["tau"] = np.reshape(
-                    adjslider_workspace["proc"].coords, -1
+                    adjslider_workspace["proc"].coords["t1"], -1
                 )
                 self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
 
@@ -2621,7 +2619,6 @@ class hydrationGUI(QMainWindow):
             self.gui_dict["processing_spec"]["integration_width"] = wvalue
             self.intwindowEdit.setText(str(wvalue))
             self.optwidthCheckbox.setChecked(False)
-            self.optcentCheckbox.setChecked(False)
             self.adjustSliders()
         else:
             pass
