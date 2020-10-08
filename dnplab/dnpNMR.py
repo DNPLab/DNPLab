@@ -150,7 +150,7 @@ def fourier_transform(all_data, dim = 't2', zero_fill_factor = 2, shift = True, 
 
     if convert_to_ppm:
         nmr_frequency = data.attrs["nmr_frequency"]
-        f /= nmr_frequency / 1.0e6
+        f /= -1*nmr_frequency / 1.0e6
 
     data.values = _np.fft.fft(data.values, n=n_pts, axis=index)
     if shift:
