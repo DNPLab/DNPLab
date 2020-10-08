@@ -2,37 +2,6 @@ from . import dnpdata, dnpdata_collection
 import numpy as _np
 import scipy as _sp
 
-_default_fourier_transform_parameters = {
-    "dim": "t2",
-    "zero_fill_factor": 2,  # zero fill dim to
-    "shift": True,  # shift dim to center zero frequency
-    "convert_to_ppm": True,  # convert dim to ppm
-}
-
-_defaultAlign_parameters = {
-    "dim": "t2",
-}
-
-_default_window_parameters = {
-    "linewidth": 10,
-    "dim": "t2",
-}
-
-_default_integrate_parameters = {
-    "dim": "t2",
-    "integrate_center": 0,
-    "integrate_width": 100,
-}
-
-_default_remove_offset_parameters = {
-    "dim": "t2",
-    "offset_points": 10,
-}
-
-_default_autophase_parameters = {
-    "method": "arctan",
-}
-
 
 def return_data(all_data):
 
@@ -74,7 +43,7 @@ def update_parameters(proc_parameters, requiredList, default_parameters):
     return updatedProc_parameters
 
 
-def remove_offset(all_data, proc_parameters):
+def remove_offset(all_data, dim = 't2', offset_points = 10):
     """Remove DC offset from FID by averaging the last few data points and subtracting the average
 
     Args:
@@ -95,20 +64,21 @@ def remove_offset(all_data, proc_parameters):
 
     Example::
 
-       proc_parameters = {}
-       proc_parameters['dim'] = 't2'
-       proc_parameters['offset_points'] = 10
-
-       workspace = dnplab.dnpNMR.remove_offset(workspace, proc_parameters)
+       workspace = dnplab.dnpNMR.remove_offset(workspace)
     """
 
     # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
 
-    requiredList = _default_remove_offset_parameters.keys()
-    proc_parameters = update_parameters(
-        proc_parameters, requiredList, _default_remove_offset_parameters
-    )
+    proc_parameters = {
+                    "dim" : dim,
+                    "offset_points" : offset_points,
+                    }
+
+#    requiredList = _default_remove_offset_parameters.keys()
+#    proc_parameters = update_parameters(
+#        proc_parameters, requiredList, _default_remove_offset_parameters
+#    )
     dim = proc_parameters["dim"]
     offset_points = int(proc_parameters["offset_points"])
 
@@ -119,8 +89,9 @@ def remove_offset(all_data, proc_parameters):
     data -= offset
 
     proc_attr_name = "remove_offset"
-    proc_dict = {k: proc_parameters[k] for k in proc_parameters if k in requiredList}
-    data.add_proc_attrs(proc_attr_name, proc_dict)
+#    proc_dict = {k: proc_parameters[k] for k in proc_parameters if k in requiredList}
+#    data.add_proc_attrs(proc_attr_name, proc_dict)
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if isDict:
         all_data[all_data.processing_buffer] = data
@@ -129,7 +100,7 @@ def remove_offset(all_data, proc_parameters):
         return data
 
 
-def fourier_transform(all_data, proc_parameters):
+def fourier_transform(all_data, dim = 't2', zero_fill_factor = 2, shift = True, convert_to_ppm = True):
     """Perform Fourier Transform down dim dimension given in proc_parameters
 
     .. Note::
@@ -137,7 +108,6 @@ def fourier_transform(all_data, proc_parameters):
 
     Args:
         all_data (dnpdata, dict): Data container
-        proc_parameters (dict, procParam): Processing parameters
 
     +------------------+------+---------+--------------------------------------------------+
     | parameter        | type | default | description                                      |
@@ -158,30 +128,22 @@ def fourier_transform(all_data, proc_parameters):
 
     .. code-block:: python
 
-        proc_parameters['dim'] = 't2'
-        proc_parameters['zero_fill_factor'] = 2
-        proc_parameters['shift'] = True
-        proc_parameters['convert_to_ppm'] = True
-
         all_data = dnplab.dnpNMR.fourier_transform(all_data, proc_parameters)
     """
 
     # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
 
-    requiredList = _default_fourier_transform_parameters.keys()
-    proc_parameters = update_parameters(
-        proc_parameters, requiredList, _default_fourier_transform_parameters
-    )
+    proc_parameters = {
+                    "dim" : dim,
+                    "zero_fill_factor" : zero_fill_factor,
+                    "shift" : shift,
+                    "convert_to_ppm" : convert_to_ppm,
+                    }
 
-    dimLabel = proc_parameters["dim"]
-    zero_fill_factor = proc_parameters["zero_fill_factor"]
-    shift = proc_parameters["shift"]
-    convert_to_ppm = proc_parameters["convert_to_ppm"]
-
-    index = data.dims.index(dimLabel)
-    dt = data.coords[dimLabel][1] - data.coords[dimLabel][0]
-    n_pts = zero_fill_factor * len(data.coords[dimLabel])
+    index = data.dims.index(dim)
+    dt = data.coords[dim][1] - data.coords[dim][0]
+    n_pts = zero_fill_factor * len(data.coords[dim])
     f = (1.0 / (n_pts * dt)) * _np.r_[0:n_pts]
     if shift == True:
         f -= 1.0 / (2 * dt)
@@ -193,11 +155,10 @@ def fourier_transform(all_data, proc_parameters):
     data.values = _np.fft.fft(data.values, n=n_pts, axis=index)
     if shift:
         data.values = _np.fft.fftshift(data.values, axes=index)
-    data.coords[dimLabel] = f
+    data.coords[dim] = f
 
     proc_attr_name = "fourier_transform"
-    proc_dict = {k: proc_parameters[k] for k in proc_parameters if k in requiredList}
-    data.add_proc_attrs(proc_attr_name, proc_dict)
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if isDict:
         all_data[all_data.processing_buffer] = data
@@ -206,7 +167,7 @@ def fourier_transform(all_data, proc_parameters):
         return data
 
 
-def window(all_data, proc_parameters):
+def window(all_data, dim = "t2", linewidth = 10):
     """Apply Apodization to data down given dimension
 
     Args:
@@ -240,30 +201,25 @@ def window(all_data, proc_parameters):
     """
 
     data, isDict = return_data(all_data)
+    proc_parameters = {
+            "dim" : dim,
+            "linewidth" : linewidth
+            }
 
-    requiredList = _default_window_parameters.keys()
-    proc_parameters = update_parameters(
-        proc_parameters, requiredList, _default_window_parameters
-    )
-
-    dimLabel = proc_parameters["dim"]
-    linewidth = proc_parameters["linewidth"]
-
-    index = data.dims.index(dimLabel)
+    index = data.dims.index(dim)
 
     reshape_size = [1 for k in data.dims]
-    reshape_size[index] = len(data.coords[dimLabel])
+    reshape_size[index] = len(data.coords[dim])
 
     # Must include factor of 2 in exponential to get correct linewidth ->
-    window_array = _np.exp(-1.0 * data.coords[dimLabel] * 2.0 * linewidth).reshape(
+    window_array = _np.exp(-1.0 * data.coords[dim] * 2.0 * linewidth).reshape(
         reshape_size
     )
     window_array = _np.ones_like(data.values) * window_array
     data.values *= window_array
 
     proc_attr_name = "window"
-    proc_dict = {k: proc_parameters[k] for k in proc_parameters if k in requiredList}
-    data.add_proc_attrs(proc_attr_name, proc_dict)
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if isDict:
         all_data[all_data.processing_buffer] = data
@@ -272,7 +228,7 @@ def window(all_data, proc_parameters):
         return data
 
 
-def integrate(all_data, proc_parameters):
+def integrate(all_data, dim = "t2", integrate_center = 0, integrate_width = 100):
     """Integrate data down given dimension
 
     Args:
@@ -294,36 +250,33 @@ def integrate(all_data, proc_parameters):
 
     Example::
 
-        proc_parameters = {
-            'dim' : 't2',
-            'integrate_center' : 0,
-            'integrate_width' : 100,
-            }
-        dnplab.dnpNMR.integrate(all_data,proc_parameters)
+        dnplab.dnpNMR.integrate(all_data)
 
     """
 
     data, isDict = return_data(all_data)
 
-    requiredList = _default_integrate_parameters.keys()
-    proc_parameters = update_parameters(
-        proc_parameters, requiredList, _default_integrate_parameters
-    )
 
-    dim = proc_parameters["dim"]
-    integrate_center = proc_parameters["integrate_center"]
-    integrate_width = proc_parameters["integrate_width"]
+    proc_parameters = {
+            "dim" : dim,
+            "integrate_center" : integrate_center,
+            "integrate_width" : integrate_width,
+            }
+
 
     integrateMin = integrate_center - _np.abs(integrate_width) / 2.0
     integrateMax = integrate_center + _np.abs(integrate_width) / 2.0
 
     data = data[dim, (integrateMin, integrateMax)]
 
-    data.values = _sp.trapz(data.values, x=data.coords[dim], axis=0)
+    index = data.index(dim)
+    data.values = _sp.trapz(data.values, x=data.coords[dim], axis=index)
+
+    data.coords.pop(dim)
 
     proc_attr_name = "integrate"
-    proc_dict = {k: proc_parameters[k] for k in proc_parameters if k in requiredList}
-    data.add_proc_attrs(proc_attr_name, proc_dict)
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+
 
     if isDict:
         all_data[all_data.processing_buffer] = data
@@ -332,7 +285,7 @@ def integrate(all_data, proc_parameters):
         return data
 
 
-def align(all_data, proc_parameters):
+def align(all_data, dim = "t2"):
     """Alignment of NMR spectra down given dim dimension
 
     Example::
@@ -345,14 +298,9 @@ def align(all_data, proc_parameters):
     if len(_np.shape(data.values)) != 2:
         raise ValueError("Only 2-dimensional data is currently supported")
 
-    requiredList = _defaultAlign_parameters.keys()
-    proc_parameters = update_parameters(
-        proc_parameters, requiredList, _defaultAlign_parameters
-    )
-
-    alignAxesLabel = proc_parameters["dim"]
+    proc_parameters = {"dim" : dim}
     originalAxesOrder = data.dims
-    data.reorder([alignAxesLabel])
+    data.reorder([dim])
     dimIter = data.dims[-1]
 
     refData = data[dimIter, 0].values.reshape(-1)
@@ -369,8 +317,7 @@ def align(all_data, proc_parameters):
     data.reorder(originalAxesOrder)
 
     proc_attr_name = "align"
-    proc_dict = {k: proc_parameters[k] for k in proc_parameters if k in requiredList}
-    data.add_proc_attrs(proc_attr_name, proc_dict)
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if isDict:
         all_data[all_data.processing_buffer] = data
@@ -379,7 +326,7 @@ def align(all_data, proc_parameters):
         return data
 
 
-def autophase(workspace, parameters):
+def autophase(workspace, method = "arctan"):
     """Automatically phase data
 
     Args:
@@ -395,10 +342,7 @@ def autophase(workspace, parameters):
 
     """
 
-    requiredList = _default_autophase_parameters.keys()
-    parameters = update_parameters(
-        parameters, requiredList, _default_autophase_parameters
-    )
+    proc_parameters = {"method": "arctan"}
 
     data, is_workspace = return_data(workspace)
     phase = _np.arctan(_np.sum(_np.imag(data.values)) / _np.sum(_np.real(data.values)))
@@ -408,8 +352,7 @@ def autophase(workspace, parameters):
         data.values *= -1.0
 
     proc_attr_name = "autophase"
-    proc_attrs = {k: parameters[k] for k in parameters if k in requiredList}
-    data.add_proc_attrs(proc_attr_name, proc_attrs)
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if is_workspace:
         workspace[workspace.processing_buffer] = data
