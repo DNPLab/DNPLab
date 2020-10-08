@@ -42,7 +42,7 @@ def update_parameters(proc_parameters, requiredList, default_parameters):
     return updatedProc_parameters
 
 
-def remove_offset(all_data, dim = 't2', offset_points = 10):
+def remove_offset(all_data, dim="t2", offset_points=10):
     """Remove DC offset from FID by averaging the last few data points and subtracting the average
 
     Args:
@@ -70,14 +70,14 @@ def remove_offset(all_data, dim = 't2', offset_points = 10):
     data, isDict = return_data(all_data)
 
     proc_parameters = {
-                    "dim" : dim,
-                    "offset_points" : offset_points,
-                    }
+        "dim": dim,
+        "offset_points": offset_points,
+    }
 
-#    requiredList = _default_remove_offset_parameters.keys()
-#    proc_parameters = update_parameters(
-#        proc_parameters, requiredList, _default_remove_offset_parameters
-#    )
+    #    requiredList = _default_remove_offset_parameters.keys()
+    #    proc_parameters = update_parameters(
+    #        proc_parameters, requiredList, _default_remove_offset_parameters
+    #    )
     dim = proc_parameters["dim"]
     offset_points = int(proc_parameters["offset_points"])
 
@@ -88,8 +88,8 @@ def remove_offset(all_data, dim = 't2', offset_points = 10):
     data -= offset
 
     proc_attr_name = "remove_offset"
-#    proc_dict = {k: proc_parameters[k] for k in proc_parameters if k in requiredList}
-#    data.add_proc_attrs(proc_attr_name, proc_dict)
+    #    proc_dict = {k: proc_parameters[k] for k in proc_parameters if k in requiredList}
+    #    data.add_proc_attrs(proc_attr_name, proc_dict)
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if isDict:
@@ -99,7 +99,9 @@ def remove_offset(all_data, dim = 't2', offset_points = 10):
         return data
 
 
-def fourier_transform(all_data, dim = 't2', zero_fill_factor = 2, shift = True, convert_to_ppm = True):
+def fourier_transform(
+    all_data, dim="t2", zero_fill_factor=2, shift=True, convert_to_ppm=True
+):
     """Perform Fourier Transform down dim dimension given in proc_parameters
 
     .. Note::
@@ -134,11 +136,11 @@ def fourier_transform(all_data, dim = 't2', zero_fill_factor = 2, shift = True, 
     data, isDict = return_data(all_data)
 
     proc_parameters = {
-                    "dim" : dim,
-                    "zero_fill_factor" : zero_fill_factor,
-                    "shift" : shift,
-                    "convert_to_ppm" : convert_to_ppm,
-                    }
+        "dim": dim,
+        "zero_fill_factor": zero_fill_factor,
+        "shift": shift,
+        "convert_to_ppm": convert_to_ppm,
+    }
 
     index = data.dims.index(dim)
     dt = data.coords[dim][1] - data.coords[dim][0]
@@ -149,7 +151,7 @@ def fourier_transform(all_data, dim = 't2', zero_fill_factor = 2, shift = True, 
 
     if convert_to_ppm:
         nmr_frequency = data.attrs["nmr_frequency"]
-        f /= -1*nmr_frequency / 1.0e6
+        f /= -1 * nmr_frequency / 1.0e6
 
     data.values = _np.fft.fft(data.values, n=n_pts, axis=index)
     if shift:
@@ -166,7 +168,7 @@ def fourier_transform(all_data, dim = 't2', zero_fill_factor = 2, shift = True, 
         return data
 
 
-def window(all_data, dim = "t2", linewidth = 10):
+def window(all_data, dim="t2", linewidth=10):
     """Apply Apodization to data down given dimension
 
     Args:
@@ -200,10 +202,7 @@ def window(all_data, dim = "t2", linewidth = 10):
     """
 
     data, isDict = return_data(all_data)
-    proc_parameters = {
-            "dim" : dim,
-            "linewidth" : linewidth
-            }
+    proc_parameters = {"dim": dim, "linewidth": linewidth}
 
     index = data.dims.index(dim)
 
@@ -227,7 +226,7 @@ def window(all_data, dim = "t2", linewidth = 10):
         return data
 
 
-def integrate(all_data, dim = "t2", integrate_center = 0, integrate_width = 100):
+def integrate(all_data, dim="t2", integrate_center=0, integrate_width=100):
     """Integrate data down given dimension
 
     Args:
@@ -255,13 +254,11 @@ def integrate(all_data, dim = "t2", integrate_center = 0, integrate_width = 100)
 
     data, isDict = return_data(all_data)
 
-
     proc_parameters = {
-            "dim" : dim,
-            "integrate_center" : integrate_center,
-            "integrate_width" : integrate_width,
-            }
-
+        "dim": dim,
+        "integrate_center": integrate_center,
+        "integrate_width": integrate_width,
+    }
 
     integrateMin = integrate_center - _np.abs(integrate_width) / 2.0
     integrateMax = integrate_center + _np.abs(integrate_width) / 2.0
@@ -276,7 +273,6 @@ def integrate(all_data, dim = "t2", integrate_center = 0, integrate_width = 100)
     proc_attr_name = "integrate"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
-
     if isDict:
         all_data[all_data.processing_buffer] = data
         return all_data
@@ -284,7 +280,7 @@ def integrate(all_data, dim = "t2", integrate_center = 0, integrate_width = 100)
         return data
 
 
-def align(all_data, dim = "t2"):
+def align(all_data, dim="t2"):
     """Alignment of NMR spectra down given dim dimension
 
     Example::
@@ -297,7 +293,7 @@ def align(all_data, dim = "t2"):
     if len(_np.shape(data.values)) != 2:
         raise ValueError("Only 2-dimensional data is currently supported")
 
-    proc_parameters = {"dim" : dim}
+    proc_parameters = {"dim": dim}
     originalAxesOrder = data.dims
     data.reorder([dim])
     dimIter = data.dims[-1]
@@ -325,7 +321,7 @@ def align(all_data, dim = "t2"):
         return data
 
 
-def autophase(workspace, method = "arctan"):
+def autophase(workspace, method="arctan"):
     """Automatically phase data
 
     Args:
