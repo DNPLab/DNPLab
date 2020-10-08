@@ -4,8 +4,6 @@ import numpy as np
 import warnings
 from copy import deepcopy
 from collections import OrderedDict
-
-# import nddata_coord
 from . import nddata_coord
 
 _numerical_types = (np.ndarray, int, float, complex)
@@ -134,6 +132,7 @@ class nddata_core(object):
 
         return coords_check and dims_check
 
+    # FIXME: the following method has syntax error
     def _attrs_valid():
         """Verify attrs attribute is valid. All values in attrs must be list, numpy.ndarray, int, float, complex, or str.
 
@@ -154,6 +153,7 @@ class nddata_core(object):
 
         Args:
             args (tuple): Tuple containing alternative dims and indexing values for each dimension to be indexed. (e.g. data['x', 1:10, 'y', :, 'z', (3.5, 7.5)])
+
         Example::
 
             data['x', 1] # return data indexing down "x" dim with index 1
@@ -177,9 +177,11 @@ class nddata_core(object):
 
         # check slices
         for slice_ in index_slice:
+
             # type must be slice or tuple
             if not isinstance(slice_, (slice, tuple, float, int)):
                 raise ValueError("Invalid slice type")
+
             # if tuple, length must be two: (start, stop)
             if isinstance(slice_, tuple) and not len(slice_) in (1, 2):
                 raise ValueError("tuple index must have one or two values")
@@ -404,27 +406,16 @@ class nddata_core(object):
     def dims(self):
         return self.coords.dims
 
-    #        return self._dims
-
     @dims.setter
     def dims(self, b):
-        #        if not self._check_dims(b):
-        #            raise TypeError('dims must be list of strings')
-        #        self._dims = b
         self.coords.dims = b
 
     @property
     def coords(self):
         return self._coords
 
-    #    @coords.getter
-    #    def coords(self):
-    #        return self._coords
-    #
     @coords.setter
     def coords(self, b):
-        #        if not self._check_coords(b):
-        #            raise TypeError('invalid coords')
         self._coords = b
 
     @property
@@ -459,8 +450,6 @@ class nddata_core(object):
         if dim in self.dims:
             if isinstance(new_name, str):
                 self.coords.rename(dim, new_name)
-            #                index = self.index(dim)
-            #                self._dims[index] = new_name
             else:
                 raise TypeError(
                     'New dimension name must be type "str" not %s' % type(new_name)
@@ -469,7 +458,7 @@ class nddata_core(object):
             raise ValueError("Dimension name %s is not in dims" % dim)
 
     def reorder(self, dims):
-        """"""
+        """TODO: need docstring"""
 
         if not self._check_dims(dims):
             raise TypeError("New dims must be list of str with no duplicates")
@@ -503,7 +492,6 @@ class nddata_core(object):
         shape = a.shape
 
         remove_dims = [a.dims[x] for x in range(len(shape)) if shape[x] == 1]
-        #
         values = np.squeeze(a.values)
 
         if a.error is not None:
@@ -568,8 +556,6 @@ class nddata_core(object):
             numpy.ndarray: array of coordinates
 
         """
-
-        #        return self.coords[self.index(dim)]
         return self.coords[dim]
 
     @property
@@ -582,18 +568,12 @@ class nddata_core(object):
 
     def sum(self, dim):
         """Perform sum down given dimension"""
-
         a = self.copy()
-
         index = a.index(dim)
-
         a.values = a.values.sum(index)
-
         if a.error is not None:
             a.error = a.error.std(index)
-
         a.coords.pop(dim)
-
         return a
 
     def align(self, b):
@@ -746,7 +726,6 @@ class nddata_core(object):
 
     def new_dim(self, dim, coord):
         """"""
-
         self.coords.append(dim, np.r_[coord])
         self.values = np.expand_dims(self.values, -1)
 
@@ -773,7 +752,3 @@ class nddata_core(object):
     @property
     def ndim(self):
         return self.values.ndim
-
-
-if __name__ == "__main__":
-    pass

@@ -91,7 +91,8 @@ _dspfvs_table_13 = {
 
 
 def find_group_delay(decim, dspfvs):
-    """Determine group delay from tables
+    """
+    Determine group delay from tables
 
     Args:
         decim: Decimation factor of the digital filter (factor by which oversampling rate exeeds sampling rate).
@@ -119,7 +120,8 @@ def find_group_delay(decim, dspfvs):
 
 
 def load_title(path, expNum=1, titlePath="pdata/1", titleFilename="title"):
-    """Import Topspin Experiment Title File
+    """
+    Import Topspin Experiment Title File
 
     Args:
         path (str): Directory of title
@@ -141,7 +143,8 @@ def load_title(path, expNum=1, titlePath="pdata/1", titleFilename="title"):
 
 
 def load_acqu(path, expNum=1, paramFilename="acqus"):
-    """Import Topspin JCAMPDX file
+    """
+    Import Topspin JCAMPDX file
 
     Args:
         path (str): directory of acqusition file
@@ -175,8 +178,6 @@ def load_acqu(path, expNum=1, paramFilename="acqus"):
 
 
 def load_proc(path, expNum=1, procNum=1, paramFilename="procs"):
-    """"""
-
     pathFilename = path + str(expNum) + "/pdata/" + str(procNum) + "/" + paramFilename
 
     # Import parameters
@@ -200,7 +201,8 @@ def load_proc(path, expNum=1, procNum=1, paramFilename="procs"):
 
 
 def dir_data_type(path, expNum):
-    """Determine type of data in directory
+    """
+    Determine type of data in directory
 
     Args:
         path (str): Directory of data
@@ -225,7 +227,8 @@ def dir_data_type(path, expNum):
 
 
 def import_topspin(path, expNum, paramFilename="acqus"):
-    """Import topspin data and return dnpdata object
+    """
+    Import topspin data and return dnpdata object
 
     Args:
         path (str): Directory of data
@@ -237,27 +240,21 @@ def import_topspin(path, expNum, paramFilename="acqus"):
     """
     dirType = dir_data_type(path, expNum)
 
-    if expNum is not None:
-        fullPath = path + "/" + str(expNum)
-    else:
-        fullPath = path
-
     if dirType == "fid":
         data = topspin_fid(path, expNum, paramFilename)
-        return data
     elif dirType == "ser":
         data = import_ser(path, expNum, paramFilename)
-        return data
     elif dirType == "serPhaseCycle":
         data = topspin_ser_phase_cycle(path, expNum, paramFilename)
-        return data
     else:
-        raise ValueError
-        Print("Could Not Identify Data Type in File")
+        raise ValueError("Could Not Identify Data Type in File")
+
+    return data
 
 
 def topspin_fid(path, expNum, paramFilename="acqus"):
-    """Import topspin fid data and return dnpdata object
+    """
+    Import topspin fid data and return dnpdata object
 
     Args:
         path (str): Directory of data
@@ -270,7 +267,6 @@ def topspin_fid(path, expNum, paramFilename="acqus"):
     attrsDict = load_acqu(path, expNum, paramFilename)
 
     sw_h = attrsDict["SW_h"]  # Spectral Width in Hz
-
     rg = attrsDict["RG"]  # reciever gain
     decim = attrsDict["DECIM"]  # Decimation factor of the digital filter
     dspfvs = attrsDict["DSPFVS"]  # Digital signal processor firmware version
@@ -302,7 +298,8 @@ def topspin_fid(path, expNum, paramFilename="acqus"):
 
 
 def topspin_jcamp_dx(path):
-    """Return the contents of topspin JCAMP-DX file as dictionary
+    """
+    Return the contents of topspin JCAMP-DX file as dictionary
 
     Args:
         path: Path to file
@@ -390,7 +387,8 @@ def topspin_jcamp_dx(path):
 
 
 def topspin_vdlist(path, expNum):
-    """Return topspin vdlist
+    """
+    Return topspin vdlist
 
     Args:
         Path (str): Directory of data
@@ -404,7 +402,6 @@ def topspin_vdlist(path, expNum):
     with open(fullPath, "r") as f:
         raw = f.read()
 
-    #    lines = raw.strip('\n').split('\n')
     lines = raw.rstrip().rsplit()
 
     unitDict = {
@@ -427,7 +424,8 @@ def topspin_vdlist(path, expNum):
 
 
 def import_ser(path, expNum, paramFilename="acqus"):
-    """Import topspin ser file
+    """
+    Import topspin ser file
 
     Args:
         path (str): Directory of data
@@ -440,7 +438,6 @@ def import_ser(path, expNum, paramFilename="acqus"):
     attrsDict = load_acqu(path, expNum, paramFilename)
 
     sw_h = attrsDict["SW_h"]  # Spectral Width in Hz
-
     rg = attrsDict["RG"]  # reciever gain
     decim = attrsDict["DECIM"]  # Decimation factor of the digital filter
     dspfvs = attrsDict["DSPFVS"]  # Digital signal processor firmware version
@@ -476,7 +473,8 @@ def import_ser(path, expNum, paramFilename="acqus"):
 
 
 def topspin_ser_phase_cycle(path, expNum, paramFilename="acqus"):
-    """Import Topspin data with phase cycle saved as different dimension
+    """
+    Import Topspin data with phase cycle saved as different dimension
 
     Args:
         path (str): Directory of data
@@ -488,8 +486,8 @@ def topspin_ser_phase_cycle(path, expNum, paramFilename="acqus"):
     """
     attrsDict = load_acqu(path, expNum, paramFilename)
 
+    # TODO: this chunk of code appears three times in this file. Need clean up.
     sw_h = attrsDict["SW_h"]  # Spectral Width in Hz
-
     rg = attrsDict["RG"]  # reciever gain
     decim = attrsDict["DECIM"]  # Decimation factor of the digital filter
     dspfvs = attrsDict["DSPFVS"]  # Digital signal processor firmware version
@@ -527,7 +525,8 @@ def topspin_ser_phase_cycle(path, expNum, paramFilename="acqus"):
 
 
 def import_topspin_dir(path):
-    """Import directory of Topspin data and return as dictionary
+    """
+    Import directory of Topspin data and return as dictionary
 
     Args:
         path (str): Directory of data
@@ -545,8 +544,5 @@ def import_topspin_dir(path):
             dataDict[expNum] = tempData
         except:
             pass
+
     return dataDict
-
-
-if __name__ == "__main__":
-    pass

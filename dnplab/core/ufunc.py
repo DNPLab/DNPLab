@@ -3,6 +3,7 @@ import nddata
 import numpy as np
 
 
+# FIXME: the function below appears to be used nowhere else in the package. Please drop it.
 def fourier_transform(data, proc_parameters):
     """Perform Fourier Transform down dim dimension given in proc_parameters
 
@@ -29,7 +30,6 @@ def fourier_transform(data, proc_parameters):
     """
 
     required_parameters = defaults._fourier_transform
-    #    proc_parameters = update_parameters(proc_parameters,requiredList,_default_fourier_transform_parameters)
 
     # Add required parameters to proc_parameters
     print(required_parameters)
@@ -50,10 +50,6 @@ def fourier_transform(data, proc_parameters):
 
     if shift == True:
         f -= 1.0 / (2 * dt)
-
-    #    if convert_to_ppm:
-    #        nmr_frequency = data.attrs['nmr_frequency']
-    #        f /= (nmr_frequency / 1.e6)
 
     data.values = np.fft.fft(data.values, n=n_pts, axis=index)
     if shift:

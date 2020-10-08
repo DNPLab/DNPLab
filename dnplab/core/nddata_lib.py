@@ -57,10 +57,3 @@ def randn(shape):
 def randn_like(a):
     """"""
     return randn(a.shape)
-
-
-if __name__ == "__main__":
-    data = randn((3, 5))
-    data2 = randn_like(data)
-    print(data)
-#    print(data2)

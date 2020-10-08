@@ -6,13 +6,12 @@ from collections import OrderedDict
 from copy import deepcopy
 
 
-# allowed_domains = ['FT','IFT','LT','ILT','Wavelet','IWavelet']
 allowed_domains = ["FT", "IFT"]
 
 
 class nddata_coord(object):
-    """"""
 
+    # TODO: drop usused arguments
     def __init__(self, dim, *args, step_type="linear", endpoint=False, **kwargs):
         """
         Args:
@@ -169,22 +168,11 @@ class nddata_coord(object):
     @property
     def array(self):
         """Return axes as numpy array"""
-
-        # Fast method
-        #        try:
-        #            return self._array
-        #        except:
-        #            self._array = np.r_[slice(self.start, self.stop, self.step)]
-        #            return self._array
-        # 2nd Attempt at fast method
         if hasattr(self, "_array"):
             return self._array
         else:
             self._array = np.r_[slice(self.start, self.stop, self.step)]
             return self._array
-
-    #        # Slow method, 56 times slower
-    #        return np.r_[slice(self.start, self.stop, self.step)]
 
     @array.setter
     def array(self, b):
@@ -204,9 +192,7 @@ class nddata_coord(object):
 
     def __getitem__(self, x):
         """"""
-        return self.array[x]  # Faster by 10% if array is stored in object
-
-    #        return self.start + self.step * x
+        return self.array[x]
 
     def _del_array(self):
         """"""
@@ -307,7 +293,6 @@ class nddata_coord(object):
         return self.array.shape
 
 
-# class nddata_coord_collection(MutableMapping):
 class nddata_coord_collection(object):
     def __init__(self, dims, coords):
 
@@ -325,22 +310,6 @@ class nddata_coord_collection(object):
             self._coords = coords
         else:
             raise TypeError("coords must be list of 1d numpy arrays")
-
-    #        for arg in args:
-    #            if isinstance(arg, nddata_coord):
-    #                self.__dims.append(arg.dim)
-    #                self.__coords.append(arg)
-    #            elif isinstance(arg, np.ndarray):
-    #                raise ValueError('No dim given for numpy ndarray')
-    #
-    #        for kwarg in kwargs: #key, value pairs only in order for python >=3.6
-    #            dim = kwarg
-    #            coord = kwarg[dim]
-    #            if isinstance(coord, np.ndarray):
-    #                self.__dims.append(kwarg)
-    #                self.__coords.append(nddata_coord(dim,coord))
-    #            else:
-    #                raise TypeError('kwarg not understood')
 
     def _check_dims(self, dims):
         """Verify dims is a list of str
@@ -412,9 +381,6 @@ class nddata_coord_collection(object):
                 % str(type(coord))
             )
 
-        #        if isinstance(coord, np.ndarray):
-        #            coord = nddata_coord(dim, coord)
-
         # if dim already in dims, overwrite
         if dim in self.dims:
             index = self.index(dim)
@@ -442,8 +408,6 @@ class nddata_coord_collection(object):
     @property
     def coords(self):
         return self._coords
-
-    #        return np.array(self._coords)
 
     @coords.setter
     def coords(self, coords):
@@ -492,11 +456,8 @@ class nddata_coord_collection(object):
 
     def pop(self, dim):
         index = self.index(dim)
-
         out = self._coords.pop(index)
-
         self.dims.pop(index)
-
         return out
 
     def copy(self):
@@ -505,7 +466,6 @@ class nddata_coord_collection(object):
 
     def reorder_index(self, new_order):
         """Reorder based on index"""
-
         self._coords = [self._coords[x] for x in new_order]
         self._dims = [self._dims[x] for x in new_order]
 
@@ -534,7 +494,3 @@ class nddata_coord_collection(object):
             self._coords.append(coord)
         else:
             raise ValueError("dim already in dims, cannot append to coords")
-
-
-if __name__ == "__main__":
-    pass

@@ -1,8 +1,8 @@
-"""dnpdata object for storing N-dimensional data with coordinates
+"""
+dnpdata object for storing N-dimensional data with coordinates
 """
 import numpy as np
 from collections.abc import MutableMapping
-from copy import deepcopy
 
 from .core import nddata
 
@@ -12,44 +12,47 @@ core_attrs_list = ["nmr_frequency"]
 
 
 class dnpdata(nddata.nddata_core):
-    """dnpdata Class for handling dnp data
+    """
+    dnpdata Class for handling dnp data
 
     The dnpdata class is inspired by pyspecdata nddata object which handles n-dimensional data, axes, and other relevant information together.
 
     This class is designed to handle data and axes together so that performing NMR processing can be performed easily.
 
     Attributes:
-    values (numpy.ndarray): Numpy Array containing data
-    coords (list): List of numpy arrays containing axes of data
-    dims (list): List of axes labels for data
-    attrs (dict): Dictionary of parameters for data
+        values (numpy.ndarray): Numpy Array containing data
+        coords (list): List of numpy arrays containing axes of data
+        dims (list): List of axes labels for data
+        attrs (dict): Dictionary of parameters for data
 
     """
 
     def __init__(self, values=np.r_[[]], coords=[], dims=[], attrs={}, procList=[]):
-        """dnpdata Class __init__ method
+        """
+        dnpdata Class __init__ method
 
         Args:
             data (numpy.ndarray):
             coords (list): list of axes
             dims (list): list of strings which are names of axes
             attrs (dict): dictionary of parameters
-
-
         """
         super().__init__(values, dims, coords, attrs)
         self.version = version
         self.proc_attrs = []
 
-    #
     def __repr__(self):
-        """Representation of dnpdata object"""
+        """
+        Representation of dnpdata object
+        """
         return "nddata(values = {}, coords = {}, dims = {}, attrs = {})".format(
             repr(self.values), repr(self.coords), repr(self.dims), repr(self.attrs)
         )
 
     def __str__(self):
-        """String representation of dnpdata object"""
+        """
+        String representation of dnpdata object
+        """
         if len(self.attrs) < 20:
             return "values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\nproc_attrs:\n{}".format(
                 self.values, self.dims, self.coords, self.attrs, self.proc_attrs
@@ -70,7 +73,8 @@ class dnpdata(nddata.nddata_core):
             )
 
     def add_proc_attrs(self, proc_attr_name, proc_dict):
-        """Stamp processing step to dnpdata object
+        """
+        Stamp processing step to dnpdata object
 
         Args:
             proc_attr_name (str): Name of processing step (e.g. "fourier_transform"
@@ -84,22 +88,27 @@ class dnpdata(nddata.nddata_core):
         self.proc_attrs.append((proc_attr_name, proc_dict))
 
     def autophase(self):
-        """Multiply dnpdata object by phase"""
+        """
+        Multiply dnpdata object by phase
+        """
         p = self.phase()
         self.values *= np.exp(-1j * p)
         if np.sum(np.real(self.values)) < 0:
             self.values *= -1.0
 
     def phase(self):
-        """Return phase of dnpdata object
+        """
+        Return phase of dnpdata object
 
         Returns:
-            phase (float,int): phase of data calculated from sum of imaginary divided by sum of real components
+            phase (float,int): phase of data calculated from sum of imaginary
+                divided by sum of real components
         """
         return np.arctan(np.sum(np.imag(self.values)) / np.sum(np.real(self.values)))
 
     def squeeze(self):
-        """Remove all length 1 dimensions from data
+        """
+        Remove all length 1 dimensions from data
 
         .. warning::
             Axes information is lost
@@ -120,15 +129,13 @@ class dnpdata(nddata.nddata_core):
 
 
 class dnpdata_collection(MutableMapping):
-    """Dictionary-like workspace object for storing dnpdata objects"""
+    """
+    Dictionary-like workspace object for storing dnpdata objects
+    """
 
     def __init__(self, *args, **kwargs):
-        """dnpdata_collection __init__ method
-
-        Args:
-
-        Example::
-
+        """
+        dnpdata_collection __init__ method
         """
         self._processing_buffer = "proc"
 
@@ -136,6 +143,7 @@ class dnpdata_collection(MutableMapping):
 
         if len(args) == 0:
             return
+
         elif len(args) == 1:
             if isinstance(args[0], dnpdata):
                 self.__data_dict["raw"] == dnpdata
@@ -148,6 +156,7 @@ class dnpdata_collection(MutableMapping):
                         raise TypeError("Each type in dict must be dnpdata or dict")
             else:
                 raise TypeError("Argument must be type dnpdata")
+
         elif len(args) == 2:
             if isinstance(args[0], str) and isinstance(args[1], (dnpdata, dict)):
                 self.__data_dict[args[0]] = args[1]
@@ -155,6 +164,7 @@ class dnpdata_collection(MutableMapping):
                 raise TypeError(
                     "If two arguments, first argument must be str and 2nd argument must be dnpdata or dict"
                 )
+
         else:
             raise TypeError("Arguments not understood")
 
@@ -191,12 +201,13 @@ class dnpdata_collection(MutableMapping):
             )
 
     def copy(self, key, new_key=None):
-        """Copy data from key to new_key. If new_key is not given, by default key will be copied to processing buffer
+        """
+        Copy data from key to new_key. If new_key is not given, by default
+            key will be copied to processing buffer
 
         Args:
             key (str): Key to be copied
             new_key (str, None): New key for copied data
-
         """
 
         if new_key is None:
@@ -205,13 +216,13 @@ class dnpdata_collection(MutableMapping):
         self[new_key] = self[key].copy()
 
     def move(self, key, new_key):
-        """Move data from key to new_key
+        """
+        Move data from key to new_key
 
         Args:
             key (str): Name of data to move
             new_key (str): Name of new key to move data
         """
-
         self[new_key] = self.pop(key)
 
     def pop(self, key):
@@ -237,7 +248,8 @@ class dnpdata_collection(MutableMapping):
         return self.__data_dict.keys()
 
     def popitem(self):
-        """Pops item from end of dnpdata_collection
+        """
+        Pops item from end of dnpdata_collection
 
         Returns:
             tuple: key, item pair that was removed
@@ -249,7 +261,8 @@ class dnpdata_collection(MutableMapping):
         return self.__data_dict.values()
 
     def add(self, key, data):
-        """Adds new data
+        """
+        Adds new data
 
         Args:
             key (str): key corresponding to new data
@@ -267,7 +280,8 @@ class dnpdata_collection(MutableMapping):
 
 
 def create_workspace(*args):
-    """Create a workspace (dnpdata_collection)
+    """
+    Create a workspace (dnpdata_collection)
 
     Args:
         args: Arguments to send to __init__ method in dnpdata_collection
@@ -276,7 +290,3 @@ def create_workspace(*args):
         dnpdata_collection: workspace object
     """
     return dnpdata_collection(*args)
-
-
-if __name__ == "__main__":
-    pass

@@ -101,6 +101,7 @@ def remove_offset(all_data, proc_parameters):
 
        workspace = dnplab.dnpNMR.remove_offset(workspace, proc_parameters)
     """
+
     # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
 

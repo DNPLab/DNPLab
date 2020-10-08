@@ -1,6 +1,5 @@
 from . import dnpdata as _dnpdata, dnpdata_collection
 import numpy as _np
-
 from scipy.optimize import curve_fit
 
 
@@ -46,7 +45,7 @@ def t1Fit(dataDict):
     elif isinstance(dataDict, _dnpdata):
         data = dataDict.copy()
     else:
-        print("Incompatible data type:")
+        print("Incompatible data type:")  # TODO: remove prints, raise Error instead
         print(type(dataDict))
         return
 
@@ -121,7 +120,7 @@ def enhancementFit(dataDict):
     elif isinstance(dataDict, _dnpdata):
         data = dataDict.copy()
     else:
-        print("Incompatible data type:")
+        print("Incompatible data type:")  # TODO: remove prints, raise Error instead
         print(type(dataDict))
         return
 

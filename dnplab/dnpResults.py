@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-# import dnpdata
 from .dnpData import dnpdata
 
 figure = plt.figure
@@ -22,7 +21,7 @@ plt.rcParams["axes.prop_cycle"] = plt.cycler(
 )
 
 
-def imshow(data, *args, **kwargs):
+def imshow(data, *args, **kwargs):  # TODO: drop unused args and kwargs
     """Image Plot for dnpdata object
 
     Args:
@@ -97,6 +96,3 @@ def plot(data, *args, **kwargs):
 
 
 show = plt.show
-
-if __name__ == "__main__":
-    pass

@@ -1,5 +1,4 @@
 import numpy as _np
-
 from scipy.io import loadmat as _loadmat
 
 from .. import dnpData as _dnpData
@@ -15,10 +14,12 @@ def importPower(path, filename=""):
         rawDict = _loadmat(fullPath)
         t = rawDict["timelist"].reshape(-1)
         p = rawDict["powerlist"].reshape(-1)
+
     elif fullPath[-4:] == ".csv":
         raw = _np.loadtxt(fullPath, delimiter=",", skiprows=1)
         t = raw[:, 0].reshape(-1)
         p = raw[:, 1].reshape(-1)
+
     else:
         print("Could not identify power data type")
         return
@@ -48,6 +49,7 @@ def chopPower(t, p, threshold=0.1):
     for ix in range(len(correctedStep)):
         if correctedStep[ix]:
             stepIndex.append(ix)
+
     stepTupleList = []
     for ix in range(len(stepIndex) - 1):
         stepTupleList.append((stepIndex[ix], stepIndex[ix + 1]))
@@ -58,7 +60,6 @@ def chopPower(t, p, threshold=0.1):
         averagePower = p[stepTuple[0] + 1 : stepTuple[1]]
         averagePower = _np.mean(averagePower)
         averagePowerList.append(averagePower)
-
         averageTime = (t[stepTuple[0] + 1] + t[stepTuple[1]]) / 2.0
         averageTimeList.append(averageTime)
 
@@ -86,55 +87,3 @@ def assignPower(dataDict, expNumList, powersList):
                 data.concatenateAlong(tempData, "power")
 
     return data
-
-
-if __name__ == "__main__":
-    from matplotlib.pylab import *
-
-    #### Set Custom Matplotlib Parameters
-    # matplotlib.rcParams['font.family'] = 'Myriad Pro' # font style, same as illustrator default
-    matplotlib.rcParams["font.size"] = 24.0  # font size for axis
-
-    matplotlib.rcParams["lines.linewidth"] = 1.0
-    matplotlib.rcParams["axes.linewidth"] = 2.0
-    matplotlib.rcParams["legend.fontsize"] = 14.0  # set legend font
-    # matplotlib.rcParams['legend.fontsize'] = 20. # set legend font
-
-    # matplotlib.rcParams['figure.subplot.bottom'] = 0.15
-    matplotlib.rcParams["figure.subplot.bottom"] = 0.20
-    matplotlib.rcParams["figure.subplot.top"] = 0.9
-    # matplotlib.rcParams['figure.subplot.left'] = .125
-    matplotlib.rcParams["figure.subplot.left"] = 0.20
-    matplotlib.rcParams["figure.subplot.right"] = 0.9
-
-    matplotlib.rcParams["xtick.major.size"] = 10  # sets tick thickness
-    matplotlib.rcParams["xtick.major.width"] = 2  # sets tick thickness
-    matplotlib.rcParams["xtick.minor.size"] = 5  # sets tick thickness
-    matplotlib.rcParams["xtick.minor.width"] = 1  # sets tick thickness
-    matplotlib.rcParams["xtick.direction"] = "out"  # sets tick thickness
-
-    matplotlib.rcParams["ytick.major.size"] = 10  # sets tick thickness
-    matplotlib.rcParams["ytick.major.width"] = 2  # sets tick thickness
-    matplotlib.rcParams["ytick.minor.size"] = 5  # sets tick thickness
-    matplotlib.rcParams["ytick.minor.width"] = 1  # sets tick thickness
-    matplotlib.rcParams["ytick.direction"] = "out"  # sets tick thickness
-
-    matplotlib.rcParams[
-        "pdf.fonttype"
-    ] = 42  # set font type so that I can edit with illustrator
-
-    path = "G:/My Drive/Exchange/Projects/0055 CPF-NIGM-0055 ODNP System/Software/Python/data/TEMPO_and_PEG_ODNP_data/TEMPO_and_PEG_ODNP_data/20191017_TW_4OHTEMPO_1p0mM/"
-    filename = "power.mat"
-
-    t, p = importPower(path, filename)
-
-    figure("raw powers")
-    plot(t, p, linewidth=2.0)
-    xlabel("Time (s)")
-    averageTime, averagePower = chopPower(t, p)
-    #    figure('chopped Powers')
-    plot(averageTime, averagePower, "bo", markersize=6.0)
-    ylabel("Power (dB)")
-
-    xlabel("Index")
-    show()

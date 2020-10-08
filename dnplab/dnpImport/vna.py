@@ -1,3 +1,4 @@
+# TODO: remove unused imports
 import numpy as np
 import os
 import re
@@ -15,6 +16,7 @@ def import_vna(path):
     return dnpDataObject
 
 
+# TODO: remove prints or make them optional
 def import_snp(path):
     """Import sNp file and return numpy array"""
     path_filename, extension = os.path.splitext(path)
@@ -33,14 +35,10 @@ def import_snp(path):
         raise ValueError("Currently on s1p and s2p files are supported")
 
     f = open(path)
-
     read_string = " "
-
     while read_string[0] != "#":
         read_string = f.readline()
-
     raw = np.genfromtxt(f, skip_header=2, defaultfmt="11f")
-
     f.close()
 
     if num == 1:
@@ -61,6 +59,7 @@ def import_snp(path):
         x = raw[0::num]
         data = np.zeros((len(x), num, num))
 
+        # TODO: Use list comprehension instead of two for loops
         for n in range(num):
 
             for m in range(num):

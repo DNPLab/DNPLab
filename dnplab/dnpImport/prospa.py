@@ -8,7 +8,8 @@ import glob
 
 
 def import_prospa(path, parameters_filename=None, verbose=False):
-    """Import Kea data
+    """
+    Import Kea data
 
     Args:
         path (str): Path to data
@@ -97,7 +98,8 @@ def import_prospa_dir(path, exp_list=None):
 
 
 def import_nd(path):
-    """Import Kea 1d, 2d, 3d, 4d files
+    """
+    Import Kea 1d, 2d, 3d, 4d files
 
     Args:
         path (str): Path to file
@@ -175,7 +177,8 @@ def import_nd(path):
 
 
 def import_par(path):
-    """Import Kea parameters .par file
+    """
+    Import Kea parameters .par file
 
     Args:
         path (str): Path to parameters file
@@ -187,9 +190,7 @@ def import_par(path):
     attrs = {}
 
     with open(path, "r") as f:
-
         raw = f.read()
-
         lines = raw.rstrip().rsplit("\n")
 
         for line in lines:
@@ -214,7 +215,8 @@ def import_par(path):
 
 
 def import_csv(path, return_raw=False, is_complex=True):
-    """Import Kea csv file
+    """
+    Import Kea csv file
 
     Args:
         path (str): Path to csv file
