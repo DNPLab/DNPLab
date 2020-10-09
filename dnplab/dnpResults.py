@@ -88,7 +88,20 @@ def stack(data, *args, offset=None, **kwargs):
 
 
 def waterfall(data, dx, dy, *args, **kwargs):
-    """Waterfall plot for 2d data"""
+    """Waterfall plot for 2d data
+
+    Args:
+        data (dnpData): 2d Data object for waterfall plot
+        dx (float, int): x-increment for each line
+        dy (float, int): y-increment for each line
+
+    Example::
+
+       dnp.dnpResults.plt.figure()
+       dnp.dnpResults.waterfall(data)
+       dnp.dnpResults.plt.show()
+
+    """
 
     coord = data.coords[0]
     dim = data.dims[0]
