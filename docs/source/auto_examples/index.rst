@@ -214,12 +214,33 @@ If you installed DNPlab using pip you can download the example scripts and data 
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This first example demonstrates how to import two NMR spectra, one recorded with a microwave po...">
+    <div class="sphx-glr-thumbcontainer" tooltip="This first, basic example demonstrates how to import a 1D FID into DNPLab and process the FID t...">
+
+.. only:: html
+
+ .. figure:: /auto_examples/images/thumb/sphx_glr_plot_example1Dbruker_thumb.png
+     :alt: 01 - Import 1D Bruker Spectrum
+
+     :ref:`sphx_glr_auto_examples_plot_example1Dbruker.py`
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/plot_example1Dbruker
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates how to import two NMR spectra (Prospa format), one recorded with a mi...">
 
 .. only:: html
 
  .. figure:: /auto_examples/images/thumb/sphx_glr_plot_exampleDNPOnOff_thumb.png
-     :alt: 01 - Microwave On/Off Signal
+     :alt: 02 - Microwave On/Off Signal
 
      :ref:`sphx_glr_auto_examples_plot_exampleDNPOnOff.py`
 

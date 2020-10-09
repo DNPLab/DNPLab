@@ -9,10 +9,10 @@
     .. _sphx_glr_auto_examples_plot_exampleDNPOnOff.py:
 
 
-01 - Microwave On/Off Signal
+02 - Microwave On/Off Signal
 ============================
 
-This first example demonstrates how to import two NMR spectra, one recorded with a microwave power of 0 W (off-signal) and one with a microwave power of 2 W (on-signal). The spectra are recorded using a Magritek Kea system.
+This example demonstrates how to import two NMR spectra (Prospa format), one recorded with a microwave power of 0 W (off-signal) and one with a microwave power of 2 W (on-signal). The spectra are recorded using a Magritek Kea system.
 
 The example script has three different sections:
 
@@ -138,7 +138,7 @@ Finally, the microwave on and off spectrum are plotted (line 75 and 76). Note, t
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.332 seconds)
+   **Total running time of the script:** ( 0 minutes  0.126 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_exampleDNPOnOff.py:
