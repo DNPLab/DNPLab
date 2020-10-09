@@ -700,10 +700,8 @@ class hydrationGUI(QMainWindow):
 
         dnplab.dnpNMR.integrate(
             workspace,
-            {
-                "integrate_center": int_params["integrate_center"],
-                "integrate_width": int_params["integrate_width"],
-            },
+            integrate_center=int_params["integrate_center"],
+            integrate_width=int_params["integrate_width"],
         )
         workspace["proc"].values = np.real(workspace["proc"].values)
 
@@ -1732,14 +1730,12 @@ class hydrationGUI(QMainWindow):
     def processData(self):
 
         self.processing_workspace = copy.deepcopy(self.dnpLab_workspace)
-        dnplab.dnpNMR.remove_offset(self.processing_workspace, {})
-        dnplab.dnpNMR.window(self.processing_workspace, {"linewidth": 5})
-        dnplab.dnpNMR.fourier_transform(
-            self.processing_workspace, {"zero_fill_factor": 2}
-        )
+        dnplab.dnpNMR.remove_offset(self.processing_workspace)
+        dnplab.dnpNMR.window(self.processing_workspace, linewidth=5)
+        dnplab.dnpNMR.fourier_transform(self.processing_workspace, zero_fill_factor=2)
 
         if self.processing_workspace["proc"].ndim == 2:
-            dnplab.dnpNMR.align(self.processing_workspace, {})
+            dnplab.dnpNMR.align(self.processing_workspace)
 
         if (
             self.optphsCheckbox.isChecked()

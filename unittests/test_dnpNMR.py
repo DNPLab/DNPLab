@@ -17,16 +17,16 @@ class dnpNMR_tester(unittest.TestCase):
 
     def test_basic_nmr_processing(self):
 
-        self.ws = nmr.remove_offset(self.ws, {})
-        self.ws = nmr.window(self.ws, {})
-        self.ws = nmr.fourier_transform(self.ws, {})
-        self.ws = nmr.autophase(self.ws, {})
+        self.ws = nmr.remove_offset(self.ws)
+        self.ws = nmr.window(self.ws)
+        self.ws = nmr.fourier_transform(self.ws)
+        self.ws = nmr.autophase(self.ws)
 
     def test_integrate(self):
         values = self.ws["proc"].values
         # Doing so must not change the workspace at all
         data = self.ws["proc"]
-        nmr.integrate(data, {})
+        nmr.integrate(data)
         np.testing.assert_array_equal(self.ws["proc"].values, values)
 
 
@@ -45,7 +45,7 @@ class dnpNMR_tester_sim(unittest.TestCase):
         self.ws.copy("raw", "proc")
 
     def test_align(self):
-        nmr.align(self.ws, {"dim": "x"})
+        nmr.align(self.ws, dim="x")
         assert_array_equal(
             self.ws["proc"].values,
             np.array(
