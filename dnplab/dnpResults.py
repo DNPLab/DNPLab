@@ -84,6 +84,18 @@ def stack(data, *args, offset=None, **kwargs):
     plt.plot(coord, data.values + offset_matrix, *args, **kwargs)
 
 
+def waterfall(data, dx, dy, *args, **kwargs):
+    '''Waterfall plot for 2d data
+    '''
+
+    coord = data.coords[0]
+    dim = data.dims[0]
+
+    for ix in range(data.coords[data.dims[1]].size):
+        plt.plot(coord + (ix * dx), data[data.dims[1],ix].values.ravel() + (ix * dy), *args, **kwargs, zorder = -1*ix)
+        plt.fill_between(coord + (ix * dx), data[data.dims[1],ix].values.ravel() + (ix * dy), ix * dy, facecolor = 'w', edgecolor = "None", zorder = -1*ix)
+
+
 def plot(data, *args, **kwargs):
     """Plot function for dnpdata object
 
