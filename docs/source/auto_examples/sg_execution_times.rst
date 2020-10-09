@@ -5,8 +5,8 @@
 
 Computation times
 =================
-**00:00.342** total execution time for **auto_examples** files:
+**00:00.332** total execution time for **auto_examples** files:
 
 +-------------------------------------------------------------------------------------+-----------+--------+
-| :ref:`sphx_glr_auto_examples_plot_exampleDNPOnOff.py` (``plot_exampleDNPOnOff.py``) | 00:00.342 | 0.0 MB |
+| :ref:`sphx_glr_auto_examples_plot_exampleDNPOnOff.py` (``plot_exampleDNPOnOff.py``) | 00:00.332 | 0.0 MB |
 +-------------------------------------------------------------------------------------+-----------+--------+

@@ -68,12 +68,13 @@ ws.copy('proc','onSignal')
 # Create a Figure and Plot On/Off Spectra
 # ---------------------------------------
 #
-#
+# Finally, the microwave on and off spectrum are plotted (line 75 and 76). Note, that most functions (xlim, xlabel, ylabel, title, etc.) are functions from Matplotlib. The same syntax applies in DNPLab.
+
 # ########## Plot Spectra ##########
 dnp.dnpResults.figure()
 dnp.dnpResults.plot(ws['offSignal'].real * 10 - 100, label = 'Off Signal x 10')
 dnp.dnpResults.plot(ws['onSignal'].real, label = 'On Signal')
-dnp.dnpResults.xlim([30,-30])
+dnp.dnpResults.plt.xlim([30,-30])
 dnp.dnpResults.plt.xlabel('Chemical Shift [ppm]')
 dnp.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
 dnp.dnpResults.plt.title('DNP On/Off Signal, 10 mM TEMPO in Water')

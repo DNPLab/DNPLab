@@ -107,17 +107,18 @@ Importing the on-signal involves the same steps as importing the off-signal. Onc
 Create a Figure and Plot On/Off Spectra
 ---------------------------------------
 
-
-########## Plot Spectra ##########
+Finally, the microwave on and off spectrum are plotted (line 75 and 76). Note, that most functions (xlim, xlabel, ylabel, title, etc.) are functions from Matplotlib. The same syntax applies in DNPLab.
 
 
 .. code-block:: default
    :lineno-start: 73
 
+
+    # ########## Plot Spectra ##########
     dnp.dnpResults.figure()
     dnp.dnpResults.plot(ws['offSignal'].real * 10 - 100, label = 'Off Signal x 10')
     dnp.dnpResults.plot(ws['onSignal'].real, label = 'On Signal')
-    dnp.dnpResults.xlim([30,-30])
+    dnp.dnpResults.plt.xlim([30,-30])
     dnp.dnpResults.plt.xlabel('Chemical Shift [ppm]')
     dnp.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
     dnp.dnpResults.plt.title('DNP On/Off Signal, 10 mM TEMPO in Water')
@@ -137,7 +138,7 @@ Create a Figure and Plot On/Off Spectra
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.342 seconds)
+   **Total running time of the script:** ( 0 minutes  0.332 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_exampleDNPOnOff.py:
