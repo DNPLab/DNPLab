@@ -61,8 +61,8 @@ Afterwards the FID is processed, first by removing any DC offset (line 41), then
     ws.copy('rawOff','proc')
 
     dnp.dnpNMR.remove_offset(ws,{})
-    dnp.dnpNMR.window(ws,{'linewidth' : 15})
-    dnp.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
+    dnp.dnpNMR.window(ws, linewidth = 15)
+    dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
 
     ws.copy('proc','offSignal')
 
@@ -91,8 +91,8 @@ Importing the on-signal involves the same steps as importing the off-signal. Onc
     ws.copy('rawOn')
 
     dnp.dnpNMR.remove_offset(ws,{})
-    dnp.dnpNMR.window(ws,{'linewidth' : 15})
-    dnp.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
+    dnp.dnpNMR.window(ws, linewidth = 15)
+    dnp.dnpNMR.fourier_transform(ws, zero_fill_factor = 2)
 
     ws.copy('proc','onSignal')
 
@@ -137,7 +137,7 @@ Create a Figure and Plot On/Off Spectra
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.463 seconds)
+   **Total running time of the script:** ( 0 minutes  0.342 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_exampleDNPOnOff.py:

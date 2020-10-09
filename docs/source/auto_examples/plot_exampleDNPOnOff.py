@@ -39,8 +39,8 @@ ws.add('rawOff',data)
 ws.copy('rawOff','proc')
 
 dnp.dnpNMR.remove_offset(ws,{})
-dnp.dnpNMR.window(ws,{'linewidth' : 15})
-dnp.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
+dnp.dnpNMR.window(ws, linewidth = 15)
+dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
 
 ws.copy('proc','offSignal')
 
@@ -58,8 +58,8 @@ ws.add('rawOn',data)
 ws.copy('rawOn')
 
 dnp.dnpNMR.remove_offset(ws,{})
-dnp.dnpNMR.window(ws,{'linewidth' : 15})
-dnp.dnpNMR.fourier_transform(ws,{'zero_fill_factor' : 2})
+dnp.dnpNMR.window(ws, linewidth = 15)
+dnp.dnpNMR.fourier_transform(ws, zero_fill_factor = 2)
 
 ws.copy('proc','onSignal')
 
