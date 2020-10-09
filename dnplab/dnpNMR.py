@@ -74,10 +74,6 @@ def remove_offset(all_data, dim="t2", offset_points=10):
         "offset_points": offset_points,
     }
 
-    #    requiredList = _default_remove_offset_parameters.keys()
-    #    proc_parameters = update_parameters(
-    #        proc_parameters, requiredList, _default_remove_offset_parameters
-    #    )
     dim = proc_parameters["dim"]
     offset_points = int(proc_parameters["offset_points"])
 
@@ -88,8 +84,6 @@ def remove_offset(all_data, dim="t2", offset_points=10):
     data -= offset
 
     proc_attr_name = "remove_offset"
-    #    proc_dict = {k: proc_parameters[k] for k in proc_parameters if k in requiredList}
-    #    data.add_proc_attrs(proc_attr_name, proc_dict)
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if isDict:
