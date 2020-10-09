@@ -32,17 +32,19 @@ import dnplab as dnp
 # Afterwards the FID is processed, first by removing any DC offset (line 41), then a 15 Hz linewidth is applied (line 42) before performing the Fourier transformation (line 43). At the end the processed data in the 'proc' buffer is copied to a results buffer called 'offSignal' 9line 45).
 
 ########## OFF Signal (P = 0 W) ##########
-data = dnp.dnpImport.prospa.import_prospa('../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/35/data.1d')
+data = dnp.dnpImport.prospa.import_prospa(
+    "../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/35/data.1d"
+)
 
 ws = dnp.create_workspace()
-ws.add('rawOff',data)
-ws.copy('rawOff','proc')
+ws.add("rawOff", data)
+ws.copy("rawOff", "proc")
 
 dnp.dnpNMR.remove_offset(ws,{})
 dnp.dnpNMR.window(ws, linewidth = 15)
 dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
 
-ws.copy('proc','offSignal')
+ws.copy("proc", "offSignal")
 
 
 # %%
@@ -52,16 +54,18 @@ ws.copy('proc','offSignal')
 # Importing the on-signal involves the same steps as importing the off-signal. Once processed the data is copied to the results buffer 'onSignal'.
 
 ########## ON Signal (P = 2 W) ##########
-data = dnp.dnpImport.prospa.import_prospa('../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/51/data.1d')
+data = dnp.dnpImport.prospa.import_prospa(
+    "../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/51/data.1d"
+)
 
-ws.add('rawOn',data)
-ws.copy('rawOn')
+ws.add("rawOn", data)
+ws.copy("rawOn")
 
 dnp.dnpNMR.remove_offset(ws,{})
 dnp.dnpNMR.window(ws, linewidth = 15)
 dnp.dnpNMR.fourier_transform(ws, zero_fill_factor = 2)
 
-ws.copy('proc','onSignal')
+ws.copy("proc", "onSignal")
 
 
 # %%
@@ -74,7 +78,7 @@ ws.copy('proc','onSignal')
 dnp.dnpResults.figure()
 dnp.dnpResults.plot(ws['offSignal'].real * 10 - 100, label = 'Off Signal x 10')
 dnp.dnpResults.plot(ws['onSignal'].real, label = 'On Signal')
-dnp.dnpResults.plt.xlim([30,-30])
+dnp.dnpResults.xlim([30,-30])
 dnp.dnpResults.plt.xlabel('Chemical Shift [ppm]')
 dnp.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
 dnp.dnpResults.plt.title('DNP On/Off Signal, 10 mM TEMPO in Water')
