@@ -62,18 +62,7 @@ def import_prospa(path, parameters_filename=None, verbose=False):
     # Assume direct dimension is 1st dimension
     data_shape = np.shape(np.squeeze(data))
 
-    dims = []
-    coords = []
-    dims_list = ["x", "y", "z", "q"]
-    for ix in range(len(data_shape)):
-        dims.append(dims_list[ix])  # call dimensions in order: x, y, z, q
-        coords.append(np.arange(data_shape[ix]))  # set coords to index for now
-
-    # If axes information is give, assume it is the first dimension
-    if x is not None:
-        dims[0] = "t2"
-        # Assume units in us, convert to seconds
-        coords[0] = x / 1e6
+    dims, coords = prospa_coords(attrs, data_shape)
 
     kea_data = dnpdata(data, coords, dims, attrs)
 
@@ -239,3 +228,62 @@ def import_csv(path, return_raw=False, is_complex=True):
         return x, data
     else:
         return raw
+
+
+def prospa_coords(attrs, data_shape):
+    """Generate coords from prospa acquisition parameters"""
+
+    experiment = attrs["experiment"]
+    dims = []
+    coords = []
+
+    if experiment == "1Pulse":
+        pts = attrs["nrPnts"]
+        dwell_time = attrs["dwellTime"]
+        x = np.arange(0.0, pts * dwell_time, dwell_time) / 1e6
+        dims.append("t2")
+        coords.append(x)
+
+    elif experiment == "1Pulse2dAverage":
+        pts = attrs["nrPnts"]
+        dwell_time = attrs["dwellTime"]
+        x = np.arange(0.0, pts * dwell_time, dwell_time) / 1e6
+        dims.append("t2")
+        coords.append(x)
+
+        dims.append("Average")
+        coords.append(np.arange(attrs["nrScans"]))
+
+    elif experiment == "T1-IR-FID":
+        pts = attrs["nrPnts"]
+        dwell_time = attrs["dwellTime"]
+        x = np.arange(0.0, pts * dwell_time, dwell_time) / 1e6
+        dims.append("t2")
+        coords.append(x)
+
+        T1_steps = attrs["nrSteps"]
+        T1_min_delay = attrs["minDelay"]
+        T1_max_delay = attrs["maxDelay"]
+
+        if attrs["delaySpacing"] == "lin":
+            T1 = np.linspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
+        else:
+            T1 = np.logspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
+
+        dims.append("t1")
+        coords.append(T1)
+    else:
+        dims_list = ["x", "y", "z", "q"]
+        for ix in range(len(data_shape)):
+            dims.append(dims_list[ix])  # call dimensions in order: x, y, z, q
+            coords.append(np.arange(data_shape[ix]))  # set coords to index for now
+        if ("nrPnts" in attrs) and ("dwellTime" in attrs):
+            pts = attrs["nrPnts"]
+            dwell_time = attrs["dwellTime"]
+
+            x = np.arange(0.0, pts * dwell_time, dwell_time) / 1e6
+
+            dims[0] = "t2"
+            coords[0] = x
+
+    return dims, coords
