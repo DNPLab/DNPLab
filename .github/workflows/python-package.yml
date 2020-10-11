@@ -9,6 +9,7 @@ on:
     paths-ignore: [ 'docs/**', '**.md', 'LICENSE.txt' ]
   pull_request:
     branches: [ master, develop ]
+    paths-ignore: [ 'docs/**', '**.md', 'LICENSE.txt' ]
 
 jobs:
   build-unix:
