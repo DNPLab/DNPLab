@@ -6,9 +6,10 @@ name: Python package
 on:
   push:
     branches: [ master, develop ]
-    paths-ignore: [ 'docs/**' ]
+    paths-ignore: [ 'docs/**', '**.md', 'LICENSE.txt' ]
   pull_request:
     branches: [ master, develop ]
+    paths-ignore: [ 'docs/**', '**.md', 'LICENSE.txt' ]
 
 jobs:
   build-unix:
