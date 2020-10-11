@@ -5,7 +5,6 @@ from numpy.testing import assert_array_equal
 from dnplab.core import nddata
 import numpy as np
 import random
-random.seed(0)
 
 from dnplab.core.nddata_coord import nddata_coord, nddata_coord_collection
 
@@ -13,23 +12,57 @@ test_dims = ["x", "y", "z", "p", "q", "r"]
 num_random_tests = 10
 
 
+def get_random_nddata_list(seed=0):
+    """
+    Pre-generate a list of randomized tuple (nddata, np.array) for all the
+    test cases here
+    """
+    random.seed(seed)
+    nddata_list = []
+    for random_axis in [
+        random.sample(list(zip(test_dims, [np.r_[0 : random.randint(1, 6)] for i in test_dims])), 3)
+        for _ in range(3)
+    ]:
+        dims = [axis[0] for axis in random_axis]
+        coords = [axis[1] for axis in random_axis]
+        shape = [coord.size for coord in coords]
+        values = np.random.randn(*shape)
+        nddata_list.append((nddata.nddata_core(values, dims, coords), values))
+    # nddata_list.append((nddata.nddata_core(), np.array([])))  # UserWarning: Github #37
+    return nddata_list
+
+
+random_nddata_list = get_random_nddata_list(seed=0)
+random_nddata_list_2 = get_random_nddata_list(seed=1)
+
+
 @pytest.mark.filterwarnings("ignore:divide by zero")
 # See https://docs.python.org/3/library/operator.html#mapping-operators-to-functions
 @pytest.mark.parametrize("operator", [operator.add, operator.sub, operator.mul, operator.truediv])
-@pytest.mark.parametrize("random_axis", [
-    random.sample(list(zip(test_dims, [np.r_[0 : random.randint(1, 6)] for i in test_dims])), 3)
-    for _ in range(3)
-])
+@pytest.mark.parametrize("nddata_value_tuple", random_nddata_list)
 @pytest.mark.parametrize("number", [-1.1j, -1.1, -1, 0, 1, 1.1, 1.1j])
-def test_nddata_core_math_operators_numeric(operator, random_axis, number):
-    dims = [axis[0] for axis in random_axis]
-    coords = [axis[1] for axis in random_axis]
-    shape = [coord.size for coord in coords]
-    values = np.random.randn(*shape)
-    data = nddata.nddata_core(values, dims, coords)
+def test_nddata_core_math_operators_numeric(operator, nddata_value_tuple, number):
+    nddata, values = nddata_value_tuple
+    assert_array_equal(operator(nddata, number).values, operator(values, number))
+    assert_array_equal(operator(number, nddata).values, operator(number, values))
 
-    assert_array_equal(operator(data, number).values, operator(values, number))
-    assert_array_equal(operator(number, data).values, operator(number, values))
+
+@pytest.mark.parametrize("operator", [operator.add, operator.sub, operator.mul, operator.truediv])
+@pytest.mark.parametrize("nddata_value_tuple", random_nddata_list)
+@pytest.mark.parametrize("nddata_value_tuple_2", random_nddata_list_2)
+def test_nddata_core_math_operators(nddata_value_tuple, operator, nddata_value_tuple_2):
+    nddata, values = nddata_value_tuple
+    nddata_2, values_2 = nddata_value_tuple_2
+    nddata_3, values_3 = operator(nddata, nddata_2), operator(values, values_2)
+    # assert self consistent
+    assert nddata_3._self_consistent()
+    # assert values equal
+    assert_array_equal(nddata_3.values, values_3)
+
+
+def test_nddata_core_math_div_by_zero():
+    with pytest.warns(RuntimeWarning):
+        nddata.nddata_core(values=np.array([1,2,3]), coords=[np.array([3,2,1])], dims=['x']) / 0
 
 
 class dnplab_nddata_core_tester(unittest.TestCase):
@@ -73,34 +106,6 @@ class dnplab_nddata_core_tester(unittest.TestCase):
         data = nddata.nddata_core(values, ["x", "y"], [x, y])
 
         self.assertEqual(data.ndim, 2)
-
-    def test_nddata_core_add(self):
-        for ix in range(num_random_tests):
-            random_coords = [np.r_[0 : random.randint(1, 6)] for dim in test_dims]
-
-            random_axis = list(zip(test_dims, random_coords))
-
-            random_axis1 = random.sample(random_axis, 3)
-            random_axis2 = random.sample(random_axis, 3)
-
-            dims1 = [axis[0] for axis in random_axis1]
-            coords1 = [axis[1] for axis in random_axis1]
-            shape1 = [coord.size for coord in coords1]
-            values1 = np.random.randn(*shape1)
-            data1 = nddata.nddata_core(values1, dims1, coords1)
-
-            dims2 = [axis[0] for axis in random_axis2]
-            coords2 = [axis[1] for axis in random_axis2]
-            shape2 = [coord.size for coord in coords2]
-            values2 = np.random.randn(*shape2)
-            data2 = nddata.nddata_core(values2, dims2, coords2)
-
-            data = data1 + data2
-
-            self.assertTrue(data._self_consistent())
-            assert_array_equal((data1 + 1).values, values1 + 1)
-            assert_array_equal((data1 + 1.0).values, values1 + 1.0)
-            assert_array_equal((data1 + 1.0j).values, values1 + 1.0j)
 
 
 class dnplab_nddata_coord_tester(unittest.TestCase):
