@@ -9,7 +9,7 @@ on:
     paths: [ '**.py', '**.yml' ]
   pull_request:
     branches: [ master, develop ]
-    paths: ${{ push.paths }}
+    paths: [ '**.py', '**.yml' ]
 
 jobs:
   build-unix:
