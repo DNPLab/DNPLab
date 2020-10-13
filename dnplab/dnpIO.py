@@ -1,7 +1,7 @@
 from . import dnpImport
 
 
-def import_data(path, data_type=None, *args, **kwargs):
+def load(path, data_type=None, *args, **kwargs):
     """Import data from different spectrometer formats
 
     Args:
@@ -16,7 +16,7 @@ def import_data(path, data_type=None, *args, **kwargs):
         data_type = autodetect(path)
 
     if data_type == NotImplemented:
-        return NotImplemented
+        return ValueError('Autodetecting data type not implemented')
 
     if data_type == "prospa":
         return dnpImport.prospa.import_prospa(path, *args, **kwargs)
@@ -29,6 +29,9 @@ def import_data(path, data_type=None, *args, **kwargs):
 
     elif data_type == "vnmrj":
         return dnpImport.vnmrj.import_vnmrj(path, *args, **kwargs)
+
+    else:
+        raise ValueError('Invalid data type: %s'%data_type)
 
 
 def autodetect(path):
