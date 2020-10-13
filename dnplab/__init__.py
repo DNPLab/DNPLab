@@ -7,5 +7,5 @@ from . import dnpHydration
 from . import hydrationGUI
 from . import core
 from . import dnpResults
-from .dnpIO import import_data
+from .dnpIO import load
 from .version import __version__

@@ -6,7 +6,7 @@ def load(path, data_type=None, *args, **kwargs):
 
     Args:
         path (str): Path to data directory or file
-        data_type (str): Type of data to import
+        data_type (str): Type of spectrometer data to import
 
     Returns:
         data (dnpData): Data object
