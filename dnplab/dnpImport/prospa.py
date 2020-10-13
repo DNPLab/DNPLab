@@ -160,7 +160,7 @@ def import_nd(path):
             raise ValueError("Data %i type not recognized" % dataType)
 
         # re-shape using F-ordering (Fortran)
-        data = data.reshape(xDim, yDim, zDim, qDim, order = 'F')
+        data = data.reshape(xDim, yDim, zDim, qDim, order="F")
 
         data = data.squeeze()  # remove length 1 dimensions
 
