@@ -16,7 +16,7 @@ def load(path, data_type=None, *args, **kwargs):
         data_type = autodetect(path)
 
     if data_type == NotImplemented:
-        return ValueError('Autodetecting data type not implemented')
+        return ValueError("Autodetecting data type not implemented")
 
     if data_type == "prospa":
         return dnpImport.prospa.import_prospa(path, *args, **kwargs)
@@ -31,7 +31,7 @@ def load(path, data_type=None, *args, **kwargs):
         return dnpImport.vnmrj.import_vnmrj(path, *args, **kwargs)
 
     else:
-        raise ValueError('Invalid data type: %s'%data_type)
+        raise ValueError("Invalid data type: %s" % data_type)
 
 
 def autodetect(path):
