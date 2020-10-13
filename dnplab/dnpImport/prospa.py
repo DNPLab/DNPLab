@@ -159,7 +159,9 @@ def import_nd(path):
         else:
             raise ValueError("Data %i type not recognized" % dataType)
 
-        data = data.reshape(xDim, yDim, zDim, qDim)  # reshape data
+        # re-shape using F-ordering (Fortran)
+        data = data.reshape(xDim, yDim, zDim, qDim, order = 'F')
+
         data = data.squeeze()  # remove length 1 dimensions
 
     return x, data
@@ -244,7 +246,7 @@ def prospa_coords(attrs, data_shape):
         dims.append("t2")
         coords.append(x)
 
-    elif experiment == "1Pulse2dAverage":
+    elif experiment == "B12T_1Pulse":
         pts = attrs["nrPnts"]
         dwell_time = attrs["dwellTime"]
         x = np.arange(0.0, pts * dwell_time, dwell_time) / 1e6
@@ -272,6 +274,28 @@ def prospa_coords(attrs, data_shape):
 
         dims.append("t1")
         coords.append(T1)
+    elif experiment == "B12T_T1-IR-FID":
+        pts = attrs["nrPnts"]
+        dwell_time = attrs["dwellTime"]
+        x = np.arange(0.0, pts * dwell_time, dwell_time) / 1e6
+        dims.append("t2")
+        coords.append(x)
+
+        T1_steps = attrs["nrSteps"]
+        T1_min_delay = attrs["minDelay"]
+        T1_max_delay = attrs["maxDelay"]
+
+        if attrs["delaySpacing"] == "lin":
+            T1 = np.linspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
+        else:
+            T1 = np.logspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
+
+        dims.append("t1")
+        coords.append(T1)
+
+        dims.append("Average")
+        coords.append(np.arange(attrs["nrScans"]))
+
     else:
         dims_list = ["x", "y", "z", "q"]
         for ix in range(len(data_shape)):
