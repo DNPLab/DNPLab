@@ -35,7 +35,16 @@ def load(path, data_type=None, *args, **kwargs):
 
     elif data_type == "specman":
         return dnpIO.specman.import_specman(path, *args, **kwargs)
+        
+    elif data_type == "h5":
+        return dnpIO.h5.loadh5(path, *args, **kwargs)
 
+    elif data_type == "power":
+        return dnpIO.power.importPower(path, *args, **kwargs)
+        
+    elif data_type == "vna":
+        return dnpIO.vna.import_vna(path, *args, **kwargs)
+        
     else:
         raise ValueError("Invalid data type: %s" % data_type)
 
