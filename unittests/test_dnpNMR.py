@@ -1,7 +1,7 @@
 import unittest
 from dnplab import dnpdata
 from numpy.testing import assert_array_equal
-import dnplab.dnpImport.vnmrj as vnmrj
+import dnplab.dnpIO.vnmrj as vnmrj
 import dnplab.dnpNMR as nmr
 import dnplab as dnp
 import numpy as np

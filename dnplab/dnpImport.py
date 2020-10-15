@@ -1,4 +1,4 @@
-from . import dnpImport
+from . import dnpIO
 
 
 def load(path, data_type=None, *args, **kwargs):
@@ -19,16 +19,16 @@ def load(path, data_type=None, *args, **kwargs):
         return ValueError("Autodetecting data type not implemented")
 
     if data_type == "prospa":
-        return dnpImport.prospa.import_prospa(path, *args, **kwargs)
+        return dnpIO.prospa.import_prospa(path, *args, **kwargs)
 
     elif data_type == "topspin":
-        return dnpImport.topspin.import_topspin(path, *args, **kwargs)
+        return dnpIO.topspin.import_topspin(path, *args, **kwargs)
 
     elif data_type == "topspin dir":
-        return dnpImport.topspin.import_topspin_dir(path, *args, **kwargs)
+        return dnpIO.topspin.import_topspin_dir(path, *args, **kwargs)
 
     elif data_type == "vnmrj":
-        return dnpImport.vnmrj.import_vnmrj(path, *args, **kwargs)
+        return dnpIO.vnmrj.import_vnmrj(path, *args, **kwargs)
 
     else:
         raise ValueError("Invalid data type: %s" % data_type)
