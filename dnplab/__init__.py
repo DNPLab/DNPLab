@@ -8,4 +8,5 @@ from . import dnpHydration
 from . import hydrationGUI
 from . import core
 from . import dnpResults
+from .dnpImport import load
 from .version import __version__

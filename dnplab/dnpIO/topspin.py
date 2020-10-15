@@ -119,6 +119,7 @@ def find_group_delay(decim, dspfvs):
     return group_delay
 
 
+
 def load_title(
     path="1" + _os.sep, titlePath=_os.path.join("pdata", "1"), titleFilename="title"
 ):
@@ -276,6 +277,7 @@ def topspin_fid(path, paramFilename="acqus"):
         endian = ">"
 
     raw = _np.fromfile(_os.path.join(path, "fid"), dtype=endian + "i4")
+
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(decim, dspfvs)
@@ -382,7 +384,7 @@ def topspin_jcamp_dx(path):
 
     return attrs
 
-
+  
 def topspin_vdlist(path):
     """
     Return topspin vdlist
@@ -445,6 +447,7 @@ def import_ser(path, paramFilename="acqus"):
         endian = ">"
 
     raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
+    
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(decim, dspfvs)
@@ -493,7 +496,9 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
     else:
         endian = ">"
 
+
     raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
+
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(decim, dspfvs)
@@ -516,3 +521,4 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
 
     output = _dnpdata(data, [t], ["t2"], importantParamsDict)
     return output
+

@@ -129,6 +129,11 @@ def fourier_transform(
     # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
 
+    # handle zero_fill_factor
+    zero_fill_factor = int(zero_fill_factor)
+    if zero_fill_factor <= 0:
+        zero_fill_factor = 1
+
     proc_parameters = {
         "dim": dim,
         "zero_fill_factor": zero_fill_factor,
