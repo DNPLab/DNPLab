@@ -97,7 +97,7 @@ def load_specman_values(path):
     file_opened = open(path, "rb")
     uint_read = np.fromfile(file_opened, dtype=np.uint32)
     file_opened.close()
-    
+
     file_opened = open(path, "rb")
     float_read = np.fromfile(file_opened, dtype="<f4")
     file_opened.close()
