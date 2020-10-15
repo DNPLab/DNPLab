@@ -6,9 +6,14 @@ name: Python package
 on:
   push:
     branches: [ master, develop ]
-    paths-ignore: [ 'docs/**' ]
+    paths: 
+    - '**.py'
+    - '**.yml'
   pull_request:
     branches: [ master, develop ]
+    paths: 
+    - '**.py'
+    - '**.yml'
 
 jobs:
   build-unix:
@@ -16,7 +21,7 @@ jobs:
     strategy:
       fail-fast: true 
       matrix:
-        os: [ubuntu-16.04, ubuntu-latest, windows-latest]
+        os: [ ubuntu-latest, windows-latest ]
         python-version: [3.6, 3.8]
     steps:
     - uses: actions/checkout@v2
