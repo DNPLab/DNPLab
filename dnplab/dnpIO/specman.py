@@ -44,7 +44,7 @@ def load_specman_coords(attrs, data_lengths, dims):
         abscissa (list) : coordinates of axes
     """
     abscissa = []
-    for k in range(0, len(dims) - 1):
+    for k in range(0, len(dims)):
         if dims[k] in attrs.keys():
             abscissa.append(attrs[dims[k]])
         else:
