@@ -1,4 +1,5 @@
 from . import dnpIO
+import os
 
 
 def load(path, data_type=None, *args, **kwargs):
@@ -25,9 +26,6 @@ def load(path, data_type=None, *args, **kwargs):
     if data_type == None:
         data_type = autodetect(path)
 
-    if data_type == NotImplemented:
-        return ValueError("Autodetecting data type not implemented")
-
     if data_type == "prospa":
         return dnpIO.prospa.import_prospa(path, *args, **kwargs)
 
@@ -47,4 +45,34 @@ def load(path, data_type=None, *args, **kwargs):
 def autodetect(path):
     """Automatically detect type of data in directory"""
 
-    return NotImplemented
+    is_file = os.path.isfile(path)
+
+    # If path is file
+    if is_file:
+        path, filename = os.path.split(path)
+        _, extension = os.path.splitext(filename)
+
+        if extension == '.h5':
+            return 'h5'
+        elif extension in ['.1d', '.2d', '.3d', '.4d']:
+            return 'prospa'
+        elif filename == 'fid':
+            files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+            if 'procpar' in files:
+                return 'vnmrj'
+            else:
+                return 'topspin'
+
+    # if path is directory
+    else:
+        if path[-4:] == '.fid':
+            return 'vnmrj'
+
+        files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+
+        if ('fid' in files) or ('ser' in files):
+            return 'topspin'
+
+        elif 'acqu.par' in files:
+            return 'prospa'
+
