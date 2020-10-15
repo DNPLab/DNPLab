@@ -1,0 +1,5 @@
+- [ ] closes issue #xxxx
+- [ ] tests added / passed `pytest .`
+- [ ] passes `black .`
+- [ ] passes `git diff upstream/develop -u -- "*.py" | flake8 --diff`
+- [ ] what's new
