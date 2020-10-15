@@ -65,6 +65,7 @@ def load_specman_exp(path):
     """
     exp_file_opened = open(path, encoding="utf8", errors="ignore")
     file_contents = exp_file_opened.read().splitlines()
+    exp_file_opened.close()
     params = {}
     for i in range(0, len(file_contents)):
         exp_content = str(file_contents[i])
@@ -95,9 +96,11 @@ def load_specman_values(path):
     """
     file_opened = open(path, "rb")
     uint_read = np.fromfile(file_opened, dtype=np.uint32)
-
+    file_opened.close()
+    
     file_opened = open(path, "rb")
     float_read = np.fromfile(file_opened, dtype="<f4")
+    file_opened.close()
     float_data_real = float_read[14 : uint_read[7] + 14]
     float_data_complex = float_read[uint_read[7] + 14 : len(float_read)]
     float_data_folded = float_data_real + 1j * float_data_complex
