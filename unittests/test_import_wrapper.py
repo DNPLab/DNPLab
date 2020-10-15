@@ -9,7 +9,7 @@ class load_wrapper_tester(unittest.TestCase):
         self.vnmrj_dir = "./data/vnmrj/10mM_tempol_in_water_array.fid"
 
     def test_topspin(self):
-        data = load(self.topspin_dir, "topspin", 1)  # last arg is expNum
+        data = load(self.topspin_dir, "topspin", expNum = 1)
         self.assertEqual(data.dims[0], "t2")
         self.assertEqual(data.values.size, 8147)
         self.assertAlmostEqual(data.values.min(), -5 - 4.168734491315137j)
