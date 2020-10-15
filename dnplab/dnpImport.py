@@ -12,7 +12,7 @@ def load(path, data_type=None, *args, **kwargs):
     Returns:
         data (dnpData): Data object
     """
-    if path[-1:] != os.sep:
+    if path[-1:] != os.sep and data_type != "h5":
         path = path + os.sep
 
     if data_type == None:
@@ -35,16 +35,16 @@ def load(path, data_type=None, *args, **kwargs):
 
     elif data_type == "specman":
         return dnpIO.specman.import_specman(path, *args, **kwargs)
-        
+
     elif data_type == "h5":
         return dnpIO.h5.loadh5(path, *args, **kwargs)
 
     elif data_type == "power":
         return dnpIO.power.importPower(path, *args, **kwargs)
-        
+
     elif data_type == "vna":
         return dnpIO.vna.import_vna(path, *args, **kwargs)
-        
+
     else:
         raise ValueError("Invalid data type: %s" % data_type)
 

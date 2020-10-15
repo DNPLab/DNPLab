@@ -167,18 +167,29 @@ class hydrationGUI(QMainWindow):
         self.optwidthCheckbox.resize(100, 20)
         self.optwidthCheckbox.setText("Optimize")
 
+        self.p0Checkbox = QCheckBox(self)
+        self.p0Checkbox.setStyleSheet("font : bold 14px")
+        self.p0Checkbox.move(727, 575)
+        self.p0Checkbox.resize(130, 20)
+        self.p0Checkbox.setText("Enhancements")
+
         self.onlyT1pCheckbox = QCheckBox(self)
         self.onlyT1pCheckbox.setStyleSheet("font : bold 14px")
-        self.onlyT1pCheckbox.move(727, 575)
+        self.onlyT1pCheckbox.move(727, 595)
         self.onlyT1pCheckbox.resize(100, 20)
         self.onlyT1pCheckbox.setText("Only T1(p)")
-        self.onlyT1pCheckbox.setChecked(False)
 
         self.onlyT10Checkbox = QCheckBox(self)
         self.onlyT10Checkbox.setStyleSheet("font : bold 14px")
-        self.onlyT10Checkbox.move(727, 595)
+        self.onlyT10Checkbox.move(855, 575)
         self.onlyT10Checkbox.resize(100, 20)
         self.onlyT10Checkbox.setText("Only T1(0)")
+
+        self.onlyT100Checkbox = QCheckBox(self)
+        self.onlyT100Checkbox.setStyleSheet("font : bold 14px")
+        self.onlyT100Checkbox.move(855, 595)
+        self.onlyT100Checkbox.resize(110, 20)
+        self.onlyT100Checkbox.setText("Only T10(0)")
 
         self.nextButton = QPushButton("Next", self)
         self.nextButton.setStyleSheet(
@@ -233,7 +244,7 @@ class hydrationGUI(QMainWindow):
 
         self.exclude1T1Checkbox = QCheckBox(self)
         self.exclude1T1Checkbox.setStyleSheet("font : bold 14px")
-        self.exclude1T1Checkbox.move(865, 500)
+        self.exclude1T1Checkbox.move(865, 495)
         self.exclude1T1Checkbox.resize(150, 20)
         self.exclude1T1Checkbox.setText("Exclude first T1(p)")
 
@@ -322,12 +333,12 @@ class hydrationGUI(QMainWindow):
         self.freeCheckbox.resize(100, 20)
         self.freeCheckbox.setText("Free")
 
-        self.matoutButton = QPushButton("Save results", self)
-        self.matoutButton.setStyleSheet(
+        self.saveButton = QPushButton("Save", self)
+        self.saveButton.setStyleSheet(
             "font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
         )
-        self.matoutButton.move(925, 590)
-        self.matoutButton.resize(120, 30)
+        self.saveButton.move(970, 590)
+        self.saveButton.resize(75, 30)
 
         self.gui_dict = {
             "gui_function": {},
@@ -351,7 +362,6 @@ class hydrationGUI(QMainWindow):
 
         self.gui_dict["gui_function"]["buttons"] = False
         self.gui_dict["gui_function"]["sliders"] = False
-        self.gui_dict["gui_function"]["T100_process"] = False
 
         self.intwindowSlider.setMinimum(1)
         self.intwindowSlider.setMaximum(100)
@@ -395,10 +405,13 @@ class hydrationGUI(QMainWindow):
             self.smaxLabel.setVisible(True)
             self.tetheredCheckbox.setVisible(True)
             self.freeCheckbox.setVisible(True)
-            self.matoutButton.setVisible(True)
+            self.saveButton.setVisible(True)
             self.backButton.setVisible(True)
+            self.p0Checkbox.setVisible(True)
             self.onlyT1pCheckbox.setVisible(True)
             self.onlyT10Checkbox.setVisible(True)
+            if self.gui_dict["gui_function"]["T100_process"]:
+                self.onlyT100Checkbox.setVisible(True)
 
             self.nextButton.setVisible(False)
             self.autoButton.setVisible(False)
@@ -420,8 +433,10 @@ class hydrationGUI(QMainWindow):
                 or self.gui_dict["gui_function"]["isLab"]
             ):
                 self.backButton.setVisible(False)
+                self.p0Checkbox.setVisible(False)
                 self.onlyT1pCheckbox.setVisible(False)
                 self.onlyT10Checkbox.setVisible(False)
+                self.onlyT100Checkbox.setVisible(False)
 
             if self.gui_dict["gui_function"]["isWorkup"]:
                 self.workupt10Label.setVisible(True)
@@ -472,12 +487,14 @@ class hydrationGUI(QMainWindow):
             self.smaxLabel.setVisible(False)
             self.tetheredCheckbox.setVisible(False)
             self.freeCheckbox.setVisible(False)
-            self.matoutButton.setVisible(False)
+            self.saveButton.setVisible(True)
             self.show_wrkupCheckbox.setVisible(False)
             self.fit_wrkupCheckbox.setVisible(False)
             self.backButton.setText("Back")
+            self.p0Checkbox.setVisible(False)
             self.onlyT1pCheckbox.setVisible(False)
             self.onlyT10Checkbox.setVisible(False)
+            self.onlyT100Checkbox.setVisible(False)
 
         self.t1plt.setVisible(True)
         self.enhplt.setVisible(True)
@@ -500,10 +517,14 @@ class hydrationGUI(QMainWindow):
         self.nextButton.clicked.connect(self.Next_Button)
         self.autoButton.clicked.connect(self.Auto_Process_Button)
         self.backButton.clicked.connect(self.Back_Button)
+        self.p0Checkbox.clicked.connect(self.p0_Checkbox)
+        self.p0Checkbox.setChecked(True)
         self.onlyT1pCheckbox.clicked.connect(self.Only_T1p_Checkbox)
         self.onlyT1pCheckbox.setChecked(False)
         self.onlyT10Checkbox.clicked.connect(self.Only_T10_Checkbox)
         self.onlyT10Checkbox.setChecked(False)
+        self.onlyT100Checkbox.clicked.connect(self.Only_T100_Checkbox)
+        self.onlyT100Checkbox.setChecked(False)
         self.show_wrkupCheckbox.clicked.connect(self.Show_Workup_Checkbox)
         self.show_wrkupCheckbox.setChecked(True)
         self.fit_wrkupCheckbox.clicked.connect(self.Fit_Workup_Checkbox)
@@ -523,7 +544,7 @@ class hydrationGUI(QMainWindow):
         self.tetheredCheckbox.setChecked(True)
         self.freeCheckbox.clicked.connect(self.Smax_Free_Checkbox)
         self.freeCheckbox.setChecked(False)
-        self.matoutButton.clicked.connect(self.Save_Results_Button)
+        self.saveButton.clicked.connect(self.Save_Results_Button)
 
     def reset_plots(self):
 
@@ -601,8 +622,10 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict["rawdata_function"]["folder"]
                 )
                 self.backButton.setText("Back")
+                self.p0Checkbox.setVisible(False)
                 self.onlyT1pCheckbox.setVisible(False)
                 self.onlyT10Checkbox.setVisible(False)
+                self.onlyT100Checkbox.setVisible(False)
 
             elif (
                 self.gui_dict["rawdata_function"]["folder"]
@@ -611,6 +634,14 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["data_plot"][
                     "title"
                 ] = "T1 with power=0, Folder # " + str(
+                    self.gui_dict["rawdata_function"]["folder"]
+                )
+
+            elif (
+                self.gui_dict["rawdata_function"]["folder"]
+                == self.gui_dict["folder_structure"]["T100"]
+            ):
+                self.gui_dict["data_plot"]["title"] = "T10(0), Folder # " + str(
                     self.gui_dict["rawdata_function"]["folder"]
                 )
 
@@ -639,6 +670,8 @@ class hydrationGUI(QMainWindow):
                 in self.gui_dict["folder_structure"]["T1"]
                 or self.gui_dict["rawdata_function"]["folder"]
                 == self.gui_dict["folder_structure"]["T10"]
+                or self.gui_dict["rawdata_function"]["folder"]
+                == self.gui_dict["folder_structure"]["T100"]
             ):
                 self.gui_dict["enhancement_plot"]["title"] = r"$T_1$ Fit"
                 self.gui_dict["enhancement_plot"]["xLabel"] = r"$\tau$"
@@ -687,9 +720,9 @@ class hydrationGUI(QMainWindow):
         self.gui_dict["processing_spec"]["integration_center"] = indx[cent]
 
     @staticmethod
-    def import_create_workspace(dir, folder):
+    def import_create_workspace(dir, type):
 
-        data = dnplab.dnpImport.topspin.import_topspin(dir, folder)
+        data = dnplab.dnpImport.load(dir, data_type=type)
         workspace = dnplab.create_workspace("raw", data)
         workspace.copy("raw", "proc")
 
@@ -713,31 +746,6 @@ class hydrationGUI(QMainWindow):
         workspace["proc"].values = workspace["proc"].values * np.exp(-1j * phase)
 
         return workspace
-
-    def proc_T100(self):
-
-        data = dnplab.dnpImport.topspin.import_topspin(
-            self.gui_dict["rawdata_function"]["directory"], 100
-        )
-        self.dnpLab_workspace = dnplab.create_workspace("raw", data)
-        self.dnpLab_workspace.copy("raw", "proc")
-
-        self.processData()
-
-        int_params = {
-            "integrate_center": self.gui_dict["processing_spec"]["integration_center"],
-            "integrate_width": self.gui_dict["processing_spec"]["integration_width"],
-        }
-
-        t100proc_workspace = self.phs_workspace(
-            self.processing_workspace, self.gui_dict["processing_spec"]["phase"]
-        )
-        t100proc_workspace = self.int_workspace(t100proc_workspace, int_params)
-
-        dnplab.dnpFit.t1Fit(t100proc_workspace)
-
-        T100 = t100proc_workspace["fit"].attrs["t1"]
-        self.t100Edit.setText(str(round(T100, 4)))
 
     def GUI_Result_Button(self):
         """Select either the h5 or the .mat files previously saved using the 'Save results' button."""
@@ -778,6 +786,7 @@ class hydrationGUI(QMainWindow):
             self.gui_dict["gui_function"]["isLab"] = True
             self.gui_dict["gui_function"]["isWorkup"] = False
             self.gui_dict["gui_function"]["addWorkup"] = False
+            self.gui_dict["gui_function"]["T100_process"] = False
             self.gui_dict["workup_function"]["show"] = False
             self.gui_dict["workup_function"]["fit"] = False
 
@@ -787,7 +796,12 @@ class hydrationGUI(QMainWindow):
                 matin = loadmat(flname)
 
                 self.t10Edit.setText(str(round(float(matin["odnp"]["T10"]), 4)))
+                self.t100Edit.setText(str(round(float(matin["odnp"]["T100"]), 4)))
 
+                self.gui_dict["dnpLab_data"]["T100"] = float(matin["odnp"]["T100"])
+                self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
+                    matin["odnp"]["T100_stdd"]
+                )
                 self.gui_dict["dnpLab_data"]["T10"] = float(matin["odnp"]["T10"])
                 self.gui_dict["dnpLab_data"]["T10_stdd"] = float(
                     matin["odnp"]["T10_stdd"]
@@ -804,12 +818,21 @@ class hydrationGUI(QMainWindow):
                 self.T1p_stdd = np.ravel(t1perr[0])
 
             elif "h5" in exten:
-                h5in = dnplab.dnpImport.h5.loadh5(flname)
+                h5in = dnplab.dnpImport.load(flname, data_type="h5")
 
+                self.t100Edit.setText(
+                    str(round(float(h5in["hydration_inputs"]["T100"]), 4))
+                )
                 self.t10Edit.setText(
                     str(round(float(h5in["hydration_inputs"]["T10"]), 4))
                 )
 
+                self.gui_dict["dnpLab_data"]["T100"] = float(
+                    h5in["hydration_inputs"]["T100"]
+                )
+                self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
+                    h5in["hydration_results"]["T100_stdd"]
+                )
                 self.gui_dict["dnpLab_data"]["T10"] = float(
                     h5in["hydration_inputs"]["T10"]
                 )
@@ -869,6 +892,7 @@ class hydrationGUI(QMainWindow):
             self.gui_dict["gui_function"]["isWorkup"] = True
             self.gui_dict["gui_function"]["isLab"] = False
             self.gui_dict["gui_function"]["addWorkup"] = False
+            self.gui_dict["gui_function"]["T100_process"] = False
             self.gui_dict["workup_function"]["show"] = True
             self.gui_dict["workup_function"]["fit"] = True
 
@@ -1107,16 +1131,14 @@ class hydrationGUI(QMainWindow):
                 else:
                     return
 
-            pthnm = pthnm + os.sep
             x = pthnm.split(os.sep)
             self.pathLabel.setText(
-                "DATA DIRECTORY: " + x[len(x) - 3] + " " + os.sep + " " + x[len(x) - 2]
+                "DATA DIRECTORY: " + x[len(x) - 2] + " " + os.sep + " " + x[len(x) - 1]
             )
+            self.singlefolder = x[len(x) - 1]
 
-            self.singlefolder = x[len(x) - 2]
-            path = pthnm.replace(os.sep + str(self.singlefolder) + os.sep, os.sep)
-
-            data = dnplab.dnpImport.topspin.import_topspin(path, self.singlefolder)
+            type = "topspin"
+            data = dnplab.dnpImport.load(pthnm, data_type=type)
             self.dnpLab_workspace = dnplab.create_workspace("raw", data)
             self.dnpLab_workspace.copy("raw", "proc")
 
@@ -1132,18 +1154,20 @@ class hydrationGUI(QMainWindow):
 
             self.gui_dict["gui_function"]["buttons"] = False
             self.gui_dict["gui_function"]["sliders"] = True
-            self.gui_dict["gui_function"]["T100_process"] = False
             self.optcentCheckbox.setChecked(True)
             self.optphsCheckbox.setChecked(True)
             self.gui_dict["gui_function"]["isWorkup"] = False
             self.gui_dict["gui_function"]["addWorkup"] = False
             self.gui_dict["gui_function"]["isLab"] = False
+            self.gui_dict["gui_function"]["T100_process"] = False
             self.gui_dict["workup_function"]["fit"] = False
             self.gui_dict["workup_function"]["show"] = False
             self.gui_dict["enhancement_plot"]["plotT1fit"] = True
             self.backButton.setVisible(False)
+            self.p0Checkbox.setVisible(False)
             self.onlyT1pCheckbox.setVisible(False)
             self.onlyT10Checkbox.setVisible(False)
+            self.onlyT100Checkbox.setVisible(False)
             self.nextButton.setVisible(False)
             self.autoButton.setVisible(False)
             self.t1plt.setVisible(False)
@@ -1154,6 +1178,7 @@ class hydrationGUI(QMainWindow):
                 self.enhplt.setVisible(False)
             elif self.gui_dict["rawdata_function"]["folder"] == -1:
                 self.enhplt.setVisible(True)
+
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
@@ -1191,7 +1216,6 @@ class hydrationGUI(QMainWindow):
             )
 
             self.gui_dict["folder_structure"] = {}
-            self.gui_dict["gui_function"]["T100_process"] = False
             self.gui_dict["gui_function"]["isWorkup"] = False
             self.gui_dict["gui_function"]["isLab"] = False
             self.gui_dict["gui_function"]["addWorkup"] = False
@@ -1199,7 +1223,7 @@ class hydrationGUI(QMainWindow):
             self.gui_dict["workup_function"]["fit"] = False
             self.nextButton.setText("Next")
 
-            if os.path.exists(self.gui_dict["rawdata_function"]["directory"] + "40"):
+            if os.path.exists(pthnm + "40"):
 
                 self.gui_dict["folder_structure"]["p0"] = 5
                 self.gui_dict["folder_structure"]["enh"] = list(range(6, 30))
@@ -1255,7 +1279,7 @@ class hydrationGUI(QMainWindow):
                         print("No Workup output found, using power readings files.")
 
                         E_power_List = self.get_powers(
-                            self.gui_dict["rawdata_function"]["directory"],
+                            pthnm,
                             "power",
                             2.5,
                             self.gui_dict["folder_structure"]["enh"],
@@ -1268,7 +1292,7 @@ class hydrationGUI(QMainWindow):
                         # }}
 
                         T1_power_List = self.get_powers(
-                            self.gui_dict["rawdata_function"]["directory"],
+                            pthnm,
                             "t1_powers",
                             20 * 2.5,
                             self.gui_dict["folder_structure"]["T1"],
@@ -1288,13 +1312,13 @@ class hydrationGUI(QMainWindow):
                 try:
                     Eplist = []
                     for k in self.gui_dict["folder_structure"]["enh"]:
-                        title = dnplab.dnpImport.topspin.load_title(pthnm, expNum=k)
+                        title = dnplab.dnpIO.topspin.load_title(pthnm, expNum=k)
                         splitTitle = title.split(" ")
                         Eplist.append(float(splitTitle[-1]))
 
                     T1plist = []
                     for k in self.gui_dict["folder_structure"]["T1"]:
-                        title = dnplab.dnpImport.topspin.load_title(pthnm, expNum=k)
+                        title = dnplab.dnpIO.topspin.load_title(pthnm, expNum=k)
                         splitTitle = title.split(" ")
                         T1plist.append(float(splitTitle[-1]))
 
@@ -1335,6 +1359,18 @@ class hydrationGUI(QMainWindow):
             self.gui_dict["folder_structure"]["all"].append(
                 self.gui_dict["folder_structure"]["T10"]
             )
+            if os.path.exists(pthnm + "100" + os.sep):
+                self.gui_dict["folder_structure"]["T100"] = 100
+                self.gui_dict["folder_structure"]["all"].append(
+                    self.gui_dict["folder_structure"]["T100"]
+                )
+                self.gui_dict["gui_function"]["T100_process"] = True
+                print("HERE")
+            else:
+                self.gui_dict["folder_structure"]["T100"] = 999
+                self.gui_dict["dnpLab_data"]["T100_stdd"] = 0
+                self.gui_dict["gui_function"]["T100_process"] = False
+                self.onlyT100Checkbox.setChecked(False)
 
             self.Ep = []
             self.T1p = []
@@ -1357,11 +1393,15 @@ class hydrationGUI(QMainWindow):
             self.plot_setter()
 
             self.dnpLab_workspace = self.import_create_workspace(
-                self.gui_dict["rawdata_function"]["directory"],
-                self.gui_dict["rawdata_function"]["folder"],
+                os.path.join(
+                    self.gui_dict["rawdata_function"]["directory"],
+                    str(self.gui_dict["rawdata_function"]["folder"]),
+                ),
+                "topspin",
             )
 
             self.processData()
+
         except:
             self.dataplt.axes.cla()
             self.dataplt.draw()
@@ -1428,6 +1468,8 @@ class hydrationGUI(QMainWindow):
                 in self.gui_dict["folder_structure"]["T1"]
                 or self.gui_dict["rawdata_function"]["folder"]
                 == self.gui_dict["folder_structure"]["T10"]
+                or self.gui_dict["rawdata_function"]["folder"]
+                == self.gui_dict["folder_structure"]["T100"]
             ):
 
                 try:
@@ -1451,6 +1493,19 @@ class hydrationGUI(QMainWindow):
                         ].attrs["t1_stdd"]
                         self.t10Edit.setText(
                             str(round(self.gui_dict["dnpLab_data"]["T10"], 4))
+                        )
+                    elif (
+                        self.gui_dict["rawdata_function"]["folder"]
+                        == self.gui_dict["folder_structure"]["T100"]
+                    ):
+                        self.gui_dict["dnpLab_data"]["T100"] = nextproc_workspace[
+                            "fit"
+                        ].attrs["t1"]
+                        self.gui_dict["dnpLab_data"]["T100_stdd"] = nextproc_workspace[
+                            "fit"
+                        ].attrs["t1_stdd"]
+                        self.t100Edit.setText(
+                            str(round(self.gui_dict["dnpLab_data"]["T100"], 4))
                         )
 
                     if self.gui_dict["gui_function"]["autoProcess"]:
@@ -1497,7 +1552,7 @@ class hydrationGUI(QMainWindow):
                         self.gui_dict["folder_structure"]["all"][
                             self.gui_dict["folder_structure"]["index"]
                         ]
-                        == 28
+                        == self.gui_dict["folder_structure"]["T1"][0]
                     ):
                         print(
                             "WARNING: Error in first T1(p) fit, setting to ~0 and excluding from dnpHydration"
@@ -1518,6 +1573,20 @@ class hydrationGUI(QMainWindow):
                         self.gui_dict["dnpLab_data"]["T10_stdd"] = 0
                         self.t10Edit.setText(
                             str(round(self.gui_dict["dnpLab_data"]["T10"], 4))
+                        )
+                    elif (
+                        self.gui_dict["folder_structure"]["all"][
+                            self.gui_dict["folder_structure"]["index"]
+                        ]
+                        == self.gui_dict["folder_structure"]["T100"]
+                    ):
+                        print(
+                            "WARNING: Error in T10(0) fit, arbitrarily setting T10(0) = 2.5s"
+                        )
+                        self.gui_dict["dnpLab_data"]["T100"] = 2.5
+                        self.gui_dict["dnpLab_data"]["T100_stdd"] = 0
+                        self.t100Edit.setText(
+                            str(round(self.gui_dict["dnpLab_data"]["T100"], 4))
                         )
                     else:
                         print(
@@ -1544,12 +1613,6 @@ class hydrationGUI(QMainWindow):
             if self.gui_dict["folder_structure"]["index"] >= len(
                 self.gui_dict["folder_structure"]["all"]
             ):
-                if os.path.exists(
-                    self.gui_dict["rawdata_function"]["directory"] + "100" + os.sep
-                ):
-                    self.gui_dict["gui_function"]["T100_process"] = True
-                    self.proc_T100()
-
                 self.finishProcessing()
 
             else:
@@ -1568,8 +1631,11 @@ class hydrationGUI(QMainWindow):
                     self.plot_setter()
 
                 self.dnpLab_workspace = self.import_create_workspace(
-                    self.gui_dict["rawdata_function"]["directory"],
-                    self.gui_dict["rawdata_function"]["folder"],
+                    os.path.join(
+                        self.gui_dict["rawdata_function"]["directory"],
+                        str(self.gui_dict["rawdata_function"]["folder"]),
+                    ),
+                    "topspin",
                 )
 
                 self.processData()
@@ -1600,42 +1666,79 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict["rawdata_function"]["folder"] = self.gui_dict[
                         "folder_structure"
                     ]["T10"]
+
+                    if (
+                        self.gui_dict["folder_structure"]["all"][-1]
+                        == self.gui_dict["folder_structure"]["T100"]
+                    ):
+                        self.gui_dict["folder_structure"]["index"] = (
+                            len(self.gui_dict["folder_structure"]["all"]) - 2
+                        )
+                        self.nextButton.setText("Next")
+
+                    elif (
+                        self.gui_dict["folder_structure"]["all"][-1]
+                        == self.gui_dict["folder_structure"]["T10"]
+                    ):
+                        self.gui_dict["folder_structure"]["index"] = (
+                            len(self.gui_dict["folder_structure"]["all"]) - 1
+                        )
+                        self.nextButton.setText("Finish")
+
+                elif self.onlyT100Checkbox.isChecked():
+                    self.gui_dict["rawdata_function"]["folder"] = self.gui_dict[
+                        "folder_structure"
+                    ]["T100"]
                     self.gui_dict["folder_structure"]["index"] = (
                         len(self.gui_dict["folder_structure"]["all"]) - 1
                     )
                     self.nextButton.setText("Finish")
-                else:
-                    self.nextButton.setText("Next")
-                    if self.onlyT1pCheckbox.isChecked():
-                        self.gui_dict["rawdata_function"]["folder"] = self.gui_dict[
-                            "folder_structure"
-                        ]["T1"][0]
+
+                elif self.onlyT1pCheckbox.isChecked():
+                    self.gui_dict["rawdata_function"]["folder"] = self.gui_dict[
+                        "folder_structure"
+                    ]["T1"][0]
+
+                    if (
+                        self.gui_dict["folder_structure"]["all"][-1]
+                        == self.gui_dict["folder_structure"]["T100"]
+                    ):
+                        self.gui_dict["folder_structure"]["index"] = (
+                            len(self.gui_dict["folder_structure"]["all"])
+                            - 2
+                            - len(self.gui_dict["folder_structure"]["T1"])
+                        )
+                        self.nextButton.setText("Next")
+
+                    elif (
+                        self.gui_dict["folder_structure"]["all"][-1]
+                        == self.gui_dict["folder_structure"]["T10"]
+                    ):
                         self.gui_dict["folder_structure"]["index"] = (
                             len(self.gui_dict["folder_structure"]["all"])
                             - 1
                             - len(self.gui_dict["folder_structure"]["T1"])
                         )
-                        self.T1p = []
-                        self.T1p_stdd = []
-                    else:
-                        self.gui_dict["rawdata_function"]["folder"] = self.gui_dict[
-                            "folder_structure"
-                        ]["p0"]
-                        self.Ep = []
-                        self.T1p = []
-                        self.T1p_stdd = []
+                        self.nextButton.setText("Finish")
+
+                    self.T1p = []
+                    self.T1p_stdd = []
+                else:
+                    self.gui_dict["folder_structure"]["index"] = 0
+                    self.gui_dict["rawdata_function"]["folder"] = self.gui_dict[
+                        "folder_structure"
+                    ]["p0"]
+                    self.nextButton.setText("Next")
+                    self.Ep = []
+                    self.T1p = []
+                    self.T1p_stdd = []
             else:
                 self.gui_dict["rawdata_function"]["folder"] = self.gui_dict[
                     "folder_structure"
                 ]["all"][self.gui_dict["folder_structure"]["index"]]
 
-            if (
-                self.gui_dict["folder_structure"]["index"]
-                == len(self.gui_dict["folder_structure"]["all"]) - 2
-            ):
-                self.nextButton.setText("Next")
-
             self.plot_setter()
+
             if (
                 self.gui_dict["rawdata_function"]["folder"]
                 in self.gui_dict["folder_structure"]["enh"]
@@ -1688,8 +1791,11 @@ class hydrationGUI(QMainWindow):
                 self.plot_t1()
 
             self.dnpLab_workspace = self.import_create_workspace(
-                self.gui_dict["rawdata_function"]["directory"],
-                self.gui_dict["rawdata_function"]["folder"],
+                os.path.join(
+                    self.gui_dict["rawdata_function"]["directory"],
+                    str(self.gui_dict["rawdata_function"]["folder"]),
+                ),
+                "topspin",
             )
 
             self.processData()
@@ -1743,7 +1849,7 @@ class hydrationGUI(QMainWindow):
         ):
 
             curve = self.processing_workspace["proc"].values
-
+            """
             self.gui_dict["processing_spec"]["original_phase"] = np.arctan(
                 np.sum(np.imag(curve)) / np.sum(np.real(curve))
             )
@@ -1756,7 +1862,6 @@ class hydrationGUI(QMainWindow):
             bestindex = np.argmax(success)
 
             self.gui_dict["processing_spec"]["original_phase"] = phases[0, bestindex]
-            """
 
         if (
             self.optcentCheckbox.isChecked()
@@ -1808,15 +1913,14 @@ class hydrationGUI(QMainWindow):
 
                 best_width = max(max_x) - min(min_x)
 
-            self.gui_dict["processing_spec"]["integration_width"] = round(best_width)
+            self.gui_dict["processing_spec"]["integration_width"] = abs(
+                round(best_width)
+            )
 
             self.optCenter(self.gui_dict["processing_spec"]["integration_width"])
             self.optcentCheckbox.setChecked(True)
 
-        if (
-            self.gui_dict["gui_function"]["autoProcess"]
-            or self.gui_dict["gui_function"]["T100_process"]
-        ):
+        if self.gui_dict["gui_function"]["autoProcess"]:
             self.gui_dict["processing_spec"]["phase"] = self.gui_dict[
                 "processing_spec"
             ]["original_phase"]
@@ -1853,9 +1957,6 @@ class hydrationGUI(QMainWindow):
 
             self.gui_dict["gui_function"]["sliders"] = True
 
-        if self.gui_dict["gui_function"]["T100_process"]:
-            pass
-        else:
             self.adjustSliders()
 
     def adjustSliders(self):
@@ -1865,7 +1966,6 @@ class hydrationGUI(QMainWindow):
         if self.gui_dict["gui_function"]["autoProcess"]:
             pass
         else:
-
             self.gui_dict["processing_spec"]["phase"] = self.gui_dict[
                 "processing_spec"
             ]["original_phase"] + (
@@ -1968,6 +2068,7 @@ class hydrationGUI(QMainWindow):
                     + np.abs(self.gui_dict["processing_spec"]["integration_width"]) / 2
                 )
             )
+
             self.plot_data()
 
     def finishProcessing(self):
@@ -2115,6 +2216,13 @@ class hydrationGUI(QMainWindow):
 
         else:
             print("---Standard Deviations in T1s---")
+            if self.gui_dict["gui_function"]["T100_process"]:
+                print(
+                    "T10(0): "
+                    + str(round(self.gui_dict["dnpLab_data"]["T100"], 2))
+                    + " +/- "
+                    + str(round(self.gui_dict["dnpLab_data"]["T100_stdd"], 4))
+                )
             print(
                 "T1(0): "
                 + str(round(self.gui_dict["dnpLab_data"]["T10"], 2))
@@ -2491,6 +2599,7 @@ class hydrationGUI(QMainWindow):
                 {
                     "T1_stdd": self.gui_dict["dnpLab_data"]["T1p_stdd"],
                     "T10_stdd": self.gui_dict["dnpLab_data"]["T10_stdd"],
+                    "T100_stdd": self.gui_dict["dnpLab_data"]["T100_stdd"],
                 }
             )
 
@@ -2503,6 +2612,7 @@ class hydrationGUI(QMainWindow):
             "T10": self.addHyd_workspace["hydration_inputs"]["T10"],
             "T10_stdd": self.addHyd_workspace["hydration_results"]["T10_stdd"],
             "T100": self.addHyd_workspace["hydration_inputs"]["T100"],
+            "T100_stdd": self.addHyd_workspace["hydration_results"]["T100_stdd"],
         }
 
         odnpResults = {
@@ -2520,7 +2630,7 @@ class hydrationGUI(QMainWindow):
         print("Save name: " + flnm)
         print("Save path: " + svpthnm)
 
-        dnplab.dnpImport.h5.saveh5(
+        dnplab.dnpIO.h5.saveh5(
             self.addHyd_workspace,
             os.path.join(svpthnm, flnm + " hydration_parameters.h5"),
         )
@@ -2571,6 +2681,7 @@ class hydrationGUI(QMainWindow):
                 self.addHyd_workspace["hydration_inputs"]["spin_C"],
                 self.addHyd_workspace["hydration_inputs"]["field"],
                 self.addHyd_workspace["hydration_inputs"]["T100"],
+                self.addHyd_workspace["hydration_results"]["T100_stdd"],
                 self.addHyd_workspace["hydration_inputs"]["T10"],
                 self.addHyd_workspace["hydration_results"]["T10_stdd"],
                 self.addHyd_workspace["hydration_results"]["krho"],
@@ -2585,9 +2696,9 @@ class hydrationGUI(QMainWindow):
         np.savetxt(
             os.path.join(svpthnm, flnm + " params.csv"),
             dfPars,
-            fmt="%10.2f,%10.2f,%10.4f,%10.4f,%10.4f,%10.2f,%10.2f,%10.4f,%10.2f,%1.5f,%10.2f,%1.3e",
+            fmt="%10.2f,%10.2f,%10.4f,%10.4f,%10.4f,%10.4f,%10.2f,%10.2f,%10.4f,%10.2f,%1.5f,%10.2f,%1.3e",
             delimiter=",",
-            header="spin concentration (uM),Field (mT),T10(0) (s),T1(0) (s),T1(0) stdd, krho (s^-1M^-1),ksigma (s^-1M^-1),ksigma stdd,klow (s^-1M^-1),coupling factor,tcorr (ps),Dlocal (m^2/s)",
+            header="spin concentration (uM),Field (mT),T10(0) (s),T10(0) stdd,T1(0) (s),T1(0) stdd, krho (s^-1M^-1),ksigma (s^-1M^-1),ksigma stdd,klow (s^-1M^-1),coupling factor,tcorr (ps),Dlocal (m^2/s)",
             comments="",
         )
 
@@ -2657,10 +2768,7 @@ class hydrationGUI(QMainWindow):
 
     def Optimize_Width_Checkbox(self):
         """Check this to have the GUI automatically choose the best integration width."""
-        if (
-            self.gui_dict["gui_function"]["sliders"]
-            and self.gui_dict["rawdata_function"]["folder"] != -2
-        ):
+        if self.gui_dict["gui_function"]["sliders"]:
             if self.optwidthCheckbox.isChecked():
                 pass
             else:
@@ -2762,16 +2870,45 @@ class hydrationGUI(QMainWindow):
         else:
             pass
 
+    def p0_Checkbox(self):
+        """Return to the beginning of the E(p) series"""
+        if self.p0Checkbox.isChecked():
+            self.onlyT1pCheckbox.setChecked(False)
+            self.onlyT10Checkbox.setChecked(False)
+            if self.gui_dict["gui_function"]["T100_process"]:
+                self.onlyT100Checkbox.setChecked(False)
+        else:
+            self.p0Checkbox.setChecked(True)
+
     def Only_T1p_Checkbox(self):
         """Rather than return to the beginning of the E(p) series, the Restart button will return to the first T1(p)
         point."""
         if self.onlyT1pCheckbox.isChecked():
+            self.p0Checkbox.setChecked(False)
             self.onlyT10Checkbox.setChecked(False)
+            if self.gui_dict["gui_function"]["T100_process"]:
+                self.onlyT100Checkbox.setChecked(False)
+        else:
+            self.onlyT1pCheckbox.setChecked(True)
 
     def Only_T10_Checkbox(self):
         """Rather than return to the beginning of the E(p) series, the Restart button will return to the T1(0) point."""
         if self.onlyT10Checkbox.isChecked():
+            self.p0Checkbox.setChecked(False)
             self.onlyT1pCheckbox.setChecked(False)
+            if self.gui_dict["gui_function"]["T100_process"]:
+                self.onlyT100Checkbox.setChecked(False)
+        else:
+            self.onlyT10Checkbox.setChecked(True)
+
+    def Only_T100_Checkbox(self):
+        """Rather than return to the beginning of the E(p) series, the Restart button will return to the T10(0) measurement, if one exists."""
+        if self.onlyT100Checkbox.isChecked():
+            self.p0Checkbox.setChecked(False)
+            self.onlyT1pCheckbox.setChecked(False)
+            self.onlyT10Checkbox.setChecked(False)
+        else:
+            self.onlyT100Checkbox.setChecked(True)
 
     # --Plot Colors--#
     # dark_green = '#46812B'
