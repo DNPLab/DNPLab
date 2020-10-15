@@ -1,7 +1,7 @@
 import unittest
 from dnplab import dnpdata
 from numpy.testing import assert_array_equal
-import dnplab.dnpImport.vnmrj as vnmrj
+import dnplab.dnpImport as wrapper
 import dnplab.dnpNMR as nmr
 import dnplab as dnp
 import numpy as np
@@ -10,7 +10,7 @@ import numpy as np
 class dnpNMR_tester(unittest.TestCase):
     def setUp(self):
         path = "./data/vnmrj/10mM_tempol_in_water_array.fid"
-        self.data = vnmrj.import_vnmrj(path)
+        self.data = wrapper.load(path, data_type="vnmrj")
         self.ws = dnp.create_workspace()
         self.ws["raw"] = self.data
         self.ws.copy("raw", "proc")

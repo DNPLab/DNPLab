@@ -12,7 +12,7 @@ def load(path, data_type=None, *args, **kwargs):
     Returns:
         data (dnpData): Data object
     """
-    if path[-1:] != os.sep and data_type != "h5":
+    if os.path.isdir(path) and path[-1:] != os.sep:
         path = path + os.sep
 
     if data_type == None:
