@@ -233,7 +233,15 @@ def import_csv(path, return_raw=False, is_complex=True):
 
 
 def prospa_coords(attrs, data_shape):
-    """Generate coords from prospa acquisition parameters"""
+    """Generate coords from prospa acquisition parameters
+
+    Args:
+        attrs (dict): Dictionary of prospa acqusition parameters
+        data_shape (tuple): Shape of data
+
+    Returns:
+        tuple: dims and coords
+    """
 
     experiment = attrs["experiment"]
     dims = []
