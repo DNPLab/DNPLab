@@ -119,7 +119,9 @@ def find_group_delay(decim, dspfvs):
     return group_delay
 
 
-def load_title(path=1, titlePath="pdata/1", titleFilename="title"):
+def load_title(
+    path="1" + _os.sep, titlePath=_os.path.join("pdata", "1"), titleFilename="title"
+):
     """
     Import Topspin Experiment Title File
 
@@ -141,7 +143,7 @@ def load_title(path=1, titlePath="pdata/1", titleFilename="title"):
     return title
 
 
-def load_acqu(path=1, paramFilename="acqus"):
+def load_acqu(path="1", paramFilename="acqus"):
     """
     Import Topspin JCAMPDX file
 
@@ -153,7 +155,7 @@ def load_acqu(path=1, paramFilename="acqus"):
         dict: Dictionary of acqusition parameters
     """
 
-    pathFilename = path + paramFilename
+    pathFilename = _os.path.join(path, paramFilename)
 
     # Import parameters
     with open(pathFilename, "r") as f:
@@ -175,8 +177,8 @@ def load_acqu(path=1, paramFilename="acqus"):
     return attrsDict
 
 
-def load_proc(path=1, procNum=1, paramFilename="procs"):
-    pathFilename = path + "pdata/" + str(procNum) + "/" + paramFilename
+def load_proc(path="1", procNum=1, paramFilename="procs"):
+    pathFilename = _os.path.joing(path, "pdata", str(procNum), paramFilename)
 
     # Import parameters
     with open(pathFilename, "r") as f:
@@ -273,7 +275,7 @@ def topspin_fid(path, paramFilename="acqus"):
     else:
         endian = ">"
 
-    raw = _np.fromfile(path + "fid", dtype=endian + "i4")
+    raw = _np.fromfile(_os.path.join(path, "fid"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(decim, dspfvs)
@@ -391,7 +393,7 @@ def topspin_vdlist(path):
     Returns:
         numpy.ndarray: vdlist as numpy array
     """
-    fullPath = path + "vdlist"
+    fullPath = _os.path.join(path, "vdlist")
 
     with open(fullPath, "r") as f:
         raw = f.read()
@@ -442,7 +444,7 @@ def import_ser(path, paramFilename="acqus"):
     else:
         endian = ">"
 
-    raw = _np.fromfile(path + "ser", dtype=endian + "i4")
+    raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(decim, dspfvs)
@@ -491,7 +493,7 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
     else:
         endian = ">"
 
-    raw = _np.fromfile(path + "ser", dtype=endian + "i4")
+    raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(decim, dspfvs)
@@ -514,30 +516,3 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
 
     output = _dnpdata(data, [t], ["t2"], importantParamsDict)
     return output
-
-
-"""
-## NOT NEEDED ##
-def import_topspin_dir(path):
-
-    Import directory of Topspin data and return as dictionary
-
-    Args:
-        path (str): Directory of data
-
-    Returns:
-        dict: Topspin data. Keys correspond to folder name. Values correspond to dnpdata with topspin data for each folder.
-
-
-    dirFiles = [x for x in _os.listdir(path) if _os.path.isdir(_os.path.join(path, x))]
-
-    dataDict = {}
-    for expNum in dirFiles:
-        try:
-            tempData = import_topspin(path)
-            dataDict[expNum] = tempData
-        except:
-            pass
-
-    return dataDict
-"""

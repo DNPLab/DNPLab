@@ -21,6 +21,9 @@ def import_specman(path):
     elif path[-1] == "1":
         file_name_exp = path.replace("d01", "exp")
         file_name_d01 = path
+    else:
+        raise TypeError("Incorrect file type, must be .d01 or .exp")
+        return
 
     attrs = load_specman_exp(file_name_exp)
     values, dims, data_lengths = load_specman_values(file_name_d01)
@@ -67,6 +70,7 @@ def load_specman_exp(path):
     file_contents = exp_file_opened.read().splitlines()
     exp_file_opened.close()
     params = {}
+    c = ""
     for i in range(0, len(file_contents)):
         exp_content = str(file_contents[i])
         splt_exp_content = exp_content.split(" = ")
@@ -78,6 +82,8 @@ def load_specman_exp(path):
             params[c + "_" + splt_exp_content[0]] = splt_exp_content[1]
         elif len(splt_exp_content) == 1 and exp_content != "":
             params[c + "_" + str(i)] = splt_exp_content
+        else:
+            pass
 
     return params
 
@@ -117,6 +123,10 @@ def load_specman_values(path):
         y_data = np.reshape(
             float_data_folded, (uint_read[6], uint_read[5], uint_read[4], uint_read[3])
         )
+    else:
+        raise TypeError("DNPLab currently only supports up to 4D data")
+        return
+
     y_data = np.transpose(y_data)
 
     dims_full = ["t", "x", "y", "z"]
