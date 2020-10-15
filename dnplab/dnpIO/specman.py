@@ -1,4 +1,5 @@
 import numpy as np
+import os
 from dnplab import dnpdata
 
 
@@ -12,9 +13,14 @@ def import_specman(path):
     Returns:
         specman_data (object) : dnpdata object containing specman data
     """
-    splt_fname = path.split(".")
-    file_name_d01 = splt_fname[0] + ".d01"
-    file_name_exp = splt_fname[0] + ".exp"
+    if path[-1] == os.sep:
+        path = path[:-1]
+    if path[-1] == "p":
+        file_name_d01 = path.replace("exp", "d01")
+        file_name_exp = path
+    elif path[-1] == "1":
+        file_name_exp = path.replace("d01", "exp")
+        file_name_d01 = path
 
     attrs = load_specman_exp(file_name_exp)
     values, dims, data_lengths = load_specman_values(file_name_d01)

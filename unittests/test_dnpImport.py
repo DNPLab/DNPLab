@@ -112,6 +112,22 @@ class vnmrj_import_tester(unittest.TestCase):
         self.assertAlmostEqual(datas[0].values[365, 3], (-1263136 + 1063328.5j))
 
 
+class specman_import_tester(unittest.TestCase):
+    def setUp(self):
+        self.test_data_2D = "./data/specman/test_specman2D.exp/"
+        self.test_data_4D = "./data/specman/test_specman4D.d01"
+
+    def test_import_specman_2D(self):
+        data = wrapper.load(self.test_data_2D, data_type="specman")
+        self.assertEqual(data.dims, ["t", "x"])
+        self.assertEqual(data.values.shape, (1500, 80))
+
+    def test_import_specman_4D(self):
+        data = wrapper.load(self.test_data_4D, data_type="specman")
+        self.assertEqual(data.dims, ["t", "x", "y", "z"])
+        self.assertEqual(data.values.shape, (1500, 40, 5, 3))
+
+
 if __name__ == "__main__":
     unittest.main()
     pass
