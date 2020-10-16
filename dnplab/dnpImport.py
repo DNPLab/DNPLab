@@ -5,18 +5,6 @@ from . import dnpIO
 def load(path, data_type=None, *args, **kwargs):
     """Import data from different spectrometer formats
 
-    +-----------------+
-    | Supported Types |
-    +-----------------+
-    | prospa          |
-    +-----------------+
-    | topspin         |
-    +-----------------+
-    | vnmrj           |
-    +-----------------+
-    | specman         |
-    +-----------------+
-
     Args:
         path (str): Path to data directory or file
         data_type (str): Type of spectrometer data to import

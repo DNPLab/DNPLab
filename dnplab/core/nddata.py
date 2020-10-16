@@ -675,30 +675,6 @@ class nddata_core(object):
 
         self.values = self.values[new_order]
 
-    def split(self, dim, new_dim, coord):
-        """Split the dimension dim into"""
-
-        if isinstance(coord, int):
-            coord = np.arange(coord)
-
-        # move dim to end of dims
-        dims = self.dims
-        dims.remove(dim)
-        dims.append(dim)
-
-        # reorder data with split dim at end
-        self.reorder(dims)
-
-        new_shape = list(self.coords.shape)
-        new_shape[-1] = int(new_shape[-1] / coord.size)
-        self.coords[dim] = self.coords[dim][0 : new_shape[-1]]
-
-        new_shape += [coord.size]
-        print(new_shape)
-
-        self.values = self.values.reshape(new_shape)
-        self.coords.append(new_dim, coord)
-
     def is_sorted(self, dim):
         """Determine if coords corresponding to give dim are sorted in ascending order
         Args:
