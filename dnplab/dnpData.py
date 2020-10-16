@@ -106,6 +106,32 @@ class dnpdata(nddata.nddata_core):
         """
         return np.arctan(np.sum(np.imag(self.values)) / np.sum(np.real(self.values)))
 
+    def phase_cycle(self, dim, reciever_phase):
+        '''Apply reciever phase down given dimension
+        '''
+
+        data = self.copy()
+
+
+        if dim not in self.dims:
+            raise ValueError('dim not in dims')
+
+        coord = self.coords[dim]
+        reciever_phase = np.array(reciever_phase).ravel()
+
+        reciever_phase = np.tile(reciever_phase, int(coord.size / reciever_phase.size))
+
+
+        index = data.dims.index(dim)
+
+        reshape_size = [1 for k in data.dims]
+        reshape_size[index] = len(data.coords[dim])
+
+        data *= np.exp(1j*(np.pi/2.)*reciever_phase.reshape(reshape_size))
+
+        return data
+
+
     def squeeze(self):
         """
         Remove all length 1 dimensions from data
