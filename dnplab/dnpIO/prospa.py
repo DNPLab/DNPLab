@@ -307,6 +307,24 @@ def prospa_coords(attrs, data_shape):
 
         dims.append("Average")
         coords.append(np.arange(attrs["nrScans"]))
+    elif experiment == "B12T_jres2D":
+        pts = attrs["nrPnts"]
+        dwell_time = attrs["dwellTime"]
+        x = np.arange(0.0, pts * dwell_time, dwell_time) / 1e6
+        dims.append("t2")
+        coords.append(x)
+
+        inter_pulse_delay = attrs["interPulseDelay"]
+        increment = attrs["increment"]
+        steps = attrs["nrSteps"]
+
+        t1 = np.r_[inter_pulse_delay:inter_pulse_delay+increment*(steps-1):1j*steps] / 1e6
+
+        dims.append("t1")
+        coords.append(t1)
+
+        dims.append("Average")
+        coords.append(np.arange(attrs["nrScans"]))
 
     else:
         dims_list = ["x", "y", "z", "q"]
