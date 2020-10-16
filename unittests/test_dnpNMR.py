@@ -5,11 +5,12 @@ import dnplab.dnpImport as wrapper
 import dnplab.dnpNMR as nmr
 import dnplab as dnp
 import numpy as np
+import os
 
 
 class dnpNMR_tester(unittest.TestCase):
     def setUp(self):
-        path = "./data/vnmrj/10mM_tempol_in_water_array.fid"
+        path = os.path.join(".","data","vnmrj","10mM_tempol_in_water_array.fid")
         self.data = wrapper.load(path, data_type="vnmrj")
         self.ws = dnp.create_workspace()
         self.ws["raw"] = self.data
