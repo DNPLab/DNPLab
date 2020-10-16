@@ -5,9 +5,11 @@ import os
 
 class load_wrapper_tester(unittest.TestCase):
     def setUp(self):
-        self.topspin_dir = os.path.join(".","data","topspin")
-        self.prospa_dir = os.path.join(".","data","prospa","toluene_10mM_Tempone")
-        self.vnmrj_dir = os.path.join(".","data","vnmrj","10mM_tempol_in_water_array.fid")
+        self.topspin_dir = os.path.join(".", "data", "topspin")
+        self.prospa_dir = os.path.join(".", "data", "prospa", "toluene_10mM_Tempone")
+        self.vnmrj_dir = os.path.join(
+            ".", "data", "vnmrj", "10mM_tempol_in_water_array.fid"
+        )
 
     def test_topspin(self):
         data = load(os.path.join(self.topspin_dir, str(1)), data_type="topspin")
@@ -17,7 +19,7 @@ class load_wrapper_tester(unittest.TestCase):
         self.assertAlmostEqual(data.attrs["nmr_frequency"], 14831413.270000001)
 
     def test_prospa(self):
-        load(os.path.join(self.prospa_dir, str(1),"data.csv"), data_type="prospa")
+        load(os.path.join(self.prospa_dir, str(1), "data.csv"), data_type="prospa")
 
     def test_vnmrj(self):
         load(self.vnmrj_dir, data_type="vnmrj")

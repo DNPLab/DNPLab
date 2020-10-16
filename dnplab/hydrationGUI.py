@@ -1365,7 +1365,6 @@ class hydrationGUI(QMainWindow):
                     self.gui_dict["folder_structure"]["T100"]
                 )
                 self.gui_dict["gui_function"]["T100_process"] = True
-                print("HERE")
             else:
                 self.gui_dict["folder_structure"]["T100"] = 999
                 self.gui_dict["dnpLab_data"]["T100_stdd"] = 0
@@ -2073,9 +2072,6 @@ class hydrationGUI(QMainWindow):
 
     def finishProcessing(self):
 
-        self.gui_dict["gui_function"]["calculating"] = True
-        self.show_hide_components()
-
         if (
             self.gui_dict["gui_function"]["isWorkup"]
             or self.gui_dict["gui_function"]["addWorkup"]
@@ -2253,6 +2249,9 @@ class hydrationGUI(QMainWindow):
 
         self.exclude1T1Checkbox.setChecked(False)
 
+        self.gui_dict["gui_function"]["calculating"] = True
+        self.show_hide_components()
+
         self.Hydration_Calculator()
 
     def Hydration_Calculator(self):
@@ -2286,7 +2285,6 @@ class hydrationGUI(QMainWindow):
 
         self.dnpLab_errorLabel.setVisible(False)
         self.workup_errorLabel.setVisible(False)
-        self.gui_dict["gui_function"]["hydrationEdits"] = True
 
         try:
             spin_C = float(self.slcEdit.text())
@@ -2574,6 +2572,8 @@ class hydrationGUI(QMainWindow):
                         )
                     )
                 )
+
+        self.gui_dict["gui_function"]["hydrationEdits"] = True
 
     def Save_Results_Button(self):
         """Save the results of processing to a format that can be read by the hydrationGUI using the 'GUI Result' button or by the MATLAB App called xODNP."""

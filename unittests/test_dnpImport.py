@@ -9,7 +9,7 @@ from numpy.testing import assert_array_equal
 
 class import_topspin_tester(unittest.TestCase):
     def setUp(self):
-        self.testdata = os.path.join(".","data","topspin")
+        self.testdata = os.path.join(".", "data", "topspin")
 
     def test_dir_data_type(self):
         self.assertEqual(
@@ -56,11 +56,14 @@ class import_topspin_tester(unittest.TestCase):
 
 class prospa_import_tester(unittest.TestCase):
     def setUp(self):
-        self.test_data = os.path.join(".","data","prospa","toluene_10mM_Tempone")
+        self.test_data = os.path.join(".", "data", "prospa", "toluene_10mM_Tempone")
 
     def test_import_prospa_exp_is_1d(self):
         datas = [
-            wrapper.load(os.path.join(self.test_data, "%i" % expNum, "data.csv"), data_type="prospa")
+            wrapper.load(
+                os.path.join(self.test_data, "%i" % expNum, "data.csv"),
+                data_type="prospa",
+            )
             for expNum in [1, 21, 42]
         ]
         for i, data in enumerate(datas):
@@ -75,10 +78,12 @@ class prospa_import_tester(unittest.TestCase):
 class vnmrj_import_tester(unittest.TestCase):
     def setUp(self):
         self.test_data2Ds = [
-            os.path.join(".","data","vnmrj", s) for s in ["10mM_tempol_in_water_array.fid"]
+            os.path.join(".", "data", "vnmrj", s)
+            for s in ["10mM_tempol_in_water_array.fid"]
         ]
         self.test_data1Ds = [
-            os.path.join(".","data","vnmrj", s) for s in [
+            os.path.join(".", "data", "vnmrj", s)
+            for s in [
                 "10mM_tempol_in_water_mw_40dBm.fid",
                 "10mM_tempol_in_water_mw_off.fid",
             ]
@@ -113,9 +118,9 @@ class vnmrj_import_tester(unittest.TestCase):
 
 class specman_import_tester(unittest.TestCase):
     def setUp(self):
-        self.test_data_2D = os.path.join(".","data","specman","test_specman2D.exp")
-        self.test_data_4D = os.path.join(".","data","specman","test_specman4D.d01")
-        
+        self.test_data_2D = os.path.join(".", "data", "specman", "test_specman2D.exp")
+        self.test_data_4D = os.path.join(".", "data", "specman", "test_specman4D.d01")
+
     def test_import_specman_2D(self):
         data = wrapper.load(self.test_data_2D, data_type="specman")
         self.assertEqual(data.dims, ["t", "x"])
