@@ -279,7 +279,7 @@ def integrate(all_data, dim="t2", integrate_center=0, integrate_width=100):
         return data
 
 
-def align(all_data, dim="t2"):
+def align(all_data, dim="t2", dim2 = None):
     """Alignment of NMR spectra down given dim dimension
 
     Example::
@@ -289,25 +289,49 @@ def align(all_data, dim="t2"):
 
     data, isDict = return_data(all_data)
 
-    if len(_np.shape(data.values)) != 2:
-        raise ValueError("Only 2-dimensional data is currently supported")
+    if len(_np.shape(data.values)) > 3:
+        raise ValueError("Greater than 3-dimensional data is currently not supported")
 
-    proc_parameters = {"dim": dim}
+    proc_parameters = {"dim": dim, "dim2": dim2}
     originalAxesOrder = data.dims
-    data.reorder([dim])
-    dimIter = data.dims[-1]
 
-    refData = data[dimIter, 0].values.reshape(-1)
+    if (dim2 is None) or (len(data.shape) == 2):
+        if len(data.shape) > 2:
+            raise ValueError('data has more than 2 dimensions, 2nd dimension is ambiguous')
+        dim2 = None
+        data.reorder([dim])
+        dimIter = data.dims[-1]
 
-    for ix in range(len(data.coords[dimIter])):
-        tempData = data[dimIter, ix].values.reshape(-1)
+    else:
+        data.reorder([dim, dim2])
+        dimIter = data.dims[-1]
 
-        corrData = _np.correlate(_np.abs(tempData), _np.abs(refData), mode="same")
-        shiftIx = _np.argmax(corrData) - (
-            len(corrData) / 2
-        )  # subtract half length so spectrum is shifted relative to center, not edge
-        shiftData = _np.roll(tempData, -1 * int(_np.round(shiftIx, 0)))
-        data.values[:, ix] = shiftData
+    if dim2 == None:
+        refData = data[dimIter, 0].values.reshape(-1)
+
+        for ix in range(len(data.coords[dimIter])):
+            tempData = data[dimIter, ix].values.reshape(-1)
+
+            corrData = _np.correlate(_np.abs(tempData), _np.abs(refData), mode="same")
+            shiftIx = _np.argmax(corrData) - (
+                len(corrData) / 2
+            )  # subtract half length so spectrum is shifted relative to center, not edge
+            shiftData = _np.roll(tempData, -1 * int(_np.round(shiftIx, 0)))
+            data.values[:, ix] = shiftData
+    else:
+
+        for ix1 in range(len(data.coords[-1])):
+            refData = data.values[:,0,ix1]
+            for ix2 in range(len(data.coords[dim2])):
+                tempData = data.values[:,ix2,ix1]
+
+                corrData = _np.correlate(_np.abs(tempData), _np.abs(refData), mode="same")
+                shiftIx = _np.argmax(corrData) - (
+                    len(corrData) / 2
+                )  # subtract half length so spectrum is shifted relative to center, not edge
+                shiftData = _np.roll(tempData, -1 * int(_np.round(shiftIx, 0)))
+                data.values[:, ix2, ix1] = shiftData
+
     data.reorder(originalAxesOrder)
 
     proc_attr_name = "align"
