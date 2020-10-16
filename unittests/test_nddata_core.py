@@ -1,3 +1,5 @@
+import pytest
+import operator
 import unittest
 from numpy.testing import assert_array_equal
 from dnplab.core import nddata
@@ -8,6 +10,69 @@ from dnplab.core.nddata_coord import nddata_coord, nddata_coord_collection
 
 test_dims = ["x", "y", "z", "p", "q", "r"]
 num_random_tests = 10
+
+
+def get_random_nddata_list(seed_axis=0, seed_data=0):
+    """
+    Pre-generate a list of randomized tuple (nddata, np.array) for all the
+    test cases here
+    """
+    random.seed(seed_axis)
+    random_axes = [
+        random.sample(
+            list(zip(test_dims, [np.r_[0 : random.randint(1, 6)] for _ in test_dims])),
+            3,
+        )
+        for _ in range(3)
+    ]
+    random.seed(seed_data)
+    nddata_list = []
+    for random_axis in random_axes:
+        dims = [axis[0] for axis in random_axis]
+        coords = [axis[1] for axis in random_axis]
+        shape = [coord.size for coord in coords]
+        values = np.random.randn(*shape)
+        nddata_list.append((nddata.nddata_core(values, dims, coords), values))
+    # nddata_list.append((nddata.nddata_core(), np.array([])))  # UserWarning: Github #37
+    return nddata_list
+
+
+random_nddata_list = get_random_nddata_list(seed_axis=0, seed_data=0)
+random_nddata_list_2 = get_random_nddata_list(seed_axis=0, seed_data=1)
+
+
+@pytest.mark.filterwarnings("ignore:divide by zero")
+# See https://docs.python.org/3/library/operator.html#mapping-operators-to-functions
+@pytest.mark.parametrize(
+    "operator", [operator.add, operator.sub, operator.mul, operator.truediv]
+)
+@pytest.mark.parametrize("nddata_value_tuple", random_nddata_list)
+@pytest.mark.parametrize("number", [-1.1j, -1.1, -1, 0, 1, 1.1, 1.1j])
+def test_nddata_core_math_operators_numeric(operator, nddata_value_tuple, number):
+    nddata, values = nddata_value_tuple
+    assert_array_equal(operator(nddata, number).values, operator(values, number))
+    assert_array_equal(operator(number, nddata).values, operator(number, values))
+
+
+@pytest.mark.parametrize(
+    "operator", [operator.add, operator.sub, operator.mul, operator.truediv]
+)
+@pytest.mark.parametrize("i_data", range(0, len(random_nddata_list)))
+def test_nddata_core_math_operators(operator, i_data):
+    nddata, values = random_nddata_list[i_data]
+    nddata_2, values_2 = random_nddata_list_2[i_data]
+    nddata_3, values_3 = operator(nddata, nddata_2), operator(values, values_2)
+    # assert self consistent
+    assert nddata_3._self_consistent()
+    # assert values equal
+    assert_array_equal(nddata_3.values, values_3)
+
+
+def test_nddata_core_math_div_by_zero():
+    with pytest.warns(RuntimeWarning):
+        nddata.nddata_core(
+            values=np.array([1, 2, 3]), coords=[np.array([3, 2, 1])], dims=["x"]
+        ) / 0
 
 
 class dnplab_nddata_core_tester(unittest.TestCase):
@@ -52,98 +117,6 @@ class dnplab_nddata_core_tester(unittest.TestCase):
 
         self.assertEqual(data.ndim, 2)
 
-    def test_nddata_core_add(self):
-        for ix in range(num_random_tests):
-            random_coords = [np.r_[0 : random.randint(1, 6)] for dim in test_dims]
-
-            random_axis = list(zip(test_dims, random_coords))
-
-            random_axis1 = random.sample(random_axis, 3)
-            random_axis2 = random.sample(random_axis, 3)
-
-            dims1 = [axis[0] for axis in random_axis1]
-            coords1 = [axis[1] for axis in random_axis1]
-            shape1 = [coord.size for coord in coords1]
-            values1 = np.random.randn(*shape1)
-            data1 = nddata.nddata_core(values1, dims1, coords1)
-
-            dims2 = [axis[0] for axis in random_axis2]
-            coords2 = [axis[1] for axis in random_axis2]
-            shape2 = [coord.size for coord in coords2]
-            values2 = np.random.randn(*shape2)
-            data2 = nddata.nddata_core(values2, dims2, coords2)
-
-            data = data1 + data2
-
-            self.assertTrue(data._self_consistent())
-            assert_array_equal((data1 + 1).values, values1 + 1)
-            assert_array_equal((data1 + 1.0).values, values1 + 1.0)
-            assert_array_equal((data1 + 1.0j).values, values1 + 1.0j)
-
-    def test_nddata_core_math_operators(self):
-        for ix in range(num_random_tests):
-            random_coords = [np.r_[0 : random.randint(1, 6)] for dim in test_dims]
-
-            random_axis = list(zip(test_dims, random_coords))
-
-            random_axis = random.sample(random_axis, 3)
-
-            dims = [axis[0] for axis in random_axis]
-            coords = [axis[1] for axis in random_axis]
-            shape = [coord.size for coord in coords]
-            values = np.random.randn(*shape)
-            data = nddata.nddata_core(values, dims, coords)
-
-            random_array = np.random.randn(*shape)
-
-            # __add__
-            assert_array_equal((data + 1).values, values + 1)
-            assert_array_equal((data + 1.0).values, values + 1.0)
-            assert_array_equal((data + 1.0j).values, values + 1.0j)
-            assert_array_equal((data + random_array).values, values + random_array)
-
-            # __sub__
-            assert_array_equal((data - 1).values, values - 1)
-            assert_array_equal((data - 1.0).values, values - 1.0)
-            assert_array_equal((data - 1.0j).values, values - 1.0j)
-            assert_array_equal((data - random_array).values, values - random_array)
-
-            # __mult__
-            assert_array_equal((data * 1).values, values * 1)
-            assert_array_equal((data * 1.0).values, values * 1.0)
-            assert_array_equal((data * 1.0j).values, values * 1.0j)
-            assert_array_equal((data * random_array).values, values * random_array)
-
-            # __truediv__
-            assert_array_equal((data / 1).values, values / 1)
-            assert_array_equal((data / 1.0).values, values / 1.0)
-            assert_array_equal((data / 1.0j).values, values / 1.0j)
-            assert_array_equal((data / random_array).values, values / random_array)
-
-            # __radd__
-            assert_array_equal((1 + data).values, 1 + values)
-            assert_array_equal((1.0 + data).values, 1.0 + values)
-            assert_array_equal((1.0j + data).values, 1.0j + values)
-            assert_array_equal((random_array + data).values, random_array + values)
-
-            # __rsub__
-            assert_array_equal((1 - data).values, 1 - values)
-            assert_array_equal((1.0 - data).values, 1.0 - values)
-            assert_array_equal((1.0j - data).values, 1.0j - values)
-            assert_array_equal((random_array - data).values, random_array - values)
-
-            # __rmult__
-            assert_array_equal((1 * data).values, 1 * values)
-            assert_array_equal((1.0 * data).values, 1.0 * values)
-            assert_array_equal((1.0j * data).values, 1.0j * values)
-            assert_array_equal((random_array * data).values, random_array * values)
-
-            # __rtruediv__
-            assert_array_equal((1 / data).values, 1 / values)
-            assert_array_equal((1.0 / data).values, 1.0 / values)
-            assert_array_equal((1.0j / data).values, 1.0j / values)
-            assert_array_equal((random_array / data).values, random_array / values)
-
 
 class dnplab_nddata_coord_tester(unittest.TestCase):
     def setUp(self):
@@ -183,7 +156,3 @@ class dnplab_nddata_coord_tester(unittest.TestCase):
         self.assertEqual(
             str(self.collection_inst["new_a"]), r"'new_a':[0 1 2 3 4 5 6 7 8 9]"
         )
-
-
-if __name__ == "__main__":
-    pass

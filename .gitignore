@@ -1,3 +1,6 @@
+# VS Code
+.vscode/*
+
 # Vim
 *.swp
 
@@ -56,6 +59,7 @@ docs/_build/
 
 # OSX and Windows related
 .DS_Store
+Icon?
 desktop.ini
 
 # PyCharm
