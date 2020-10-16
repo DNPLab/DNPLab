@@ -23,7 +23,6 @@ def import_specman(path):
         file_name_d01 = path
     else:
         raise TypeError("Incorrect file type, must be .d01 or .exp")
-        return
 
     attrs = load_specman_exp(file_name_exp)
     values, dims, data_lengths = load_specman_values(file_name_d01)
@@ -125,7 +124,7 @@ def load_specman_values(path):
         )
     else:
         raise TypeError("DNPLab currently only supports up to 4D data")
-        return
+
 
     y_data = np.transpose(y_data)
 
