@@ -124,7 +124,6 @@ def load_specman_values(path):
         )
     else:
         raise TypeError("DNPLab currently only supports up to 4D data")
-        return
 
     y_data = np.transpose(y_data)
 
