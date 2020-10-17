@@ -54,17 +54,19 @@ Afterwards the FID is processed, first by removing any DC offset (line 41), then
 
 
     ########## OFF Signal (P = 0 W) ##########
-    data = dnp.dnpImport.prospa.import_prospa('../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/35/data.1d')
+    data = dnp.load(
+        "../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/35/data.1d",'prospa'
+    )
 
     ws = dnp.create_workspace()
-    ws.add('rawOff',data)
-    ws.copy('rawOff','proc')
+    ws.add("rawOff", data)
+    ws.copy("rawOff", "proc")
 
     dnp.dnpNMR.remove_offset(ws,{})
     dnp.dnpNMR.window(ws, linewidth = 15)
     dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
 
-    ws.copy('proc','offSignal')
+    ws.copy("proc", "offSignal")
 
 
 
@@ -81,20 +83,22 @@ Importing the on-signal involves the same steps as importing the off-signal. Onc
 
 
 .. code-block:: default
-   :lineno-start: 54
+   :lineno-start: 56
 
 
     ########## ON Signal (P = 2 W) ##########
-    data = dnp.dnpImport.prospa.import_prospa('../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/51/data.1d')
+    data = dnp.load(
+        "../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/51/data.1d",'prospa'
+    )
 
-    ws.add('rawOn',data)
-    ws.copy('rawOn')
+    ws.add("rawOn", data)
+    ws.copy("rawOn")
 
     dnp.dnpNMR.remove_offset(ws,{})
     dnp.dnpNMR.window(ws, linewidth = 15)
-    dnp.dnpNMR.fourier_transform(ws, zero_fill_factor = 2)
+    dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
 
-    ws.copy('proc','onSignal')
+    ws.copy("proc", "onSignal")
 
 
 
@@ -111,20 +115,21 @@ Finally, the microwave on and off spectrum are plotted (line 75 and 76). Note, t
 
 
 .. code-block:: default
-   :lineno-start: 73
+   :lineno-start: 77
 
 
     # ########## Plot Spectra ##########
     dnp.dnpResults.figure()
     dnp.dnpResults.plot(ws['offSignal'].real * 10 - 100, label = 'Off Signal x 10')
     dnp.dnpResults.plot(ws['onSignal'].real, label = 'On Signal')
-    dnp.dnpResults.plt.xlim([30,-30])
+    dnp.dnpResults.xlim([30,-30])
     dnp.dnpResults.plt.xlabel('Chemical Shift [ppm]')
     dnp.dnpResults.plt.ylabel('Signal Amplitude [a.u.]')
     dnp.dnpResults.plt.title('DNP On/Off Signal, 10 mM TEMPO in Water')
     dnp.dnpResults.plt.legend()
     dnp.dnpResults.plt.grid(True)
     dnp.dnpResults.show()
+
 
 
 .. image:: /auto_examples/images/sphx_glr_plot_exampleDNPOnOff_001.png
@@ -138,7 +143,7 @@ Finally, the microwave on and off spectrum are plotted (line 75 and 76). Note, t
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.126 seconds)
+   **Total running time of the script:** ( 0 minutes  0.409 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_exampleDNPOnOff.py:

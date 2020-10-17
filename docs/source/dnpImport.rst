@@ -10,37 +10,37 @@ dnpImport
 Topspin Module
 ==============
 
-.. automodule:: dnplab.dnpImport.topspin
+.. automodule:: dnplab.load
    :members:
    :show-inheritance:
    :member-order: bysource
 
 .. _vnmrj:
 
-(Open) VnmrJ Module
-===================
+.. (Open) VnmrJ Module
+.. ===================
 
-.. automodule:: dnplab.dnpImport.vnmrj
-   :members:
-   :show-inheritance:
-   :member-order: bysource
+.. .. automodule:: dnplab.dnpImport.vnmrj
+..    :members:
+..    :show-inheritance:
+..    :member-order: bysource
 
 .. _prospa:
 
-Prospa Module
-=============
+.. Prospa Module
+.. =============
 
-.. automodule:: dnplab.dnpImport.prospa
-   :members:
-   :show-inheritance:
-   :member-order: bysource
+.. .. automodule:: dnplab.dnpImport.prospa
+..    :members:
+..    :show-inheritance:
+..    :member-order: bysource
 
 .. _h5:
 
-h5 Module
-=========
+.. h5 Module
+.. =========
 
-.. automodule:: dnplab.dnpImport.h5
-   :members:
-   :show-inheritance:
-   :member-order: bysource
+.. .. automodule:: dnplab.dnpImport.h5
+..    :members:
+..    :show-inheritance:
+..    :member-order: bysource

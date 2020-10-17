@@ -25,8 +25,8 @@ import dnplab
 # Once the DNPLab package is imported, the FID can be loaded.
 
 path = '../data/topspin/'
-folder = 20
-data = dnplab.dnpImport.topspin.import_topspin(path, folder)
+# folder = 20
+data = dnplab.load(path, 'topspin', '20')
 
 
 # %%

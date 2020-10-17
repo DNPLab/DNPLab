@@ -47,8 +47,8 @@ Once the DNPLab package is imported, the FID can be loaded.
 
 
     path = '../data/topspin/'
-    folder = 20
-    data = dnplab.dnpImport.topspin.import_topspin(path, folder)
+    # folder = 20
+    data = dnplab.load(path, 'topspin', '20')
 
 
 
@@ -116,7 +116,7 @@ First the FID is processed (remove DC offset, apply appodization and perform fou
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** ( 0 minutes  0.567 seconds)
+   **Total running time of the script:** ( 0 minutes  0.302 seconds)
 
 
 .. _sphx_glr_download_auto_examples_plot_example1Dbruker.py:
