@@ -1855,10 +1855,10 @@ class hydrationGUI(QMainWindow):
             """
             phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
             rotated_data = (curve.reshape(-1, 1)) * np.exp(-1j * phases)
-            success = (np.real(rotated_data) ** 2).sum(axis=0) / (
+            real_imag_ratio = (np.real(rotated_data) ** 2).sum(axis=0) / (
                 (np.imag(rotated_data) ** 2).sum(axis=0)
             )
-            bestindex = np.argmax(success)
+            bestindex = np.argmax(real_imag_ratio)
 
             self.gui_dict["processing_spec"]["original_phase"] = phases[0, bestindex]
 
