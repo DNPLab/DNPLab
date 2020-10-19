@@ -111,7 +111,7 @@ class vnmrj_import_tester(unittest.TestCase):
         ]
         for i, data in enumerate(datas):
             self.assertEqual(data.values.shape, (131072, 5))
-            self.assertEqual(data.dims, ["t2", "array"])
+            self.assertEqual(data.dims, ["t2", "t1"])
             self.assertAlmostEqual(data.attrs["nmr_frequency"], 14244283.4231)
         self.assertAlmostEqual(datas[0].values[365, 3], (-1263136 + 1063328.5j))
 
