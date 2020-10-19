@@ -317,19 +317,24 @@ class hydrationGUI(QMainWindow):
 
         self.smaxLabel = QLabel(self)
         self.smaxLabel.setStyleSheet("font : bold 14px")
-        self.smaxLabel.move(225, 560)
+        self.smaxLabel.move(222, 560)
         self.smaxLabel.resize(100, 20)
         self.smaxLabel.setText("s<sub>max</sub> model:")
 
+        self.smaxEdit = QLineEdit(self)
+        self.smaxEdit.move(305, 558)
+        self.smaxEdit.resize(65, 25)
+        self.smaxEdit.setText("1")
+
         self.tetheredCheckbox = QCheckBox(self)
         self.tetheredCheckbox.setStyleSheet("font : bold 14px")
-        self.tetheredCheckbox.move(305, 560)
+        self.tetheredCheckbox.move(220, 582)
         self.tetheredCheckbox.resize(100, 20)
         self.tetheredCheckbox.setText("Tethered")
 
         self.freeCheckbox = QCheckBox(self)
         self.freeCheckbox.setStyleSheet("font : bold 14px")
-        self.freeCheckbox.move(305, 580)
+        self.freeCheckbox.move(220, 600)
         self.freeCheckbox.resize(100, 20)
         self.freeCheckbox.setText("Free")
 
@@ -403,6 +408,7 @@ class hydrationGUI(QMainWindow):
             self.fieldLabel.setVisible(True)
             self.fieldEdit.setVisible(True)
             self.smaxLabel.setVisible(True)
+            self.smaxEdit.setVisible(True)
             self.tetheredCheckbox.setVisible(True)
             self.freeCheckbox.setVisible(True)
             self.saveButton.setVisible(True)
@@ -485,6 +491,7 @@ class hydrationGUI(QMainWindow):
             self.fieldLabel.setVisible(False)
             self.fieldEdit.setVisible(False)
             self.smaxLabel.setVisible(False)
+            self.smaxEdit.setVisible(False)
             self.tetheredCheckbox.setVisible(False)
             self.freeCheckbox.setVisible(False)
             self.saveButton.setVisible(True)
@@ -544,6 +551,7 @@ class hydrationGUI(QMainWindow):
         self.tetheredCheckbox.setChecked(True)
         self.freeCheckbox.clicked.connect(self.Smax_Free_Checkbox)
         self.freeCheckbox.setChecked(False)
+        self.smaxEdit.editingFinished.connect(self.Edit_smax)
         self.saveButton.clicked.connect(self.Save_Results_Button)
 
     def reset_plots(self):
@@ -1847,14 +1855,14 @@ class hydrationGUI(QMainWindow):
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
 
-            curve = self.processing_workspace["proc"].values
+            temp_data = self.processing_workspace["proc"].values
             """
             self.gui_dict["processing_spec"]["original_phase"] = np.arctan(
-                np.sum(np.imag(curve)) / np.sum(np.real(curve))
+                np.sum(np.imag(temp_data)) / np.sum(np.real(temp_data))
             )
             """
             phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
-            rotated_data = (curve.reshape(-1, 1)) * np.exp(-1j * phases)
+            rotated_data = (temp_data.reshape(-1, 1)) * np.exp(-1j * phases)
             real_imag_ratio = (np.real(rotated_data) ** 2).sum(axis=0) / (
                 (np.imag(rotated_data) ** 2).sum(axis=0)
             )
@@ -2282,6 +2290,7 @@ class hydrationGUI(QMainWindow):
                      }
 
         """
+        self.gui_dict["gui_function"]["hydrationEdits"] = True
 
         self.dnpLab_errorLabel.setVisible(False)
         self.workup_errorLabel.setVisible(False)
@@ -2291,17 +2300,36 @@ class hydrationGUI(QMainWindow):
             field = float(self.fieldEdit.text())
             T100 = float(self.t100Edit.text())
             T10 = float(self.t10Edit.text())
+            if self.freeCheckbox.isChecked():
+                smax_model = "free"
+                self.wrkup_smax = 1 - (2 / (3 + (3 * (spin_C * 1e-6 * 198.7))))
+                self.smaxEdit.setText(str(round(self.wrkup_smax, 3)))
+            elif self.tetheredCheckbox.isChecked():
+                smax_model = "tethered"
+                self.wrkup_smax = 1
+                self.smaxEdit.setText("1")
+            else:
+                try:
+                    smax_model = self.smaxEdit.text()
+                    self.wrkup_smax = float(smax_model)
+                except ValueError:
+                    if smax_model == "tethered":
+                        self.wrkup_smax = 1
+                        self.tetheredCheckbox.setChecked(True)
+                        self.freeCheckbox.setChecked(False)
+                    elif smax_model == "free":
+                        self.wrkup_smax = 1 - (2 / (3 + (3 * (spin_C * 1e-6 * 198.7))))
+                        self.tetheredCheckbox.setChecked(False)
+                        self.freeCheckbox.setChecked(True)
+                    else:
+                        raise ValueError(
+                            "invalid string input, must be free or tethered"
+                        )
+
         except:
             self.dnpLab_errorLabel.setVisible(True)
-            print("Supply all parameters in numerical format")
+            print("Check your input parameters")
             return
-
-        if self.tetheredCheckbox.isChecked():
-            smax_model = "tethered"
-            self.wrkup_smax = 1
-        else:
-            smax_model = "free"
-            self.wrkup_smax = 1 - (2 / (3 + (3 * (spin_C * 1e-6 * 198.7))))
 
         if self.linearfitCheckbox.isChecked():
             t1_interp_method = "linear"
@@ -2573,8 +2601,6 @@ class hydrationGUI(QMainWindow):
                     )
                 )
 
-        self.gui_dict["gui_function"]["hydrationEdits"] = True
-
     def Save_Results_Button(self):
         """Save the results of processing to a format that can be read by the hydrationGUI using the 'GUI Result' button or by the MATLAB App called xODNP."""
 
@@ -2834,6 +2860,13 @@ class hydrationGUI(QMainWindow):
             self.Hydration_Calculator()
         else:
             pass
+
+    def Edit_smax(self):
+        """This function passes the text from the various edit boxes to dnpHydration as floats and re-calculates
+        hydration parameters."""
+        self.tetheredCheckbox.setChecked(False)
+        self.freeCheckbox.setChecked(False)
+        self.Edit_Hydration_Inputs()
 
     def Edit_Hydration_Inputs(self):
         """This function passes the text from the various edit boxes to dnpHydration as floats and re-calculates
