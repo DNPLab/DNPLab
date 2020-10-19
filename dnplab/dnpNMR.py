@@ -1,5 +1,6 @@
 from . import dnpdata, dnpdata_collection
 import numpy as _np
+import warnings
 
 
 def return_data(all_data):
@@ -313,7 +314,7 @@ def baseline_fit(temp_coords, temp_data, type, order):
             )
 
     else:
-        raise TypeError
+        raise TypeError("type must be either 'poly' or 'expon'")
 
     return base_line
 
@@ -327,7 +328,6 @@ def baseline(all_data, dim="t1", type="poly", order=1, reference_slice=None):
         type (str) : type of baseline fit, either "poly" for polynomial or "expon" for exponential
         order (int) : polynomial order, or 1=mono and 2=bi for exponential
 
-
     returns:
         all_data (dnpdata, dict): Baseline corrected data in container
     """
@@ -337,7 +337,7 @@ def baseline(all_data, dim="t1", type="poly", order=1, reference_slice=None):
     if reference_slice is not None:
         if len(_np.shape(data.values)) == 1:
             reference_slice = None
-            print("ignoring reference_slice, this is 1D data")
+            warnings.warn("ignoring reference_slice, this is 1D data")
         else:
             reference_slice -= 1
 
@@ -454,7 +454,7 @@ def autophase(
         if len(shape_data) == 1:
             reference_slice = None
             temp_data = data.values
-            print("ignoring reference_slice, this is 1D data")
+            warnings.warn("ignoring reference_slice, this is 1D data")
         else:
             reference_slice -= 1
             temp_data = data.values[:, reference_slice]
