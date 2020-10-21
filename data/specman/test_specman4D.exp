@@ -1,0 +1,233 @@
+[general]
+version = 1.1
+demon = 2.7.32
+name = Experiment
+dconfig = UCSB v5.0 Chase AWG only PTS.cfg
+pconfig = UCSB v5.0 Chase AWG only PTS.cfp
+normalized = false
+starttime = Thu Aug 20 09:07:26 2020
+finishtime = Thu Aug 20 11:56:59 2020
+totaltime = 2h 49min 33s
+tformat = 1
+stream_axis = 256
+no_auto_save = 0
+
+[text]
+
+[sweep]
+transient = T,1500,100,a,b
+sweep0 = S,2,1,ph
+sweep1 = X,40,1,Fr_pump
+sweep2 = Y,5,1,offset1
+sweep3 = Z,3,1,tsquare
+sweep4 = P,1,1,VoltageOut_0,tp,tau,Scale,taq,RepTime,tsat,td,Fr_probe
+
+[aquisition]
+a = ;a;A@AQ
+b = ;a;B@AQ
+
+[params]
+ph = 1, 2;p;PPL variable
+Fr_pump = 193.5 GHz step 10 MHz;p;Frequency@EPRMAIN
+offset1 = 0 Hz, 15 MHz, 30 MHz, 60 MHz, 100 MHz;p;PPL variable
+tsquare = 20 us, 40 us, 100 us;p;PPL variable
+VoltageOut_0 = 0 V;p;VoltageOut_0@AO
+tp = 450 ns;p;PPL variable
+tau = 500 ns;p;PPL variable
+Scale = 4;p;Scale@AQ
+taq = 400 ns;p;PPL variable
+RepTime = 65 ms;p;PPL variable
+tsat = 2.5 ms;p;PPL variable
+td = 10 us;p;PPL variable
+Fr_probe = 193.67 GHz;p;Frequency@ELDOR
+
+[decision]
+
+[streams]
+names = Re, Im
+units = bit, bit
+dwelltime = 2 ns, 2 ns
+triggers = 1
+scans = 1, 1
+
+[program]
+signal a, b
+
+time tp, td, tsquare, tau, taq, tsat
+frequency offset1
+
+int ph
+
+phase1 = [0, 180/16]
+
+det_a = [a,-a]
+det_b = [b,-b]
+
+sets1 = [0.95, 0, phase1(ph)]
+sets2 = [0.95, 0, 0]
+
+set3 = [0.95, 0, 0]
+set4 = [0.95, offset1/16, 0]
+
+times = round(tsat/tsquare)
+
+awgtrig 100ns
+marker 10ns
+
+repeat times
+    square tsquare/2, set3, 2
+     wait 100ns
+    square tsquare/2, set4, 2 
+    wait 100ns
+end
+
+wait td
+
+square tp, sets1, 1
+
+wait tau
+
+square tp, sets2, 1
+
+wait tau-taq
+
+detect det_a(ph), det_b(ph)
+
+[presetup]
+
+[postsetup]
+
+[eachpoint]
+
+[scope]
+dfScopeIntWindowPos = 275
+dfScopeIntWindowWidth = 154
+dfScopeBaselinePos1 = 0
+dfScopeBaselineWidth1 = 50
+dfScopeBaselinePos2 = 51
+dfScopeBaselineWidth2 = 50
+dfScopeBaselineOpt = 0
+
+[pack]
+PackAxis = 0
+MaxSeqPerShot = 0
+
+
+[warmup]
+WarmUp = 0
+WarmUpScans = 0
+WarmUpTime = 0 s
+
+
+[System]
+Shots = 0
+XReps = 0
+YReps = 0
+ZReps = 0
+Sum1Reps = 0
+Sum2Reps = 0
+i = 0
+j = 0
+k = 0
+ArmDelay = 10 ms
+MTDelay = 10 ms
+Wait = 10 ms
+Time = 10 ms
+
+[PB]
+Trigger = Internal
+Cycles = As specified
+
+[AQ]
+Scale = ± 100 mV
+Offset = 0 V
+Coupling = DC, 50Ohm
+Bandwidth = 200MHz
+Sampling = 2 ns
+TraceLength = 100 us
+Delay = 0 s
+Trigger = External
+T_Coupling = DC
+T_Slope = __/^^
+T_Level = 15 %
+T_Level2 = 10 %
+
+[EPRMAIN]
+Frequency = 193.5 GHz
+Attenuator = 3.5 V
+SetTime = 0 s
+
+[LOCK]
+Sensitivity = 100 mV/nA
+Time constant = 30 ms
+Phase = 0 deg
+SineOutput = 5 V
+SineFreq = 20 Hz
+NotchFilter = Out
+InputCoupling = AC
+Auto = Phase
+
+[LOCKSLAVE]
+Sensitivity = 2 nV/fA
+Time constant = 10 us
+Phase = 0 deg
+SineOutput = 4 mV
+SineFreq = 0 Hz
+NotchFilter = Out
+InputCoupling = AC
+Auto = Phase
+
+[AO]
+TrigMode = Normal
+AOsettlingTime = 0 s
+AIfrequency = 1 kHz
+VoltageOut_0 = 0 V
+VoltageOut_1 = 0 V
+
+[EIP]
+Band = Band 3
+Bandwidth = Auto
+Resolution = 1 kHz
+Source = 1 GHz
+
+[EPRRECIEVE]
+Frequency = 1 GHz
+Attenuator = 0 V
+SetTime = 0 s
+
+[ELDOR]
+Mode = Frequency
+Frequency = 193.67 GHz
+StartFrequency = 1 GHz
+StopFrequency = 1 GHz
+Period = 0 s
+ModMode = None
+ModFrequency = 0 Hz
+ModDepth = 0 Hz
+Attenuator = 0 V
+
+[AI]
+TrigMode = Normal
+AOsettlingTime = 0 s
+AIfrequency = 1 kHz
+
+[AWGCHASE]
+Trigger = External
+TriggerEdge = Rising
+OffsetI = 0
+OffsetQ = 0
+GainIQ = 0
+Scew = 0 deg
+
+[PTS_ENDOR]
+Frequency = 100 kHz
+
+[PTS-recieve]
+Frequency = 187.5 MHz
+
+[sample_info]
+sample_info = **T**
+sample_info_0 = *****
+
+[exp_info]
+template = 
