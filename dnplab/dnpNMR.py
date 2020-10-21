@@ -168,7 +168,15 @@ def fourier_transform(
         return data
 
 
-def window(all_data, dim="t2", linewidth=10):
+def window(
+    all_data,
+    type="exponential",
+    linewidth=1,
+    dim="t2",
+    gauss_linewidth=0,
+    gauss_max=0,
+    inverse=False,
+):
     """Apply Apodization to data down given dimension
 
     Args:
@@ -178,46 +186,78 @@ def window(all_data, dim="t2", linewidth=10):
     .. note::
         Axis units assumed to be seconds
 
-    +-----------+-------+---------+--------------------------------------------+
-    | parameter | type  | default | description                                |
-    +-----------+-------+---------+--------------------------------------------+
-    | dim       | str   | 't2'    | Dimension to apply exponential apodization |
-    +-----------+-------+---------+--------------------------------------------+
-    | linewidth | float | 10      | Linewidth of broadening to apply in Hz     |
-    +-----------+-------+---------+--------------------------------------------+
+    +-----------------+---------+---------------+---------------------------------------------------+
+    | parameter       | type    | default       | description                                       |
+    +-----------------+---------+---------------+---------------------------------------------------+
+    | type            | str     | 'exponential' | type of apodization                               |
+    +-----------------+---------+---------------+---------------------------------------------------+
+    | linewidth       | float   | 10            | Exponential linewidth  in Hz                      |
+    +-----------------+---------+---------------+---------------------------------------------------+
+    | dim             | str     | 't2'          | Dimension to apply exponential apodization        |
+    +-----------------+---------+---------------+---------------------------------------------------+
+    | gauss_linewidth | float   | 0             | Gaussian linewidth in Hz for type="lorentz_gauss" |
+    +-----------------+---------+---------------+---------------------------------------------------+
+    | gauss_max       | float   | 0             | Location of gaussian component maximum            |
+    +-----------------+---------+---------------+---------------------------------------------------+
+    | inverse         | boolean | False         | invert the window function                        |
+    +-----------------+---------+---------------+---------------------------------------------------+
 
     Returns:
-        dnpdata_collection or dnpdata: data object with window function applied
-
-    Example:
-
-    .. code-block:: python
-
-        proc_parameters = {
-                'linewidth' : 10,
-                'dim' : 't2',
-                }
-        all_data = dnplab.dnpNMR.window(all_data,proc_parameters)
+        all_data (dnpdata, dict): data object with window function applied
+        attributes: "window", window function
 
     """
-
     data, isDict = return_data(all_data)
-    proc_parameters = {"dim": dim, "linewidth": linewidth}
+    dim_size = data.coords[dim].shape[-1]
+    shape_data = _np.shape(data.values)
 
-    index = data.dims.index(dim)
+    if type == "exponential":
+        apwin = _np.exp(-2 * _np.pi * data.coords[dim] * linewidth).reshape(dim_size)
+    elif type == "hamming":
+        apwin = 0.53836 + 0.46164 * _np.cos(
+            1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
+        )
+    elif type == "hann":
+        apwin = 0.5 + 0.5 * _np.cos(
+            1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
+        )
+    elif type == "lorentz_gauss":
+        expo = _np.pi * data.coords[dim] * linewidth
+        gaus = (
+            0.6
+            * _np.pi
+            * gauss_linewidth
+            * (gauss_max * (dim_size - 1) - data.coords[dim])
+        )
+        apwin = _np.exp(expo - gaus ** 2).reshape(dim_size)
+    elif type == "sin2":
+        apwin = (
+            _np.cos((-0.5 * _np.pi * _np.arange(dim_size) / (dim_size - 1)) + _np.pi)
+            ** 2
+        )
+    else:
+        raise ValueError("Invalid window type")
 
-    reshape_size = [1 for k in data.dims]
-    reshape_size[index] = len(data.coords[dim])
+    if inverse:
+        apwin = 1 / apwin
 
-    # Must include factor of 2 in exponential to get correct linewidth ->
-    window_array = _np.exp(-1.0 * data.coords[dim] * 2.0 * linewidth).reshape(
-        reshape_size
-    )
-    window_array = _np.ones_like(data.values) * window_array
-    data.values *= window_array
+    if len(shape_data) == 2:
+        for ix in range(shape_data[1] - 1):
+            data.values[:, ix] *= apwin
+    else:
+        data.values *= apwin
 
+    proc_parameters = {
+        "type": type,
+        "linewidth": linewidth,
+        "dim": dim,
+        "gauss_linewidth": gauss_linewidth,
+        "gauss_max": gauss_max,
+        "inverse": inverse,
+    }
     proc_attr_name = "window"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
+    data.attrs["window"] = apwin
 
     if isDict:
         all_data[all_data.processing_buffer] = data
@@ -280,19 +320,19 @@ def integrate(all_data, dim="t2", integrate_center=0, integrate_width=100):
         return data
 
 
-def exp_fit_func_1(x_axis, c1, c2, c3):
-    return c1 + c2 * _np.exp(-1.0 * c3 * x_axis)
+def exp_fit_func_1(x_axis, C1, C2, tau):
+    return C1 + C2 * _np.exp(-1.0 * x_axis / tau)
 
 
-def exp_fit_func_2(x_axis, c1, c2, c3, c4, c5):
-    return c1 + c2 * _np.exp(-1.0 * c3 * x_axis) + c4 * _np.exp(-1.0 * c5 * x_axis)
+def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
+    return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
 
 
 def baseline_fit(temp_coords, temp_data, type, order):
 
     if type == "poly":
         base_line = _np.polyval(_np.polyfit(temp_coords, temp_data, order), temp_coords)
-    elif type == "expon":
+    elif type == "exp":
         temp_data = temp_data.real
         if order == 1:
             x0 = [temp_data[-1], temp_data[0], 1]
@@ -314,7 +354,7 @@ def baseline_fit(temp_coords, temp_data, type, order):
             )
 
     else:
-        raise TypeError("type must be either 'poly' or 'expon'")
+        raise TypeError("type must be either 'poly' or 'exp'")
 
     return base_line
 
@@ -325,7 +365,7 @@ def baseline(all_data, dim="t1", type="poly", order=1, reference_slice=None):
     Args:
         all_data (object) : dnpdata object
         dim (str) : dimension to correct along
-        type (str) : type of baseline fit, either "poly" for polynomial or "expon" for exponential
+        type (str) : type of baseline fit, either "poly" for polynomial or "exp" for exponential
         order (int) : polynomial order, or 1=mono and 2=bi for exponential
 
     returns:
@@ -333,6 +373,11 @@ def baseline(all_data, dim="t1", type="poly", order=1, reference_slice=None):
     """
 
     data, isDict = return_data(all_data)
+
+    if dim == "t2":
+        ind_dim = "t1"
+    elif dim == "t1":
+        ind_dim = "t2"
 
     if reference_slice is not None:
         if len(_np.shape(data.values)) == 1:
@@ -342,7 +387,7 @@ def baseline(all_data, dim="t1", type="poly", order=1, reference_slice=None):
             reference_slice -= 1
 
     if len(_np.shape(data.values)) == 2:
-        temp_coords = data[dim, :].coords["t2"]
+        temp_coords = data[dim, :].coords[ind_dim]
         if reference_slice is not None:
             bline = baseline_fit(
                 temp_coords, data[dim, :].values[:, reference_slice], type, order
@@ -357,7 +402,7 @@ def baseline(all_data, dim="t1", type="poly", order=1, reference_slice=None):
             raise TypeError("invalid reference_slice")
 
     elif len(_np.shape(data.values)) == 1:
-        dim = "t2"
+        dim = ind_dim
         bline = baseline_fit(data[dim, :].coords[dim], data[dim, :].values, type, order)
         data.values -= bline
 
@@ -435,7 +480,7 @@ def autophase(
 
     Args:
         all_data (dnpdata_collection, dnpdata): Data object to autophase
-        method (str): "arctan" finds the arctan of the ratio of the sum of the imaginary to the sum of the real, or "search" finds the maximum of the sum of the real to the sum of the imaginary after phase correction by an array of test angles
+        method (str): "arctan" finds the arc tangent of the ratio of the sum of the imaginary to the sum of the real, or "search" finds the maximum of the sum of the real to the sum of the imaginary after phase correction by an array of test angles
         reference_slice (int, or None): slice of 2D data that is used to draw the baseline, none means each slice is corrected individually
         force_positive (boolean): If true, any phase correction orients data above the baseline
         order (str) : "zero" or "first" order phase corrections
@@ -444,7 +489,7 @@ def autophase(
 
     Returns:
         all_data (dnpdata, dict): Autophased data in container
-
+        attributes: "phase_0" for order="zero", adds "phase_1" if order="first"
     """
 
     data, isDict = return_data(all_data)
