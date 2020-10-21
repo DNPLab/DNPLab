@@ -17,11 +17,24 @@ class dnpNMR_tester(unittest.TestCase):
         self.ws.copy("raw", "proc")
 
     def test_basic_nmr_processing(self):
-
+        shape_data = np.shape(self.ws)
         self.ws = nmr.remove_offset(self.ws)
+        self.assertEqual(shape_data, np.shape(self.ws))
         self.ws = nmr.window(self.ws)
+        self.assertEqual(shape_data, np.shape(self.ws))
         self.ws = nmr.fourier_transform(self.ws)
-        self.ws = nmr.autophase(self.ws)
+        self.assertEqual(shape_data, np.shape(self.ws))
+        self.ws = nmr.autophase(self.ws, order="first")
+        self.assertEqual(shape_data, np.shape(self.ws))
+        phs0 = self.ws["proc"].attrs["phase_0"]
+        self.assertEqual(
+            len(self.ws["proc"].attrs["phase_1"]), len(self.ws["proc"].values)
+        )
+        self.ws = nmr.baseline(self.ws)
+        self.assertEqual(shape_data, np.shape(self.ws))
+        self.assertEqual(
+            len(self.ws["proc"].attrs["baseline"]), len(self.ws["proc"].values)
+        )
 
     def test_integrate(self):
         values = self.ws["proc"].values

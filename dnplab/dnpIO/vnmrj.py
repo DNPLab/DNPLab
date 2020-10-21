@@ -23,11 +23,6 @@ def array_coords(attrs):
         tuple: dim and coord for array
     """
 
-    dim = attrs["array"]
-
-    if dim == "":
-        dim = "array"
-
     array_delta = attrs["arraydelta"]
 
     array_dim = attrs["arraydim"]
@@ -44,6 +39,7 @@ def array_coords(attrs):
 
     if array_dim != 1:
         coord = _np.r_[array_start : array_stop + array_delta : array_delta]
+        dim = "t1"
     else:
         coord = None
         dim = None

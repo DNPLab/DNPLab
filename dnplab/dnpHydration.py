@@ -143,14 +143,18 @@ class HydrationParameter(Parameter):
 
     @smax_model.setter
     def smax_model(self, value: str):
+        try:
+            f_value = float(value)
+        except ValueError:
+            f_value = False
 
-        if value == "tethered":
-            self.__smax_model = value
-        elif value == "free":
+        if f_value:
+            self.__smax_model = f_value
+        elif value == "tethered" or value == "free":
             self.__smax_model = value
         else:
             raise ValueError(
-                f"smax_model must be either `tethered` or `free`. Got {value}"
+                "smax_model must be `tethered`, `free`, or a number between 0 and 1."
             )
 
     # These two function enable dictionary-like getting and setting properties.
@@ -365,6 +369,15 @@ class HydrationCalculator:
             s_max = 1 - (2 / (3 + (3 * (spin_C * 198.7))))  # from:
             # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
             # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
+
+        elif self.hp.smax_model <= 1 and self.hp.smax_model > 0:
+            # Option 3, manual input of smax
+            s_max = self.hp.smax_model
+
+        else:
+            raise ValueError(
+                "smax_model must be `tethered`, `free`, or a number between 0 and 1."
+            )
 
         omega_e = (1.76085963023e-1) * (field / 1000)
         # gamma_e in 1/ps for the tcorr unit, then correct by field in T.
