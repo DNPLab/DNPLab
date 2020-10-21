@@ -763,8 +763,8 @@ class hydrationGUI(QMainWindow):
                     self.testpath,
                     "data",
                     "topspin",
-                    "GUI_results hydrationGUI Results",
-                    "GUI_results hydration_parameters.h5",
+                    "hydrationGUI_Results",
+                    "hydration_parameters.h5",
                 )
                 # flname = os.path.join(self.testpath, 'data', 'topspin', 'GUI_results hydrationGUI Results', 'GUI_results xODNP.mat')
             else:
@@ -2862,11 +2862,13 @@ class hydrationGUI(QMainWindow):
             pass
 
     def Edit_smax(self):
-        """This function passes the text from the various edit boxes to dnpHydration as floats and re-calculates
-        hydration parameters."""
-        self.tetheredCheckbox.setChecked(False)
-        self.freeCheckbox.setChecked(False)
-        self.Edit_Hydration_Inputs()
+        """This function passes the text from the smax edit box to the Edit_Hydration_Inputs function and unchecks both of the checkboxes."""
+        if self.gui_dict["gui_function"]["hydrationEdits"]:
+            self.tetheredCheckbox.setChecked(False)
+            self.freeCheckbox.setChecked(False)
+            self.Edit_Hydration_Inputs()
+        else:
+            pass
 
     def Edit_Hydration_Inputs(self):
         """This function passes the text from the various edit boxes to dnpHydration as floats and re-calculates
