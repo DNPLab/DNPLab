@@ -123,7 +123,7 @@ class TestHydrationCalculator(unittest.TestCase):
         self.hc.run()
 
     def _run_tethered_linear(self):
-        self.hc.hp.smax_model = "tethered"
+        self.hc.hp.smax_model = 1
         self.hc.hp.t1_interp_method = "linear"
         self.hc.run()
 
@@ -133,7 +133,7 @@ class TestHydrationCalculator(unittest.TestCase):
         self.hc.run()
 
     def _run_free_linear(self):
-        self.hc.hp.smax_model = "free"
+        self.hc.hp.smax_model = 0.3494903663588943
         self.hc.hp.t1_interp_method = "linear"
         self.hc.run()
 
