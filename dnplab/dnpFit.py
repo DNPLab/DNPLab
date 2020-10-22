@@ -23,7 +23,7 @@ def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
     return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
 
 
-def exponentialFit(all_data, type="mono", stretch=False, dim="t2"):
+def exponentialFit(all_data, type="mono", stretched=False, dim="t2"):
     """Fits various forms of exponential functions
 
     .. math::
@@ -61,6 +61,7 @@ def exponentialFit(all_data, type="mono", stretch=False, dim="t2"):
         ind_dim = "t2"
 
     x_axis = data.coords[ind_dim]
+    new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
     inputData = _np.real(data.values)
 
     if type == "T1":
@@ -68,7 +69,6 @@ def exponentialFit(all_data, type="mono", stretch=False, dim="t2"):
         x0 = [1.0, inputData[-1], inputData[-1]]
         out, cov = curve_fit(t1Function, x_axis, inputData, x0, method="lm")
         stdd = _np.sqrt(_np.diag(cov))
-        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
         fit = t1Function(new_axis, out[0], out[1], out[2])
 
         fitData = _dnpdata(fit, list(new_axis), [ind_dim])
@@ -79,31 +79,29 @@ def exponentialFit(all_data, type="mono", stretch=False, dim="t2"):
 
     elif type == "T2":
 
-        if stretch:
+        if stretched:
             x0 = [inputData[0], 1.0, 1.0]
             out, cov = curve_fit(str_exp_fit_func, x_axis, inputData, x0, method="lm")
             stdd = _np.sqrt(_np.diag(cov))
+            fit = str_exp_fit_func(new_axis, out[0], out[1], out[2])
         else:
             x0 = [inputData[0], 1.0]
             out, cov = curve_fit(nostr_exp_fit_func, x_axis, inputData, x0, method="lm")
             stdd = _np.sqrt(_np.diag(cov))
-
-        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
-        fit = str_exp_fit_func(new_axis, out[0], out[1], out[2])
+            fit = nostr_exp_fit_func(new_axis, out[0], out[1])
 
         fitData = _dnpdata(fit, list(new_axis), [ind_dim])
         fitData.attrs["T2"] = out[1]
         fitData.attrs["T2_stdd"] = stdd[1]
         fitData.attrs["M_0"] = out[0]
-        if stretch:
+        if stretched:
             fitData.attrs["p"] = out[2]
 
     elif type == "mono":
 
-        x0 = [inputData[0], 1.0, 1.0]
+        x0 = [inputData[-1], 1.0, 100]
         out, cov = curve_fit(exp_fit_func_1, x_axis, inputData, x0, method="lm")
         stdd = _np.sqrt(_np.diag(cov))
-        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
         fit = exp_fit_func_1(new_axis, out[0], out[1], out[2])
 
         fitData = _dnpdata(fit, list(new_axis), [ind_dim])
@@ -114,10 +112,9 @@ def exponentialFit(all_data, type="mono", stretch=False, dim="t2"):
 
     elif type == "bi":
 
-        x0 = [inputData[0], 1.0, 1.0, 1.0, 1.0]
+        x0 = [inputData[-1], 1.0, 100, 1.0, 100]
         out, cov = curve_fit(exp_fit_func_2, x_axis, inputData, x0, method="lm")
         stdd = _np.sqrt(_np.diag(cov))
-        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
         fit = exp_fit_func_2(new_axis, out[0], out[1], out[2], out[3], out[4])
 
         fitData = _dnpdata(fit, list(new_axis), [ind_dim])
