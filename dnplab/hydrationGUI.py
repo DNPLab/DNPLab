@@ -1480,24 +1480,24 @@ class hydrationGUI(QMainWindow):
             ):
 
                 try:
-                    dnplab.dnpFit.t1Fit(nextproc_workspace)
+                    dnplab.dnpFit.exponentialFit(nextproc_workspace, type="T1")
 
                     if (
                         self.gui_dict["rawdata_function"]["folder"]
                         in self.gui_dict["folder_structure"]["T1"]
                     ):
-                        self.T1p.append(nextproc_workspace["fit"].attrs["t1"])
-                        self.T1p_stdd.append(nextproc_workspace["fit"].attrs["t1_stdd"])
+                        self.T1p.append(nextproc_workspace["fit"].attrs["T1"])
+                        self.T1p_stdd.append(nextproc_workspace["fit"].attrs["T1_stdd"])
                     elif (
                         self.gui_dict["rawdata_function"]["folder"]
                         == self.gui_dict["folder_structure"]["T10"]
                     ):
                         self.gui_dict["dnpLab_data"]["T10"] = nextproc_workspace[
                             "fit"
-                        ].attrs["t1"]
+                        ].attrs["T1"]
                         self.gui_dict["dnpLab_data"]["T10_stdd"] = nextproc_workspace[
                             "fit"
-                        ].attrs["t1_stdd"]
+                        ].attrs["T1_stdd"]
                         self.t10Edit.setText(
                             str(round(self.gui_dict["dnpLab_data"]["T10"], 4))
                         )
@@ -1507,10 +1507,10 @@ class hydrationGUI(QMainWindow):
                     ):
                         self.gui_dict["dnpLab_data"]["T100"] = nextproc_workspace[
                             "fit"
-                        ].attrs["t1"]
+                        ].attrs["T1"]
                         self.gui_dict["dnpLab_data"]["T100_stdd"] = nextproc_workspace[
                             "fit"
-                        ].attrs["t1_stdd"]
+                        ].attrs["T1_stdd"]
                         self.t100Edit.setText(
                             str(round(self.gui_dict["dnpLab_data"]["T100"], 4))
                         )
@@ -1534,7 +1534,7 @@ class hydrationGUI(QMainWindow):
                         ].values
                         self.gui_dict["t1_fit"]["t1Val"] = nextproc_workspace[
                             "fit"
-                        ].attrs["t1"]
+                        ].attrs["T1"]
 
                         self.gui_dict["t1_plot"]["xdata"] = self.gui_dict[
                             "dnpLab_data"
@@ -2009,7 +2009,7 @@ class hydrationGUI(QMainWindow):
             self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
 
             try:
-                dnplab.dnpFit.t1Fit(adjslider_workspace)
+                dnplab.dnpFit.exponentialFit(adjslider_workspace, type="T1")
             except:
                 self.gui_dict["data_plot"]["xmin"] = int(
                     round(
@@ -2058,9 +2058,9 @@ class hydrationGUI(QMainWindow):
                 print("---Standard Deviation in T1---")
                 print(
                     "T1: "
-                    + str(round(adjslider_workspace["fit"].attrs["t1"], 4))
+                    + str(round(adjslider_workspace["fit"].attrs["T1"], 4))
                     + " +/- "
-                    + str(round(adjslider_workspace["fit"].attrs["t1_stdd"], 4))
+                    + str(round(adjslider_workspace["fit"].attrs["T1_stdd"], 4))
                 )
 
             self.gui_dict["data_plot"]["xmin"] = int(
