@@ -22,31 +22,31 @@ def array_coords(attrs):
     Returns:
         tuple: dim and coord for array
     """
-
-    array_delta = attrs["arraydelta"]
-
-    array_dim = attrs["arraydim"]
-
-    array_max = attrs["arraymax"]
-    array_flip = attrs["arrayflip"]
-
-    array_start = attrs["arraystart"]
-    array_stop = attrs["arraystop"]
-
-    array_elements = attrs["arrayelemts"]
-    array_d_scale = attrs["arraydscale"]
-    array_dodc = attrs["arraydodc"]
-
-    if array_dim != 1:
-        coord = _np.r_[array_start : array_stop + array_delta : array_delta]
-        dim = "t1"
-    else:
+    
+    try:
+    
+        array_delta = attrs["arraydelta"]
+        array_dim = attrs["arraydim"]
+        array_start = attrs["arraystart"]
+        array_stop = attrs["arraystop"]
+        
+        if array_dim != 1:
+            coord = _np.r_[array_start : array_stop + array_delta : array_delta]
+            dim = "t1"
+        else:
+            coord = None
+            dim = None
+            
+        return dim, coord
+        
+    except KeyError:
+    
         coord = None
         dim = None
+    
+        return dim, coord
 
-    return dim, coord
-
-
+    
 def import_fid(path, filename="fid"):
     """Import VnmrJ fid file
 
