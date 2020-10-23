@@ -1,6 +1,9 @@
-from . import dnpdata, dnpdata_collection
-import numpy as _np
 import warnings
+
+import numpy as _np
+from scipy.optimize import curve_fit
+
+from . import dnpdata, dnpdata_collection
 
 
 def return_data(all_data):
@@ -194,27 +197,17 @@ def window(all_data, dim="t2", linewidth=10):
     .. code-block:: python
 
         proc_parameters = {
-                'linewidth' : 10,
-                'dim' : 't2',
-                }
-        all_data = dnplab.dnpNMR.window(all_data,proc_parameters)
+            "linewidth": 10,
+            "dim": "t2",
+        }
+        all_data = dnplab.dnpNMR.window(all_data, proc_parameters)
 
     """
 
     data, isDict = return_data(all_data)
     proc_parameters = {"dim": dim, "linewidth": linewidth}
 
-    index = data.dims.index(dim)
-
-    reshape_size = [1 for k in data.dims]
-    reshape_size[index] = len(data.coords[dim])
-
-    # Must include factor of 2 in exponential to get correct linewidth ->
-    window_array = _np.exp(-1.0 * data.coords[dim] * 2.0 * linewidth).reshape(
-        reshape_size
-    )
-    window_array = _np.ones_like(data.values) * window_array
-    data.values *= window_array
+    data = data.window(dim=dim, linewidth=linewidth, inplace=False)
 
     proc_attr_name = "window"
     data.add_proc_attrs(proc_attr_name, proc_parameters)

@@ -157,7 +157,7 @@ class dnpdata(nddata.nddata_core):
         else:
             return self._constructor(
                 values=values,
-                coords=self.coords,
+                coords=self.coords._coords,
                 dims=self.dims,
                 attrs=self.attrs,
                 procList=self.proc_attrs,
