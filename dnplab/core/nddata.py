@@ -1,6 +1,5 @@
 from __future__ import division
 
-import operator
 import warnings
 from collections import OrderedDict
 from copy import deepcopy
