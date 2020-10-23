@@ -1,10 +1,11 @@
 """
 dnpdata object for storing N-dimensional data with coordinates
 """
-import numpy as np
 from collections.abc import MutableMapping
 
-from .core import nddata
+import numpy as np
+
+from dnplab.core import nddata
 
 version = "1.0"
 
@@ -40,6 +41,10 @@ class dnpdata(nddata.nddata_core):
         super().__init__(values, dims, coords, attrs)
         self.version = version
         self.proc_attrs = []
+
+    @property
+    def _constructor(self):
+        return dnpdata
 
     def __repr__(self):
         """
@@ -118,6 +123,46 @@ class dnpdata(nddata.nddata_core):
             self.dims.pop(index_value)
             self.values = np.squeeze(self.values)
 
+    def window(self, dim="t2", linewidth=10, inplace=False) -> "dnpdata":
+        """Apply Apodization to data down given dimension
+
+        See dnplab.dnpNMR.window for full documentation
+
+        See Also:
+            dnplab.dnpNMR.window
+
+        Example:
+
+        .. code-block:: python
+
+            dnpdata = dnpdata.window(dim="t2", linewidth=10)
+
+            # For inplace operation to save memory
+            dnpdata.window(dim="t2", linewidth=10, inplace=True)
+
+        """
+        reshape_size = [1 for k in self.dims]
+        reshape_size[self.index(dim)] = len(self.coords[dim])
+        values = self.values
+        # Must include factor of 2 in exponential to get correct linewidth ->
+        window_array = np.exp(-1.0 * self.coords[dim] * 2.0 * linewidth).reshape(
+            reshape_size
+        )
+        window_array = np.ones_like(self.values) * window_array
+        values *= window_array
+
+        if inplace:
+            self.values = values
+            return self
+        else:
+            return self._constructor(
+                values=values,
+                coords=self.coords,
+                dims=self.dims,
+                attrs=self.attrs,
+                procList=self.proc_attrs,
+            )
+
 
 class dnpdata_collection(MutableMapping):
     """
@@ -126,7 +171,18 @@ class dnpdata_collection(MutableMapping):
 
     def __init__(self, *args, **kwargs):
         """
-        dnpdata_collection __init__ method
+
+        Args:
+            *args:
+            **kwargs:
+
+        Examples:
+            >>> raw = dnpdata()
+            >>> dnpdata_collection(raw)
+            dnpdata_collection({'raw': nddata(values = array([], dtype=float64), coords = nddata_coord_collection([]), dims = [], attrs = {})})
+            >>> dnpdata_collection({"raw": raw, "attrs": {}})
+            dnpdata_collection({'raw': nddata(values = array([], dtype=float64), coords = nddata_coord_collection([]), dims = [], attrs = {}), 'attrs': {}})
+
         """
         self._processing_buffer = "proc"
 
@@ -137,7 +193,7 @@ class dnpdata_collection(MutableMapping):
 
         elif len(args) == 1:
             if isinstance(args[0], dnpdata):
-                self.__data_dict["raw"] == dnpdata
+                self.__data_dict.__setitem__("raw", args[0])
             elif isinstance(args[0], dict):
                 data_dict = args[0]
                 for key in data_dict:
@@ -175,6 +231,11 @@ class dnpdata_collection(MutableMapping):
 
     def __len__(self):
         return len(self.__data_dict)
+
+    @property
+    def _constructor(self):
+        """Used when methods return a dnpdata_collection instance"""
+        return dnpdata_collection
 
     @property
     def processing_buffer(self):
@@ -268,6 +329,30 @@ class dnpdata_collection(MutableMapping):
 
     def __str__(self):
         return "{}\n".format([(key, self[key].__str__()) for key in self.keys()])
+
+    def window(self, processing_buffer="proc", inplace=False, **kwargs):
+        """
+
+        Args:
+            processing_buffer:
+            inplace:
+            **kwargs:
+
+        Returns:
+
+        Examples:
+            >>> ws = dnpdata_collection({"raw": dnpdata(np.array([3, 2, 1]))})
+            >>> ws.window()
+
+        """
+        values = self[processing_buffer].window(inplace=inplace, **kwargs)
+        if inplace:
+            self[processing_buffer] = values
+            return self
+        else:
+            kw = {k: v for k, v in self.__data_dict.items() if k != processing_buffer}
+            kw.update({processing_buffer: values})
+            return self._constructor(**kw)
 
 
 def create_workspace(*args):
