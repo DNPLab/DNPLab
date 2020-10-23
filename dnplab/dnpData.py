@@ -341,8 +341,31 @@ class dnpdata_collection(MutableMapping):
         Returns:
 
         Examples:
-            >>> ws = dnpdata_collection({"raw": dnpdata(np.array([3, 2, 1]))})
-            >>> ws.window()
+            >>> ws_original = dnpdata_collection(
+            ...     {
+            ...         "raw": dnpdata(
+            ...             np.array([3.0, 2.0, 1.0]),
+            ...             dims=["t2"],
+            ...             coords=[np.r_[1, 2, 3]],
+            ...         )
+            ...     }
+            ... )
+            >>> ws_original.copy("raw", "proc")
+
+            >>> # default processing_buffer = 'proc'
+            ... ws_windowed = ws_original.window(dim="t2", linewidth=1.0)
+            >>> ws_windowed["raw"] == ws_original["raw"]
+            True
+            >>> ws_windowed["proc"] == ws_original["proc"]
+            False
+
+            >>> # default inplace = False, a new instance is generated
+            ... ws_windowed is ws_original
+            False
+            >>> # To save memory when handling large dataset, set inplace to True
+            ... ws_windowed = ws_original.window(dim="t2", linewidth=1.0, inplace=True)
+            >>> ws_windowed is ws_original
+            True
 
         """
         values = self[processing_buffer].window(inplace=inplace, **kwargs)
@@ -352,7 +375,7 @@ class dnpdata_collection(MutableMapping):
         else:
             kw = {k: v for k, v in self.__data_dict.items() if k != processing_buffer}
             kw.update({processing_buffer: values})
-            return self._constructor(**kw)
+            return self._constructor(kw)
 
 
 def create_workspace(*args):
