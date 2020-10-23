@@ -1,9 +1,12 @@
 from __future__ import division
+
 import operator
-import numpy as np
 import warnings
-from copy import deepcopy
 from collections import OrderedDict
+from copy import deepcopy
+
+import numpy as np
+
 from . import nddata_coord
 
 _numerical_types = (np.ndarray, int, float, complex)
@@ -131,22 +134,6 @@ class nddata_core(object):
         dims_check = len(self.values.shape) == len(self.dims)
 
         return coords_check and dims_check
-
-    # FIXME: the following method has syntax error
-    def _attrs_valid():
-        """Verify attrs attribute is valid. All values in attrs must be list, numpy.ndarray, int, float, complex, or str.
-
-        Returns:
-            bool: True if attrs is valid. False, otherwise.
-        """
-
-        for key in self._attrs:
-            if not isinstance(
-                self._attrs, (list, np.ndarray, int, float, complex, str)
-            ):
-                return False
-
-        return True
 
     def __getitem__(self, args):
         """Method for indexing nddata_core
@@ -285,9 +272,7 @@ class nddata_core(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                error = abs(a.values) * np.sqrt(
-                    (self.error / result) ** 2.0 + (b.error / result) ** 2.0
-                )
+                raise NotImplementedError
             elif b.error is not None:
                 a.error = b.error
 
@@ -316,9 +301,7 @@ class nddata_core(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                error = abs(a.values) * np.sqrt(
-                    (self.error / result) ** 2.0 + (b.error / result) ** 2.0
-                )
+                raise NotImplementedError
             elif b.error is not None:
                 a.error = b.error
 
@@ -485,30 +468,6 @@ class nddata_core(object):
         return "nddata_core(values = {}, coords = {}, dims = {}, attrs = {})".format(
             repr(self.values), repr(self.dims), repr(self.coords), repr(self.attrs)
         )
-
-    def squeeze(self):
-        """Remove length 1 axes"""
-        a = self.copy()
-        shape = a.shape
-
-        remove_dims = [a.dims[x] for x in range(len(shape)) if shape[x] == 1]
-        values = np.squeeze(a.values)
-
-        if a.error is not None:
-            a.error = np.squeeze(a.error)
-
-        attrs = a.attrs
-
-        for dim in remove_dims:
-            out = a.coords.pop(dim)
-            if dim not in attrs:
-                attrs[dim] = np.array(out)
-            else:
-                warnings.warn(
-                    "Attribute lost {}:{}".format(lost_dims[ix], lost_coords[ix])
-                )
-
-        return a
 
     def chunk(self, dim, new_dims, new_sizes):
         """
