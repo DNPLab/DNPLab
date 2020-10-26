@@ -244,7 +244,7 @@ def window(
         apwin = 1 / apwin
 
     if len(shape_data) == 2:
-        for ix in range(shape_data[1] - 1):
+        for ix in range(shape_data[1]):
             data.values[:, ix] *= apwin
     else:
         data.values *= apwin

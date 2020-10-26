@@ -1528,7 +1528,7 @@ class hydrationGUI(QMainWindow):
 
                         self.gui_dict["t1_fit"]["xaxis"] = nextproc_workspace[
                             "fit"
-                        ].coords[0]
+                        ].coords
                         self.gui_dict["t1_fit"]["t1Fit"] = nextproc_workspace[
                             "fit"
                         ].values
@@ -2038,14 +2038,14 @@ class hydrationGUI(QMainWindow):
             else:
 
                 self.gui_dict["t1_fit"]["tau"] = np.reshape(
-                    adjslider_workspace["proc"].coords["t1"], -1
+                    adjslider_workspace["proc"].coords, -1
                 )
                 self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
 
-                self.gui_dict["t1_fit"]["xaxis"] = adjslider_workspace["fit"].coords[0]
+                self.gui_dict["t1_fit"]["xaxis"] = adjslider_workspace["fit"].coords
                 self.gui_dict["t1_fit"]["t1Fit"] = adjslider_workspace["fit"].values
                 self.gui_dict["t1_fit"]["t1Val"] = adjslider_workspace["fit"].attrs[
-                    "t1"
+                    "T1"
                 ]
 
                 self.plot_enh()
