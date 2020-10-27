@@ -242,11 +242,23 @@ class hydrationGUI(QMainWindow):
         self.order2fitCheckbox.resize(100, 20)
         self.order2fitCheckbox.setText("2nd Order")
 
+        self.excludeLabel = QLabel(self)
+        self.excludeLabel.setStyleSheet("font : bold 14px")
+        self.excludeLabel.move(773, 495)
+        self.excludeLabel.resize(80, 20)
+        self.excludeLabel.setText("Exclude:")
+
         self.exclude1T1Checkbox = QCheckBox(self)
         self.exclude1T1Checkbox.setStyleSheet("font : bold 14px")
-        self.exclude1T1Checkbox.move(865, 495)
+        self.exclude1T1Checkbox.move(835, 495)
         self.exclude1T1Checkbox.resize(150, 20)
-        self.exclude1T1Checkbox.setText("Exclude first T1(p)")
+        self.exclude1T1Checkbox.setText("First T1(p)")
+
+        self.exOutliersCheckbox = QCheckBox(self)
+        self.exOutliersCheckbox.setStyleSheet("font : bold 14px")
+        self.exOutliersCheckbox.move(930, 495)
+        self.exOutliersCheckbox.resize(150, 20)
+        self.exOutliersCheckbox.setText("Outlier T1(p)")
 
         self.t10Label = QLabel(self)
         self.t10Label.setStyleSheet("font : bold 14px")
@@ -403,6 +415,8 @@ class hydrationGUI(QMainWindow):
             self.linearfitCheckbox.setVisible(True)
             self.order2fitCheckbox.setVisible(True)
             self.exclude1T1Checkbox.setVisible(True)
+            self.exOutliersCheckbox.setVisible(True)
+            self.excludeLabel.setVisible(True)
             self.slcLabel.setVisible(True)
             self.slcEdit.setVisible(True)
             self.fieldLabel.setVisible(True)
@@ -486,6 +500,8 @@ class hydrationGUI(QMainWindow):
             self.linearfitCheckbox.setVisible(False)
             self.order2fitCheckbox.setVisible(False)
             self.exclude1T1Checkbox.setVisible(False)
+            self.exOutliersCheckbox.setVisible(False)
+            self.excludeLabel.setVisible(False)
             self.slcLabel.setVisible(False)
             self.slcEdit.setVisible(False)
             self.fieldLabel.setVisible(False)
@@ -545,6 +561,8 @@ class hydrationGUI(QMainWindow):
         self.order2fitCheckbox.setChecked(True)
         self.exclude1T1Checkbox.clicked.connect(self.Exclude_FirstT1_Checkbox)
         self.exclude1T1Checkbox.setChecked(False)
+        self.exOutliersCheckbox.clicked.connect(self.Exclude_Outliers_Checkbox)
+        self.exOutliersCheckbox.setChecked(False)
         self.slcEdit.editingFinished.connect(self.Edit_Hydration_Inputs)
         self.fieldEdit.editingFinished.connect(self.Edit_Hydration_Inputs)
         self.tetheredCheckbox.clicked.connect(self.Smax_Tethered_Checkbox)
@@ -1867,7 +1885,6 @@ class hydrationGUI(QMainWindow):
                 (np.imag(rotated_data) ** 2).sum(axis=0)
             )
             bestindex = np.argmax(real_imag_ratio)
-
             self.gui_dict["processing_spec"]["original_phase"] = phases[0, bestindex]
 
         if (
@@ -2256,6 +2273,7 @@ class hydrationGUI(QMainWindow):
                     )
 
         self.exclude1T1Checkbox.setChecked(False)
+        self.exOutliersCheckbox.setChecked(False)
 
         self.gui_dict["gui_function"]["calculating"] = True
         self.show_hide_components()
@@ -2358,6 +2376,18 @@ class hydrationGUI(QMainWindow):
                 T1powers = self.gui_dict["dnpLab_data"]["T1powers"][
                     1 : len(self.gui_dict["dnpLab_data"]["T1powers"])
                 ]
+            elif self.exOutliersCheckbox.isChecked():
+
+                avg = np.mean(self.gui_dict["dnpLab_data"]["T1p"])
+                T1p = []
+                T1powers = []
+                for ix in range(len(self.gui_dict["dnpLab_data"]["T1p"])):
+                    if np.abs(self.gui_dict["dnpLab_data"]["T1p"][ix] - avg) < (
+                        0.25 * avg
+                    ):
+                        T1p.append(self.gui_dict["dnpLab_data"]["T1p"][ix])
+                        T1powers.append(self.gui_dict["dnpLab_data"]["T1powers"][ix])
+
             else:
 
                 T1p = self.gui_dict["dnpLab_data"]["T1p"]
@@ -2424,6 +2454,20 @@ class hydrationGUI(QMainWindow):
                     wT1powers = self.gui_dict["workup_data"]["T1powers"][
                         1 : len(self.gui_dict["workup_data"]["T1powers"])
                     ]
+
+                elif self.exOutliersCheckbox.isChecked():
+
+                    wavg = np.mean(self.gui_dict["workup_data"]["T1p"])
+                    wT1p = []
+                    wT1powers = []
+                    for ix in range(len(self.gui_dict["workup_data"]["T1p"])):
+                        if np.abs(self.gui_dict["workup_data"]["T1p"][ix] - wavg) < (
+                            0.25 * wavg
+                        ):
+                            wT1p.append(self.gui_dict["workup_data"]["T1p"][ix])
+                            wT1powers.append(
+                                self.gui_dict["workup_data"]["T1powers"][ix]
+                            )
 
                 else:
 
@@ -2832,6 +2876,20 @@ class hydrationGUI(QMainWindow):
     def Exclude_FirstT1_Checkbox(self):
         """Exclude the first T1 point from the interpolation if it deviates significantly from the trend of the other
         points."""
+        if self.exclude1T1Checkbox.isChecked():
+            self.exOutliersCheckbox.setChecked(False)
+
+        if self.gui_dict["gui_function"]["hydrationEdits"]:
+            self.Hydration_Calculator()
+        else:
+            pass
+
+    def Exclude_Outliers_Checkbox(self):
+        """Exclude any T1 points that deviate significantly from the trend of the other
+        points."""
+        if self.exOutliersCheckbox.isChecked():
+            self.exclude1T1Checkbox.setChecked(False)
+
         if self.gui_dict["gui_function"]["hydrationEdits"]:
             self.Hydration_Calculator()
         else:
