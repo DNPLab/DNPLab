@@ -132,6 +132,22 @@ class specman_import_tester(unittest.TestCase):
         self.assertEqual(data.values.shape, (1500, 40, 5, 3))
 
 
+class delta_import_tester(unittest.TestCase):
+    def setUp(self):
+        self.test_data_1D = os.path.join(".", "data", "delta", "50percCHCL3.jdf")
+        self.test_data_2D = os.path.join(".", "data", "delta", "lineshape_drift.jdf")
+
+    def test_import_delta_1D(self):
+        data = wrapper.load(self.test_data_1D, data_type="delta")
+        self.assertEqual(data.dims, ["t2"])
+        self.assertEqual(data.values.shape, (16384,))
+
+    def test_import_delta_2D(self):
+        data = wrapper.load(self.test_data_2D, data_type="delta")
+        self.assertEqual(data.dims, ["t2", "t1"])
+        self.assertEqual(data.values.shape, (1024, 256))
+
+
 if __name__ == "__main__":
     unittest.main()
     pass

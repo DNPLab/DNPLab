@@ -40,6 +40,9 @@ def load(path, data_type=None, *args, **kwargs):
     elif data_type == "topspin dir":
         return dnpIO.topspin.import_topspin_dir(path, *args, **kwargs)
 
+    elif data_type == "delta":
+        return dnpIO.delta.import_delta(path, *args, **kwargs)
+
     elif data_type == "vnmrj":
         return dnpIO.vnmrj.import_vnmrj(path, *args, **kwargs)
 
