@@ -39,16 +39,16 @@ def mrProperties(nucleus, *args):
         .. code-block:: python
 
             dnp.dnpTools.mrProperties('1H')
-            26.7522128                          # 1H Gyromagnetic Ratio
+            26.7522128                          # 1H Gyromagnetic Ratio (10^7r/Ts)
 
             dnp.dnpTools.mrProperties('1H', 0.35)
-            14902114.17018196                   # 1H Larmor Frequency at 0.35 T
+            14902114.17018196                   # 1H Larmor Frequency at 0.35 T (Hz)
 
             dnp.dnpTools.mrProperties('2H', 'qmom')
-            0.286                               # Nuclear Quadrupole Moment
+            0.286                               # Nuclear Quadrupole Moment (fm^2)
 
             value = dnp.dnpTools.mrProperties('6Li', 'natAbundance')
-            7.59                                # Natural Abundance
+            7.59                                # Natural Abundance (%)
 
             value = dnp.dnpTools.mrProperties('6Li', 'relSensitivity')
             0.000645                            # Relative sensitivity
