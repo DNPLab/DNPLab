@@ -212,7 +212,7 @@ def window(
     shape_data = _np.shape(data.values)
 
     if type == "exponential":
-        apwin = _np.exp(-2 * _np.pi * data.coords[dim] * linewidth)
+        apwin = _np.exp(-2 * data.coords[dim] * linewidth)
     elif type == "hamming":
         apwin = 0.53836 + 0.46164 * _np.cos(
             1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)

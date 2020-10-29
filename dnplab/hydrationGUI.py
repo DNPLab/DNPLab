@@ -318,7 +318,7 @@ class hydrationGUI(QMainWindow):
 
         self.fieldLabel = QLabel(self)
         self.fieldLabel.setStyleSheet("font : bold 14px")
-        self.fieldLabel.move(225, 525)
+        self.fieldLabel.move(227, 525)
         self.fieldLabel.resize(150, 20)
         self.fieldLabel.setText("Field (mT):")
 
@@ -329,9 +329,9 @@ class hydrationGUI(QMainWindow):
 
         self.smaxLabel = QLabel(self)
         self.smaxLabel.setStyleSheet("font : bold 14px")
-        self.smaxLabel.move(222, 560)
+        self.smaxLabel.move(268, 560)
         self.smaxLabel.resize(100, 20)
-        self.smaxLabel.setText("s<sub>max</sub> model:")
+        self.smaxLabel.setText("s<sub>max</sub>:")
 
         self.smaxEdit = QLineEdit(self)
         self.smaxEdit.move(305, 558)
@@ -340,13 +340,13 @@ class hydrationGUI(QMainWindow):
 
         self.tetheredCheckbox = QCheckBox(self)
         self.tetheredCheckbox.setStyleSheet("font : bold 14px")
-        self.tetheredCheckbox.move(220, 582)
+        self.tetheredCheckbox.move(305, 583)
         self.tetheredCheckbox.resize(100, 20)
         self.tetheredCheckbox.setText("Tethered")
 
         self.freeCheckbox = QCheckBox(self)
         self.freeCheckbox.setStyleSheet("font : bold 14px")
-        self.freeCheckbox.move(220, 600)
+        self.freeCheckbox.move(305, 601)
         self.freeCheckbox.resize(100, 20)
         self.freeCheckbox.setText("Free")
 
@@ -1724,6 +1724,8 @@ class hydrationGUI(QMainWindow):
                         "folder_structure"
                     ]["T1"][0]
 
+                    self.nextButton.setText("Next")
+
                     if (
                         self.gui_dict["folder_structure"]["all"][-1]
                         == self.gui_dict["folder_structure"]["T100"]
@@ -1733,7 +1735,6 @@ class hydrationGUI(QMainWindow):
                             - 2
                             - len(self.gui_dict["folder_structure"]["T1"])
                         )
-                        self.nextButton.setText("Next")
 
                     elif (
                         self.gui_dict["folder_structure"]["all"][-1]
@@ -1744,7 +1745,6 @@ class hydrationGUI(QMainWindow):
                             - 1
                             - len(self.gui_dict["folder_structure"]["T1"])
                         )
-                        self.nextButton.setText("Finish")
 
                     self.T1p = []
                     self.T1p_stdd = []
@@ -1862,7 +1862,7 @@ class hydrationGUI(QMainWindow):
 
         self.processing_workspace = copy.deepcopy(self.dnpLab_workspace)
         dnplab.dnpNMR.remove_offset(self.processing_workspace)
-        dnplab.dnpNMR.window(self.processing_workspace, linewidth=5)
+        dnplab.dnpNMR.window(self.processing_workspace, linewidth=7.5)
         dnplab.dnpNMR.fourier_transform(self.processing_workspace, zero_fill_factor=2)
 
         if self.processing_workspace["proc"].ndim == 2:
