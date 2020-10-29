@@ -524,3 +524,63 @@ def autophase(
         return all_data
     else:
         return data
+
+
+def resolution_enhancement(all_data, dim="t2", method = 'trafficante', T2s = 1):
+    """Apply resolution enhancement along given dimension
+
+    Args:
+
+
+    .. note::
+        Axis units assumed to be seconds
+
+    +-----------+-------+---------------+--------------------------------------------+
+    | method    | type  | default       | description                                |
+    +-----------+-------+---------------+--------------------------------------------+
+    | dim       | str   | 't2'          | Dimension to apply exponential apodization |
+    +-----------+-------+---------------+--------------------------------------------+
+    | method    | str   | 'trafficante' | Trafficante/Ziessow Method                 |
+    +-----------+-------+---------------+--------------------------------------------+
+
+    Returns:
+
+    Example:
+
+    .. code-block:: python
+
+        proc_parameters = {
+                'linewidth' : 10,
+                'dim' : 't2',
+                }
+        all_data = dnplab.dnpNMR.window(all_data,proc_parameters)
+
+    """
+
+    data, isDict = return_data(all_data)
+    proc_parameters = {"dim": dim, "linewidth": linewidth}
+
+    index = data.dims.index(dim)
+
+    reshape_size = [1 for k in data.dims]
+    reshape_size[index] = len(data.coords[dim])
+
+    if method == 'trafficante':
+
+            
+        # Must include factor of 2 in exponential to get correct linewidth ->
+        window_array = _np.exp(-1.0 * data.coords[dim] * 2.0 * linewidth).reshape(
+            reshape_size
+        )
+        window_array = _np.ones_like(data.values) * window_array
+        data.values *= window_array
+
+        proc_attr_name = "resEnhan_TV"
+        
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+        return all_data
+    else:
+        return data
