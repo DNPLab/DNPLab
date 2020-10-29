@@ -526,7 +526,7 @@ def autophase(
         return data
 
 
-def resolution_enhancement(all_data, dim="t2", method = 'trafficante', T2s = 1):
+def resolution_enhancement(all_data, dim = "t2", method = 'trafficante', T2s = 1):
     """Apply resolution enhancement along given dimension
 
     Args:
@@ -536,11 +536,13 @@ def resolution_enhancement(all_data, dim="t2", method = 'trafficante', T2s = 1):
         Axis units assumed to be seconds
 
     +-----------+-------+---------------+--------------------------------------------+
-    | method    | type  | default       | description                                |
+    | parameter | type  | default       | description                                |
     +-----------+-------+---------------+--------------------------------------------+
     | dim       | str   | 't2'          | Dimension to apply exponential apodization |
     +-----------+-------+---------------+--------------------------------------------+
     | method    | str   | 'trafficante' | Trafficante/Ziessow Method                 |
+    +-----------+-------+---------------+--------------------------------------------+
+    | T2s       | float | 1             | Estimate of T2* (desired linewidth)        |
     +-----------+-------+---------------+--------------------------------------------+
 
     Returns:
@@ -558,7 +560,6 @@ def resolution_enhancement(all_data, dim="t2", method = 'trafficante', T2s = 1):
     """
 
     data, isDict = return_data(all_data)
-    proc_parameters = {"dim": dim, "linewidth": linewidth}
 
     index = data.dims.index(dim)
 
@@ -566,12 +567,18 @@ def resolution_enhancement(all_data, dim="t2", method = 'trafficante', T2s = 1):
     reshape_size[index] = len(data.coords[dim])
 
     if method == 'trafficante':
+        proc_parameters = {"dim": dim, "mehtod": method, "T2s": T2s}
+        # Traficante, Daniel D, and Dieter Ziessow. “A New Apodization Function for Resolution Enhancement with a Minimum Loss of Sensitivity.” Journal of Magnetic Resonance (1969) 66, no. 1 (January 1986): 182–86. https://doi.org/10.1016/0022-2364(86)90121-6.
 
-            
-        # Must include factor of 2 in exponential to get correct linewidth ->
-        window_array = _np.exp(-1.0 * data.coords[dim] * 2.0 * linewidth).reshape(
-            reshape_size
-        )
+        res_E = _np.exp(-1.0 * data.coords[dim]/T2s)
+        res_e = _np.exp(-1.0 * (data.coords[dim][-1] - data.coords[dim])/T2s)
+        # g = _np.array(E /(E^2 + e^2))
+        g = res_E /(res_E**2 + res_e**2)
+        print(g)
+
+
+        window_array = g.reshape(reshape_size)
+
         window_array = _np.ones_like(data.values) * window_array
         data.values *= window_array
 
@@ -584,3 +591,4 @@ def resolution_enhancement(all_data, dim="t2", method = 'trafficante', T2s = 1):
         return all_data
     else:
         return data
+
