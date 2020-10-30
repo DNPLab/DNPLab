@@ -71,7 +71,7 @@ def exponentialFit(all_data, type="mono", stretched=False, dim="t2"):
         stdd = _np.sqrt(_np.diag(cov))
         fit = t1Function(new_axis, out[0], out[1], out[2])
 
-        fitData = _dnpdata(fit, list(new_axis), [ind_dim])
+        fitData = _dnpdata(fit, [new_axis], [ind_dim])
         fitData.attrs["T1"] = out[0]
         fitData.attrs["T1_stdd"] = stdd[0]
         fitData.attrs["M_0"] = out[1]
@@ -90,7 +90,7 @@ def exponentialFit(all_data, type="mono", stretched=False, dim="t2"):
             stdd = _np.sqrt(_np.diag(cov))
             fit = nostr_exp_fit_func(new_axis, out[0], out[1])
 
-        fitData = _dnpdata(fit, list(new_axis), [ind_dim])
+        fitData = _dnpdata(fit, [new_axis], [ind_dim])
         fitData.attrs["T2"] = out[1]
         fitData.attrs["T2_stdd"] = stdd[1]
         fitData.attrs["M_0"] = out[0]
@@ -104,7 +104,7 @@ def exponentialFit(all_data, type="mono", stretched=False, dim="t2"):
         stdd = _np.sqrt(_np.diag(cov))
         fit = exp_fit_func_1(new_axis, out[0], out[1], out[2])
 
-        fitData = _dnpdata(fit, list(new_axis), [ind_dim])
+        fitData = _dnpdata(fit, [new_axis], [ind_dim])
         fitData.attrs["tau"] = out[2]
         fitData.attrs["tau_stdd"] = stdd[2]
         fitData.attrs["C1"] = out[0]
@@ -117,7 +117,7 @@ def exponentialFit(all_data, type="mono", stretched=False, dim="t2"):
         stdd = _np.sqrt(_np.diag(cov))
         fit = exp_fit_func_2(new_axis, out[0], out[1], out[2], out[3], out[4])
 
-        fitData = _dnpdata(fit, list(new_axis), [ind_dim])
+        fitData = _dnpdata(fit, [new_axis], [ind_dim])
         fitData.attrs["tau1"] = out[2]
         fitData.attrs["tau1_stdd"] = stdd[2]
         fitData.attrs["tau2"] = out[4]

@@ -149,11 +149,34 @@ class hydrationGUI(QMainWindow):
         self.inteditLabel.resize(50, 30)
         self.inteditLabel.setText("ppm")
 
+        self.linewidthEdit = QLineEdit(self)
+        self.linewidthEdit.move(598, 590)
+        self.linewidthEdit.resize(50, 25)
+        self.linewidthEdit.setText("7.5")
+
+        self.linewidthLabel = QLabel(self)
+        self.linewidthLabel.setStyleSheet("font : bold 14px")
+        self.linewidthLabel.move(590, 565)
+        self.linewidthLabel.resize(75, 30)
+        self.linewidthLabel.setText("Linewidth")
+
         self.optphsCheckbox = QCheckBox(self)
         self.optphsCheckbox.setStyleSheet("font : bold 14px")
         self.optphsCheckbox.move(490, 526)
         self.optphsCheckbox.resize(100, 20)
         self.optphsCheckbox.setText("Optimize")
+
+        self.arctanCheckbox = QCheckBox(self)
+        self.arctanCheckbox.setStyleSheet("font : bold 14px")
+        self.arctanCheckbox.move(580, 526)
+        self.arctanCheckbox.resize(100, 20)
+        self.arctanCheckbox.setText("arctan")
+
+        self.searchphsCheckbox = QCheckBox(self)
+        self.searchphsCheckbox.setStyleSheet("font : bold 14px")
+        self.searchphsCheckbox.move(650, 526)
+        self.searchphsCheckbox.resize(100, 20)
+        self.searchphsCheckbox.setText("search")
 
         self.optcentCheckbox = QCheckBox(self)
         self.optcentCheckbox.setStyleSheet("font : bold 14px")
@@ -169,25 +192,25 @@ class hydrationGUI(QMainWindow):
 
         self.p0Checkbox = QCheckBox(self)
         self.p0Checkbox.setStyleSheet("font : bold 14px")
-        self.p0Checkbox.move(727, 575)
+        self.p0Checkbox.move(730, 575)
         self.p0Checkbox.resize(130, 20)
         self.p0Checkbox.setText("Enhancements")
 
         self.onlyT1pCheckbox = QCheckBox(self)
         self.onlyT1pCheckbox.setStyleSheet("font : bold 14px")
-        self.onlyT1pCheckbox.move(727, 595)
+        self.onlyT1pCheckbox.move(730, 595)
         self.onlyT1pCheckbox.resize(100, 20)
         self.onlyT1pCheckbox.setText("Only T1(p)")
 
         self.onlyT10Checkbox = QCheckBox(self)
         self.onlyT10Checkbox.setStyleSheet("font : bold 14px")
-        self.onlyT10Checkbox.move(855, 575)
+        self.onlyT10Checkbox.move(858, 575)
         self.onlyT10Checkbox.resize(100, 20)
         self.onlyT10Checkbox.setText("Only T1(0)")
 
         self.onlyT100Checkbox = QCheckBox(self)
         self.onlyT100Checkbox.setStyleSheet("font : bold 14px")
-        self.onlyT100Checkbox.move(855, 595)
+        self.onlyT100Checkbox.move(858, 595)
         self.onlyT100Checkbox.resize(110, 20)
         self.onlyT100Checkbox.setText("Only T10(0)")
 
@@ -195,21 +218,21 @@ class hydrationGUI(QMainWindow):
         self.nextButton.setStyleSheet(
             "font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
         )
-        self.nextButton.move(625, 525)
+        self.nextButton.move(730, 475)
         self.nextButton.resize(100, 40)
 
         self.autoButton = QPushButton("Auto Process", self)
         self.autoButton.setStyleSheet(
             "font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
         )
-        self.autoButton.move(740, 525)
+        self.autoButton.move(730, 575)
         self.autoButton.resize(100, 40)
 
         self.backButton = QPushButton("Back", self)
         self.backButton.setStyleSheet(
             "font : bold 14px; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
         )
-        self.backButton.move(625, 575)
+        self.backButton.move(730, 525)
         self.backButton.resize(100, 40)
 
         self.dnpLab_errorLabel = QLabel(self)
@@ -400,6 +423,8 @@ class hydrationGUI(QMainWindow):
 
         self.gui_dict["processing_spec"]["original_phase"] = 0
 
+        self.gui_dict["processing_spec"]["linewidth"] = 7.5
+
         # set blank plots
         self.reset_plots()
         self.connect_widgets()
@@ -442,10 +467,14 @@ class hydrationGUI(QMainWindow):
             self.intwindowSlider.setVisible(False)
             self.intwindowEdit.setVisible(False)
             self.inteditLabel.setVisible(False)
+            self.linewidthEdit.setVisible(False)
+            self.linewidthLabel.setVisible(False)
             self.phaseLabel.setVisible(False)
             self.phaseSlider.setVisible(False)
             self.optcentCheckbox.setVisible(False)
             self.optphsCheckbox.setVisible(False)
+            self.arctanCheckbox.setVisible(False)
+            self.searchphsCheckbox.setVisible(False)
             self.optwidthCheckbox.setVisible(False)
 
             if (
@@ -481,10 +510,14 @@ class hydrationGUI(QMainWindow):
             self.intwindowSlider.setVisible(True)
             self.intwindowEdit.setVisible(True)
             self.inteditLabel.setVisible(True)
+            self.linewidthEdit.setVisible(True)
+            self.linewidthLabel.setVisible(True)
             self.phaseLabel.setVisible(True)
             self.phaseSlider.setVisible(True)
             self.optcentCheckbox.setVisible(True)
             self.optphsCheckbox.setVisible(True)
+            self.arctanCheckbox.setVisible(True)
+            self.searchphsCheckbox.setVisible(True)
             self.optwidthCheckbox.setVisible(True)
             self.autoButton.setVisible(True)
             self.backButton.setVisible(True)
@@ -530,11 +563,16 @@ class hydrationGUI(QMainWindow):
         self.intcenterSlider.valueChanged[int].connect(self.Integration_Center_Slider)
         self.intwindowSlider.valueChanged[int].connect(self.Integration_Window_Slider)
         self.intwindowEdit.editingFinished.connect(self.Integration_Window_Edit)
+        self.linewidthEdit.editingFinished.connect(self.Window_linewidth_Edit)
         self.phaseSlider.valueChanged[int].connect(self.Spectrum_Phase_Slider)
         self.optcentCheckbox.clicked.connect(self.Optimize_Center_Checkbox)
         self.optcentCheckbox.setChecked(True)
         self.optphsCheckbox.clicked.connect(self.Optimize_Phase_Checkbox)
         self.optphsCheckbox.setChecked(True)
+        self.arctanCheckbox.clicked.connect(self.arctan_Checkbox)
+        self.arctanCheckbox.setChecked(False)
+        self.searchphsCheckbox.clicked.connect(self.search_Checkbox)
+        self.searchphsCheckbox.setChecked(True)
         self.optwidthCheckbox.clicked.connect(self.Optimize_Width_Checkbox)
         self.optwidthCheckbox.setChecked(False)
         self.nextButton.clicked.connect(self.Next_Button)
@@ -1537,16 +1575,16 @@ class hydrationGUI(QMainWindow):
                         pass
                     else:
 
-                        self.gui_dict["t1_fit"]["tau"] = np.reshape(
-                            nextproc_workspace["proc"].coords, -1
-                        )
+                        self.gui_dict["t1_fit"]["tau"] = nextproc_workspace[
+                            "proc"
+                        ].coords["t1"]
                         self.gui_dict["t1_fit"]["t1Amps"] = nextproc_workspace[
                             "proc"
                         ].values
 
                         self.gui_dict["t1_fit"]["xaxis"] = nextproc_workspace[
                             "fit"
-                        ].coords
+                        ].coords["t1"]
                         self.gui_dict["t1_fit"]["t1Fit"] = nextproc_workspace[
                             "fit"
                         ].values
@@ -1862,7 +1900,10 @@ class hydrationGUI(QMainWindow):
 
         self.processing_workspace = copy.deepcopy(self.dnpLab_workspace)
         dnplab.dnpNMR.remove_offset(self.processing_workspace)
-        dnplab.dnpNMR.window(self.processing_workspace, linewidth=7.5)
+        dnplab.dnpNMR.window(
+            self.processing_workspace,
+            linewidth=self.gui_dict["processing_spec"]["linewidth"],
+        )
         dnplab.dnpNMR.fourier_transform(self.processing_workspace, zero_fill_factor=2)
 
         if self.processing_workspace["proc"].ndim == 2:
@@ -1874,18 +1915,22 @@ class hydrationGUI(QMainWindow):
         ):
 
             temp_data = self.processing_workspace["proc"].values
-            """
-            self.gui_dict["processing_spec"]["original_phase"] = np.arctan(
-                np.sum(np.imag(temp_data)) / np.sum(np.real(temp_data))
-            )
-            """
-            phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
-            rotated_data = (temp_data.reshape(-1, 1)) * np.exp(-1j * phases)
-            real_imag_ratio = (np.real(rotated_data) ** 2).sum(axis=0) / (
-                (np.imag(rotated_data) ** 2).sum(axis=0)
-            )
-            bestindex = np.argmax(real_imag_ratio)
-            self.gui_dict["processing_spec"]["original_phase"] = phases[0, bestindex]
+
+            if self.arctanCheckbox.isChecked():
+                self.gui_dict["processing_spec"]["original_phase"] = np.arctan(
+                    np.sum(np.imag(temp_data)) / np.sum(np.real(temp_data))
+                )
+
+            elif self.searchphsCheckbox.isChecked():
+                phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
+                rotated_data = (temp_data.reshape(-1, 1)) * np.exp(-1j * phases)
+                real_imag_ratio = (np.real(rotated_data) ** 2).sum(axis=0) / (
+                    (np.imag(rotated_data) ** 2).sum(axis=0)
+                )
+                bestindex = np.argmax(real_imag_ratio)
+                self.gui_dict["processing_spec"]["original_phase"] = phases[
+                    0, bestindex
+                ]
 
         if (
             self.optcentCheckbox.isChecked()
@@ -1903,14 +1948,14 @@ class hydrationGUI(QMainWindow):
             ydata = abs(np.real(optwidth_workspace["proc"].values))
             qual_factor = 1 / 3
             if optwidth_workspace["proc"].ndim == 1:
-                xdata = np.ravel(optwidth_workspace["proc"].coords)
+                xdata = np.ravel(optwidth_workspace["proc"].coords["t2"])
                 one_third = np.where(ydata > max(ydata) * qual_factor)
                 one_third = np.ravel(one_third)
 
                 best_width = xdata[one_third[-1]] - xdata[one_third[0]]
 
             else:
-                xdata = np.ravel(optwidth_workspace["proc"].coords[0])
+                xdata = np.ravel(optwidth_workspace["proc"].coords["t2"])
                 min_x = []
                 max_x = []
                 for k in range(0, len(ydata[0, :])):
@@ -1997,9 +2042,9 @@ class hydrationGUI(QMainWindow):
                 * self.gui_dict["processing_spec"]["original_phase"]
             )
 
-            self.gui_dict["data_plot"]["xdata"] = np.reshape(
-                adjslider_workspace["proc"].coords["t2"], -1
-            )
+            self.gui_dict["data_plot"]["xdata"] = adjslider_workspace["proc"].coords[
+                "t2"
+            ]
 
             ydata = adjslider_workspace["proc"].values * np.exp(
                 -1j * self.gui_dict["processing_spec"]["phase"]
@@ -2020,9 +2065,7 @@ class hydrationGUI(QMainWindow):
             pass
         else:
 
-            self.gui_dict["t1_fit"]["tau"] = np.reshape(
-                adjslider_workspace["proc"].coords, -1
-            )
+            self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords["t1"]
             self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
 
             try:
@@ -2054,12 +2097,14 @@ class hydrationGUI(QMainWindow):
                 pass
             else:
 
-                self.gui_dict["t1_fit"]["tau"] = np.reshape(
-                    adjslider_workspace["proc"].coords, -1
-                )
+                self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords[
+                    "t1"
+                ]
                 self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
 
-                self.gui_dict["t1_fit"]["xaxis"] = adjslider_workspace["fit"].coords
+                self.gui_dict["t1_fit"]["xaxis"] = adjslider_workspace["fit"].coords[
+                    "t1"
+                ]
                 self.gui_dict["t1_fit"]["t1Fit"] = adjslider_workspace["fit"].values
                 self.gui_dict["t1_fit"]["t1Val"] = adjslider_workspace["fit"].attrs[
                     "T1"
@@ -2803,9 +2848,9 @@ class hydrationGUI(QMainWindow):
     def Integration_Window_Edit(self):
         """This function passes the text from the various edit boxes to dnpHydration as floats and re-calculates
         hydration parameters."""
+        int_wind = float(self.intwindowEdit.text()) + 0.1
+        self.gui_dict["processing_spec"]["integration_width"] = round(int_wind)
         if self.gui_dict["gui_function"]["sliders"]:
-            int_wind = float(self.intwindowEdit.text()) + 0.1
-            self.gui_dict["processing_spec"]["integration_width"] = round(int_wind)
             self.intwindowSlider.setValue(
                 self.gui_dict["processing_spec"]["integration_width"]
             )
@@ -2814,6 +2859,32 @@ class hydrationGUI(QMainWindow):
             )
         else:
             pass
+
+    def Window_linewidth_Edit(self):
+        """Adjust the line broadening for windowing."""
+        self.gui_dict["processing_spec"]["linewidth"] = float(self.linewidthEdit.text())
+        if self.gui_dict["gui_function"]["sliders"]:
+            self.processData()
+        else:
+            pass
+
+    def arctan_Checkbox(self):
+        """Choose arctan phase calculation."""
+        if self.arctanCheckbox.isChecked():
+            self.searchphsCheckbox.setChecked(False)
+        else:
+            self.searchphsCheckbox.setChecked(True)
+
+        self.Optimize_Phase_Checkbox()
+
+    def search_Checkbox(self):
+        """Choose arctan phase calculation."""
+        if self.searchphsCheckbox.isChecked():
+            self.arctanCheckbox.setChecked(False)
+        else:
+            self.arctanCheckbox.setChecked(True)
+
+        self.Optimize_Phase_Checkbox()
 
     def Optimize_Phase_Checkbox(self):
         """Check this to have the GUI automatically choose the best phase."""
