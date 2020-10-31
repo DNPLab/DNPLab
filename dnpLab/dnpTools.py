@@ -141,7 +141,7 @@ def radical_properties(name):
 
 def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     """Calculate DNP Properties
-    
+
     Currently only implemented for liquid state experiments
 
     Args:
@@ -177,13 +177,13 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     A = np.array(Alist)
     AisoMHz = np.sum(A) / A.size
 
-    gmr_e = mr_properties('0e')
+    gmr_e = mr_properties("0e")
     AisoT = AisoMHz / gmr_e / 2 / np.pi
 
     if nucleus != None:
         nucSpin = mr_properties(nucleus, "spin")
         n = 2 * nucSpin + 1
-        ms = np.linspace(-1.0*nucSpin, nucSpin, int(n))
+        ms = np.linspace(-1.0 * nucSpin, nucSpin, int(n))
         B = B0 + ms * AisoT
 
     else:
@@ -203,7 +203,7 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     for b in B:
         print("Transition: ", m)
         print("B                    (T) :  %6.4f" % b)
-        nmr = mr_properties('1H') * b *10 / 2 / np.pi
+        nmr = mr_properties("1H") * b * 10 / 2 / np.pi
         print("NMR Frequency      (MHz) :  %6.3f" % nmr)
         print("")
         m += 1
