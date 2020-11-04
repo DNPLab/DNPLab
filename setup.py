@@ -1,12 +1,13 @@
-import setuptools
 from distutils.core import setup
+
+import setuptools
 
 with open("README.md", "r") as f:
     long_description = f.read()
 
 with open("dnplab/version.py", "r") as f:
     # Define __version__
-    exec(f.read())
+    __version__ = eval(f.read().split("=")[-1].strip())
 
 setup(
     name="dnplab",
@@ -32,7 +33,7 @@ setup(
         "scipy>=1.5",
         "matplotlib>=3.3",
         "h5py>=2.10",
-        "PyQt5==5.14",
+        "PyQt5==5.13",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
