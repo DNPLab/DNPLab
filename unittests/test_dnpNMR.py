@@ -52,17 +52,17 @@ class dnpNMR_tester(unittest.TestCase):
 
         self.ws.copy("temp", "proc")
         nmr.window(self.ws, type="exponential", linewidth=5)
-        self.assertEqual(min(self.ws["proc"].attrs["window"]), 1.483065905800201e-11)
+        self.assertEqual(min(self.ws["proc"].attrs["window"]), 0.00035733315645396175)
         self.ws.pop("temp")
         self.assertEqual(shape_data, np.shape(self.ws))
-        self.assertEqual(max(self.ws["proc"].values[:, 1].real), 5.276526875292248)
-        self.assertEqual(min(self.ws["proc"].values[:, 1].real), -3.630871536891015)
+        self.assertEqual(max(self.ws["proc"].values[:, 1].real), 5.390978190372195)
+        self.assertEqual(min(self.ws["proc"].values[:, 1].real), -3.9647928998767163)
 
         nmr.fourier_transform(self.ws, zero_fill_factor=2)
         self.assertEqual(shape_data, np.shape(self.ws))
         self.assertEqual(len(self.ws["proc"].values[:, 4].real), 15844)
-        self.assertEqual(max(self.ws["proc"].values[:, 4].real), 31.63698635529444)
-        self.assertEqual(min(self.ws["proc"].values[:, 4].real), -30.462665500534207)
+        self.assertEqual(max(self.ws["proc"].values[:, 4].real), 61.3994271072369)
+        self.assertEqual(min(self.ws["proc"].values[:, 4].real), -76.53300374124703)
         nmr.autophase(
             self.ws,
             method="arctan",
@@ -73,23 +73,23 @@ class dnpNMR_tester(unittest.TestCase):
             rise=np.pi / 2,
         )
         self.assertEqual(shape_data, np.shape(self.ws))
-        self.assertEqual(max(self.ws["proc"].values[:, 3].real), 191.26344825184776)
-        self.assertEqual(min(self.ws["proc"].values[:, 3].real), -32.23325963951547)
+        self.assertEqual(max(self.ws["proc"].values[:, 3].real), 235.73708636474333)
+        self.assertEqual(min(self.ws["proc"].values[:, 3].real), -63.73460092653687)
         phs0 = self.ws["proc"].attrs["phase_0"]
         self.assertEqual(
             len(self.ws["proc"].attrs["phase_1"]), len(self.ws["proc"].values)
         )
         self.ws = nmr.baseline(self.ws, type="poly", order=1, reference_slice=None)
         self.assertEqual(shape_data, np.shape(self.ws))
-        self.assertEqual(max(self.ws["proc"].values[:, 2].real), 290.58803446945)
-        self.assertEqual(min(self.ws["proc"].values[:, 2].real), -29.03089595218151)
+        self.assertEqual(max(self.ws["proc"].values[:, 2].real), 371.9768176047327)
+        self.assertEqual(min(self.ws["proc"].values[:, 2].real), -71.66041320221538)
         self.assertEqual(
             len(self.ws["proc"].attrs["baseline"]), len(self.ws["proc"].values)
         )
         nmr.integrate(self.ws, dim="t2", integrate_center=0, integrate_width=50)
         self.assertEqual((8,), np.shape(self.ws["proc"].values))
-        self.assertEqual(max(self.ws["proc"].values.real), 2118.6894576666914)
-        self.assertEqual(min(self.ws["proc"].values.real), -1713.0626929153643)
+        self.assertEqual(max(self.ws["proc"].values.real), 2135.920732152984)
+        self.assertEqual(min(self.ws["proc"].values.real), -1726.9213059614328)
 
 
 class dnpNMR_tester_sim(unittest.TestCase):
