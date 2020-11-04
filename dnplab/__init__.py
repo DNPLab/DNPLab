@@ -5,7 +5,6 @@ from .dnpImport import load
 from . import dnpIO
 from . import dnpFit
 from . import dnpHydration
-from . import hydrationGUI
 from . import core
 from . import dnpResults
 from . import dnpTools
