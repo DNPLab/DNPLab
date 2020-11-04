@@ -3,7 +3,7 @@ from struct import unpack
 from dnplab import dnpdata
 
 
-def import_delta(path, sep_phase_cycle=False):
+def import_delta(path):
     """
     Import Delta data and return dnpdata object
 
@@ -13,10 +13,8 @@ def import_delta(path, sep_phase_cycle=False):
     Returns:
         delta_data (object) : dnpdata object containing Delta data
     """
-    # pars = import_delta_pars(path)
-    values, coords, dims, attrs = import_delta_data(
-        path, sep_phase_cycle=sep_phase_cycle
-    )
+    pars = import_delta_pars(path)
+    values, coords, dims, attrs = import_delta_data(path, pars)
 
     delta_data = dnpdata(values, coords, dims, attrs)
 
@@ -59,7 +57,7 @@ def import_delta_pars(path):
     return params
 
 
-def import_delta_data(path, sep_phase_cycle=False):
+def import_delta_data(path, params):
     """
     Import spectrum or spectra of Delta data
 
@@ -76,7 +74,6 @@ def import_delta_data(path, sep_phase_cycle=False):
     file_contents = file_opened.read(1296)
     file_opened.close()
 
-    params = {}
     exp_type = [unpack(">B", file_contents[24 + k : 25 + k])[0] for k in range(0, 8, 1)]
     num_dims = [
         unpack(">B", file_contents[12 + k : 13 + k])[0] for k in range(0, 1, 1)
@@ -110,11 +107,11 @@ def import_delta_data(path, sep_phase_cycle=False):
         num_pts = int(num_pts[0])
         load_pts = num_pts
         file_opened.seek(load_pts)
-        if exp_type[0] == 3:
+        if exp_type[0] == 1:
+            y_data = np.fromfile(file_opened, "<d", load_pts)
+        elif exp_type[0] == 3 or exp_type[0] == 4:
             data = np.fromfile(file_opened, "<d", load_pts * 2)
             y_data = np.split(data, 2)[0] - 1j * np.split(data, 2)[1]
-        else:
-            y_data = np.fromfile(file_opened, "<d", load_pts)
         abscissa = [np.linspace(axes_coords_start[0], axes_coords_stop[0], num_pts)]
         dims = ["t2"]
 
@@ -127,7 +124,10 @@ def import_delta_data(path, sep_phase_cycle=False):
         abscissa = []
         if exp_type[0] == 4:
             data_folded = np.split(data, 2)[0] - 1j * np.split(data, 2)[1]
-            data_shaped = np.reshape(data_folded, [int(num_pts_x / 2), int(num_pts_y)])
+            data_shaped = np.reshape(
+                data_folded, [int(num_pts_y / 4), int(num_pts_x / 4), 4, 4]
+            )
+            y_data = [np.concatenate(np.concatenate(data_shaped, 1), 1)]
             abscissa.append(
                 np.linspace(
                     axes_coords_start[0], axes_coords_stop[0], int(num_pts_x / 8)
@@ -137,6 +137,8 @@ def import_delta_data(path, sep_phase_cycle=False):
                 np.linspace(axes_coords_start[1], axes_coords_stop[1], num_pts_y)
             )
             dims = ["t2", "t1"]
+
+            """
             y_data = []
             if sep_phase_cycle:
                 for ix in range(num_pts_y):
@@ -144,6 +146,8 @@ def import_delta_data(path, sep_phase_cycle=False):
             else:
                 for ix in range(num_pts_y):
                     y_data.append(np.sum(np.split(data_shaped[:, ix], 4), axis=0))
+            """
+
     else:
         raise ValueError("Only 1D or 2D are supported")
 

@@ -761,9 +761,12 @@ class hydrationGUI(QMainWindow):
 
         optcenter_workspace = copy.deepcopy(self.processing_workspace)
         intgrl_array = []
-        max_index = np.argmax(optcenter_workspace["proc"].values, axis=0)
-        if max_index.size != 1:
-            max_index = max_index[0]
+        if optcenter_workspace["proc"].ndim == 1:
+            max_index = np.argmax(abs(optcenter_workspace["proc"].values), axis=0)
+        elif optcenter_workspace["proc"].ndim == 2:
+            max_index = np.argmax(
+                np.sum(abs(optcenter_workspace["proc"].values), axis=1), axis=0
+            )
         starting_center = round(optcenter_workspace["proc"].coords["t2"][max_index])
         indx = range(starting_center - 50, starting_center + 50)
         optcenter_workspace = self.phs_workspace(
