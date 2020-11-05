@@ -81,12 +81,16 @@ def exponentialFit(all_data, type="mono", stretched=False, dim="t2"):
 
         if stretched:
             x0 = [inputData[0], 1.0, 1.0]
-            out, cov = curve_fit(t2_function_stretch, x_axis, inputData, x0, method="lm")
+            out, cov = curve_fit(
+                t2_function_stretch, x_axis, inputData, x0, method="lm"
+            )
             stdd = _np.sqrt(_np.diag(cov))
             fit = t2_function_stretch(new_axis, out[0], out[1], out[2])
         else:
             x0 = [inputData[0], 1.0]
-            out, cov = curve_fit(t2_function_nostretch, x_axis, inputData, x0, method="lm")
+            out, cov = curve_fit(
+                t2_function_nostretch, x_axis, inputData, x0, method="lm"
+            )
             stdd = _np.sqrt(_np.diag(cov))
             fit = t2_function_nostretch(new_axis, out[0], out[1])
 
