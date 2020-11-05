@@ -3,15 +3,15 @@ import numpy as _np
 from scipy.optimize import curve_fit
 
 
-def t1Function(t_axis, T1, M_0, M_inf):
+def t1_function(t_axis, T1, M_0, M_inf):
     return M_0 - M_inf * _np.exp(-1.0 * t_axis / T1)
 
 
-def str_exp_fit_func(x_axis, M_0, T2, p):
+def t2_function_stretch(x_axis, M_0, T2, p):
     return M_0 * _np.exp(-2.0 * (x_axis / T2) ** p)
 
 
-def nostr_exp_fit_func(x_axis, M_0, T2):
+def t2_function_nostretch(x_axis, M_0, T2):
     return M_0 * _np.exp(-2.0 * (x_axis / T2) ** 1.0)
 
 
@@ -67,9 +67,9 @@ def exponentialFit(all_data, type="mono", stretched=False, dim="t2"):
     if type == "T1":
 
         x0 = [1.0, inputData[-1], inputData[-1]]
-        out, cov = curve_fit(t1Function, x_axis, inputData, x0, method="lm")
+        out, cov = curve_fit(t1_function, x_axis, inputData, x0, method="lm")
         stdd = _np.sqrt(_np.diag(cov))
-        fit = t1Function(new_axis, out[0], out[1], out[2])
+        fit = t1_function(new_axis, out[0], out[1], out[2])
 
         fitData = _dnpdata(fit, [new_axis], [ind_dim])
         fitData.attrs["T1"] = out[0]
@@ -81,14 +81,14 @@ def exponentialFit(all_data, type="mono", stretched=False, dim="t2"):
 
         if stretched:
             x0 = [inputData[0], 1.0, 1.0]
-            out, cov = curve_fit(str_exp_fit_func, x_axis, inputData, x0, method="lm")
+            out, cov = curve_fit(t2_function_stretch, x_axis, inputData, x0, method="lm")
             stdd = _np.sqrt(_np.diag(cov))
-            fit = str_exp_fit_func(new_axis, out[0], out[1], out[2])
+            fit = t2_function_stretch(new_axis, out[0], out[1], out[2])
         else:
             x0 = [inputData[0], 1.0]
-            out, cov = curve_fit(nostr_exp_fit_func, x_axis, inputData, x0, method="lm")
+            out, cov = curve_fit(t2_function_nostretch, x_axis, inputData, x0, method="lm")
             stdd = _np.sqrt(_np.diag(cov))
-            fit = nostr_exp_fit_func(new_axis, out[0], out[1])
+            fit = t2_function_nostretch(new_axis, out[0], out[1])
 
         fitData = _dnpdata(fit, [new_axis], [ind_dim])
         fitData.attrs["T2"] = out[1]

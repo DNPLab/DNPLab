@@ -67,10 +67,10 @@ class dnpNMR_tester(unittest.TestCase):
             self.ws,
             method="arctan",
             order="first",
+            pivot=len(self.ws["proc"].values[:, 7]) / 2,
+            delta=np.pi / 2,
             reference_slice=None,
             force_positive=False,
-            pivot=len(self.ws["proc"].values[:, 7]) / 2,
-            rise=np.pi / 2,
         )
         self.assertEqual(shape_data, np.shape(self.ws))
         self.assertEqual(max(self.ws["proc"].values[:, 3].real), 235.73708636474333)

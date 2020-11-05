@@ -471,23 +471,23 @@ def align(all_data, dim="t2"):
 
 def autophase(
     all_data,
-    method="arctan",
-    reference_slice=None,
-    force_positive=False,
+    method="search",
     order="zero",
     pivot=0,
-    rise=0,
+    delta=0,
+    reference_slice=None,
+    force_positive=False,
 ):
     """Automatically phase data
 
     Args:
         all_data (dnpdata_collection, dnpdata): Data object to autophase
         method (str): "arctan" finds the arc tangent of the ratio of the sum of the imaginary to the sum of the real, or "search" finds the maximum of the sum of the real to the sum of the imaginary after phase correction by an array of test angles
-        reference_slice (int, or None): slice of 2D data that is used to draw the baseline, none means each slice is corrected individually
-        force_positive (boolean): If true, any phase correction orients data above the baseline
         order (str) : "zero" or "first" order phase corrections
         pivot (int) : number between 0 and the length of the data at which the first order phase correction is equal to the zeroth order phase correction
-        rise (float) : change in phase angle from data[0] to data[end]
+        delta (float) : change in phase angle from data[0] to data[end]
+        reference_slice (int, or None): slice of 2D data that is used to draw the baseline, none means each slice is corrected individually
+        force_positive (boolean): If true, any phase correction orients data above the baseline
 
     Returns:
         all_data (dnpdata, dict): Autophased data in container
@@ -528,8 +528,8 @@ def autophase(
     elif order == "first":
         pivot_ratio = pivot / len(data.values)
         phase_1 = _np.linspace(
-            phase_0 - rise * pivot_ratio,
-            phase_0 + rise * (1 - pivot_ratio),
+            phase_0 - delta * pivot_ratio,
+            phase_0 + delta * (1 - pivot_ratio),
             len(data.values),
         )
         data.attrs["phase_1"] = phase_1
@@ -560,7 +560,7 @@ def autophase(
         "force_positive": force_positive,
         "order": order,
         "pivot": pivot,
-        "rise": rise,
+        "delta": delta,
     }
     proc_attr_name = "autophase"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
