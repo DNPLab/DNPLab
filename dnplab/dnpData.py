@@ -87,15 +87,6 @@ class dnpdata(nddata.nddata_core):
 
         self.proc_attrs.append((proc_attr_name, proc_dict))
 
-    def autophase(self):
-        """
-        Multiply dnpdata object by phase
-        """
-        p = self.phase()
-        self.values *= np.exp(-1j * p)
-        if np.sum(np.real(self.values)) < 0:
-            self.values *= -1.0
-
     def phase(self):
         """
         Return phase of dnpdata object

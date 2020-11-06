@@ -119,13 +119,14 @@ def find_group_delay(decim, dspfvs):
     return group_delay
 
 
-def load_title(path, expNum=1, titlePath="pdata/1", titleFilename="title"):
+def load_title(
+    path="1" + _os.sep, titlePath=_os.path.join("pdata", "1"), titleFilename="title"
+):
     """
     Import Topspin Experiment Title File
 
     Args:
         path (str): Directory of title
-        expNum (int): Experiment number to return title
         titlePath (str): Path within experiment of title
         titleFilename (str): filename of title
 
@@ -133,7 +134,7 @@ def load_title(path, expNum=1, titlePath="pdata/1", titleFilename="title"):
         str: Contents of experiment title file
     """
 
-    pathFilename = _os.path.join(path, str(expNum), titlePath, titleFilename)
+    pathFilename = _os.path.join(path, titlePath, titleFilename)
 
     with open(pathFilename, "r") as f:
         rawTitle = f.read()
@@ -142,20 +143,19 @@ def load_title(path, expNum=1, titlePath="pdata/1", titleFilename="title"):
     return title
 
 
-def load_acqu(path, expNum=1, paramFilename="acqus"):
+def load_acqu(path="1", paramFilename="acqus"):
     """
     Import Topspin JCAMPDX file
 
     Args:
         path (str): directory of acqusition file
-        expNum (int): Experiment number
         paramFilename (str): Acqusition parameters filename
 
     Returns:
         dict: Dictionary of acqusition parameters
     """
 
-    pathFilename = path + str(expNum) + "/" + paramFilename
+    pathFilename = _os.path.join(path, paramFilename)
 
     # Import parameters
     with open(pathFilename, "r") as f:
@@ -177,8 +177,8 @@ def load_acqu(path, expNum=1, paramFilename="acqus"):
     return attrsDict
 
 
-def load_proc(path, expNum=1, procNum=1, paramFilename="procs"):
-    pathFilename = path + str(expNum) + "/pdata/" + str(procNum) + "/" + paramFilename
+def load_proc(path="1", procNum=1, paramFilename="procs"):
+    pathFilename = _os.path.joing(path, "pdata", str(procNum), paramFilename)
 
     # Import parameters
     with open(pathFilename, "r") as f:
@@ -200,18 +200,17 @@ def load_proc(path, expNum=1, procNum=1, paramFilename="procs"):
     return attrsDict
 
 
-def dir_data_type(path, expNum):
+def dir_data_type(path):
     """
     Determine type of data in directory
 
     Args:
         path (str): Directory of data
-        expNum (int): Experiment number
 
     Returns:
         str: String identifying filetype
     """
-    fullPath = path + "/" + str(expNum)
+    fullPath = path
 
     dirList = _os.listdir(fullPath)
 
@@ -226,45 +225,43 @@ def dir_data_type(path, expNum):
         return ""
 
 
-def import_topspin(path, expNum, paramFilename="acqus"):
+def import_topspin(path, paramFilename="acqus"):
     """
     Import topspin data and return dnpdata object
 
     Args:
         path (str): Directory of data
-        expNum (int): Experiment number
         paramFilename (str): Parameters filename
 
     Returns:
         dnpdata: topspin data
     """
-    dirType = dir_data_type(path, expNum)
+    dirType = dir_data_type(path)
 
     if dirType == "fid":
-        data = topspin_fid(path, expNum, paramFilename)
+        data = topspin_fid(path, paramFilename)
     elif dirType == "ser":
-        data = import_ser(path, expNum, paramFilename)
+        data = import_ser(path, paramFilename)
     elif dirType == "serPhaseCycle":
-        data = topspin_ser_phase_cycle(path, expNum, paramFilename)
+        data = topspin_ser_phase_cycle(path, paramFilename)
     else:
         raise ValueError("Could Not Identify Data Type in File")
 
     return data
 
 
-def topspin_fid(path, expNum, paramFilename="acqus"):
+def topspin_fid(path, paramFilename="acqus"):
     """
     Import topspin fid data and return dnpdata object
 
     Args:
         path (str): Directory of data
-        expNum (int): Experiment number
         paramFilename (str): Parameters filename
 
     Returns:
         dnpdata: Topspin data
     """
-    attrsDict = load_acqu(path, expNum, paramFilename)
+    attrsDict = load_acqu(path, paramFilename)
 
     sw_h = attrsDict["SW_h"]  # Spectral Width in Hz
     rg = attrsDict["RG"]  # reciever gain
@@ -278,7 +275,7 @@ def topspin_fid(path, expNum, paramFilename="acqus"):
     else:
         endian = ">"
 
-    raw = _np.fromfile(path + str(expNum) + "/fid", dtype=endian + "i4")
+    raw = _np.fromfile(_os.path.join(path, "fid"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(decim, dspfvs)
@@ -386,18 +383,17 @@ def topspin_jcamp_dx(path):
     return attrs
 
 
-def topspin_vdlist(path, expNum):
+def topspin_vdlist(path):
     """
     Return topspin vdlist
 
     Args:
         Path (str): Directory of data
-        expNum (int): Experiment number
 
     Returns:
         numpy.ndarray: vdlist as numpy array
     """
-    fullPath = path + str(expNum) + "/vdlist"
+    fullPath = _os.path.join(path, "vdlist")
 
     with open(fullPath, "r") as f:
         raw = f.read()
@@ -423,19 +419,18 @@ def topspin_vdlist(path, expNum):
     return vdList
 
 
-def import_ser(path, expNum, paramFilename="acqus"):
+def import_ser(path, paramFilename="acqus"):
     """
     Import topspin ser file
 
     Args:
         path (str): Directory of data
-        expNum (int): Experiment number
         paramFilename (str): Filename of parameters file
 
     Returns:
         dnpdata: Topspin data
     """
-    attrsDict = load_acqu(path, expNum, paramFilename)
+    attrsDict = load_acqu(path, paramFilename)
 
     sw_h = attrsDict["SW_h"]  # Spectral Width in Hz
     rg = attrsDict["RG"]  # reciever gain
@@ -449,7 +444,7 @@ def import_ser(path, expNum, paramFilename="acqus"):
     else:
         endian = ">"
 
-    raw = _np.fromfile(path + str(expNum) + "/ser", dtype=endian + "i4")
+    raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(decim, dspfvs)
@@ -457,7 +452,7 @@ def import_ser(path, expNum, paramFilename="acqus"):
 
     t = 1.0 / sw_h * _np.arange(0, int(td / 2) - group_delay)
 
-    vdList = topspin_vdlist(path, expNum)
+    vdList = topspin_vdlist(path)
 
     data = data.reshape(len(vdList), -1).T
 
@@ -472,19 +467,18 @@ def import_ser(path, expNum, paramFilename="acqus"):
     return output
 
 
-def topspin_ser_phase_cycle(path, expNum, paramFilename="acqus"):
+def topspin_ser_phase_cycle(path, paramFilename="acqus"):
     """
     Import Topspin data with phase cycle saved as different dimension
 
     Args:
         path (str): Directory of data
-        expNum (int): Experiment number
         paramFilename (str): Filename of parameters file
 
     Returns:
         dnpdata: Topspin data
     """
-    attrsDict = load_acqu(path, expNum, paramFilename)
+    attrsDict = load_acqu(path, paramFilename)
 
     # TODO: this chunk of code appears three times in this file. Need clean up.
     sw_h = attrsDict["SW_h"]  # Spectral Width in Hz
@@ -499,7 +493,7 @@ def topspin_ser_phase_cycle(path, expNum, paramFilename="acqus"):
     else:
         endian = ">"
 
-    raw = _np.fromfile(path + str(expNum) + "/ser", dtype=endian + "i4")
+    raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(decim, dspfvs)
@@ -522,27 +516,3 @@ def topspin_ser_phase_cycle(path, expNum, paramFilename="acqus"):
 
     output = _dnpdata(data, [t], ["t2"], importantParamsDict)
     return output
-
-
-def import_topspin_dir(path):
-    """
-    Import directory of Topspin data and return as dictionary
-
-    Args:
-        path (str): Directory of data
-
-    Returns:
-        dict: Topspin data. Keys correspond to folder name. Values correspond to dnpdata with topspin data for each folder.
-    """
-
-    dirFiles = [x for x in _os.listdir(path) if _os.path.isdir(_os.path.join(path, x))]
-
-    dataDict = {}
-    for expNum in dirFiles:
-        try:
-            tempData = import_topspin(path, expNum)
-            dataDict[expNum] = tempData
-        except:
-            pass
-
-    return dataDict
