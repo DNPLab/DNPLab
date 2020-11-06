@@ -49,6 +49,9 @@ def load(path, data_type=None, *args, **kwargs):
     elif data_type == "specman":
         return dnpIO.specman.import_specman(path, *args, **kwargs)
 
+    elif data_type == "xepr" or data_type == "xenon":
+        return dnpIO.bes3t.import_bes3t(path, *args, **kwargs)
+
     elif data_type == "h5":
         return dnpIO.h5.loadh5(path, *args, **kwargs)
 
