@@ -132,6 +132,38 @@ class specman_import_tester(unittest.TestCase):
         self.assertEqual(data.values.shape, (1500, 40, 5, 3))
 
 
+class bes3t_import_tester(unittest.TestCase):
+    def setUp(self):
+        self.test_data_DEER = os.path.join(".", "data", "bes3t", "DEER.DSC")
+        self.test_data_ESE = os.path.join(".", "data", "bes3t", "2D_ESE.DTA")
+        self.test_data_1D = os.path.join(".", "data", "bes3t", "1D_CW.DTA")
+        self.test_data_2D = os.path.join(".", "data", "bes3t", "2D_CW.YGF")
+
+    def test_import_bes3t_DEER(self):
+        data = wrapper.load(self.test_data_DEER, data_type="xepr")
+        self.assertEqual(data.dims, ["ns"])
+        self.assertEqual(data.values.shape, (504,))
+        self.assertEqual(data.attrs["frequency"], 33.85)
+
+    def test_import_bes3t_ESE(self):
+        data = wrapper.load(self.test_data_ESE, data_type="xepr")
+        self.assertEqual(data.dims, ["ns", "index"])
+        self.assertEqual(data.values.shape, (512, 50))
+        self.assertEqual(data.attrs["frequency"], 9.296)
+
+    def test_import_bes3t_1D(self):
+        data = wrapper.load(self.test_data_1D, data_type="xenon")
+        self.assertEqual(data.dims, ["G"])
+        self.assertEqual(data.values.shape, (2500,))
+        self.assertEqual(data.attrs["frequency"], 9.627173)
+
+    def test_import_bes3t_2D(self):
+        data = wrapper.load(self.test_data_2D, data_type="xenon")
+        self.assertEqual(data.dims, ["G", "s"])
+        self.assertEqual(data.values.shape, (1600, 100))
+        self.assertEqual(data.attrs["frequency"], 9.627213)
+
+
 class delta_import_tester(unittest.TestCase):
     def setUp(self):
         self.test_data_1D = os.path.join(".", "data", "delta", "50percCHCL3.jdf")

@@ -1,6 +1,7 @@
 import numpy as np
 import os
 from dnplab import dnpdata
+import warnings
 
 
 def import_bes3t(path):
@@ -14,21 +15,21 @@ def import_bes3t(path):
         bes3t_data (object) : dnpdata object containing Bruker BES3T data
     """
     pathexten = path[-3:]
-    if pathexten == "DSC":
-        path_dsc = path
-        path_dta = path.replace("DSC", "DTA")
-    elif pathexten == "DTA":
-        path_dsc = path.replace("DTA", "DSC")
-        path_dta = path
-    elif pathexten == "YGF":
-        path_ygf = path
-        path_dsc = path.replace("YGF", "DTA")
-        path_dta = path.replace("YGF", "DTA")
+    path = path[:-3]
+    path_ygf = "none"
+    if pathexten == "DSC" or pathexten == "DTA":
+        path_dsc = path + "DSC"
+        path_dta = path + "DTA"
+        if os.path.isfile(path + "YGF"):
+            path_ygf = path + "YGF"
 
-    if os.path.isfile(path[:-3] + "YGF") and pathexten != "YGF":
-        path_ygf = path[:-3] + "YGF"
+    elif pathexten == "YGF":
+        path_ygf = path + "YGF"
+        path_dsc = path + "DSC"
+        path_dta = path + "DTA"
+
     else:
-        path_ygf = "none"
+        raise TypeError("data file must be .DTA, .DSC, or .YGF")
 
     params = load_bes3t_dsc(path_dsc)
     coords, values, attrs, dims = load_bes3t_dta(path_dta, path_ygf, params)
@@ -53,7 +54,7 @@ def load_bes3t_dsc(path):
 
     params = {}
     for ix in range(len(dscfile_contents)):
-        par = dscfile_contents[ix].rstrip("\n").rstrip("\t")
+        par = dscfile_contents[ix].rstrip("\t").rstrip("\n")
         if "MWFQ" in par:
             params["frequency"] = float(par.replace("MWFQ", "").strip()) / 1e9
         elif "Power" in par and "Atten" not in par:
@@ -92,9 +93,10 @@ def load_bes3t_dsc(path):
             params["temperature"] = float(
                 par.replace("Temperature", "").replace("K", "").strip()
             )
-
         elif "XNAM" in par:
-            params["sweep"] = par.replace("XNAM", "").replace("'", "").strip()
+            sweep_domain = par.replace("XNAM", "").replace("'", "").strip()
+        elif "XUNI" in par:
+            params["sweep"] = par.replace("XUNI", "").replace("'", "").strip()
         elif "XPTS" in par:
             params["npoints"] = int(par.replace("XPTS", "").strip())
         elif "XMIN" in par:
@@ -121,8 +123,8 @@ def load_bes3t_dsc(path):
             elif dfmt == "I":
                 params["sweep_format"] = "int32"
 
-        elif "YNAM" in par:
-            params["slice"] = par.replace("YNAM", "").replace("'", "").strip()
+        elif "YUNI" in par:
+            params["slice"] = par.replace("YUNI", "").replace("'", "").strip()
         elif "YPTS" in par:
             params["nslices"] = int(par.replace("YPTS", "").strip())
         elif "YMIN" in par:
@@ -156,12 +158,12 @@ def load_bes3t_dsc(path):
 
     file_opened.close()
 
-    if params["sweep"] == "Time" and int(params["attenuation"]) == 60:
-        del params["attenuation"]
-        del params["power"]
-    elif params["sweep"] == "Time" and int(params["pulse_attenuation"]) == 60:
+    if sweep_domain == "Time" and int(params["attenuation"]) == 60:
+        params.pop("attenuation", None)
+        params.pop("power", None)
+    elif sweep_domain == "Time" and int(params["pulse_attenuation"]) == 60:
         params["pulse_attenuation"] = params["attenuation"]
-        del params["attenuation"]
+        params.pop("attenuation", None)
 
     return params
 
@@ -184,37 +186,45 @@ def load_bes3t_dta(path_dta, path_ygf, params):
     dta_dtype = np.dtype(params["sweep_format"]).newbyteorder(params["endian"])
     file_opened = open(path_dta, "rb")
     file_bytes = file_opened.read()
+    spec = np.frombuffer(file_bytes, dtype=dta_dtype)
+    abscissa = [
+        np.linspace(
+            params["sweep_min"],
+            params["sweep_min"] + params["sweep_width"],
+            params["npoints"],
+        )
+    ]
+    dims = [params["sweep"]]
 
-    abscissa_temp = np.linspace(
-        params["sweep_min"],
-        params["sweep_min"] + params["sweep_width"],
-        params["npoints"],
-    )
-    if params["data_type"] == "REAL":
-        spec = np.frombuffer(file_bytes, dtype=dta_dtype)
-    elif params["data_type"] == "CPLX":
-        spec = np.frombuffer(file_bytes, dtype=dta_dtype)
+    if params["data_type"] == "CPLX":
         spec = spec.astype(dtype=params["sweep_format"]).view(dtype=np.dtype("complex"))
 
-    if path_ygf != "none":
-        ygf_type = np.dtype(params["slice_format"]).newbyteorder(params["endian"])
-        file_opened = open(path_ygf, "rb")
-        file_bytes = file_opened.read()
-        abscissa = []
-        abscissa.append(np.frombuffer(file_bytes, dtype=ygf_type))
-        abscissa.append(abscissa_temp)
-        spec = np.reshape(spec, (params["nslices"], params["npoints"]))
-        dims = ["t1", "t2"]
+    if "nslices" in params.keys() and params["nslices"] != 1:
+        spec = np.reshape(spec, (params["npoints"], params["nslices"]), order="F")
+        dims.append(params["slice"])
+        if path_ygf != "none":
+            if params["slice_type"] == "linear":
+                warnings.warn("axis is linear, confirm that indirect axis is correct")
+            ygf_type = np.dtype(params["slice_format"]).newbyteorder(params["endian"])
+            file_opened = open(path_ygf, "rb")
+            file_bytes = file_opened.read()
+            abscissa.append(np.frombuffer(file_bytes, dtype=ygf_type))
+        elif path_ygf == "none":
+            if params["slice_type"] == "nonlinear":
+                warnings.warn(
+                    "axis is nonlinear, confirm that .YGF file is not needed and indirect axis is correct"
+                )
+            abscissa.append(
+                np.linspace(params["slice_min"], params["slice_max"], params["nslices"])
+            )
+        else:
+            warnings.warn("indirect axis format not supported, axis is only indexed")
+            abscissa.append([range(params["nslices"])])
 
-        del params["slice_format"]
-    else:
-        abscissa = [abscissa_temp]
-        dims = ["t2"]
-
-    del params["endian"]
-    del params["sweep_format"]
-    del params["sweep_type"]
-    del params["data_type"]
+    params.pop("endian", None)
+    params.pop("sweep_format", None)
+    params.pop("slice_format", None)
+    params.pop("data_type", None)
 
     file_opened.close()
 
