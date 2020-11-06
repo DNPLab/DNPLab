@@ -763,12 +763,32 @@ class nddata_core(object):
 
         return a
 
+    def argmax_index(self, dim):
+        """Return index of argmax for given dim"""
+        a = self.copy()
+        index = a.dims.index(dim)
+
+        a.values = np.argmax(a.values, axis=index)
+        a.coords.pop(dim)
+
+        return a
+
     def argmin(self, dim):
         """Return argmin for given dim"""
         a = self.copy()
         index = a.dims.index(dim)
 
         a.values = a.coords[dim][np.argmin(a.values, axis=index)]
+        a.coords.pop(dim)
+
+        return a
+
+    def argmin_index(self, dim):
+        """Return index of argmin for given dim"""
+        a = self.copy()
+        index = a.dims.index(dim)
+
+        a.values = np.argmin(a.values, axis=index)
         a.coords.pop(dim)
 
         return a
