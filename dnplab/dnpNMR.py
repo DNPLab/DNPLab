@@ -550,3 +550,39 @@ def autophase(
         return all_data
     else:
         return data
+
+def phasecycle(all_data, dim, receiver_phase):
+    """Perform Phase Cycle down given dimension
+
+    Args:
+        all_data (dnpdata_collection, dnpdata): data to process
+        dim (str): dimension to perform phase cycle
+        receiver_phase (numpy.array, list): Receiver Phase 0 (x), 1 (y), 2 (-x), 3 (-y)
+    """
+
+    data, isDict = return_data(all_data)
+
+    data = data.copy()
+
+    if dim not in data.dims:
+        raise ValueError('dim not in dims')
+
+    coord = data.coords[dim]
+    receiver_phase = _np.array(receiver_phase).ravel()
+
+    proc_parameters = {'dim':dim,
+                       'receiver_phase':receiver_phase}
+
+    receiver_phase = _np.tile(receiver_phase, int(coord.size / receiver_phase.size))
+
+    index = data.dims.index(dim)
+
+    reshape_size = [1 for k in data.dims]
+    reshape_size[index] = len(data.coords[dim])
+
+    data *= _np.exp(1j*(_np.pi/2.)*receiver_phase.reshape(reshape_size))
+
+    proc_attr_name = "phasecycle"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    return data
