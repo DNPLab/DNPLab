@@ -166,10 +166,13 @@ def load_parspc_spc(path, params):
 
     if "y_points" in params.keys() and params["y_points"] != 1:
         spec = np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
+
         if "y_unit" not in params.keys():
             dims.append("t1")
         else:
             dims.append(params["y_unit"])
+        if dims[0] == dims[1]:
+            dims = ["t2", "t1"]
 
         if "y_min" in params.keys() and "y_width" in params.keys():
             abscissa.append(
