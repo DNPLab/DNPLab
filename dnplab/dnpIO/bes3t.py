@@ -53,6 +53,7 @@ def load_bes3t_dsc(path):
 
     file_opened = open(path, "r")
     dscfile_contents = file_opened.readlines()
+    file_opened.close()
 
     params = {}
     for ix in range(len(dscfile_contents)):
@@ -158,8 +159,6 @@ def load_bes3t_dsc(path):
         elif "BSEQ" in par:
             params["endian"] = par.replace("BSEQ", "").strip()
 
-    file_opened.close()
-
     if sweep_domain == "Time" and int(params["attenuation"]) == 60:
         params.pop("attenuation", None)
         params.pop("power", None)
@@ -188,6 +187,7 @@ def load_bes3t_dta(path_dta, path_ygf, params):
     dta_dtype = np.dtype(params["sweep_format"]).newbyteorder(params["endian"])
     file_opened = open(path_dta, "rb")
     file_bytes = file_opened.read()
+    file_opened.close()
     spec = np.frombuffer(file_bytes, dtype=dta_dtype)
     abscissa = [
         np.linspace(
@@ -203,13 +203,18 @@ def load_bes3t_dta(path_dta, path_ygf, params):
 
     if "y_points" in params.keys() and params["y_points"] != 1:
         spec = np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
+
         dims.append(params["y_unit"])
+        if dims[0] == dims[1]:
+            dims = ["t2", "t1"]
+
         if path_ygf != "none":
             if params["slice_type"] == "linear":
                 warnings.warn("axis is linear, confirm that indirect axis is correct")
             ygf_type = np.dtype(params["slice_format"]).newbyteorder(params["endian"])
             file_opened = open(path_ygf, "rb")
             file_bytes = file_opened.read()
+            file_opened.close()
             abscissa.append(np.frombuffer(file_bytes, dtype=ygf_type))
         elif path_ygf == "none":
             if params["slice_type"] == "nonlinear":
@@ -227,7 +232,5 @@ def load_bes3t_dta(path_dta, path_ygf, params):
     params.pop("sweep_format", None)
     params.pop("slice_format", None)
     params.pop("data_type", None)
-
-    file_opened.close()
 
     return abscissa, spec, params, dims

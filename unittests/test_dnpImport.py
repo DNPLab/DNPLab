@@ -134,10 +134,18 @@ class specman_import_tester(unittest.TestCase):
 
 class bes3t_import_tester(unittest.TestCase):
     def setUp(self):
+        self.test_data_HYSCORE = os.path.join(".", "data", "bes3t", "HYSCORE.DSC")
         self.test_data_DEER = os.path.join(".", "data", "bes3t", "DEER.DSC")
         self.test_data_ESE = os.path.join(".", "data", "bes3t", "2D_ESE.DTA")
         self.test_data_1D = os.path.join(".", "data", "bes3t", "1D_CW.DTA")
         self.test_data_2D = os.path.join(".", "data", "bes3t", "2D_CW.YGF")
+
+    def test_import_bes3t_HYSCORE(self):
+        data = wrapper.load(self.test_data_HYSCORE, data_type="xepr")
+        self.assertEqual(data.dims, ["t2", "t1"])
+        self.assertEqual(data.values.shape, (175, 175))
+        self.assertEqual(max(data.coords["t2"]), 3520.0)
+        self.assertEqual(max(data.coords["t1"]), 3480.0)
 
     def test_import_bes3t_DEER(self):
         data = wrapper.load(self.test_data_DEER, data_type="xepr")
