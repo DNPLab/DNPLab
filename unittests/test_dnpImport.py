@@ -200,19 +200,20 @@ class parspc_import_tester(unittest.TestCase):
 class delta_import_tester(unittest.TestCase):
     def setUp(self):
         self.test_data_1D = os.path.join(".", "data", "delta", "50percCHCL3.jdf")
-        # self.test_data_2D = os.path.join(".", "data", "delta", "lineshape_drift.jdf")
+        self.test_data_2D = os.path.join(".", "data", "delta", "lineshape_drift.jdf")
 
     def test_import_delta_1D(self):
         data = wrapper.load(self.test_data_1D, data_type="delta")
         self.assertEqual(data.dims, ["t2"])
         self.assertEqual(data.values.shape, (16384,))
+        self.assertEqual(max(data.coords["t2"]), 0.262128)
 
-    """
     def test_import_delta_2D(self):
         data = wrapper.load(self.test_data_2D, data_type="delta")
         self.assertEqual(data.dims, ["t2", "t1"])
-        self.assertEqual(data.values.shape, (1024, 256))
-    """
+        self.assertEqual(data.values.shape, (8192, 256))
+        self.assertEqual(max(data.coords["t2"]), 0.5451929600000001)
+        self.assertEqual(max(data.coords["t1"]), 11.953125)
 
 
 if __name__ == "__main__":
