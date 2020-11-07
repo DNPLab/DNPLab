@@ -14,6 +14,7 @@ def import_bes3t(path):
     Returns:
         bes3t_data (object) : dnpdata object containing Bruker BES3T data
     """
+
     pathexten = path[-3:]
     path = path[:-3]
     path_ygf = "none"
@@ -49,6 +50,7 @@ def load_bes3t_dsc(path):
     Returns:
         params (dict) : dictionary of parameters
     """
+
     file_opened = open(path, "r")
     dscfile_contents = file_opened.readlines()
 
@@ -68,8 +70,8 @@ def load_bes3t_dsc(path):
                 float(par.replace("Attenuation", "").replace("dB", "").strip())
             )
         elif "CenterField" in par:
-            params["static_field"] = int(
-                float(par.replace("CenterField", "").replace("G", "").strip())
+            params["center_field"] = float(
+                par.replace("CenterField", "").replace("G", "").strip()
             )
         elif "ConvTime" in par:
             params["conversion_time"] = float(
@@ -96,13 +98,13 @@ def load_bes3t_dsc(path):
         elif "XNAM" in par:
             sweep_domain = par.replace("XNAM", "").replace("'", "").strip()
         elif "XUNI" in par:
-            params["sweep"] = par.replace("XUNI", "").replace("'", "").strip()
+            params["x_unit"] = par.replace("XUNI", "").replace("'", "").strip()
         elif "XPTS" in par:
-            params["npoints"] = int(par.replace("XPTS", "").strip())
+            params["x_points"] = int(par.replace("XPTS", "").strip())
         elif "XMIN" in par:
-            params["sweep_min"] = float(par.replace("XMIN", "").strip())
+            params["x_min"] = float(par.replace("XMIN", "").strip())
         elif "XWID" in par:
-            params["sweep_width"] = float(par.replace("XWID", "").strip())
+            params["x_width"] = float(par.replace("XWID", "").strip())
         elif "XTYP" in par:
             xtyp = par.replace("XTYP", "").strip()
             if xtyp == "IGD":
@@ -124,13 +126,13 @@ def load_bes3t_dsc(path):
                 params["sweep_format"] = "int32"
 
         elif "YUNI" in par:
-            params["slice"] = par.replace("YUNI", "").replace("'", "").strip()
+            params["y_unit"] = par.replace("YUNI", "").replace("'", "").strip()
         elif "YPTS" in par:
-            params["nslices"] = int(par.replace("YPTS", "").strip())
+            params["y_points"] = int(par.replace("YPTS", "").strip())
         elif "YMIN" in par:
-            params["slice_min"] = float(par.replace("YMIN", "").strip())
+            params["y_min"] = float(par.replace("YMIN", "").strip())
         elif "YWID" in par:
-            params["slice_max"] = float(par.replace("YWID", "").strip())
+            params["y_max"] = float(par.replace("YWID", "").strip())
         elif "YTYP" in par:
             ytyp = par.replace("YTYP", "").strip()
             if ytyp == "IGD":
@@ -170,15 +172,15 @@ def load_bes3t_dsc(path):
 
 def load_bes3t_dta(path_dta, path_ygf, params):
     """
-    Import parameter fields of specman data
+    Import data from .DTA file, and from .YGF file if one exists
 
     Args:
         path_dta (str) : Path to .DTA file
         path_ygf (str) : Path to .YGF file if 2D, otherwise is 'none'
 
     Returns:
-        abscissa (dict) : coordinates for spectrum or spectra
-        spec (dict) : spectrum for 1D or spectra for 2D
+        abscissa (ndarray) : coordinates for spectrum or spectra
+        spec (ndarray) : spectrum for 1D or spectra for 2D
         params (dict) : updated dictionary of parameters
         dims (list) : dimensions
     """
@@ -189,19 +191,19 @@ def load_bes3t_dta(path_dta, path_ygf, params):
     spec = np.frombuffer(file_bytes, dtype=dta_dtype)
     abscissa = [
         np.linspace(
-            params["sweep_min"],
-            params["sweep_min"] + params["sweep_width"],
-            params["npoints"],
+            params["x_min"],
+            params["x_min"] + params["x_width"],
+            params["x_points"],
         )
     ]
-    dims = [params["sweep"]]
+    dims = [params["x_unit"]]
 
     if params["data_type"] == "CPLX":
         spec = spec.astype(dtype=params["sweep_format"]).view(dtype=np.dtype("complex"))
 
-    if "nslices" in params.keys() and params["nslices"] != 1:
-        spec = np.reshape(spec, (params["npoints"], params["nslices"]), order="F")
-        dims.append(params["slice"])
+    if "y_points" in params.keys() and params["y_points"] != 1:
+        spec = np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
+        dims.append(params["y_unit"])
         if path_ygf != "none":
             if params["slice_type"] == "linear":
                 warnings.warn("axis is linear, confirm that indirect axis is correct")
@@ -215,11 +217,11 @@ def load_bes3t_dta(path_dta, path_ygf, params):
                     "axis is nonlinear, confirm that .YGF file is not needed and indirect axis is correct"
                 )
             abscissa.append(
-                np.linspace(params["slice_min"], params["slice_max"], params["nslices"])
+                np.linspace(params["y_min"], params["y_max"], params["y_points"])
             )
         else:
             warnings.warn("indirect axis format not supported, axis is only indexed")
-            abscissa.append([range(params["nslices"])])
+            abscissa.append([range(params["y_points"])])
 
     params.pop("endian", None)
     params.pop("sweep_format", None)

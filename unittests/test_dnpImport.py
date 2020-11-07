@@ -164,6 +164,31 @@ class bes3t_import_tester(unittest.TestCase):
         self.assertEqual(data.attrs["frequency"], 9.627213)
 
 
+class parspc_import_tester(unittest.TestCase):
+    def setUp(self):
+        self.test_data_ESP = os.path.join(".", "data", "parspc", "ExampleESP.par")
+        self.test_data_1D = os.path.join(".", "data", "parspc", "Example1D.spc")
+        self.test_data_2D = os.path.join(".", "data", "parspc", "Example2D.spc")
+
+    def test_import_parspc_ESP(self):
+        data = wrapper.load(self.test_data_ESP, data_type="esp")
+        self.assertEqual(data.dims, ["t2"])
+        self.assertEqual(data.values.shape, (1024,))
+        self.assertEqual(data.attrs["conversion_time"], 81.92)
+
+    def test_import_parspc_1D(self):
+        data = wrapper.load(self.test_data_1D, data_type="winepr")
+        self.assertEqual(data.dims, ["G"])
+        self.assertEqual(data.values.shape, (512,))
+        self.assertEqual(data.attrs["temperature"], 294.2)
+
+    def test_import_parspc_2D(self):
+        data = wrapper.load(self.test_data_2D, data_type="winepr")
+        self.assertEqual(data.dims, ["G", "dB"])
+        self.assertEqual(data.values.shape, (1024, 15))
+        self.assertEqual(data.attrs["frequency"], 9.79)
+
+
 class delta_import_tester(unittest.TestCase):
     def setUp(self):
         self.test_data_1D = os.path.join(".", "data", "delta", "50percCHCL3.jdf")
