@@ -1,9 +1,9 @@
-import numpy as _np
+import os as _os
 import re as _re
 
-from .. import dnpdata as _dnpdata
+import numpy as _np
 
-import os as _os
+from dnplab.dnpData import dnpdata as _dnpdata
 
 _dspfvs_table_10 = {
     2: 44.7500,

@@ -1,10 +1,11 @@
 from __future__ import division
-import numpy as np
-import operator
+
 import functools
+import operator
 from collections import OrderedDict
 from copy import deepcopy
 
+import numpy as np
 
 allowed_domains = ["FT", "IFT"]
 

@@ -1,6 +1,8 @@
-import numpy as np
 import os
-from dnplab import dnpdata
+
+import numpy as np
+
+from dnplab.dnpData import dnpdata
 
 
 def import_specman(path):

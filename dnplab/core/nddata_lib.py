@@ -1,5 +1,6 @@
-import nddata
 import numpy as np
+
+from . import nddata
 
 
 def ones(shape, dtype=None):

@@ -1,7 +1,9 @@
-from .. import dnpdata, create_workspace
 import warnings
-import numpy as np
+
 import h5py
+import numpy as np
+
+from dnplab.dnpData import create_workspace, dnpdata
 
 
 def saveh5(dataDict, path, overwrite=False):

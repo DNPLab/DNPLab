@@ -1,6 +1,6 @@
-import defaults
-import nddata
 import numpy as np
+
+from . import defaults, nddata
 
 
 # FIXME: the function below appears to be used nowhere else in the package. Please drop it.

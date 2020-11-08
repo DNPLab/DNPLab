@@ -1,5 +1,6 @@
-from .. import dnpData
 import numpy as np
+
+from dnplab import dnpData
 
 
 def save_csv(filename, odnpData: dnpData):
