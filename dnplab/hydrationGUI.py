@@ -1084,107 +1084,6 @@ class hydrationGUI(QMainWindow):
         # ksig = ksig[ksig[:,0].argsort()]
         # self.workup_ksig_array = ksig[:,1]
 
-    @staticmethod
-    def get_powers(fullPath, powerFile, bufferVal, exps):
-
-        expTime = []
-        absTime = []
-        for exp in exps:
-            opened = open(os.path.join(fullPath + str(exp), "audita.txt"))
-            lines = opened.readlines()
-            absStart = lines[8].split(" ")[2] + " " + lines[8].split(" ")[3]
-            splitup = re.findall(r"[\w']+", absStart)
-            absStart = datetime.datetime(
-                int(splitup[0]),
-                int(splitup[1]),
-                int(splitup[2]),
-                int(splitup[3]),
-                int(splitup[4]),
-                int(splitup[5]),
-                int(splitup[6]),
-            )
-            absStart = time.mktime(absStart.utctimetuple())
-            start = lines[8].split(" ")[3]
-            start = start.split(":")
-            hour = int(start[0], 10) * 3600
-            minute = int(start[1], 10) * 60
-            second = int(start[2].split(".")[0], 10)
-            start = second + minute + hour
-            absStop = lines[6].split("<")[1].split(">")[0].split(" ")
-            absStop = absStop[0] + " " + absStop[1]
-            splitup = re.findall(r"[\w']+", absStop)
-            absStop = datetime.datetime(
-                int(splitup[0]),
-                int(splitup[1]),
-                int(splitup[2]),
-                int(splitup[3]),
-                int(splitup[4]),
-                int(splitup[5]),
-                int(splitup[6]),
-            )
-            absStop = time.mktime(absStop.utctimetuple())
-            stop = lines[6].split(" ")[4]
-            stop = stop.split(":")
-            hour = int(stop[0], 10) * 3600
-            minute = int(stop[1], 10) * 60
-            second = int(stop[2].split(".")[0], 10)
-            stop = second + minute + hour
-            expTime.append(stop - start)
-            absTime.append((absStart, absStop))
-
-        threshold = 20
-
-        if os.path.isfile(fullPath + powerFile + ".mat"):
-            print("Extracted powers from " + powerFile + ".mat file")
-            openfile = loadmat(os.path.join(fullPath, powerFile + ".mat"))
-            power = openfile.pop("powerlist")
-            power = np.array([x for i in power for x in i])
-            exptime = openfile.pop("timelist")
-            exptime = np.array([x for i in exptime for x in i])
-        elif os.path.isfile(fullPath + powerFile + ".csv"):
-            print("Extracted powers from " + powerFile + ".csv file")
-            openfile = open(os.path.join(fullPath, powerFile + ".csv", "r"))
-            lines = openfile.readlines()
-            if len(lines) == 1:
-                lines = lines[0].split("\r")
-            lines.pop(0)
-            timeList = []
-            powerList = []
-            for line in lines:
-                exptime, power = line.split("\r")[0].split(",")
-                timeList.append(float(exptime))
-                powerList.append(float(power))
-            exptime = np.array(timeList)
-            power = np.array(powerList)
-
-        step = exptime[1] - exptime[0]
-        dp = []
-        for i in range(len(power) - 1):
-            dp.append((power[i + 1] - power[i]) / step)
-        dp = abs(np.array(dp))
-
-        timeBreak = []
-        for i in range(len(dp)):
-            if dp[i] >= threshold:
-                timeBreak.append(exptime[i])
-
-        timeBreak.sort()
-        absTime.sort(key=lambda tup: tup[0])
-        offSet = absTime[-1][1] - timeBreak[-1] + bufferVal
-
-        power_List = []
-        for timeVals in absTime:
-            start = int(timeVals[0] - offSet + bufferVal)
-            stop = int(timeVals[1] - offSet - bufferVal)
-            cutPower = []
-            for k in range(0, len(exptime) - 1):
-                if start <= exptime[k] <= stop:
-                    cutPower.append(power[k])
-            powers = round(np.average(cutPower), 3)
-            power_List.append(float(powers))
-
-        return power_List
-
     def Bruker_Button(self):
         """Select any numbered folder of a topspin dataset that contains 1D or 2D data."""
         try:
@@ -1345,10 +1244,9 @@ class hydrationGUI(QMainWindow):
                     ):
                         print("No Workup output found, using power readings files.")
 
-                        E_power_List = self.get_powers(
+                        E_power_List = dnplab.dnpIO.cnsi.get_powers(
                             pthnm,
                             "power",
-                            2.5,
                             self.gui_dict["folder_structure"]["enh"],
                         )
                         # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
@@ -1358,10 +1256,9 @@ class hydrationGUI(QMainWindow):
                         Epowers = np.multiply(1e-3, Epowers)
                         # }}
 
-                        T1_power_List = self.get_powers(
+                        T1_power_List = dnplab.dnpIO.cnsi.get_powers(
                             pthnm,
                             "t1_powers",
-                            20 * 2.5,
                             self.gui_dict["folder_structure"]["T1"],
                         )
                         # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
@@ -2748,7 +2645,7 @@ class hydrationGUI(QMainWindow):
         print("Save name: " + flnm)
         print("Save path: " + svpthnm)
 
-        dnplab.dnpIO.h5.saveh5(
+        dnplab.dnpSave.save(
             self.addHyd_workspace,
             os.path.join(svpthnm, flnm + " hydration_parameters.h5"),
         )

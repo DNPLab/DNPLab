@@ -33,7 +33,7 @@ def import_bes3t(path):
         raise TypeError("data file must be .DTA, .DSC, or .YGF")
 
     params = load_bes3t_dsc(path_dsc)
-    coords, values, attrs, dims = load_bes3t_dta(path_dta, path_ygf, params)
+    values, coords, dims, attrs = load_bes3t_dta(path_dta, path_ygf, params)
 
     bes3t_data = dnpdata(values, coords, dims, attrs)
 
@@ -175,7 +175,8 @@ def load_bes3t_dta(path_dta, path_ygf, params):
 
     Args:
         path_dta (str) : Path to .DTA file
-        path_ygf (str) : Path to .YGF file if 2D, otherwise is 'none'
+        path_ygf (str) : path to .YGF file for 2D data, "none" if 1D or linear indirect axis
+        params (dict) : dictionary of parameters
 
     Returns:
         abscissa (ndarray) : coordinates for spectrum or spectra
@@ -233,4 +234,4 @@ def load_bes3t_dta(path_dta, path_ygf, params):
     params.pop("slice_format", None)
     params.pop("data_type", None)
 
-    return abscissa, spec, params, dims
+    return spec, abscissa, dims, params

@@ -24,7 +24,7 @@ def import_parspc(path):
         raise TypeError("data file must be .spc or .par")
 
     params = load_parspc_par(path_par)
-    coords, values, attrs, dims = load_parspc_spc(path_spc, params)
+    values, coords, dims, attrs = load_parspc_spc(path_spc, params)
 
     parspc_data = dnpdata(values, coords, dims, attrs)
 
@@ -187,4 +187,4 @@ def load_parspc_spc(path, params):
 
     file_opened.close()
 
-    return abscissa, spec, params, dims
+    return spec, abscissa, dims, params

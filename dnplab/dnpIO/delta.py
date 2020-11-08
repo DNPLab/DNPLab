@@ -65,13 +65,17 @@ def import_delta_data(path, params):
 
     Args:
         path (str) : Path to .jdf file
+        params (dict) : dictionary of parameters
 
     Returns:
         y_data (ndarray) : spectrum or spectra if >1D
         abscissa (list) : coordinates of axes
         dims (list) : axes names
-        params (dict) : dictionary of parameters
+        params (dict) : updated dictionary of parameters
     """
+
+    if not params:
+        params = {}
 
     file_opened = open(path, "rb")
     file_contents = file_opened.read(1296)
@@ -107,6 +111,8 @@ def import_delta_data(path, params):
         endian = ">d"
     elif endian == 1:
         endian = "<d"
+    else:
+        raise UnicodeTranslateError("Failed to determine endianness")
 
     num_pts = [
         unpack(">I", file_contents[176 + k : 180 + k])[0] for k in range(0, 32, 4)
@@ -142,6 +148,9 @@ def import_delta_data(path, params):
             y_data = data
         elif axis_type[0] == 3 or axis_type[0] == 4:
             y_data = np.split(data, 2)[0] - 1j * np.split(data, 2)[1]
+        else:
+            raise TypeError("Data format not recognized")
+
         dims = ["t2"]
 
     elif num_dims == 2:
@@ -163,9 +172,12 @@ def import_delta_data(path, params):
                     order="F",
                 )
                 y_data[idx] = np.concatenate(np.concatenate(data_shaped[idx], 1), 1)
+        else:
+            raise ValueError("Data format not recognized")
+
         dims = ["t2", "t1"]
 
     else:
-        raise ValueError("Only 1D or 2D are supported")
+        raise TypeError("Only 1D or 2D are supported")
 
     return y_data, abscissa, dims, params
