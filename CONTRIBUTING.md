@@ -112,13 +112,18 @@ batches of small changes to ease the reviewing process.
 After making changes, run the following and make sure no errors pop up
 to ensure you are not breaking the code.
 ```
-python -m pytest
+python -m pytest .
 ```
 
 Then run the following to check syntax error and correct formats
 ```
 python -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 python -m black .
+```
+
+The above formatting, syntax checking and testing are combined in the following one script, which you can save some typing and run in one line.
+```
+source ./format_and_test.sh
 ```
 
 After all done. Commit your changes following
