@@ -29,9 +29,11 @@ def load(path, data_type=None, *args, **kwargs):
     +-----------------+
     | cnsi_powers     |
     +-----------------+
+
     Args:
         path (str): Path to data directory or file
         data_type (str): Type of spectrometer data to import
+
     Returns:
         data (dnpData): Data object
     """
@@ -97,7 +99,11 @@ def autodetect(test_path):
         type = "specman"
     elif test_path[-4:] == ".jdf":
         type = "delta"
-    elif os.path.isdir(test_path) and "pdata" in os.listdir(test_path):
+    elif (
+        os.path.isdir(test_path)
+        and "pdata" in os.listdir(test_path)
+        and "acqus" in os.listdir(test_path)
+    ):
         type = "topspin"
     elif os.path.isdir(test_path) and test_path[-4:] == ".fid":
         type = "vnmrj"
