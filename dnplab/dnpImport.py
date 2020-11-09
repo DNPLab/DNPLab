@@ -11,9 +11,23 @@ def load(path, data_type=None, *args, **kwargs):
     +-----------------+
     | topspin         |
     +-----------------+
+    | delta           |
+    +-----------------+
     | vnmrj           |
     +-----------------+
     | specman         |
+    +-----------------+
+    | xenon and xepr  |
+    +-----------------+
+    | winepr and esp  |
+    +-----------------+
+    | h5              |
+    +-----------------+
+    | power           |
+    +-----------------+
+    | vna             |
+    +-----------------+
+    | cnsi_powers     |
     +-----------------+
     Args:
         path (str): Path to data directory or file
@@ -53,14 +67,17 @@ def load(path, data_type=None, *args, **kwargs):
     elif data_type == "winepr" or data_type == "esp":
         return dnpIO.parspc.import_parspc(path, *args, **kwargs)
 
+    elif data_type == "h5":
+        return dnpIO.loadh5.load_h5(path, *args, **kwargs)
+
     elif data_type == "power":
         return dnpIO.power.importPower(path, *args, **kwargs)
 
     elif data_type == "vna":
         return dnpIO.vna.import_vna(path, *args, **kwargs)
 
-    elif data_type == "h5":
-        return dnpIO.loadh5.load_h5(path, *args, **kwargs)
+    elif data_type == "cnsi_powers":
+        return dnpIO.cnsi.get_powers(path, *args, **kwargs)
 
     else:
         raise ValueError("Invalid data type: %s" % data_type)
