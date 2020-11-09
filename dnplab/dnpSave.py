@@ -22,11 +22,11 @@ def save(data_object, filename, save_type=None, *args, **kwargs):
 
     if save_type == "h5":
         if isinstance(data_object, dnpdata_collection):
-            return dnpIO.saveh5.save_h5(data_object, filename, *args, **kwargs)
+            return dnpIO.h5.save_h5(data_object, filename, *args, **kwargs)
         elif isinstance(data_object, dnpdata):
             ws = create_workspace()
             ws.add("data", data_object)
-            return dnpIO.saveh5.save_h5(ws, filename, *args, **kwargs)
+            return dnpIO.h5.save_h5(ws, filename, *args, **kwargs)
         else:
             raise TypeError(
                 "object format not recognized, must be dnpdata or dnpdata_collection"

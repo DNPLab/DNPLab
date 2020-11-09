@@ -70,7 +70,7 @@ def load(path, data_type=None, *args, **kwargs):
         return dnpIO.parspc.import_parspc(path, *args, **kwargs)
 
     elif data_type == "h5":
-        return dnpIO.loadh5.load_h5(path, *args, **kwargs)
+        return dnpIO.h5.load_h5(path, *args, **kwargs)
 
     elif data_type == "power":
         return dnpIO.power.importPower(path, *args, **kwargs)
