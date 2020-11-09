@@ -1,5 +1,5 @@
 import os
-from . import dnpIO
+from . import dnpIO, dnpdata, dnpdata_collection, create_workspace
 
 
 def save(data_object, filename, save_type=None, *args, **kwargs):
@@ -21,7 +21,16 @@ def save(data_object, filename, save_type=None, *args, **kwargs):
         save_type = autodetect(filename)
 
     if save_type == "h5":
-        return dnpIO.saveh5.save_h5(data_object, filename, *args, **kwargs)
+        if isinstance(data_object, dnpdata_collection):
+            return dnpIO.saveh5.save_h5(data_object, filename, *args, **kwargs)
+        elif isinstance(data_object, dnpdata):
+            ws = create_workspace()
+            ws.add("data", data_object)
+            return dnpIO.saveh5.save_h5(ws, filename, *args, **kwargs)
+        else:
+            raise TypeError(
+                "object format not recognized, must be dnpdata or dnpdata_collection"
+            )
 
     else:
         raise TypeError("File type not recognized, you must specify a save format")

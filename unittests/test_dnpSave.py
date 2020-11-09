@@ -51,6 +51,25 @@ class save_h5_tester(unittest.TestCase):
 
     def test_h5_save_ws(self):
 
+        saver.save(
+            self.testdata_wsob,
+            os.path.join(".", "unittests", "test_ob.h5"),
+            overwrite=True,
+        )
+
+        saved_data_ob = wrapper.load(os.path.join(".", "unittests", "test_ob.h5"))
+
+        self.assertEqual(
+            max(self.testdata_wsob.values[0]),
+            max(saved_data_ob["data"].values[0]),
+        )
+
+        self.assertEqual(self.testdata_wsob.values.shape, saved_data_ob["data"].shape)
+
+        self.assertEqual(self.testdata_wsob.dims, saved_data_ob["data"].dims)
+
+        os.remove(os.path.join(".", "unittests", "test_ob.h5"))
+
         ws_ws = create_workspace()
         ws_ws.add("raw", self.testdata_wsob)
         ws_ws.copy("raw", "proc")
