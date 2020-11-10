@@ -29,7 +29,7 @@ class dnpFit_tester(unittest.TestCase):
             self.ws, dim="t2", integrate_center=0, integrate_width=50
         )
         efit.exponentialFit(self.ws, type="T1")
-        self.assertEqual(self.ws["fit"].attrs["T1"], 2.620063458731661)
+        self.assertEqual(self.ws["fit"].attrs["T1"], 2.140702947551208)
 
         efit.exponentialFit(self.ws, type="T2")
         self.assertEqual(self.ws["fit"].attrs["T2"], 1.0682212598985381)
@@ -38,8 +38,8 @@ class dnpFit_tester(unittest.TestCase):
         self.assertEqual(self.ws["fit"].attrs["T2"], 0.8938213879865939)
 
         efit.exponentialFit(self.ws, type="mono")
-        self.assertEqual(self.ws["fit"].attrs["tau"], 2.620074855961468)
+        self.assertEqual(self.ws["fit"].attrs["tau"], 2.140702798915825)
 
         efit.exponentialFit(self.ws, type="bi")
-        self.assertEqual(self.ws["fit"].attrs["tau1"], 1.9438613863808594)
-        self.assertEqual(self.ws["fit"].attrs["tau2"], -64860.88976717187)
+        self.assertEqual(self.ws["fit"].attrs["tau1"], 2.1867254920126586)
+        self.assertEqual(self.ws["fit"].attrs["tau2"], 253552.51805618292)

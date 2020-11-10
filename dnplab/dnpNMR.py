@@ -394,10 +394,10 @@ def baseline(all_data, dim="t1", type="poly", order=1, reference_slice=None):
             bline = baseline_fit(
                 temp_coords, data[dim, :].values[:, reference_slice], type, order
             )
-            for ix in range(len(data.coords[dim]) - 1):
+            for ix in range(len(data.coords[dim])):
                 data.values[:, ix] -= bline
         elif reference_slice is None:
-            for ix in range(len(data.coords[dim]) - 1):
+            for ix in range(len(data.coords[dim])):
                 bline = baseline_fit(temp_coords, data.values[:, ix], type, order)
                 data.values[:, ix] -= bline
         else:
@@ -475,6 +475,7 @@ def autophase(
     order="zero",
     pivot=0,
     delta=0,
+    phase=0,
     reference_slice=None,
     force_positive=False,
 ):
@@ -497,53 +498,84 @@ def autophase(
     data, isDict = return_data(all_data)
     shape_data = _np.shape(data.values)
 
-    if reference_slice is not None:
-        if len(shape_data) == 1:
-            reference_slice = None
-            temp_data = data.values
-            warnings.warn("ignoring reference_slice, this is 1D data")
+    if method == "manual":
+        if order == "zero" and isinstance(phase, float):
+            data.attrs["phase_0"] = phase
+        elif order == "zero" and not isinstance(phase, float):
+            raise ValueError(
+                "for a zero order phase correction you must supply a single phase"
+            )
+        elif order == "first" and isinstance(phase, float):
+            data.attrs["phase_0"] = phase
+            order = "zero"
+            warnings.warn(
+                "method=manual and order=first but only a single phase was given, switching to order=zero"
+            )
+        elif (
+            order == "first"
+            and isinstance(phase, _np.ndarray)
+            and len(phase) == shape_data[0]
+        ):
+            data.attrs["phase_1"] = phase
+        elif (
+            order == "first" and isinstance(phase, list) and len(phase) == shape_data[0]
+        ):
+            data.attrs["phase_1"] = _np.array(phase)
         else:
-            reference_slice -= 1
-            temp_data = data.values[:, reference_slice]
+            raise ValueError(
+                "Invalid combination of phase order and phase value(s). Supply float for zero order, array or list for first order"
+            )
     else:
-        temp_data = data.values
 
-    if method == "arctan":
-        phase_0 = _np.arctan(
-            _np.sum(_np.imag(temp_data.reshape(-1, 1)))
-            / _np.sum(_np.real(temp_data.reshape(-1, 1)))
-        )
-    elif method == "search":
-        phases_0 = _np.linspace(-_np.pi / 2, _np.pi / 2, 180).reshape(-1)
-        rotated_data = (temp_data.reshape(-1, 1)) * _np.exp(-1j * phases_0)
-        real_imag_ratio = (_np.real(rotated_data) ** 2).sum(axis=0) / (
-            (_np.imag(rotated_data) ** 2).sum(axis=0)
-        )
-        phase_0 = phases_0[_np.argmax(real_imag_ratio)]
-    else:
-        raise TypeError("Invalid method")
+        if reference_slice is not None:
+            if len(shape_data) == 1:
+                reference_slice = None
+                temp_data = data.values
+                warnings.warn("ignoring reference_slice, this is 1D data")
+            else:
+                reference_slice -= 1
+                temp_data = data.values[:, reference_slice]
+        else:
+            temp_data = data.values
+
+        if method == "arctan":
+            data.attrs["phase_0"] = _np.arctan(
+                _np.sum(_np.imag(temp_data.reshape(-1, 1)))
+                / _np.sum(_np.real(temp_data.reshape(-1, 1)))
+            )
+        elif method == "search":
+            phases_0 = _np.linspace(-_np.pi / 2, _np.pi / 2, 180).reshape(-1)
+            rotated_data = (temp_data.reshape(-1, 1)) * _np.exp(-1j * phases_0)
+            real_imag_ratio = (_np.real(rotated_data) ** 2).sum(axis=0) / (
+                (_np.imag(rotated_data) ** 2).sum(axis=0)
+            )
+            data.attrs["phase_0"] = phases_0[_np.argmax(real_imag_ratio)]
+        else:
+            raise TypeError("Invalid autophase method")
 
     if order == "zero":
-        data.values *= _np.exp(-1j * phase_0)
+        data.values *= _np.exp(-1j * data.attrs["phase_0"])
     elif order == "first":
-        pivot_ratio = pivot / len(data.values)
-        phase_1 = _np.linspace(
-            phase_0 - delta * pivot_ratio,
-            phase_0 + delta * (1 - pivot_ratio),
-            len(data.values),
-        )
-        data.attrs["phase_1"] = phase_1
-        if len(shape_data) == 2:
-            for ix in range(shape_data[1] - 1):
-                data.values[:, ix] *= _np.exp(-1j * phase_1)
+        if method == "manual":
+            data.attrs["phase_1"] = phase
         else:
-            data.values *= _np.exp(-1j * phase_1)
+            pivot_ratio = pivot / len(data.values)
+            data.attrs["phase_1"] = _np.linspace(
+                data.attrs["phase_0"] - delta * pivot_ratio,
+                data.attrs["phase_0"] + delta * (1 - pivot_ratio),
+                len(data.values),
+            )
+        if len(shape_data) == 2:
+            for ix in range(shape_data[1]):
+                data.values[:, ix] *= _np.exp(-1j * data.attrs["phase_1"])
+        else:
+            data.values *= _np.exp(-1j * data.attrs["phase_1"])
     else:
-        raise TypeError("Invalid order")
+        raise TypeError("Invalid order or order & phase pair")
 
     if force_positive:
         if len(shape_data) == 2:
-            for ix in range(shape_data[1] - 1):
+            for ix in range(shape_data[1]):
                 if _np.sum(_np.real(data.values[:, ix])) < 0:
                     data.values[:, ix] *= -1.0
                 else:
@@ -564,7 +596,6 @@ def autophase(
     }
     proc_attr_name = "autophase"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
-    data.attrs["phase_0"] = phase_0
 
     if isDict:
         all_data[all_data.processing_buffer] = data
