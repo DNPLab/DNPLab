@@ -145,7 +145,7 @@ def load_title(
 
 def load_acqu(path="1", paramFilename="acqus"):
     """
-    Import Topspin JCAMPDX file
+    Import topspin acqus file
 
     Args:
         path (str): directory of acqusition file
@@ -236,7 +236,7 @@ def dir_data_type(path):
         return ""
 
 
-def import_topspin(path, paramFilename="acqus"):
+def import_topspin(path, paramFilename="acqus", TD=False):
     """
     Import topspin data and return dnpdata object
 
@@ -252,7 +252,7 @@ def import_topspin(path, paramFilename="acqus"):
     if dirType == "fid":
         data = topspin_fid(path, paramFilename)
     elif dirType == "ser":
-        data = import_ser(path, paramFilename)
+        data = import_ser(path, paramFilename, TD=TD)
     elif dirType == "serPhaseCycle":
         data = topspin_ser_phase_cycle(path, paramFilename)
     else:
@@ -423,7 +423,7 @@ def topspin_vdlist(path):
     return vdList
 
 
-def import_ser(path, paramFilename="acqus"):
+def import_ser(path, paramFilename="acqus", TD=False):
     """
     Import topspin ser file
 
@@ -449,9 +449,19 @@ def import_ser(path, paramFilename="acqus"):
 
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
 
-    vdList = topspin_vdlist(path)
+    vdList_in = topspin_vdlist(path)
 
-    data = data.reshape(len(vdList), -1).T
+    if TD and isinstance(TD, int) and TD > 1:
+        vdList = vdList_in[:TD]
+    else:
+        vdList = vdList_in
+
+    try:
+        data = data.reshape(len(vdList), -1).T
+    except ValueError:
+        raise ValueError(
+            "TD in second dimension doesn't match len(VDLIST), use TD=<insert your TD> argument"
+        )
 
     data = data[group_delay : int(attrsDict["TD"] / 2), :]
 
