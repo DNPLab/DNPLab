@@ -237,13 +237,13 @@ class hydrationGUI(QMainWindow):
 
         self.dnpLab_errorLabel = QLabel(self)
         self.dnpLab_errorLabel.setStyleSheet("font : bold 14px")
-        self.dnpLab_errorLabel.move(615, 545)
+        self.dnpLab_errorLabel.move(400, 601)
         self.dnpLab_errorLabel.resize(500, 20)
         self.dnpLab_errorLabel.setText("DNPLab fit Error")
 
         self.workup_errorLabel = QLabel(self)
         self.workup_errorLabel.setStyleSheet("font : bold 14px")
-        self.workup_errorLabel.move(615, 525)
+        self.workup_errorLabel.move(400, 590)
         self.workup_errorLabel.resize(500, 20)
         self.workup_errorLabel.setText("Workup fit Error")
 
@@ -2370,11 +2370,11 @@ class hydrationGUI(QMainWindow):
             except:
                 if T100 <= T10:
                     self.dnpLab_errorLabel.setText(
-                        "DNPLab fit Error: T10(0) cannot be less than or equal to T1(0)"
+                        "DNPLab fit Error: T10(0) must be > T1(0)"
                     )
                 if spin_C <= 0:
                     self.dnpLab_errorLabel.setText(
-                        "DNPLab fit Error: Spin concentration cannot be zero or negative"
+                        "DNPLab fit Error: Spin [C] must be > 0"
                     )
                 self.dataplt.axes.cla()
                 self.dataplt.draw()
@@ -2463,11 +2463,11 @@ class hydrationGUI(QMainWindow):
                 except:
                     if T100 <= wT10:
                         self.workup_errorLabel.setText(
-                            "Workup fit Error: T10(0) cannot be less than or equal to T1(0)"
+                            "Workup fit Error: T10(0) must be > T1(0)"
                         )
                     if spin_C <= 0:
                         self.workup_errorLabel.setText(
-                            "Workup fit Error: Spin concentration cannot be zero or negative"
+                            "Workup fit Error: Spin [C] must be > 0"
                         )
                     self.dataplt.axes.cla()
                     self.dataplt.draw()

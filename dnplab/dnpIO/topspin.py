@@ -460,7 +460,7 @@ def import_ser(path, paramFilename="acqus", TD=False):
         data = data.reshape(len(vdList), -1).T
     except ValueError:
         raise ValueError(
-            "TD in second dimension doesn't match len(VDLIST), use TD=<insert your TD> argument"
+            "TD in second dimension may not match len(VDLIST), try TD=<insert your TD> argument"
         )
 
     data = data[group_delay : int(attrsDict["TD"] / 2), :]
