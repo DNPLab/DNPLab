@@ -1,8 +1,11 @@
 import unittest
+
 import numpy as np
 from numpy.testing import assert_array_equal as assertArrayEqual
-from .testing import get_gauss_3d
+
 from dnplab.dnpData import dnpdata
+
+from .testing import get_gauss_3d
 
 
 class dnpDataTester(unittest.TestCase):

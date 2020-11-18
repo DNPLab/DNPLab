@@ -1,9 +1,9 @@
-import numpy as _np
 import os
-
-from .. import dnpdata as _dnpdata
-
 from struct import unpack
+
+import numpy as _np
+
+from dnplab.dnpData import dnpdata as _dnpdata
 
 headerSize = 32
 blockHeaderSize = 28

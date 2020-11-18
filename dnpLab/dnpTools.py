@@ -2,12 +2,9 @@
 Collection of tools and functions useful to process DNP-NMR data
 """
 
-import inspect
 import numpy as np
 
-
-from .mrProperties import gmrProperties
-from .mrProperties import radicalProperties
+from .mrProperties import gmrProperties, radicalProperties
 
 
 def mr_properties(nucleus, *args):

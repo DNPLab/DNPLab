@@ -1,6 +1,8 @@
-from . import dnpdata as _dnpdata, dnpdata_collection
 import numpy as _np
 from scipy.optimize import curve_fit
+
+from .dnpData import dnpdata as _dnpdata
+from .dnpData import dnpdata_collection
 
 
 def t1Function(t, T1, M_0, M_inf):

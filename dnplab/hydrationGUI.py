@@ -4,42 +4,39 @@ A graphical user interface for using DNPLab to process Han Lab format ODNP data 
 using the dnpHydration module.
 
 """
-import sys
+import copy
+import datetime
 import os
+import re
+import sys
+import time
 
-from PyQt5 import QtWidgets, QtGui, QtCore
-
+import numpy as np
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication,
-    QMainWindow,
-    QSizePolicy,
-    QWidget,
-    QPushButton,
-    QLineEdit,
-    QSlider,
-    QLabel,
     QCheckBox,
     QFileDialog,
+    QLabel,
+    QLineEdit,
+    QMainWindow,
+    QPushButton,
+    QSizePolicy,
+    QSlider,
+    QWidget,
 )
-from PyQt5.QtCore import Qt
+from scipy.io import loadmat, savemat
+
+import dnplab
 
 if hasattr(QtCore.Qt, "AA_EnableHighDpiScaling"):
     QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 
 if hasattr(QtCore.Qt, "AA_UseHighDpiPixmaps"):
     QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
-
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-
-import numpy as np
-from scipy.io import loadmat, savemat
-import copy
-import re
-import datetime
-import time
-
-import dnplab
 
 
 class hydrationGUI(QMainWindow):

@@ -1,10 +1,6 @@
-# TODO: remove unused imports
-import numpy as np
-import os
-import re
 from matplotlib.pylab import *
 
-from .. import dnpdata as _dnpdata
+from dnplab.dnpData import dnpdata as _dnpdata
 
 
 def import_vna(path):

@@ -1,8 +1,6 @@
 import numpy as _np
 from scipy.io import loadmat as _loadmat
 
-from .. import dnpData as _dnpData
-
 
 def importPower(path, filename=""):
     """

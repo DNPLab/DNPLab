@@ -1,10 +1,11 @@
-from .. import dnpdata
-from .. import create_workspace
-import numpy as np
-from struct import unpack
-import warnings
-import os
 import glob
+import os
+import warnings
+from struct import unpack
+
+import numpy as np
+
+from dnplab.dnpData import create_workspace, dnpdata
 
 
 def import_prospa(path, parameters_filename=None, verbose=False):

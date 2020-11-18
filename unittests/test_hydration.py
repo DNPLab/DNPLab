@@ -1,8 +1,9 @@
 import unittest
+
 import numpy as np
+
 from dnplab.dnpData import create_workspace
 from dnplab.dnpHydration import HydrationCalculator, HydrationParameter, hydration
-
 
 TESTSET = {
     "T1": np.array(

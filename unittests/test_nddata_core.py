@@ -1,11 +1,12 @@
-import pytest
 import operator
-import unittest
-from numpy.testing import assert_array_equal
-from dnplab.core import nddata
-import numpy as np
 import random
+import unittest
 
+import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
+
+from dnplab.core import nddata
 from dnplab.core.nddata_coord import nddata_coord, nddata_coord_collection
 
 test_dims = ["x", "y", "z", "p", "q", "r"]

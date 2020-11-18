@@ -1,9 +1,12 @@
 from __future__ import division
+
 import operator
-import numpy as np
 import warnings
-from copy import deepcopy
 from collections import OrderedDict
+from copy import deepcopy
+
+import numpy as np
+
 from . import nddata_coord
 
 _numerical_types = (np.ndarray, int, float, complex)

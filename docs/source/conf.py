@@ -15,6 +15,7 @@
 #
 import os
 import sys
+from datetime import datetime
 
 sys.path.insert(0, os.path.abspath("../../"))
 print("path:")
@@ -27,7 +28,6 @@ project = u"DNPLab"
 copyright = u"2020, DNPLab"
 author = u"DNPLab Team"
 
-from datetime import datetime
 
 date = datetime.now().strftime(u"%m/%d/%Y, %H:%M:%S")
 

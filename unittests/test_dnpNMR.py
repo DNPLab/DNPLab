@@ -1,11 +1,13 @@
+import os
 import unittest
-from dnplab import dnpdata
+
+import numpy as np
 from numpy.testing import assert_array_equal
+
+import dnplab as dnp
 import dnplab.dnpImport as wrapper
 import dnplab.dnpNMR as nmr
-import dnplab as dnp
-import numpy as np
-import os
+from dnplab import dnpdata
 
 
 class dnpNMR_tester(unittest.TestCase):

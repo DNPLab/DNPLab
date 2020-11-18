@@ -1,10 +1,12 @@
-import unittest
-import dnplab.dnpImport as wrapper
-import dnplab.dnpIO.topspin as topspin
-import dnplab.dnpIO.prospa as prospa
-import dnplab.dnpIO.vnmrj as vnmrj
 import os
+import unittest
+
 from numpy.testing import assert_array_equal
+
+import dnplab.dnpImport as wrapper
+import dnplab.dnpIO.prospa as prospa
+import dnplab.dnpIO.topspin as topspin
+import dnplab.dnpIO.vnmrj as vnmrj
 
 
 class import_topspin_tester(unittest.TestCase):

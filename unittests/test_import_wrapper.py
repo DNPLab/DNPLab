@@ -1,6 +1,7 @@
-import unittest
-from dnplab import load
 import os
+import unittest
+
+from dnplab import load
 
 
 class load_wrapper_tester(unittest.TestCase):

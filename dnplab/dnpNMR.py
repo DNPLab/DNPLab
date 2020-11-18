@@ -1,6 +1,8 @@
-from . import dnpdata, dnpdata_collection
-import numpy as _np
 import warnings
+
+import numpy as _np
+
+from dnplab.dnpData import dnpdata, dnpdata_collection
 
 
 def return_data(all_data):
