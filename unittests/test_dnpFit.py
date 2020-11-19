@@ -39,8 +39,3 @@ class dnpFit_tester(unittest.TestCase):
 
         efit.exponentialFit(self.ws, type="mono")
         self.assertAlmostEqual(self.ws["fit"].attrs["tau"], 2.140702798915825, places=4)
-
-        efit.exponentialFit(self.ws, type="bi")
-        self.assertAlmostEqual(
-            self.ws["fit"].attrs["tau1"], 2.1867254920126586, places=4
-        )
