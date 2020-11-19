@@ -29,17 +29,17 @@ class dnpFit_tester(unittest.TestCase):
             self.ws, dim="t2", integrate_center=0, integrate_width=50
         )
         efit.exponentialFit(self.ws, type="T1")
-        self.assertEqual(self.ws["fit"].attrs["T1"], 2.140702947551208)
+        self.assertAlmostEqual(self.ws["fit"].attrs["T1"], 2.140702947551208)
 
         efit.exponentialFit(self.ws, type="T2")
-        self.assertEqual(self.ws["fit"].attrs["T2"], 1.0682212598985381)
+        self.assertAlmostEqual(self.ws["fit"].attrs["T2"], 1.0682212598985381)
 
         efit.exponentialFit(self.ws, type="T2", stretched=True)
-        self.assertEqual(self.ws["fit"].attrs["T2"], 0.8938213879865939)
+        self.assertAlmostEqual(self.ws["fit"].attrs["T2"], 0.8938213879865939)
 
         efit.exponentialFit(self.ws, type="mono")
-        self.assertEqual(self.ws["fit"].attrs["tau"], 2.140702798915825)
+        self.assertAlmostEqual(self.ws["fit"].attrs["tau"], 2.140702798915825)
 
         efit.exponentialFit(self.ws, type="bi")
-        self.assertEqual(self.ws["fit"].attrs["tau1"], 2.1867254920126586)
-        self.assertEqual(self.ws["fit"].attrs["tau2"], 253552.51805618292)
+        self.assertAlmostEqual(self.ws["fit"].attrs["tau1"], 2.1867254920126586)
+        self.assertAlmostEqual(self.ws["fit"].attrs["tau2"], 253552.51805618292)
