@@ -753,6 +753,16 @@ class nddata_core(object):
         self.coords.append(dim, np.r_[coord])
         self.values = np.expand_dims(self.values, -1)
 
+    def maximum(self, dim):
+        """Return max for given dim"""
+        a = self.copy()
+        index = a.dims.index(dim)
+
+        a.values = np.max(a.values, axis=index)
+        a.coords.pop(dim)
+
+        return a
+
     def argmax(self, dim):
         """Return argmax for given dim"""
         a = self.copy()
@@ -769,6 +779,16 @@ class nddata_core(object):
         index = a.dims.index(dim)
 
         a.values = np.argmax(a.values, axis=index)
+        a.coords.pop(dim)
+
+        return a
+
+    def minimum(self, dim):
+        """Return min for given dim"""
+        a = self.copy()
+        index = a.dims.index(dim)
+
+        a.values = np.min(a.values, axis=index)
         a.coords.pop(dim)
 
         return a
