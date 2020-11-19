@@ -44,6 +44,3 @@ class dnpFit_tester(unittest.TestCase):
         self.assertAlmostEqual(
             self.ws["fit"].attrs["tau1"], 2.1867254920126586, places=4
         )
-        self.assertAlmostEqual(
-            self.ws["fit"].attrs["tau2"], 253552.51805618292, places=4
-        )
