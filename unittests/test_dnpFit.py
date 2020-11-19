@@ -59,11 +59,12 @@ class dnpFit_tester(unittest.TestCase):
         efit.exponentialFit(self.ws, type="bi")
         self.assertTrue(
             np.allclose(
-                self.ws["fit"].attrs["tau1"], 2.1867254920126586, rtol=1e-05, atol=1e-08
+                self.ws["fit"].attrs["tau1"], 2.1867254920126586, rtol=1e-03, atol=1e-06
             )
         )
+        print(self.ws["fit"].attrs["tau2"])
         self.assertTrue(
             np.allclose(
-                self.ws["fit"].attrs["tau2"], 253552.51805618292, rtol=1e-05, atol=1e-08
+                self.ws["fit"].attrs["tau2"], 253552.51805618292, rtol=1e-03, atol=1e-06
             )
         )
