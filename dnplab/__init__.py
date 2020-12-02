@@ -5,6 +5,7 @@ from .dnpSave import save
 from . import dnpNMR
 from . import dnpIO
 from . import dnpFit
+from . import dnpTools
 from . import dnpHydration
 from . import core
 from . import dnpResults
