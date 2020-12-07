@@ -15,32 +15,32 @@ def import_bes3t(path):
         bes3t_data (object) : dnpdata object containing Bruker BES3T data
     """
 
-    pathexten = path[-3:]
-    path = path[:-3]
+    pathexten = os.path.splitext(path)[1]
+    path = os.path.splitext(path)[0]
     path_ygf = "none"
-    if pathexten == "DSC" or pathexten == "DTA":
-        path_dsc = path + "DSC"
-        path_dta = path + "DTA"
-        if os.path.isfile(path + "YGF"):
-            path_ygf = path + "YGF"
+    if pathexten == ".DSC" or pathexten == ".DTA":
+        path_dsc = path + ".DSC"
+        path_dta = path + ".DTA"
+        if os.path.isfile(path + ".YGF"):
+            path_ygf = path + ".YGF"
 
-    elif pathexten == "YGF":
-        path_ygf = path + "YGF"
-        path_dsc = path + "DSC"
-        path_dta = path + "DTA"
+    elif pathexten == ".YGF":
+        path_ygf = path + ".YGF"
+        path_dsc = path + ".DSC"
+        path_dta = path + ".DTA"
 
     else:
         raise TypeError("data file must be .DTA, .DSC, or .YGF")
 
-    params = load_bes3t_dsc(path_dsc)
-    values, coords, dims, attrs = load_bes3t_dta(path_dta, path_ygf, params)
+    params = load_dsc(path_dsc)
+    values, coords, dims, attrs = load_dta(path_dta, path_ygf, params)
 
     bes3t_data = dnpdata(values, coords, dims, attrs)
 
     return bes3t_data
 
 
-def load_bes3t_dsc(path):
+def load_dsc(path):
     """
     Import contents of .DSC file
 
@@ -169,7 +169,7 @@ def load_bes3t_dsc(path):
     return params
 
 
-def load_bes3t_dta(path_dta, path_ygf, params):
+def load_dta(path_dta, path_ygf, params):
     """
     Import data from .DTA file, and from .YGF file if one exists
 

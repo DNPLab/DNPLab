@@ -42,7 +42,7 @@ def autodetect(test_name):
     if test_name[-1] == os.sep:
         test_name = test_name[:-1]
 
-    if test_name[-3:] == ".h5":
+    if os.path.splitext(test_name)[1] == ".h5":
         type = "h5"
     else:
         raise TypeError("File type not recognized, you must specify a save format")

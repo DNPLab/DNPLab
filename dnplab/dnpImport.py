@@ -67,7 +67,7 @@ def load(path, data_type=None, *args, **kwargs):
         return dnpIO.bes3t.import_bes3t(path, *args, **kwargs)
 
     elif data_type == "winepr" or data_type == "esp":
-        return dnpIO.parspc.import_parspc(path, *args, **kwargs)
+        return dnpIO.winepr.import_winepr(path, *args, **kwargs)
 
     elif data_type == "h5":
         return dnpIO.h5.load_h5(path, *args, **kwargs)
@@ -91,13 +91,14 @@ def autodetect(test_path):
     if test_path[-1] == os.sep:
         test_path = test_path[:-1]
 
-    if test_path[-4:] == ".DSC" or test_path[-4:] == ".DTA" or test_path[-4:] == ".YGF":
+    path_exten = os.path.splitext(test_path)[1]
+    if path_exten == ".DSC" or path_exten == ".DTA" or path_exten == ".YGF":
         type = "xepr"
-    elif test_path[-4:] == ".par" or test_path[-4:] == ".spc":
+    elif path_exten == ".par" or path_exten == ".spc":
         type = "winepr"
-    elif test_path[-4:] == ".d01" or test_path[-4:] == ".exp":
+    elif path_exten == ".d01" or path_exten == ".exp":
         type = "specman"
-    elif test_path[-4:] == ".jdf":
+    elif path_exten == ".jdf":
         type = "delta"
     elif (
         os.path.isdir(test_path)
@@ -105,7 +106,7 @@ def autodetect(test_path):
         and "acqus" in os.listdir(test_path)
     ):
         type = "topspin"
-    elif os.path.isdir(test_path) and test_path[-4:] == ".fid":
+    elif os.path.isdir(test_path) and path_exten == ".fid":
         type = "vnmrj"
     elif (
         os.path.isdir(test_path)
@@ -113,7 +114,7 @@ def autodetect(test_path):
         and "data.csv" in os.listdir(test_path)
     ):
         type = "prospa"
-    elif test_path[-3:] == ".h5":
+    elif path_exten == ".h5":
         type = "h5"
     else:
         raise TypeError(

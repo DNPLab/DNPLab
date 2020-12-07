@@ -1,9 +1,10 @@
 import numpy as np
+import os
 from dnplab import dnpdata
 import warnings
 
 
-def import_parspc(path):
+def import_winepr(path):
     """
     Import Bruker par/spc data and return dnpdata object
 
@@ -14,24 +15,24 @@ def import_parspc(path):
         parspc_data (object) : dnpdata object containing Bruker par/spc data
     """
 
-    pathexten = path[-3:]
-    path = path[:-3]
-    if pathexten == "par" or pathexten == "spc":
-        path_par = path + "par"
-        path_spc = path + "spc"
+    pathexten = os.path.splitext(path)[1]
+    path = os.path.splitext(path)[0]
+    if pathexten == ".par" or pathexten == ".spc":
+        path_par = path + ".par"
+        path_spc = path + ".spc"
 
     else:
         raise TypeError("data file must be .spc or .par")
 
-    params = load_parspc_par(path_par)
-    values, coords, dims, attrs = load_parspc_spc(path_spc, params)
+    params = load_par(path_par)
+    values, coords, dims, attrs = load_spc(path_spc, params)
 
     parspc_data = dnpdata(values, coords, dims, attrs)
 
     return parspc_data
 
 
-def load_parspc_par(path):
+def load_par(path):
     """
     Import contents of .par file
 
@@ -107,7 +108,7 @@ def load_parspc_par(path):
     return params
 
 
-def load_parspc_spc(path, params):
+def load_spc(path, params):
     """
     Import data and axes of .spc file
 
