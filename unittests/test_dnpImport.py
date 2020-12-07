@@ -132,6 +132,90 @@ class specman_import_tester(unittest.TestCase):
         self.assertEqual(data.values.shape, (1500, 40, 5, 3))
 
 
+class bes3t_import_tester(unittest.TestCase):
+    def setUp(self):
+        self.test_data_HYSCORE = os.path.join(".", "data", "bes3t", "HYSCORE.DSC")
+        self.test_data_DEER = os.path.join(".", "data", "bes3t", "DEER.DSC")
+        self.test_data_ESE = os.path.join(".", "data", "bes3t", "2D_ESE.DTA")
+        self.test_data_1D = os.path.join(".", "data", "bes3t", "1D_CW.DTA")
+        self.test_data_2D = os.path.join(".", "data", "bes3t", "2D_CW.YGF")
+
+    def test_import_bes3t_HYSCORE(self):
+        data = wrapper.load(self.test_data_HYSCORE, data_type="xepr")
+        self.assertEqual(data.dims, ["t2", "t1"])
+        self.assertEqual(data.values.shape, (175, 175))
+        self.assertEqual(max(data.coords["t2"]), 3520.0)
+        self.assertEqual(max(data.coords["t1"]), 3480.0)
+
+    def test_import_bes3t_DEER(self):
+        data = wrapper.load(self.test_data_DEER, data_type="xepr")
+        self.assertEqual(data.dims, ["ns"])
+        self.assertEqual(data.values.shape, (504,))
+        self.assertEqual(data.attrs["frequency"], 33.85)
+
+    def test_import_bes3t_ESE(self):
+        data = wrapper.load(self.test_data_ESE, data_type="xepr")
+        self.assertEqual(data.dims, ["ns", "index"])
+        self.assertEqual(data.values.shape, (512, 50))
+        self.assertEqual(data.attrs["frequency"], 9.296)
+
+    def test_import_bes3t_1D(self):
+        data = wrapper.load(self.test_data_1D, data_type="xenon")
+        self.assertEqual(data.dims, ["G"])
+        self.assertEqual(data.values.shape, (2500,))
+        self.assertEqual(data.attrs["frequency"], 9.627173)
+
+    def test_import_bes3t_2D(self):
+        data = wrapper.load(self.test_data_2D, data_type="xenon")
+        self.assertEqual(data.dims, ["G", "s"])
+        self.assertEqual(data.values.shape, (1600, 100))
+        self.assertEqual(data.attrs["frequency"], 9.627213)
+
+
+class winepr_import_tester(unittest.TestCase):
+    def setUp(self):
+        self.test_data_ESP = os.path.join(".", "data", "parspc", "ExampleESP.par")
+        self.test_data_1D = os.path.join(".", "data", "parspc", "Example1D.spc")
+        self.test_data_2D = os.path.join(".", "data", "parspc", "Example2D.spc")
+
+    def test_import_winepr_ESP(self):
+        data = wrapper.load(self.test_data_ESP, data_type="esp")
+        self.assertEqual(data.dims, ["t2"])
+        self.assertEqual(data.values.shape, (1024,))
+        self.assertEqual(data.attrs["conversion_time"], 81.92)
+
+    def test_import_winepr_1D(self):
+        data = wrapper.load(self.test_data_1D, data_type="winepr")
+        self.assertEqual(data.dims, ["G"])
+        self.assertEqual(data.values.shape, (512,))
+        self.assertEqual(data.attrs["temperature"], 294.2)
+
+    def test_import_winepr_2D(self):
+        data = wrapper.load(self.test_data_2D, data_type="winepr")
+        self.assertEqual(data.dims, ["G", "dB"])
+        self.assertEqual(data.values.shape, (1024, 15))
+        self.assertEqual(data.attrs["frequency"], 9.79)
+
+
+class delta_import_tester(unittest.TestCase):
+    def setUp(self):
+        self.test_data_1D = os.path.join(".", "data", "delta", "50percCHCL3.jdf")
+        self.test_data_2D = os.path.join(".", "data", "delta", "lineshape_drift.jdf")
+
+    def test_import_delta_1D(self):
+        data = wrapper.load(self.test_data_1D, data_type="delta")
+        self.assertEqual(data.dims, ["t2"])
+        self.assertEqual(data.values.shape, (16384,))
+        self.assertEqual(max(data.coords["t2"]), 0.262128)
+
+    def test_import_delta_2D(self):
+        data = wrapper.load(self.test_data_2D, data_type="delta")
+        self.assertEqual(data.dims, ["t2", "t1"])
+        self.assertEqual(data.values.shape, (8192, 256))
+        self.assertEqual(max(data.coords["t2"]), 0.5451929600000001)
+        self.assertEqual(max(data.coords["t1"]), 11.953125)
+
+
 if __name__ == "__main__":
     unittest.main()
     pass

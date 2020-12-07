@@ -145,7 +145,7 @@ def load_title(
 
 def load_acqu(path="1", paramFilename="acqus"):
     """
-    Import Topspin JCAMPDX file
+    Import topspin acqus file
 
     Args:
         path (str): directory of acqusition file
@@ -173,6 +173,17 @@ def load_acqu(path="1", paramFilename="acqus"):
                 attrsDict[lineSplit[0]] = float(lineSplit[1])
             except:
                 attrsDict[lineSplit[0]] = lineSplit[1]
+
+    try:
+        sw_h = attrsDict["SW_h"]  # Spectral Width in Hz
+        rg = attrsDict["RG"]  # reciever gain
+        decim = attrsDict["DECIM"]  # Decimation factor of the digital filter
+        dspfvs = attrsDict["DSPFVS"]  # Digital signal processor firmware version
+        bytorda = attrsDict["BYTORDA"]  # 1 for big endian, 0 for little endian
+        td = int(attrsDict["TD"])  # points in time axes
+        sf01 = attrsDict["SFO1"]  # nmr frequency
+    except KeyError as err:
+        raise KeyError("Unable to find " + err.args[0] + " in the acqus file")
 
     return attrsDict
 
@@ -225,7 +236,7 @@ def dir_data_type(path):
         return ""
 
 
-def import_topspin(path, paramFilename="acqus"):
+def import_topspin(path, paramFilename="acqus", TD=False):
     """
     Import topspin data and return dnpdata object
 
@@ -241,7 +252,7 @@ def import_topspin(path, paramFilename="acqus"):
     if dirType == "fid":
         data = topspin_fid(path, paramFilename)
     elif dirType == "ser":
-        data = import_ser(path, paramFilename)
+        data = import_ser(path, paramFilename, TD=TD)
     elif dirType == "serPhaseCycle":
         data = topspin_ser_phase_cycle(path, paramFilename)
     else:
@@ -263,14 +274,7 @@ def topspin_fid(path, paramFilename="acqus"):
     """
     attrsDict = load_acqu(path, paramFilename)
 
-    sw_h = attrsDict["SW_h"]  # Spectral Width in Hz
-    rg = attrsDict["RG"]  # reciever gain
-    decim = attrsDict["DECIM"]  # Decimation factor of the digital filter
-    dspfvs = attrsDict["DSPFVS"]  # Digital signal processor firmware version
-    bytorda = attrsDict["BYTORDA"]  # 1 for big endian, 0 for little endian
-    td = int(attrsDict["TD"])  # points in time axes
-
-    if bytorda == 0:
+    if attrsDict["BYTORDA"] == 0:
         endian = "<"
     else:
         endian = ">"
@@ -278,14 +282,14 @@ def topspin_fid(path, paramFilename="acqus"):
     raw = _np.fromfile(_os.path.join(path, "fid"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(decim, dspfvs)
+    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
     group_delay = int(_np.ceil(group_delay))
 
-    t = 1.0 / sw_h * _np.arange(0, int(td / 2) - group_delay)
+    t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
 
-    data = data[group_delay : int(td / 2)]
+    data = data[group_delay : int(attrsDict["TD"] / 2)]
 
-    data = data / rg
+    data = data / attrsDict["RG"]
 
     importantParamsDict = {}
     importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
@@ -419,7 +423,7 @@ def topspin_vdlist(path):
     return vdList
 
 
-def import_ser(path, paramFilename="acqus"):
+def import_ser(path, paramFilename="acqus", TD=False):
     """
     Import topspin ser file
 
@@ -432,14 +436,7 @@ def import_ser(path, paramFilename="acqus"):
     """
     attrsDict = load_acqu(path, paramFilename)
 
-    sw_h = attrsDict["SW_h"]  # Spectral Width in Hz
-    rg = attrsDict["RG"]  # reciever gain
-    decim = attrsDict["DECIM"]  # Decimation factor of the digital filter
-    dspfvs = attrsDict["DSPFVS"]  # Digital signal processor firmware version
-    bytorda = attrsDict["BYTORDA"]  # 1 for big endian, 0 for little endian
-    td = int(attrsDict["TD"])  # points in time axes
-
-    if bytorda == 0:
+    if attrsDict["BYTORDA"] == 0:
         endian = "<"
     else:
         endian = ">"
@@ -447,18 +444,28 @@ def import_ser(path, paramFilename="acqus"):
     raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(decim, dspfvs)
+    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
     group_delay = int(_np.ceil(group_delay))
 
-    t = 1.0 / sw_h * _np.arange(0, int(td / 2) - group_delay)
+    t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
 
-    vdList = topspin_vdlist(path)
+    vdList_in = topspin_vdlist(path)
 
-    data = data.reshape(len(vdList), -1).T
+    if TD and isinstance(TD, int) and TD > 1:
+        vdList = vdList_in[:TD]
+    else:
+        vdList = vdList_in
 
-    data = data[group_delay : int(td / 2), :]
+    try:
+        data = data.reshape(len(vdList), -1).T
+    except ValueError:
+        raise ValueError(
+            "TD in second dimension may not match len(VDLIST), try TD=<insert your TD> argument"
+        )
 
-    data = data / rg
+    data = data[group_delay : int(attrsDict["TD"] / 2), :]
+
+    data = data / attrsDict["RG"]
 
     importantParamsDict = {}
     importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
@@ -480,15 +487,7 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
     """
     attrsDict = load_acqu(path, paramFilename)
 
-    # TODO: this chunk of code appears three times in this file. Need clean up.
-    sw_h = attrsDict["SW_h"]  # Spectral Width in Hz
-    rg = attrsDict["RG"]  # reciever gain
-    decim = attrsDict["DECIM"]  # Decimation factor of the digital filter
-    dspfvs = attrsDict["DSPFVS"]  # Digital signal processor firmware version
-    bytorda = attrsDict["BYTORDA"]  # 1 for big endian, 0 for little endian
-    td = int(attrsDict["TD"])  # points in time axes
-
-    if bytorda == 0:
+    if attrsDict["BYTORDA"] == 0:
         endian = "<"
     else:
         endian = ">"
@@ -496,20 +495,20 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
     raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(decim, dspfvs)
+    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
     group_delay = int(_np.ceil(group_delay))
 
-    t = 1.0 / sw_h * _np.arange(0, int(td / 2) - group_delay)
+    t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
 
-    length1d = int((_np.ceil(td / 256.0) * 256) / 2)
+    length1d = int((_np.ceil(attrsDict["TD"] / 256.0) * 256) / 2)
     #    print length1d
     data = data.reshape(-1, int(length1d)).T
 
-    data = data[group_delay : int(td / 2), :]
+    data = data[group_delay : int(attrsDict["TD"] / 2), :]
 
     # Assume phase cycle is 0, 90, 180, 270
     data = data[:, 0] + 1j * data[:, 1] - data[:, 2] - 1j * data[:, 3]
-    data = data / rg
+    data = data / attrsDict["RG"]
 
     importantParamsDict = {}
     importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
