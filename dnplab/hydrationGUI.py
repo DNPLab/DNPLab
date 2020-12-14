@@ -1436,7 +1436,7 @@ class hydrationGUI(QMainWindow):
             ):
 
                 try:
-                    dnplab.dnpFit.exponentialFit(nextproc_workspace, type="T1")
+                    dnplab.dnpFit.exponential_fit(nextproc_workspace, type="T1")
 
                     if (
                         self.gui_dict["rawdata_function"]["folder"]
@@ -1969,7 +1969,7 @@ class hydrationGUI(QMainWindow):
             self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
 
             try:
-                dnplab.dnpFit.exponentialFit(adjslider_workspace, type="T1")
+                dnplab.dnpFit.exponential_fit(adjslider_workspace, type="T1")
             except:
                 self.gui_dict["data_plot"]["xmin"] = int(
                     round(

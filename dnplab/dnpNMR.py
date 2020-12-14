@@ -268,7 +268,7 @@ def window(
         return data
 
 
-def integrate(all_data, dim="t2", integrate_center=0, integrate_width=100):
+def integrate(all_data, dim="t2", integrate_center=0, integrate_width="full"):
     """Integrate data down given dimension
 
     Args:
@@ -296,14 +296,18 @@ def integrate(all_data, dim="t2", integrate_center=0, integrate_width=100):
 
     data, isDict = return_data(all_data)
 
+    if integrate_width == "full":
+        integrateMin = min(data.coords[dim])
+        integrateMax = max(data.coords[dim])
+    elif isinstance(integrate_width, int) or isinstance(integrate_width, float):
+        integrateMin = integrate_center - _np.abs(integrate_width) / 2.0
+        integrateMax = integrate_center + _np.abs(integrate_width) / 2.0
+
     proc_parameters = {
         "dim": dim,
         "integrate_center": integrate_center,
         "integrate_width": integrate_width,
     }
-
-    integrateMin = integrate_center - _np.abs(integrate_width) / 2.0
-    integrateMax = integrate_center + _np.abs(integrate_width) / 2.0
 
     data = data[dim, (integrateMin, integrateMax)]
 
