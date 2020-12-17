@@ -26,7 +26,7 @@ class dnpFit_tester(unittest.TestCase):
         self.ws = nmr.autophase(self.ws, method="search", order="zero")
         self.ws = nmr.baseline(self.ws, type="poly", order=2, reference_slice=None)
         self.ws = nmr.integrate(
-            self.ws, dim="t2", integrate_center=0, integrate_width=50
+            self.ws, dim="f2", integrate_center=0, integrate_width=50
         )
         efit.exponential_fit(self.ws, type="T1")
         self.assertAlmostEqual(self.ws["fit"].attrs["T1"], 2.140702947551208, places=4)

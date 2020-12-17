@@ -36,7 +36,7 @@ class dnpTools_tester(unittest.TestCase):
             integrate_center=0,
             integrate_width="full",
             method="integrate",
-            dim="t2",
+            dim="f2",
         )
 
         self.assertAlmostEqual(self.ws["enhancement"].values[0], 0.93468899, places=6)
@@ -54,7 +54,7 @@ class dnpTools_tester(unittest.TestCase):
             integrate_center="max",
             integrate_width="full",
             method="amplitude",
-            dim="t2",
+            dim="f2",
         )
 
         self.assertAlmostEqual(

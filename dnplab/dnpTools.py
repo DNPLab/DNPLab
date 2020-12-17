@@ -68,6 +68,10 @@ def calculate_enhancement(
         ind_dim = "t1"
     elif dim == "t1":
         ind_dim = "t2"
+    elif dim == "f2":
+        ind_dim = "f1"
+    elif dim == "f1":
+        ind_dim = "f2"
 
     if (
         isinstance(off_spectrum, dnpdata)

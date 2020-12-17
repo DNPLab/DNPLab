@@ -212,7 +212,7 @@ class hydrationGUI(QMainWindow):
         self.onlyT100Checkbox.setStyleSheet("font : bold 14px")
         self.onlyT100Checkbox.move(858, 595)
         self.onlyT100Checkbox.resize(110, 20)
-        self.onlyT100Checkbox.setText("Only T10(0)")
+        self.onlyT100Checkbox.setText("Only T1,0(0)")
 
         self.nextButton = QPushButton("Next", self)
         self.nextButton.setStyleSheet(
@@ -319,9 +319,9 @@ class hydrationGUI(QMainWindow):
 
         self.t100Label = QLabel(self)
         self.t100Label.setStyleSheet("font : bold 14px")
-        self.t100Label.move(68, 560)
+        self.t100Label.move(57, 560)
         self.t100Label.resize(80, 20)
-        self.t100Label.setText("T1<sub>0</sub>(0) (s):")
+        self.t100Label.setText("T1,0(0) (s):")
 
         self.t100Edit = QLineEdit(self)
         self.t100Edit.move(140, 560)
