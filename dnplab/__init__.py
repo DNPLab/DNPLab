@@ -1,12 +1,11 @@
-# import odnpData
 from .dnpData import dnpdata, dnpdata_collection, create_workspace
 from .dnpImport import load
 from .dnpSave import save
-from . import dnpNMR
+from .dnpNMR import *
 from . import dnpIO
-from . import dnpFit
-from . import dnpTools
-from . import dnpHydration
+from .dnpFit import *
+from .dnpTools import *
+from .dnpHydration import *
 from . import core
-from . import dnpResults
+from .dnpResults import *
 from .version import __version__
