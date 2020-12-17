@@ -24,35 +24,12 @@ def import_specman(path):
     else:
         raise TypeError("Incorrect file type, must be .d01 or .exp")
 
-    attrs = load_specman_exp(file_name_exp)
-    values, dims, data_lengths = load_specman_values(file_name_d01)
-    coords = load_specman_coords(attrs, data_lengths, dims)
+    params = load_specman_exp(file_name_exp)
+    values, coords, dims, attrs = load_specman_d01(file_name_d01, params)
 
     specman_data = dnpdata(values, coords, dims, attrs)
 
     return specman_data
-
-
-def load_specman_coords(attrs, data_lengths, dims):
-    """
-    Import axes coordinates of specman data
-
-    Args:
-        attrs (dict) : dictionary of parameter fields and values
-        data_lengths (ndarray) : axes lengths
-        dims (list) : axes names
-
-    Returns:
-        abscissa (list) : coordinates of axes
-    """
-    abscissa = []
-    for k in range(0, len(dims)):
-        if dims[k] in attrs.keys():
-            abscissa.append(attrs[dims[k]])
-        else:
-            abscissa.append(np.array(range(0, data_lengths[k])))
-
-    return abscissa
 
 
 def load_specman_exp(path):
@@ -87,18 +64,24 @@ def load_specman_exp(path):
     return params
 
 
-def load_specman_values(path):
+def load_specman_d01(path, params):
     """
     Import spectrum or spectra of specman data
 
     Args:
         path (str) : Path to either .d01 or .exp file
+        params (dict) : dictionary of parameters from exp file
 
     Returns:
+        abscissa (list) : coordinates of axes
         y_data (ndarray) : spectrum or spectra if >1D
         dims (list) : axes names
-        axes_lengths (ndarray) : axes lengths
+        params (dict) : updated parameters dictionary
     """
+
+    if not params:
+        params = {}
+
     file_opened = open(path, "rb")
     uint_read = np.fromfile(file_opened, dtype=np.uint32)
     file_opened.close()
@@ -131,4 +114,11 @@ def load_specman_values(path):
     dims = dims_full[0 : uint_read[2]]
     axes_lengths = uint_read[9:13]
 
-    return y_data, dims, axes_lengths
+    abscissa = []
+    for k in range(0, len(dims)):
+        if dims[k] in params.keys():
+            abscissa.append(params[dims[k]])
+        else:
+            abscissa.append(np.array(range(0, axes_lengths[k])))
+
+    return y_data, abscissa, dims, params

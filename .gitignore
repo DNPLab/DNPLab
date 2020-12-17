@@ -14,6 +14,7 @@ __pycache__/
 # Distribution / packaging
 docs/html/
 docs/build/
+docs/source/auto_examples/
 bin/
 build/
 develop-eggs/

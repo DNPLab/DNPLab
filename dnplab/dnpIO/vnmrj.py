@@ -23,28 +23,28 @@ def array_coords(attrs):
         tuple: dim and coord for array
     """
 
-    array_delta = attrs["arraydelta"]
+    try:
 
-    array_dim = attrs["arraydim"]
+        array_delta = attrs["arraydelta"]
+        array_dim = attrs["arraydim"]
+        array_start = attrs["arraystart"]
+        array_stop = attrs["arraystop"]
 
-    array_max = attrs["arraymax"]
-    array_flip = attrs["arrayflip"]
+        if array_dim != 1:
+            coord = _np.r_[array_start : array_stop + array_delta : array_delta]
+            dim = "t1"
+        else:
+            coord = None
+            dim = None
 
-    array_start = attrs["arraystart"]
-    array_stop = attrs["arraystop"]
+        return dim, coord
 
-    array_elements = attrs["arrayelemts"]
-    array_d_scale = attrs["arraydscale"]
-    array_dodc = attrs["arraydodc"]
+    except KeyError:
 
-    if array_dim != 1:
-        coord = _np.r_[array_start : array_stop + array_delta : array_delta]
-        dim = "t1"
-    else:
         coord = None
         dim = None
 
-    return dim, coord
+        return dim, coord
 
 
 def import_fid(path, filename="fid"):
