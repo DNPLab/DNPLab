@@ -211,7 +211,7 @@ def calculate_enhancement(
             enh_coords_on = np.concatenate((on_coords_1, on_coords_2))
     else:
         raise TypeError(
-            "combination of data, off_spectrum, and on_spectra is not valid"
+            "the given combination of data, off_spectrum, and on_spectra is not valid"
         )
 
     enh = np.real(np.array(on_data) / np.array(off_data))

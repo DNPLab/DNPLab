@@ -302,6 +302,8 @@ def integrate(all_data, dim="t2", integrate_center=0, integrate_width="full"):
         integrateMin = integrate_center - _np.abs(integrate_width) / 2.0
         integrateMax = integrate_center + _np.abs(integrate_width) / 2.0
         data = data[dim, (integrateMin, integrateMax)]
+    else:
+        raise ValueError("integrate_width must be 'full', int, or float")
 
     proc_parameters = {
         "dim": dim,
