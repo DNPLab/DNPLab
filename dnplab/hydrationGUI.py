@@ -3151,7 +3151,7 @@ class hydrationGUI(QMainWindow):
                     str(self.gui_dict["data_plot"]["xmax"]),
                 ]
             )
-            self.dataplt.axes.set_xlabel("ppm")
+            self.dataplt.axes.set_xlabel(r"$^{1}H$ ppm")
             self.dataplt.axes.set_yticks([0])
             self.dataplt.axes.set_yticklabels("0")
 

@@ -28,14 +28,14 @@ class dnpFit_tester(unittest.TestCase):
         self.ws = nmr.integrate(
             self.ws, dim="t2", integrate_center=0, integrate_width=50
         )
-        efit.exponentialFit(self.ws, type="T1")
+        efit.exponential_fit(self.ws, type="T1")
         self.assertAlmostEqual(self.ws["fit"].attrs["T1"], 2.140702947551208, places=4)
 
-        efit.exponentialFit(self.ws, type="T2")
+        efit.exponential_fit(self.ws, type="T2")
         self.assertAlmostEqual(self.ws["fit"].attrs["T2"], 1.0682212598985381, places=4)
 
-        efit.exponentialFit(self.ws, type="T2", stretched=True)
+        efit.exponential_fit(self.ws, type="T2", stretched=True)
         self.assertAlmostEqual(self.ws["fit"].attrs["T2"], 0.8938213879865939, places=4)
 
-        efit.exponentialFit(self.ws, type="mono")
+        efit.exponential_fit(self.ws, type="mono")
         self.assertAlmostEqual(self.ws["fit"].attrs["tau"], 2.140702798915825, places=4)
