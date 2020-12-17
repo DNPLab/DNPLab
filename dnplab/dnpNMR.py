@@ -206,16 +206,13 @@ def window(
     +-----------------+---------+---------------+---------------------------------------------------+
 
     Returns:
-
         all_data (dnpdata, dict): data object with window function applied
         attributes: "window", window function
-
 
     """
     data, isDict = return_data(all_data)
     dim_size = data.coords[dim].shape[-1]
     shape_data = _np.shape(data.values)
-
 
     if type == "exponential":
         apwin = _np.exp(-2 * data.coords[dim] * linewidth)
@@ -254,7 +251,6 @@ def window(
             data.values[:, ix] *= apwin
     else:
         data.values *= apwin
-
 
     proc_parameters = {
         "type": type,
