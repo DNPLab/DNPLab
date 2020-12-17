@@ -23,7 +23,7 @@ def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
     return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
 
 
-def exponentialFit(all_data, type="mono", stretched=False, dim="t2"):
+def exponential_fit(all_data, type="mono", stretched=False, dim="t2"):
     """Fits various forms of exponential functions
 
     .. math::
@@ -140,11 +140,11 @@ def exponentialFit(all_data, type="mono", stretched=False, dim="t2"):
         return fitData
 
 
-def enhancementFunction(powerArray, E_max, power_half):
-    return E_max * powerArray / (power_half + powerArray)
+def enhancement_function(power_array, E_max, power_half):
+    return E_max * power_array / (power_half + power_array)
 
 
-def enhancementFit(dataDict):
+def enhancement_fit(dataDict):
     """Fits enhancement curves to return Emax and power and one half maximum saturation
 
     .. math::
@@ -193,10 +193,10 @@ def enhancementFit(dataDict):
 
     x0 = [inputData[-1], 0.1]
 
-    out, cov = curve_fit(enhancementFunction, power_axes, inputData, x0, method="lm")
+    out, cov = curve_fit(enhancement_function, power_axes, inputData, x0, method="lm")
     stdd = _np.sqrt(_np.diag(cov))
 
-    fit = enhancementFunction(power_axes, out[0], out[1])
+    fit = enhancement_function(power_axes, out[0], out[1])
 
     fitData = _dnpdata(fit, [power_axes], ["power"])
     fitData.attrs["E_max"] = out[0]
