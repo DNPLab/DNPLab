@@ -47,15 +47,13 @@ class dnpNMR_tester(unittest.TestCase):
         self.assertEqual(min(self.ws["proc"].attrs["window"]), 0.0)
 
         self.ws.copy("temp", "proc")
-        nmr.window(self.ws, type="lorentz_gauss", linewidth=5, gauss_linewidth=10)
+        nmr.window(self.ws, type="lorentz_gauss", linewidth=[5, 10])
         self.assertAlmostEqual(
             max(self.ws["proc"].attrs["window"]), 1.1895922020471337, places=4
         )
 
         self.ws.copy("temp", "proc")
-        self.ws = nmr.window(
-            self.ws, type="hamming", linewidth=5, gauss_linewidth=10, inverse=True
-        )
+        self.ws = nmr.window(self.ws, type="hamming", linewidth=5, inverse=True)
         self.assertAlmostEqual(
             max(self.ws["proc"].attrs["window"]), 13.03441084462983, places=4
         )
@@ -156,7 +154,9 @@ class dnpNMR_tester(unittest.TestCase):
         self.ws.copy("keep", "proc")
         self.ws.pop("keep")
 
-        self.ws = nmr.baseline(self.ws, type="poly", order=1, reference_slice=None)
+        self.ws = nmr.baseline(
+            self.ws, type="polynomial", order=1, reference_slice=None
+        )
         self.assertEqual(shape_data, np.shape(self.ws))
         self.assertAlmostEqual(
             max(self.ws["proc"].values[:, 2].real), 351.9904580259595, places=4

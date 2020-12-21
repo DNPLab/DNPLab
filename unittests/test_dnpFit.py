@@ -19,12 +19,12 @@ class dnpFit_tester(unittest.TestCase):
 
     def test_fit_functions(self):
         self.ws = nmr.remove_offset(self.ws)
-        self.ws = nmr.window(
-            self.ws, type="lorentz_gauss", linewidth=5, gauss_linewidth=10
-        )
+        self.ws = nmr.window(self.ws, type="lorentz_gauss", linewidth=[5, 10])
         self.ws = nmr.fourier_transform(self.ws, zero_fill_factor=2)
         self.ws = nmr.autophase(self.ws, method="search", order="zero")
-        self.ws = nmr.baseline(self.ws, type="poly", order=2, reference_slice=None)
+        self.ws = nmr.baseline(
+            self.ws, type="polynomial", order=2, reference_slice=None
+        )
         self.ws = nmr.integrate(
             self.ws, dim="f2", integrate_center=0, integrate_width=50
         )

@@ -51,7 +51,6 @@ def remove_offset(all_data, dim="t2", offset_points=10):
 
     Args:
         all_data (dnpdata, dict): Data container for data
-        proc_parameters (dict,procParam): Processing _parameters
 
     +---------------+------+---------+----------------------------------------------------------+
     | parameter     | type | default | description                                              |
@@ -178,37 +177,33 @@ def fourier_transform(
 
 def window(
     all_data,
+    dim="t2",
     type="exponential",
     linewidth=1,
-    dim="t2",
-    gauss_linewidth=0,
-    gauss_max=0,
+    gaussian_max=0,
     inverse=False,
 ):
     """Apply Apodization to data down given dimension
 
     Args:
         all_data (dnpdata, dict): data container
-        proc_parameters (dict, procParam): parameter values
 
     .. note::
         Axis units assumed to be seconds
 
-    +-----------------+---------+---------------+---------------------------------------------------+
-    | parameter       | type    | default       | description                                       |
-    +-----------------+---------+---------------+---------------------------------------------------+
-    | type            | str     | 'exponential' | type of apodization                               |
-    +-----------------+---------+---------------+---------------------------------------------------+
-    | linewidth       | float   | 10            | Exponential linewidth  in Hz                      |
-    +-----------------+---------+---------------+---------------------------------------------------+
-    | dim             | str     | 't2'          | Dimension to apply exponential apodization        |
-    +-----------------+---------+---------------+---------------------------------------------------+
-    | gauss_linewidth | float   | 0             | Gaussian linewidth in Hz for type="lorentz_gauss" |
-    +-----------------+---------+---------------+---------------------------------------------------+
-    | gauss_max       | float   | 0             | Location of gaussian component maximum            |
-    +-----------------+---------+---------------+---------------------------------------------------+
-    | inverse         | boolean | False         | invert the window function                        |
-    +-----------------+---------+---------------+---------------------------------------------------+
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | parameter       | type                    | default       | description                                       |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | dim             | str                     | 't2'          | Dimension to apply exponential apodization        |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | type            | str                     | 'exponential' | type of apodization                               |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | linewidth       | float, list, or ndarray | 1             | linewidths  in Hz                                 |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | gaussian_max    | float                   | 0             | Location of gaussian component maximum            |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | inverse         | boolean                 | False         | invert the window function                        |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
 
     Returns:
         all_data (dnpdata, dict): data object with window function applied
@@ -219,8 +214,21 @@ def window(
     dim_size = data.coords[dim].shape[-1]
     shape_data = _np.shape(data.values)
 
+    if (isinstance(linewidth, _np.ndarray) or isinstance(linewidth, list)) and len(
+        linewidth
+    ) == 2:
+        a = linewidth[0]
+        b = linewidth[1]
+    elif isinstance(linewidth, int) or isinstance(linewidth, float):
+        a = linewidth
+        b = linewidth
+    else:
+        raise ValueError("linewidth must be int/float, or list/ndarray with len==2")
+
     if type == "exponential":
         apwin = _np.exp(-2 * data.coords[dim] * linewidth)
+    elif type == "gaussian":
+        apwin = _np.exp((a * data.coords[dim]) - (b * data.coords[dim] ** 2))
     elif type == "hamming":
         apwin = 0.53836 + 0.46164 * _np.cos(
             1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
@@ -230,19 +238,18 @@ def window(
             1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
         )
     elif type == "lorentz_gauss":
-        expo = _np.pi * data.coords[dim] * linewidth
-        gaus = (
-            0.6
-            * _np.pi
-            * gauss_linewidth
-            * (gauss_max * (dim_size - 1) - data.coords[dim])
-        )
+        expo = _np.pi * data.coords[dim] * a
+        gaus = 0.6 * _np.pi * b * (gaussian_max * (dim_size - 1) - data.coords[dim])
         apwin = _np.exp(expo - gaus ** 2).reshape(dim_size)
     elif type == "sin2":
         apwin = (
             _np.cos((-0.5 * _np.pi * _np.arange(dim_size) / (dim_size - 1)) + _np.pi)
             ** 2
         )
+    elif type == "TRAF":
+        E_t = _np.exp(-1 * data.coords[dim] * _np.pi * a)
+        e_t = _np.exp((data.coords[dim] - max(data.coords[dim])) * _np.pi * b)
+        apwin = (E_t * (E_t + e_t)) / ((E_t ** 2) + (e_t ** 2))
     else:
         raise ValueError("Invalid window type")
 
@@ -261,8 +268,7 @@ def window(
         "type": type,
         "linewidth": linewidth,
         "dim": dim,
-        "gauss_linewidth": gauss_linewidth,
-        "gauss_max": gauss_max,
+        "gaussian_max": gaussian_max,
         "inverse": inverse,
     }
     proc_attr_name = "window"
@@ -281,7 +287,6 @@ def integrate(all_data, dim="f2", integrate_center=0, integrate_width="full"):
 
     Args:
         all_data (dnpdata,dict): Data container
-        proc_parameters (dict, procParam): Processing Parameters
 
     +------------------+-------+---------+------------------------------+
     | parameter        | type  | default | description                  |
@@ -344,9 +349,9 @@ def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
 
 def baseline_fit(temp_coords, temp_data, type, order):
 
-    if type == "poly":
+    if type == "polynomial":
         base_line = _np.polyval(_np.polyfit(temp_coords, temp_data, order), temp_coords)
-    elif type == "exp":
+    elif type == "exponential":
         temp_data = temp_data.real
         if order == 1:
             x0 = [temp_data[-1], temp_data[0], 1]
@@ -368,22 +373,32 @@ def baseline_fit(temp_coords, temp_data, type, order):
             )
 
     else:
-        raise TypeError("type must be either 'poly' or 'exp'")
+        raise TypeError("type must be either 'polynomial' or 'exponential'")
 
     return base_line
 
 
-def baseline(all_data, dim="f2", type="poly", order=1, reference_slice=None):
-    """Baseline correction of NMR spectra down given dim dimension
+def baseline(all_data, dim="f2", type="polynomial", order=1, reference_slice=None):
+    """Baseline correction of NMR spectra down given dimension
 
     Args:
         all_data (object) : dnpdata object
-        dim (str) : dimension to correct along
-        type (str) : type of baseline fit, either "poly" for polynomial or "exp" for exponential
-        order (int) : polynomial order, or 1=mono and 2=bi for exponential
+
+    +-----------------+------+---------------+---------------------------------------------------+
+    | parameter       | type | default       | description                                       |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | dim             | str  | 'f2'          | Dimension to apply baseline correction            |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | type            | str  | 'polynomial'  | type of baseline fit                              |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | order           | int  | 1             | polynomial order, or 1=mono 2=bi exponential      |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | reference_slice | int  | None          | slice of 2D data used to define the baseline      |
+    +-----------------+------+---------------+---------------------------------------------------+
 
     returns:
         all_data (dnpdata, dict): Baseline corrected data in container
+        attributes: "baseline", baseline function
     """
 
     data, isDict = return_data(all_data)
@@ -529,12 +544,24 @@ def autophase(
 
     Args:
         all_data (dnpdata_collection, dnpdata): Data object to autophase
-        method (str): "arctan" finds the arc tangent of the ratio of the sum of the imaginary to the sum of the real, or "search" finds the maximum of the sum of the real to the sum of the imaginary after phase correction by an array of test angles
-        order (str) : "zero" or "first" order phase corrections
-        pivot (int) : number between 0 and the length of the data at which the first order phase correction is equal to the zeroth order phase correction
-        delta (float) : change in phase angle from data[0] to data[end]
-        reference_slice (int, or None): slice of 2D data that is used to draw the baseline, none means each slice is corrected individually
-        force_positive (boolean): If true, any phase correction orients data above the baseline
+
+    +-----------------+--------------+---------------+---------------------------------------------------+
+    | parameter       | type         | default       | description                                       |
+    +-----------------+--------------+---------------+---------------------------------------------------+
+    | method          | str          | 'search'      | method of searching for the best phase            |
+    +-----------------+--------------+---------------+---------------------------------------------------+
+    | order           | str          | 'zero'        | order of phase correction                         |
+    +-----------------+--------------+---------------+---------------------------------------------------+
+    | pivot           | int          | 0             | pivot point for first order correction            |
+    +-----------------+--------------+---------------+---------------------------------------------------+
+    | delta           | float        | 0             | total change in phase magnitude for first order   |
+    +-----------------+--------------+---------------+---------------------------------------------------+
+    | phase           | float        | 0             | manual phase correction                           |
+    +-----------------+--------------+---------------+---------------------------------------------------+
+    | reference_slice | int, or None | None          | slice of 2D data used to define the phase         |
+    +-----------------+--------------+---------------+---------------------------------------------------+
+    | force_positive  | boolean      | False         | force the entire spectrum to positive magnitude   |
+    +-----------------+--------------+---------------+---------------------------------------------------+
 
     Returns:
         all_data (dnpdata, dict): Autophased data in container
