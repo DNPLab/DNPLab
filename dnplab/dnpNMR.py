@@ -246,7 +246,7 @@ def window(
             _np.cos((-0.5 * _np.pi * _np.arange(dim_size) / (dim_size - 1)) + _np.pi)
             ** 2
         )
-    elif type == "TRAF":
+    elif type == "traf":
         E_t = _np.exp(-1 * data.coords[dim] * _np.pi * a)
         e_t = _np.exp((data.coords[dim] - max(data.coords[dim])) * _np.pi * b)
         apwin = (E_t * (E_t + e_t)) / ((E_t ** 2) + (e_t ** 2))
