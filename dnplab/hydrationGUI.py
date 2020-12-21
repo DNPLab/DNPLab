@@ -767,7 +767,7 @@ class hydrationGUI(QMainWindow):
             max_index = np.argmax(
                 np.sum(abs(optcenter_workspace["proc"].values), axis=1), axis=0
             )
-        starting_center = round(optcenter_workspace["proc"].coords["t2"][max_index])
+        starting_center = round(optcenter_workspace["proc"].coords["f2"][max_index])
         indx = range(starting_center - 50, starting_center + 50)
         optcenter_workspace = self.phs_workspace(
             optcenter_workspace, self.gui_dict["processing_spec"]["original_phase"]
@@ -1848,14 +1848,14 @@ class hydrationGUI(QMainWindow):
             ydata = abs(np.real(optwidth_workspace["proc"].values))
             qual_factor = 1 / 3
             if optwidth_workspace["proc"].ndim == 1:
-                xdata = np.ravel(optwidth_workspace["proc"].coords["t2"])
+                xdata = np.ravel(optwidth_workspace["proc"].coords["f2"])
                 one_third = np.where(ydata > max(ydata) * qual_factor)
                 one_third = np.ravel(one_third)
 
                 best_width = xdata[one_third[-1]] - xdata[one_third[0]]
 
             else:
-                xdata = np.ravel(optwidth_workspace["proc"].coords["t2"])
+                xdata = np.ravel(optwidth_workspace["proc"].coords["f2"])
                 min_x = []
                 max_x = []
                 for k in range(0, len(ydata[0, :])):
@@ -1943,7 +1943,7 @@ class hydrationGUI(QMainWindow):
             )
 
             self.gui_dict["data_plot"]["xdata"] = adjslider_workspace["proc"].coords[
-                "t2"
+                "f2"
             ]
 
             ydata = adjslider_workspace["proc"].values * np.exp(
