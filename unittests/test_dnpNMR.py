@@ -167,7 +167,7 @@ class dnpNMR_tester(unittest.TestCase):
         self.assertAlmostEqual(
             len(self.ws["proc"].attrs["baseline"]), len(self.ws["proc"].values)
         )
-        nmr.integrate(self.ws, dim="t2", integrate_center=0, integrate_width=50)
+        nmr.integrate(self.ws, dim="f2", integrate_center=0, integrate_width=50)
         self.assertEqual((8,), np.shape(self.ws["proc"].values))
         self.assertAlmostEqual(
             max(self.ws["proc"].values.real), 2031.4439405548092, places=4

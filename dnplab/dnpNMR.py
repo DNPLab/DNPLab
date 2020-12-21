@@ -81,7 +81,7 @@ def remove_offset(all_data, dim="t2", offset_points=10):
     dim = proc_parameters["dim"]
     offset_points = int(proc_parameters["offset_points"])
 
-    offsetData = data["t2", -1 * offset_points :].values
+    offsetData = data[dim, -1 * offset_points :].values
     offsetData = offsetData.reshape(-1)
     offset = _np.mean(offsetData)
 
@@ -160,6 +160,11 @@ def fourier_transform(
     if shift:
         data.values = _np.fft.fftshift(data.values, axes=index)
     data.coords[dim] = f
+
+    if len(data.dims) == 2:
+        data.dims = ["f2", "f1"]
+    elif len(data.dims) == 1:
+        data.dims = ["f2"]
 
     proc_attr_name = "fourier_transform"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
@@ -271,7 +276,7 @@ def window(
         return data
 
 
-def integrate(all_data, dim="t2", integrate_center=0, integrate_width="full"):
+def integrate(all_data, dim="f2", integrate_center=0, integrate_width="full"):
     """Integrate data down given dimension
 
     Args:
@@ -368,7 +373,7 @@ def baseline_fit(temp_coords, temp_data, type, order):
     return base_line
 
 
-def baseline(all_data, dim="t1", type="poly", order=1, reference_slice=None):
+def baseline(all_data, dim="f2", type="poly", order=1, reference_slice=None):
     """Baseline correction of NMR spectra down given dim dimension
 
     Args:
@@ -387,6 +392,10 @@ def baseline(all_data, dim="t1", type="poly", order=1, reference_slice=None):
         ind_dim = "t1"
     elif dim == "t1":
         ind_dim = "t2"
+    elif dim == "f2":
+        ind_dim = "f1"
+    elif dim == "f1":
+        ind_dim = "f2"
 
     if reference_slice is not None:
         if len(_np.shape(data.values)) == 1:
@@ -396,23 +405,21 @@ def baseline(all_data, dim="t1", type="poly", order=1, reference_slice=None):
             reference_slice -= 1
 
     if len(_np.shape(data.values)) == 2:
-        temp_coords = data[dim, :].coords[ind_dim]
         if reference_slice is not None:
             bline = baseline_fit(
-                temp_coords, data[dim, :].values[:, reference_slice], type, order
+                data.coords[dim], data.values[:, reference_slice], type, order
             )
-            for ix in range(len(data.coords[dim])):
+            for ix in range(len(data.coords[ind_dim])):
                 data.values[:, ix] -= bline
         elif reference_slice is None:
-            for ix in range(len(data.coords[dim])):
-                bline = baseline_fit(temp_coords, data.values[:, ix], type, order)
+            for ix in range(len(data.coords[ind_dim])):
+                bline = baseline_fit(data.coords[dim], data.values[:, ix], type, order)
                 data.values[:, ix] -= bline
         else:
             raise TypeError("invalid reference_slice")
 
     elif len(_np.shape(data.values)) == 1:
-        dim = ind_dim
-        bline = baseline_fit(data[dim, :].coords[dim], data[dim, :].values, type, order)
+        bline = baseline_fit(data.coords[dim], data.values, type, order)
         data.values -= bline
 
     else:
@@ -435,7 +442,7 @@ def baseline(all_data, dim="t1", type="poly", order=1, reference_slice=None):
         return data
 
 
-def align(all_data, dim="t2", dim2=None):
+def align(all_data, dim="f2", dim2=None):
     """Alignment of NMR spectra down given dimension or dimensions
 
     Args:

@@ -23,7 +23,7 @@ def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
     return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
 
 
-def exponential_fit(all_data, type="mono", stretched=False, dim="t2"):
+def exponential_fit(all_data, type="mono", stretched=False, dim="f2"):
     """Fits various forms of exponential functions
 
     .. math::
@@ -59,6 +59,10 @@ def exponential_fit(all_data, type="mono", stretched=False, dim="t2"):
         ind_dim = "t1"
     elif dim == "t1":
         ind_dim = "t2"
+    elif dim == "f2":
+        ind_dim = "f1"
+    elif dim == "f1":
+        ind_dim = "f2"
 
     x_axis = data.coords[ind_dim]
     new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
@@ -209,3 +213,75 @@ def enhancement_fit(dataDict):
         return dataDict
     else:
         return fitData
+
+
+def interpolate_T1(
+    E_powers=False,
+    T1_powers=False,
+    T1_array=False,
+    interp_method="linear",
+    spin_C=100,
+    T10=2.0,
+    T100=2.5,
+):
+    """Returns the one-dimensional piecewise interpolant to a function with
+    given discrete data points (T1_powers, T1), evaluated at E_powers.
+
+    Points outside the data range will be extrapolated
+
+    Args:
+        E_powers: The x-coordinates at which to evaluate.
+        T1_powers: The x-coordinates of the data points, must be increasing.
+            Otherwise, T1_power is internally sorted.
+        T1_array: The y-coordinates of the data points, same length as T1_power.
+        interp_method: "second_order" or "linear".
+        spin_C: unpaired electron spin concentration in uM.
+        T10: T1 measured with unpaired electrons.
+        T100: T1 measured without unpaired electrons.
+
+    Returns:
+        interp_T1 (np.array): The evaluated values, same shape as E_powers.
+
+    """
+
+    spin_C = spin_C / 1e6
+
+    # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
+    if interp_method == "second_order":
+
+        delta_T1_water = T1_array[-1] - T1_array[0]
+        T1_water = T100
+        macro_C = spin_C
+
+        kHH = (1.0 / T10 - 1.0 / T1_water) / macro_C
+        krp = (
+            (1.0 / T1_array)
+            - (1.0 / (T1_water + delta_T1_water * T1_powers))
+            - (kHH * (macro_C))
+        ) / (spin_C)
+
+        p = _np.polyfit(T1_powers, krp, 2)
+        T1_fit_2order = _np.polyval(p, E_powers)
+
+        interp_T1 = 1.0 / (
+            ((spin_C) * T1_fit_2order)
+            + (1.0 / (T1_water + delta_T1_water * E_powers))
+            + (kHH * (macro_C))
+        )
+
+    # linear fit, Franck et al. PNMRS (Eq. 39)
+    elif interp_method == "linear":
+
+        linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
+
+        p = _np.polyfit(T1_powers, linear_t1, 1)
+        T1_fit_linear = _np.polyval(p, E_powers)
+
+        interp_T1 = T1_fit_linear / (
+            1.0 + (T1_fit_linear / T10) - (T1_fit_linear / T100)
+        )
+
+    else:
+        raise Exception("invalid interp_method")
+
+    return interp_T1
