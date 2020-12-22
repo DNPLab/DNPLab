@@ -18,6 +18,7 @@ class dnpNMR_tester(unittest.TestCase):
 
     def test_basic_nmr_processing(self):
         shape_data = np.shape(self.ws)
+        n_pts = np.shape(self.ws["proc"])
         self.assertAlmostEqual(
             max(self.ws["proc"].values[:, 1].real), 5.447918664876271, places=4
         )
@@ -35,6 +36,11 @@ class dnpNMR_tester(unittest.TestCase):
         )
 
         self.ws.copy("proc", "temp")
+        nmr.left_shift(self.ws, shift_points=100)
+        shifted_n_pts = np.shape(self.ws["proc"])
+        self.assertEqual(shifted_n_pts[0], n_pts[0] - 100)
+
+        self.ws.copy("temp", "proc")
         nmr.window(self.ws, type="hamming")
         self.assertEqual(max(self.ws["proc"].attrs["window"]), 1.0)
         self.assertAlmostEqual(
@@ -58,16 +64,22 @@ class dnpNMR_tester(unittest.TestCase):
             max(self.ws["proc"].attrs["window"]), 13.03441084462983, places=4
         )
         self.ws.copy("temp", "proc")
-        self.ws = nmr.window(self.ws, type="sin2")
+        nmr.window(self.ws, type="sin2")
         self.assertEqual(max(self.ws["proc"].attrs["window"]), 1.0)
+
+        self.ws.copy("temp", "proc")
+        nmr.window(self.ws, type="traf", linewidth=[1, 1])
+        self.assertEqual(self.ws["proc"].proc_attrs[1][0], "window")
+        self.assertEqual(self.ws["proc"].proc_attrs[1][1]["type"], "traf")
 
         self.ws.copy("temp", "proc")
         nmr.window(self.ws, type="exponential", linewidth=5)
         self.assertAlmostEqual(
             min(self.ws["proc"].attrs["window"]), 0.00035733315645396175, places=4
         )
+
         self.ws.pop("temp")
-        self.assertAlmostEqual(shape_data, np.shape(self.ws))
+        self.assertEqual(shape_data, np.shape(self.ws))
         self.assertAlmostEqual(
             max(self.ws["proc"].values[:, 1].real), 5.390978190372195, places=4
         )
