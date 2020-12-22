@@ -46,8 +46,6 @@ class hydrationGUI(QMainWindow):
     def __init__(self):
 
         super().__init__()
-        self.testmode = False  # set to True for testing, False for normal use
-        self.testpath = ".."  # same as sys path to dnplab
 
         # self.setStyleSheet('background-color : #A7A9AC')
 
@@ -64,42 +62,34 @@ class hydrationGUI(QMainWindow):
         self.t1plt = PlotCanvas(self, width=3.15, height=2)
         self.t1plt.move(730, 260)
 
-        self.guiresultButton = QPushButton("GUI Result", self)
-        self.guiresultButton.setStyleSheet(
+        self.getfileButton = QPushButton("Get File", self)
+        self.getfileButton.setStyleSheet(
             "font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
         )
-        self.guiresultButton.move(5, 5)
-        self.guiresultButton.resize(80, 30)
-        self.guiresultButton.clicked.connect(self.GUI_Result_Button)
+        self.getfileButton.move(5, 5)
+        self.getfileButton.resize(65, 30)
+        self.getfileButton.clicked.connect(self.Get_File_Button)
 
-        self.workupButton = QPushButton("Workup", self)
-        self.workupButton.setStyleSheet(
+        self.getdirectoryButton = QPushButton("Get Directory", self)
+        self.getdirectoryButton.setStyleSheet(
             "font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
         )
-        self.workupButton.move(90, 5)
-        self.workupButton.resize(80, 30)
-        self.workupButton.clicked.connect(self.Workup_Button)
-
-        self.singleButton = QPushButton("Bruker", self)
-        self.singleButton.setStyleSheet(
-            "font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
-        )
-        self.singleButton.move(175, 5)
-        self.singleButton.resize(80, 30)
-        self.singleButton.clicked.connect(self.Bruker_Button)
+        self.getdirectoryButton.move(75, 5)
+        self.getdirectoryButton.resize(100, 30)
+        self.getdirectoryButton.clicked.connect(self.Get_Directory_Button)
 
         self.hanlabButton = QPushButton("Han Lab", self)
         self.hanlabButton.setStyleSheet(
             "font : bold ; color : rgb(254, 188, 17) ; background-color : rgb(0, 54, 96)"
         )
-        self.hanlabButton.move(260, 5)
-        self.hanlabButton.resize(80, 30)
+        self.hanlabButton.move(180, 5)
+        self.hanlabButton.resize(75, 30)
         self.hanlabButton.clicked.connect(self.Han_Lab_Button)
 
         self.pathLabel = QLabel(self)
-        self.pathLabel.setStyleSheet("font : bold 14px; color : rgb(0, 54, 96)")
-        self.pathLabel.move(345, 13)
-        self.pathLabel.resize(700, 20)
+        self.pathLabel.setStyleSheet("font : bold 14px; color : rgb(0, 0, 0)")
+        self.pathLabel.move(265, 13)
+        self.pathLabel.resize(770, 20)
         self.pathLabel.setText("Data folder path")
 
         self.phaseLabel = QLabel(self)
@@ -814,30 +804,47 @@ class hydrationGUI(QMainWindow):
 
         return workspace
 
-    def GUI_Result_Button(self):
+    def Get_File_Button(self):
+
+        dirname = QFileDialog.getOpenFileName(self)
+        if dirname[0]:
+            flname = dirname[0]
+        else:
+            return
+        self.flname = os.path.normpath(flname)
+        exten = self.flname.split(".")
+
+        if "h5" in exten or "mat" in exten:
+            self.GUI_Result()
+        else:
+            self.NMR_Data()
+
+    def Get_Directory_Button(self):
+
+        dirname = QFileDialog.getExistingDirectory(self)
+        if dirname:
+            flname = dirname
+        else:
+            return
+        self.flname = os.path.normpath(flname)
+
+        if (
+            os.path.isfile(os.path.join(self.flname, "enhancementPowers.csv"))
+            and os.path.isfile(os.path.join(self.flname, "kSigma.csv"))
+            and os.path.isfile(os.path.join(self.flname, "t1Powers.csv"))
+        ):
+            self.Workup_Directory()
+        else:
+            self.NMR_Data()
+
+    def GUI_Result(self):
         """Select either the h5 or the .mat files previously saved using the 'Save results' button."""
         try:
-            if self.testmode:
-                flname = os.path.join(
-                    self.testpath,
-                    "data",
-                    "topspin",
-                    "hydrationGUI_Results",
-                    "hydration_parameters.h5",
-                )
-                # flname = os.path.join(self.testpath, 'data', 'topspin', 'GUI_results hydrationGUI Results', 'GUI_results xODNP.mat')
-            else:
-                dirname = QFileDialog.getOpenFileName(self)
 
-                if dirname[0]:
-                    flname = dirname[0]
-                else:
-                    return
+            print("GUI Results: " + self.flname)
 
-            print("GUI Results: " + flname)
-
-            x = flname.split(os.sep)
-            exten = flname.split(".")
+            x = self.flname.split(os.sep)
+            exten = self.flname.split(".")
 
             self.pathLabel.setText(
                 "GUI RESULTS DIRECTORY: "
@@ -860,7 +867,7 @@ class hydrationGUI(QMainWindow):
             self.reset_plots()
 
             if "mat" in exten:
-                matin = loadmat(flname)
+                matin = loadmat(self.flname)
 
                 self.t10Edit.setText(str(round(float(matin["odnp"]["T10"]), 4)))
                 self.t100Edit.setText(str(round(float(matin["odnp"]["T100"]), 4)))
@@ -885,7 +892,7 @@ class hydrationGUI(QMainWindow):
                 self.T1p_stdd = np.ravel(t1perr[0])
 
             elif "h5" in exten:
-                h5in = dnplab.dnpImport.load(flname, data_type="h5")
+                h5in = dnplab.dnpImport.load(self.flname, data_type="h5")
 
                 self.t100Edit.setText(
                     str(round(float(h5in["hydration_inputs"]["T100"]), 4))
@@ -928,22 +935,13 @@ class hydrationGUI(QMainWindow):
             self.pathLabel.setText("File type error ")
             self.gui_dict["gui_function"]["buttons"] = False
 
-    def Workup_Button(self):
+    def Workup_Directory(self):
         """Select the "Workup" folder that is the output of workup software used by the Han Lab."""
         try:
-            if self.testmode:
-                pthnm = os.path.join(self.testpath, "data", "topspin", "Workup")
-            else:
-                dirname = QFileDialog.getExistingDirectory(self)
 
-                if dirname:
-                    pthnm = dirname
-                else:
-                    return
-
-            self.gui_dict["workup_function"]["directory"] = pthnm + os.sep
-            print("Workup: " + pthnm)
-            x = pthnm.split(os.sep)
+            self.gui_dict["workup_function"]["directory"] = self.flname + os.sep
+            print("Workup: " + self.flname)
+            x = self.flname.split(os.sep)
             self.pathLabel.setText(
                 "WORKUP DIRECTORY: "
                 + x[len(x) - 3]
@@ -1084,35 +1082,25 @@ class hydrationGUI(QMainWindow):
         # ksig = ksig[ksig[:,0].argsort()]
         # self.workup_ksig_array = ksig[:,1]
 
-    def Bruker_Button(self):
+    def NMR_Data(self):
         """Select any numbered folder of a topspin dataset that contains 1D or 2D data."""
         try:
-            if self.testmode:
-                pthnm = os.path.join(self.testpath, "data", "topspin", "304")
-            else:
-                dirname = QFileDialog.getExistingDirectory(self)
 
-                if dirname:
-                    pthnm = dirname
-                else:
-                    return
-
-            x = pthnm.split(os.sep)
+            x = self.flname.split(os.sep)
             self.pathLabel.setText(
                 "DATA DIRECTORY: " + x[len(x) - 2] + " " + os.sep + " " + x[len(x) - 1]
             )
             self.singlefolder = x[len(x) - 1]
 
-            type = "topspin"
-            data = dnplab.dnpImport.load(pthnm, data_type=type)
+            data = dnplab.dnpImport.load(self.flname)
             self.dnpLab_workspace = dnplab.create_workspace("raw", data)
             self.dnpLab_workspace.copy("raw", "proc")
 
             if self.dnpLab_workspace["proc"].ndim == 2:
-                print("T1 Measurement: " + pthnm)
+                print("T1 Measurement: " + self.flname)
                 self.gui_dict["rawdata_function"]["folder"] = -1
             elif self.dnpLab_workspace["proc"].ndim == 1:
-                print("1D Data: " + pthnm)
+                print("1D Data: " + self.flname)
                 self.gui_dict["rawdata_function"]["folder"] = -2
 
             self.reset_plots()
@@ -1163,15 +1151,12 @@ class hydrationGUI(QMainWindow):
 
         """
         try:
-            if self.testmode:
-                pthnm = os.path.join(self.testpath, "data", "topspin")
+            dirname = QFileDialog.getExistingDirectory(self)
+            if dirname:
+                pthnm = dirname
             else:
-                dirname = QFileDialog.getExistingDirectory(self)
-
-                if dirname:
-                    pthnm = dirname
-                else:
-                    return
+                return
+            pthnm = os.path.normpath(pthnm)
 
             pthnm = pthnm + os.sep
             self.gui_dict["rawdata_function"]["directory"] = pthnm
@@ -1477,14 +1462,14 @@ class hydrationGUI(QMainWindow):
 
                         self.gui_dict["t1_fit"]["tau"] = nextproc_workspace[
                             "proc"
-                        ].coords["t1"]
+                        ].coords["f1"]
                         self.gui_dict["t1_fit"]["t1Amps"] = nextproc_workspace[
                             "proc"
                         ].values
 
                         self.gui_dict["t1_fit"]["xaxis"] = nextproc_workspace[
                             "fit"
-                        ].coords["t1"]
+                        ].coords["f1"]
                         self.gui_dict["t1_fit"]["t1Fit"] = nextproc_workspace[
                             "fit"
                         ].values
@@ -1965,7 +1950,7 @@ class hydrationGUI(QMainWindow):
             pass
         else:
 
-            self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords["t1"]
+            self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords["f1"]
             self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
 
             try:
@@ -1998,12 +1983,12 @@ class hydrationGUI(QMainWindow):
             else:
 
                 self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords[
-                    "t1"
+                    "f1"
                 ]
                 self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
 
                 self.gui_dict["t1_fit"]["xaxis"] = adjslider_workspace["fit"].coords[
-                    "t1"
+                    "f1"
                 ]
                 self.gui_dict["t1_fit"]["t1Fit"] = adjslider_workspace["fit"].values
                 self.gui_dict["t1_fit"]["t1Val"] = adjslider_workspace["fit"].attrs[
@@ -2598,6 +2583,7 @@ class hydrationGUI(QMainWindow):
             pthnm = pthnm1[0]
         else:
             return
+        pthnm = os.path.normpath(pthnm)
 
         if (
             self.gui_dict["workup_function"]["fit"]
