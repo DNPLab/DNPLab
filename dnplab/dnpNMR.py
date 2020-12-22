@@ -46,417 +46,6 @@ def update_parameters(proc_parameters, requiredList, default_parameters):
     return updatedProc_parameters
 
 
-def remove_offset(all_data, dim="t2", offset_points=10):
-    """Remove DC offset from FID by averaging the last few data points and subtracting the average
-
-    Args:
-        all_data (dnpdata, dict): Data container for data
-
-    +---------------+------+---------+----------------------------------------------------------+
-    | parameter     | type | default | description                                              |
-    +---------------+------+---------+----------------------------------------------------------+
-    | dim           | str  | 't2'    | Dimension to calculate DC offset                         |
-    +---------------+------+---------+----------------------------------------------------------+
-    | offset_points | int  | 10      | Number of points at end of data to average for DC offset |
-    +---------------+------+---------+----------------------------------------------------------+
-
-    Returns:
-        dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
-        dnpdata: If dnpdata object is given, return dnpdata object.
-
-    Example::
-
-       workspace = dnplab.dnpNMR.remove_offset(workspace)
-    """
-
-    # Determine if data is dictionary or dnpdata object
-    data, isDict = return_data(all_data)
-
-    proc_parameters = {
-        "dim": dim,
-        "offset_points": offset_points,
-    }
-
-    dim = proc_parameters["dim"]
-    offset_points = int(proc_parameters["offset_points"])
-
-    offsetData = data[dim, -1 * offset_points :].values
-    offsetData = offsetData.reshape(-1)
-    offset = _np.mean(offsetData)
-
-    data -= offset
-
-    proc_attr_name = "remove_offset"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
-
-    if isDict:
-        all_data[all_data.processing_buffer] = data
-        return all_data
-    else:
-        return data
-
-
-def fourier_transform(
-    all_data, dim="t2", zero_fill_factor=2, shift=True, convert_to_ppm=True
-):
-    """Perform Fourier Transform down dim dimension given in proc_parameters
-
-    .. Note::
-        Assumes dt = t[1] - t[0]
-
-    Args:
-        all_data (dnpdata, dict): Data container
-
-    +------------------+------+---------+--------------------------------------------------+
-    | parameter        | type | default | description                                      |
-    +------------------+------+---------+--------------------------------------------------+
-    | dim              | str  | 't2'    | dimension to Fourier transform                   |
-    +------------------+------+---------+--------------------------------------------------+
-    | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
-    +------------------+------+---------+--------------------------------------------------+
-    | shift            | bool | True    | Perform fftshift to set zero frequency to center |
-    +------------------+------+---------+--------------------------------------------------+
-    | convert_to_ppm   | bool | True    | Convert dim from Hz to ppm                       |
-    +------------------+------+---------+--------------------------------------------------+
-
-    Returns:
-        all_data (dnpdata, dict): Processed data in container
-
-    Example:
-
-    .. code-block:: python
-
-        all_data = dnplab.dnpNMR.fourier_transform(all_data, proc_parameters)
-    """
-
-    # Determine if data is dictionary or dnpdata object
-    data, isDict = return_data(all_data)
-
-    # handle zero_fill_factor
-    zero_fill_factor = int(zero_fill_factor)
-    if zero_fill_factor <= 0:
-        zero_fill_factor = 1
-
-    proc_parameters = {
-        "dim": dim,
-        "zero_fill_factor": zero_fill_factor,
-        "shift": shift,
-        "convert_to_ppm": convert_to_ppm,
-    }
-
-    index = data.dims.index(dim)
-    dt = data.coords[dim][1] - data.coords[dim][0]
-    n_pts = zero_fill_factor * len(data.coords[dim])
-    f = (1.0 / (n_pts * dt)) * _np.r_[0:n_pts]
-    if shift == True:
-        f -= 1.0 / (2 * dt)
-
-    if convert_to_ppm:
-        nmr_frequency = data.attrs["nmr_frequency"]
-        f /= -1 * nmr_frequency / 1.0e6
-
-    data.values = _np.fft.fft(data.values, n=n_pts, axis=index)
-    if shift:
-        data.values = _np.fft.fftshift(data.values, axes=index)
-    data.coords[dim] = f
-
-    if len(data.dims) == 2:
-        data.dims = ["f2", "f1"]
-    elif len(data.dims) == 1:
-        data.dims = ["f2"]
-
-    proc_attr_name = "fourier_transform"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
-
-    if isDict:
-        all_data[all_data.processing_buffer] = data
-        return all_data
-    else:
-        return data
-
-
-def window(
-    all_data,
-    dim="t2",
-    type="exponential",
-    linewidth=1,
-    gaussian_max=0,
-    inverse=False,
-):
-    """Apply Apodization to data down given dimension
-
-    Args:
-        all_data (dnpdata, dict): data container
-
-    .. note::
-        Axis units assumed to be seconds
-
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | parameter       | type                    | default       | description                                       |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | dim             | str                     | 't2'          | Dimension to apply exponential apodization        |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | type            | str                     | 'exponential' | type of apodization                               |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | linewidth       | float, list, or ndarray | 1             | linewidths  in Hz                                 |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | gaussian_max    | float                   | 0             | Location of gaussian component maximum            |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | inverse         | boolean                 | False         | invert the window function                        |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-
-    Returns:
-        all_data (dnpdata, dict): data object with window function applied
-        attributes: "window", window function
-
-    """
-    data, isDict = return_data(all_data)
-    dim_size = data.coords[dim].shape[-1]
-    shape_data = _np.shape(data.values)
-
-    if (isinstance(linewidth, _np.ndarray) or isinstance(linewidth, list)) and len(
-        linewidth
-    ) == 2:
-        a = linewidth[0]
-        b = linewidth[1]
-    elif isinstance(linewidth, int) or isinstance(linewidth, float):
-        a = linewidth
-        b = linewidth
-    else:
-        raise ValueError("linewidth must be int/float, or list/ndarray with len==2")
-
-    if type == "exponential":
-        apwin = _np.exp(-2 * data.coords[dim] * linewidth)
-    elif type == "gaussian":
-        apwin = _np.exp((a * data.coords[dim]) - (b * data.coords[dim] ** 2))
-    elif type == "hamming":
-        apwin = 0.53836 + 0.46164 * _np.cos(
-            1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
-        )
-    elif type == "hann":
-        apwin = 0.5 + 0.5 * _np.cos(
-            1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
-        )
-    elif type == "lorentz_gauss":
-        expo = _np.pi * data.coords[dim] * a
-        gaus = 0.6 * _np.pi * b * (gaussian_max * (dim_size - 1) - data.coords[dim])
-        apwin = _np.exp(expo - gaus ** 2).reshape(dim_size)
-    elif type == "sin2":
-        apwin = (
-            _np.cos((-0.5 * _np.pi * _np.arange(dim_size) / (dim_size - 1)) + _np.pi)
-            ** 2
-        )
-    elif type == "traf":
-        E_t = _np.exp(-1 * data.coords[dim] * _np.pi * a)
-        e_t = _np.exp((data.coords[dim] - max(data.coords[dim])) * _np.pi * b)
-        apwin = (E_t * (E_t + e_t)) / ((E_t ** 2) + (e_t ** 2))
-    else:
-        raise ValueError("Invalid window type")
-
-    apwin.reshape(dim_size)
-
-    if inverse:
-        apwin = 1 / apwin
-
-    if len(shape_data) == 2:
-        for ix in range(shape_data[1]):
-            data.values[:, ix] *= apwin
-    else:
-        data.values *= apwin
-
-    proc_parameters = {
-        "type": type,
-        "linewidth": linewidth,
-        "dim": dim,
-        "gaussian_max": gaussian_max,
-        "inverse": inverse,
-    }
-    proc_attr_name = "window"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
-    data.attrs["window"] = apwin
-
-    if isDict:
-        all_data[all_data.processing_buffer] = data
-        return all_data
-    else:
-        return data
-
-
-def integrate(all_data, dim="f2", integrate_center=0, integrate_width="full"):
-    """Integrate data down given dimension
-
-    Args:
-        all_data (dnpdata,dict): Data container
-
-    +------------------+-------+---------+------------------------------+
-    | parameter        | type  | default | description                  |
-    +------------------+-------+---------+------------------------------+
-    | dim              | str   | 't2'    | dimension to integrate       |
-    +------------------+-------+---------+------------------------------+
-    | integrate_center | float | 0       | center of integration window |
-    +------------------+-------+---------+------------------------------+
-    | integrate_width  | float | 100     | width of integration window  |
-    +------------------+-------+---------+------------------------------+
-
-    Returns:
-        all_data (dnpdata,dict): Processed data
-
-    Example::
-
-        dnplab.dnpNMR.integrate(all_data)
-
-    """
-
-    data, isDict = return_data(all_data)
-
-    if integrate_width == "full":
-        pass
-    elif isinstance(integrate_width, int) or isinstance(integrate_width, float):
-        integrateMin = integrate_center - _np.abs(integrate_width) / 2.0
-        integrateMax = integrate_center + _np.abs(integrate_width) / 2.0
-        data = data[dim, (integrateMin, integrateMax)]
-    else:
-        raise ValueError("integrate_width must be 'full', int, or float")
-
-    proc_parameters = {
-        "dim": dim,
-        "integrate_center": integrate_center,
-        "integrate_width": integrate_width,
-    }
-
-    index = data.index(dim)
-    data.values = _np.trapz(data.values, x=data.coords[dim], axis=index)
-
-    data.coords.pop(dim)
-
-    proc_attr_name = "integrate"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
-
-    if isDict:
-        all_data[all_data.processing_buffer] = data
-        return all_data
-    else:
-        return data
-
-
-def exp_fit_func_1(x_axis, C1, C2, tau):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau)
-
-
-def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
-
-
-def baseline_fit(temp_coords, temp_data, type, order):
-
-    if type == "polynomial":
-        base_line = _np.polyval(_np.polyfit(temp_coords, temp_data, order), temp_coords)
-    elif type == "exponential":
-        temp_data = temp_data.real
-        if order == 1:
-            x0 = [temp_data[-1], temp_data[0], 1]
-            out, cov = curve_fit(
-                exp_fit_func_1, temp_coords, temp_data, x0, method="lm"
-            )
-            base_line = exp_fit_func_1(temp_coords, out[0], out[1], out[2])
-        elif order == 2:
-            x0 = [temp_data[-1], temp_data[0], 1, temp_data[0], 1]
-            out, cov = curve_fit(
-                exp_fit_func_2, temp_coords, temp_data, x0, method="lm"
-            )
-            base_line = exp_fit_func_2(
-                temp_coords, out[0], out[1], out[2], out[3], out[4]
-            )
-        else:
-            raise ValueError(
-                "Use order=1 for mono-exponential, order=2 for bi-exponential"
-            )
-
-    else:
-        raise TypeError("type must be either 'polynomial' or 'exponential'")
-
-    return base_line
-
-
-def baseline(all_data, dim="f2", type="polynomial", order=1, reference_slice=None):
-    """Baseline correction of NMR spectra down given dimension
-
-    Args:
-        all_data (object) : dnpdata object
-
-    +-----------------+------+---------------+---------------------------------------------------+
-    | parameter       | type | default       | description                                       |
-    +-----------------+------+---------------+---------------------------------------------------+
-    | dim             | str  | 'f2'          | Dimension to apply baseline correction            |
-    +-----------------+------+---------------+---------------------------------------------------+
-    | type            | str  | 'polynomial'  | type of baseline fit                              |
-    +-----------------+------+---------------+---------------------------------------------------+
-    | order           | int  | 1             | polynomial order, or 1=mono 2=bi exponential      |
-    +-----------------+------+---------------+---------------------------------------------------+
-    | reference_slice | int  | None          | slice of 2D data used to define the baseline      |
-    +-----------------+------+---------------+---------------------------------------------------+
-
-    returns:
-        all_data (dnpdata, dict): Baseline corrected data in container
-        attributes: "baseline", baseline function
-    """
-
-    data, isDict = return_data(all_data)
-
-    if dim == "t2":
-        ind_dim = "t1"
-    elif dim == "t1":
-        ind_dim = "t2"
-    elif dim == "f2":
-        ind_dim = "f1"
-    elif dim == "f1":
-        ind_dim = "f2"
-
-    if reference_slice is not None:
-        if len(_np.shape(data.values)) == 1:
-            reference_slice = None
-            warnings.warn("ignoring reference_slice, this is 1D data")
-        else:
-            reference_slice -= 1
-
-    if len(_np.shape(data.values)) == 2:
-        if reference_slice is not None:
-            bline = baseline_fit(
-                data.coords[dim], data.values[:, reference_slice], type, order
-            )
-            for ix in range(len(data.coords[ind_dim])):
-                data.values[:, ix] -= bline
-        elif reference_slice is None:
-            for ix in range(len(data.coords[ind_dim])):
-                bline = baseline_fit(data.coords[dim], data.values[:, ix], type, order)
-                data.values[:, ix] -= bline
-        else:
-            raise TypeError("invalid reference_slice")
-
-    elif len(_np.shape(data.values)) == 1:
-        bline = baseline_fit(data.coords[dim], data.values, type, order)
-        data.values -= bline
-
-    else:
-        raise ValueError("1D or 2D only")
-
-    proc_parameters = {
-        "dim": dim,
-        "type": type,
-        "order": order,
-        "reference_slice": reference_slice,
-    }
-    proc_attr_name = "baseline"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
-    data.attrs["baseline"] = bline
-
-    if isDict:
-        all_data[all_data.processing_buffer] = data
-        return all_data
-    else:
-        return data
-
-
 def align(all_data, dim="f2", dim2=None):
     """Alignment of NMR spectra down given dimension or dimensions
 
@@ -669,6 +258,453 @@ def autophase(
     }
     proc_attr_name = "autophase"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+        return all_data
+    else:
+        return data
+
+
+def exp_fit_func_1(x_axis, C1, C2, tau):
+    return C1 + C2 * _np.exp(-1.0 * x_axis / tau)
+
+
+def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
+    return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
+
+
+def baseline_fit(temp_coords, temp_data, type, order):
+
+    if type == "polynomial":
+        base_line = _np.polyval(_np.polyfit(temp_coords, temp_data, order), temp_coords)
+    elif type == "exponential":
+        temp_data = temp_data.real
+        if order == 1:
+            x0 = [temp_data[-1], temp_data[0], 1]
+            out, cov = curve_fit(
+                exp_fit_func_1, temp_coords, temp_data, x0, method="lm"
+            )
+            base_line = exp_fit_func_1(temp_coords, out[0], out[1], out[2])
+        elif order == 2:
+            x0 = [temp_data[-1], temp_data[0], 1, temp_data[0], 1]
+            out, cov = curve_fit(
+                exp_fit_func_2, temp_coords, temp_data, x0, method="lm"
+            )
+            base_line = exp_fit_func_2(
+                temp_coords, out[0], out[1], out[2], out[3], out[4]
+            )
+        else:
+            raise ValueError(
+                "Use order=1 for mono-exponential, order=2 for bi-exponential"
+            )
+
+    else:
+        raise TypeError("type must be either 'polynomial' or 'exponential'")
+
+    return base_line
+
+
+def baseline(all_data, dim="f2", type="polynomial", order=1, reference_slice=None):
+    """Baseline correction of NMR spectra down given dimension
+
+    Args:
+        all_data (object) : dnpdata object
+
+    +-----------------+------+---------------+---------------------------------------------------+
+    | parameter       | type | default       | description                                       |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | dim             | str  | 'f2'          | Dimension to apply baseline correction            |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | type            | str  | 'polynomial'  | type of baseline fit                              |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | order           | int  | 1             | polynomial order, or 1=mono 2=bi exponential      |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | reference_slice | int  | None          | slice of 2D data used to define the baseline      |
+    +-----------------+------+---------------+---------------------------------------------------+
+
+    returns:
+        all_data (dnpdata, dict): Baseline corrected data in container
+        attributes: "baseline", baseline function
+    """
+
+    data, isDict = return_data(all_data)
+
+    if dim == "t2":
+        ind_dim = "t1"
+    elif dim == "t1":
+        ind_dim = "t2"
+    elif dim == "f2":
+        ind_dim = "f1"
+    elif dim == "f1":
+        ind_dim = "f2"
+
+    if reference_slice is not None:
+        if len(_np.shape(data.values)) == 1:
+            reference_slice = None
+            warnings.warn("ignoring reference_slice, this is 1D data")
+        else:
+            reference_slice -= 1
+
+    if len(_np.shape(data.values)) == 2:
+        if reference_slice is not None:
+            bline = baseline_fit(
+                data.coords[dim], data.values[:, reference_slice], type, order
+            )
+            for ix in range(len(data.coords[ind_dim])):
+                data.values[:, ix] -= bline
+        elif reference_slice is None:
+            for ix in range(len(data.coords[ind_dim])):
+                bline = baseline_fit(data.coords[dim], data.values[:, ix], type, order)
+                data.values[:, ix] -= bline
+        else:
+            raise TypeError("invalid reference_slice")
+
+    elif len(_np.shape(data.values)) == 1:
+        bline = baseline_fit(data.coords[dim], data.values, type, order)
+        data.values -= bline
+
+    else:
+        raise ValueError("1D or 2D only")
+
+    proc_parameters = {
+        "dim": dim,
+        "type": type,
+        "order": order,
+        "reference_slice": reference_slice,
+    }
+    proc_attr_name = "baseline"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    data.attrs["baseline"] = bline
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+        return all_data
+    else:
+        return data
+
+
+def fourier_transform(
+    all_data, dim="t2", zero_fill_factor=2, shift=True, convert_to_ppm=True
+):
+    """Perform Fourier Transform down dim dimension given in proc_parameters
+
+    .. Note::
+        Assumes dt = t[1] - t[0]
+
+    Args:
+        all_data (dnpdata, dict): Data container
+
+    +------------------+------+---------+--------------------------------------------------+
+    | parameter        | type | default | description                                      |
+    +------------------+------+---------+--------------------------------------------------+
+    | dim              | str  | 't2'    | dimension to Fourier transform                   |
+    +------------------+------+---------+--------------------------------------------------+
+    | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
+    +------------------+------+---------+--------------------------------------------------+
+    | shift            | bool | True    | Perform fftshift to set zero frequency to center |
+    +------------------+------+---------+--------------------------------------------------+
+    | convert_to_ppm   | bool | True    | Convert dim from Hz to ppm                       |
+    +------------------+------+---------+--------------------------------------------------+
+
+    Returns:
+        all_data (dnpdata, dict): Processed data in container
+
+    Example:
+
+    .. code-block:: python
+
+        all_data = dnplab.dnpNMR.fourier_transform(all_data, proc_parameters)
+    """
+
+    # Determine if data is dictionary or dnpdata object
+    data, isDict = return_data(all_data)
+
+    # handle zero_fill_factor
+    zero_fill_factor = int(zero_fill_factor)
+    if zero_fill_factor <= 0:
+        zero_fill_factor = 1
+
+    proc_parameters = {
+        "dim": dim,
+        "zero_fill_factor": zero_fill_factor,
+        "shift": shift,
+        "convert_to_ppm": convert_to_ppm,
+    }
+
+    index = data.dims.index(dim)
+    dt = data.coords[dim][1] - data.coords[dim][0]
+    n_pts = zero_fill_factor * len(data.coords[dim])
+    f = (1.0 / (n_pts * dt)) * _np.r_[0:n_pts]
+    if shift == True:
+        f -= 1.0 / (2 * dt)
+
+    if convert_to_ppm:
+        nmr_frequency = data.attrs["nmr_frequency"]
+        f /= -1 * nmr_frequency / 1.0e6
+
+    data.values = _np.fft.fft(data.values, n=n_pts, axis=index)
+    if shift:
+        data.values = _np.fft.fftshift(data.values, axes=index)
+    data.coords[dim] = f
+
+    if len(data.dims) == 2:
+        data.dims = ["f2", "f1"]
+    elif len(data.dims) == 1:
+        data.dims = ["f2"]
+
+    proc_attr_name = "fourier_transform"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+        return all_data
+    else:
+        return data
+
+
+def integrate(all_data, dim="f2", integrate_center=0, integrate_width="full"):
+    """Integrate data down given dimension
+
+    Args:
+        all_data (dnpdata,dict): Data container
+
+    +------------------+-------+---------+------------------------------+
+    | parameter        | type  | default | description                  |
+    +------------------+-------+---------+------------------------------+
+    | dim              | str   | 't2'    | dimension to integrate       |
+    +------------------+-------+---------+------------------------------+
+    | integrate_center | float | 0       | center of integration window |
+    +------------------+-------+---------+------------------------------+
+    | integrate_width  | float | 100     | width of integration window  |
+    +------------------+-------+---------+------------------------------+
+
+    Returns:
+        all_data (dnpdata,dict): Processed data
+
+    Example::
+
+        dnplab.dnpNMR.integrate(all_data)
+
+    """
+
+    data, isDict = return_data(all_data)
+
+    if integrate_width == "full":
+        pass
+    elif isinstance(integrate_width, int) or isinstance(integrate_width, float):
+        integrateMin = integrate_center - _np.abs(integrate_width) / 2.0
+        integrateMax = integrate_center + _np.abs(integrate_width) / 2.0
+        data = data[dim, (integrateMin, integrateMax)]
+    else:
+        raise ValueError("integrate_width must be 'full', int, or float")
+
+    proc_parameters = {
+        "dim": dim,
+        "integrate_center": integrate_center,
+        "integrate_width": integrate_width,
+    }
+
+    index = data.index(dim)
+    data.values = _np.trapz(data.values, x=data.coords[dim], axis=index)
+
+    data.coords.pop(dim)
+
+    proc_attr_name = "integrate"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+        return all_data
+    else:
+        return data
+
+
+def left_shift(all_data, dim="t2", shift_points=0):
+    """Remove points from the left of data
+
+    Args:
+        all_data (dnpdata, dict): Data container for data
+
+    +---------------+------+---------+----------------------------------------------------------+
+    | parameter     | type | default | description                                              |
+    +---------------+------+---------+----------------------------------------------------------+
+    | shift_points  | int  | 0       | Number of points to remove from left of data             |
+    +---------------+------+---------+----------------------------------------------------------+
+
+    Returns:
+        dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
+        dnpdata: If dnpdata object is given, return dnpdata object.
+
+    """
+
+    data, isDict = return_data(all_data)
+
+    shifted_data = data[dim, shift_points:]
+
+    proc_attr_name = "left_shift"
+    proc_parameters = {
+        "dim": dim,
+        "points": shift_points,
+    }
+    shifted_data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = shifted_data
+        return all_data
+    else:
+        return shifted_data
+
+
+def remove_offset(all_data, dim="t2", offset_points=10):
+    """Remove DC offset from FID by averaging the last few data points and subtracting the average
+
+    Args:
+        all_data (dnpdata, dict): Data container for data
+
+    +---------------+------+---------+----------------------------------------------------------+
+    | parameter     | type | default | description                                              |
+    +---------------+------+---------+----------------------------------------------------------+
+    | dim           | str  | 't2'    | Dimension to calculate DC offset                         |
+    +---------------+------+---------+----------------------------------------------------------+
+    | offset_points | int  | 10      | Number of points at end of data to average for DC offset |
+    +---------------+------+---------+----------------------------------------------------------+
+
+    Returns:
+        dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
+        dnpdata: If dnpdata object is given, return dnpdata object.
+
+    Example::
+
+       workspace = dnplab.dnpNMR.remove_offset(workspace)
+    """
+
+    # Determine if data is dictionary or dnpdata object
+    data, isDict = return_data(all_data)
+
+    proc_parameters = {
+        "dim": dim,
+        "offset_points": offset_points,
+    }
+
+    dim = proc_parameters["dim"]
+    offset_points = int(proc_parameters["offset_points"])
+
+    offsetData = data[dim, -1 * offset_points :].values
+    offsetData = offsetData.reshape(-1)
+    offset = _np.mean(offsetData)
+
+    data -= offset
+
+    proc_attr_name = "remove_offset"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+        return all_data
+    else:
+        return data
+
+
+def window(
+    all_data,
+    dim="t2",
+    type="exponential",
+    linewidth=1,
+    gaussian_max=0,
+    inverse=False,
+):
+    """Apply Apodization to data down given dimension
+
+    Args:
+        all_data (dnpdata, dict): data container
+
+    .. note::
+        Axis units assumed to be seconds
+
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | parameter       | type                    | default       | description                                       |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | dim             | str                     | 't2'          | Dimension to apply exponential apodization        |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | type            | str                     | 'exponential' | type of apodization                               |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | linewidth       | float, list, or ndarray | 1             | linewidths  in Hz                                 |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | gaussian_max    | float                   | 0             | Location of gaussian component maximum            |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    | inverse         | boolean                 | False         | invert the window function                        |
+    +-----------------+-------------------------+---------------+---------------------------------------------------+
+
+    Returns:
+        all_data (dnpdata, dict): data object with window function applied
+        attributes: "window", window function
+
+    """
+    data, isDict = return_data(all_data)
+    dim_size = data.coords[dim].shape[-1]
+    shape_data = _np.shape(data.values)
+
+    if (isinstance(linewidth, _np.ndarray) or isinstance(linewidth, list)) and len(
+        linewidth
+    ) == 2:
+        a = linewidth[0]
+        b = linewidth[1]
+    elif isinstance(linewidth, int) or isinstance(linewidth, float):
+        a = linewidth
+        b = linewidth
+    else:
+        raise ValueError("linewidth must be int/float, or list/ndarray with len==2")
+
+    if type == "exponential":
+        apwin = _np.exp(-2 * data.coords[dim] * linewidth)
+    elif type == "gaussian":
+        apwin = _np.exp((a * data.coords[dim]) - (b * data.coords[dim] ** 2))
+    elif type == "hamming":
+        apwin = 0.53836 + 0.46164 * _np.cos(
+            1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
+        )
+    elif type == "hann":
+        apwin = 0.5 + 0.5 * _np.cos(
+            1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
+        )
+    elif type == "lorentz_gauss":
+        expo = _np.pi * data.coords[dim] * a
+        gaus = 0.6 * _np.pi * b * (gaussian_max * (dim_size - 1) - data.coords[dim])
+        apwin = _np.exp(expo - gaus ** 2).reshape(dim_size)
+    elif type == "sin2":
+        apwin = (
+            _np.cos((-0.5 * _np.pi * _np.arange(dim_size) / (dim_size - 1)) + _np.pi)
+            ** 2
+        )
+    elif type == "traf":
+        E_t = _np.exp(-1 * data.coords[dim] * _np.pi * a)
+        e_t = _np.exp((data.coords[dim] - max(data.coords[dim])) * _np.pi * b)
+        apwin = (E_t * (E_t + e_t)) / ((E_t ** 2) + (e_t ** 2))
+    else:
+        raise ValueError("Invalid window type")
+
+    apwin.reshape(dim_size)
+
+    if inverse:
+        apwin = 1 / apwin
+
+    if len(shape_data) == 2:
+        for ix in range(shape_data[1]):
+            data.values[:, ix] *= apwin
+    else:
+        data.values *= apwin
+
+    proc_parameters = {
+        "type": type,
+        "linewidth": linewidth,
+        "dim": dim,
+        "gaussian_max": gaussian_max,
+        "inverse": inverse,
+    }
+    proc_attr_name = "window"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    data.attrs["window"] = apwin
 
     if isDict:
         all_data[all_data.processing_buffer] = data
