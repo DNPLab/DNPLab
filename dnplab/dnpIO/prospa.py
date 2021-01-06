@@ -36,6 +36,8 @@ def import_prospa(path, parameters_filename=None, verbose=False):
         else:
             data_filename = filesList[0]
             filename, extension = os.path.splitext(os.path.split(data_filename)[-1])
+    else:
+        raise OSError('%s not found'%path)
 
     try:
         attrs = import_par(os.path.join(path, parameters_filename))
