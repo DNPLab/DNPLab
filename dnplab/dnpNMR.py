@@ -5,6 +5,8 @@ from scipy.optimize import curve_fit
 
 from . import dnpdata, dnpdata_collection
 
+import re
+
 
 def return_data(all_data):
 
@@ -448,12 +450,88 @@ def fourier_transform(
         data.values = _np.fft.fftshift(data.values, axes=index)
     data.coords[dim] = f
 
-    if len(data.dims) == 2:
-        data.dims = ["f2", "f1"]
-    elif len(data.dims) == 1:
-        data.dims = ["f2"]
+    if re.fullmatch('t[0-9]*', dim) is not None:
+        new_dim = dim.replace('t', 'f')
+        data.rename(dim, new_dim)
 
     proc_attr_name = "fourier_transform"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+        return all_data
+    else:
+        return data
+
+def inverse_fourier_transform(
+    all_data, dim="t2", zero_fill_factor=1, shift=True, convert_from_ppm=True
+):
+    """Perform Fourier Transform down dim dimension given in proc_parameters
+
+    .. Note::
+        Assumes dt = t[1] - t[0]
+
+    Args:
+        all_data (dnpdata, dict): Data container
+
+    +------------------+------+---------+--------------------------------------------------+
+    | parameter        | type | default | description                                      |
+    +------------------+------+---------+--------------------------------------------------+
+    | dim              | str  | 't2'    | dimension to Fourier transform                   |
+    +------------------+------+---------+--------------------------------------------------+
+    | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
+    +------------------+------+---------+--------------------------------------------------+
+    | shift            | bool | True    | Perform fftshift to set zero frequency to center |
+    +------------------+------+---------+--------------------------------------------------+
+    | convert_to_ppm   | bool | True    | Convert dim from Hz to ppm                       |
+    +------------------+------+---------+--------------------------------------------------+
+
+    Returns:
+        all_data (dnpdata, dict): Processed data in container
+
+    Example:
+
+    .. code-block:: python
+
+        all_data = dnplab.dnpNMR.fourier_transform(all_data, proc_parameters)
+    """
+
+    # Determine if data is dictionary or dnpdata object
+    data, isDict = return_data(all_data)
+
+    # handle zero_fill_factor
+    zero_fill_factor = int(zero_fill_factor)
+    if zero_fill_factor <= 0:
+        zero_fill_factor = 1
+
+    proc_parameters = {
+        "dim": dim,
+        "zero_fill_factor": zero_fill_factor,
+        "shift": shift,
+        "convert_from_ppm": convert_from_ppm,
+    }
+
+    index = data.dims.index(dim)
+    df = data.coords[dim][1] - data.coords[dim][0]
+
+    if convert_from_ppm:
+        nmr_frequency = data.attrs["nmr_frequency"]
+        df /= -1 / (nmr_frequency / 1.0e6)
+
+    n_pts = zero_fill_factor * len(data.coords[dim])
+    t = (1.0 / (n_pts * df)) * _np.r_[0:n_pts]
+
+    if shift:
+        data.values = _np.fft.fftshift(data.values, axes=index)
+
+    data.values = _np.fft.ifft(data.values, n=n_pts, axis=index)
+    data.coords[dim] = t
+
+    if re.fulmatch('f[0-9]*', dim) is not None:
+        new_dim = dim.replace('f','t')
+        data.rename(dim, new_dim)
+
+    proc_attr_name = "inverse_fourier_transform"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if isDict:
