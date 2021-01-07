@@ -527,7 +527,7 @@ def inverse_fourier_transform(
     data.values = _np.fft.ifft(data.values, n=n_pts, axis=index)
     data.coords[dim] = t
 
-    if re.fulmatch('f[0-9]*', dim) is not None:
+    if re.fullmatch('f[0-9]*', dim) is not None:
         new_dim = dim.replace('f','t')
         data.rename(dim, new_dim)
 
