@@ -307,7 +307,14 @@ def baseline_fit(temp_coords, temp_data, type, order):
     return base_line
 
 
-def baseline(all_data, dim="f2", type="polynomial", order=1, reference_slice=None):
+def baseline(
+    all_data,
+    dim="f2",
+    indirect_dim=None,
+    type="polynomial",
+    order=1,
+    reference_slice=None,
+):
     """Baseline correction of NMR spectra down given dimension
 
     Args:
@@ -332,14 +339,17 @@ def baseline(all_data, dim="f2", type="polynomial", order=1, reference_slice=Non
 
     data, isDict = return_data(all_data)
 
-    if dim == "t2":
-        ind_dim = "t1"
-    elif dim == "t1":
-        ind_dim = "t2"
-    elif dim == "f2":
-        ind_dim = "f1"
-    elif dim == "f1":
-        ind_dim = "f2"
+    if not indirect_dim:
+        if len(data.dims) == 2:
+            ind_dim = list(set(data.dims) - set([dim]))[0]
+        elif len(data.dims) == 1:
+            ind_dim = data.dims[0]
+        else:
+            raise ValueError(
+                "you must specify the indirect dimension, use argument indirect_dim= "
+            )
+    else:
+        ind_dim = indirect_dim
 
     if reference_slice is not None:
         if len(_np.shape(data.values)) == 1:
@@ -450,8 +460,8 @@ def fourier_transform(
         data.values = _np.fft.fftshift(data.values, axes=index)
     data.coords[dim] = f
 
-    if re.fullmatch('t[0-9]*', dim) is not None:
-        new_dim = dim.replace('t', 'f')
+    if re.fullmatch("t[0-9]*", dim) is not None:
+        new_dim = dim.replace("t", "f")
         data.rename(dim, new_dim)
 
     proc_attr_name = "fourier_transform"
@@ -462,6 +472,7 @@ def fourier_transform(
         return all_data
     else:
         return data
+
 
 def inverse_fourier_transform(
     all_data, dim="t2", zero_fill_factor=1, shift=True, convert_from_ppm=True
@@ -527,8 +538,8 @@ def inverse_fourier_transform(
     data.values = _np.fft.ifft(data.values, n=n_pts, axis=index)
     data.coords[dim] = t
 
-    if re.fullmatch('f[0-9]*', dim) is not None:
-        new_dim = dim.replace('f','t')
+    if re.fullmatch("f[0-9]*", dim) is not None:
+        new_dim = dim.replace("f", "t")
         data.rename(dim, new_dim)
 
     proc_attr_name = "inverse_fourier_transform"
@@ -790,6 +801,7 @@ def window(
     else:
         return data
 
+
 def phasecycle(all_data, dim, receiver_phase):
     """Perform Phase Cycle down given dimension
 
@@ -804,13 +816,12 @@ def phasecycle(all_data, dim, receiver_phase):
     data = data.copy()
 
     if dim not in data.dims:
-        raise ValueError('dim not in dims')
+        raise ValueError("dim not in dims")
 
     coord = data.coords[dim]
     receiver_phase = _np.array(receiver_phase).ravel()
 
-    proc_parameters = {'dim':dim,
-                       'receiver_phase':receiver_phase}
+    proc_parameters = {"dim": dim, "receiver_phase": receiver_phase}
 
     receiver_phase = _np.tile(receiver_phase, int(coord.size / receiver_phase.size))
 
@@ -819,10 +830,9 @@ def phasecycle(all_data, dim, receiver_phase):
     reshape_size = [1 for k in data.dims]
     reshape_size[index] = len(data.coords[dim])
 
-    data *= _np.exp(1j*(_np.pi/2.)*receiver_phase.reshape(reshape_size))
+    data *= _np.exp(1j * (_np.pi / 2.0) * receiver_phase.reshape(reshape_size))
 
     proc_attr_name = "phasecycle"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return data
-

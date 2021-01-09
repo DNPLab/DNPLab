@@ -36,6 +36,7 @@ def calculate_enhancement(
     integrate_width="full",
     method="integrate",
     dim="t2",
+    indirect_dim=None,
 ):
     """Calculate enhancement from DNP data
 
@@ -64,14 +65,17 @@ def calculate_enhancement(
     """
 
     orig_data, isDict = return_data(all_data)
-    if dim == "t2":
-        ind_dim = "t1"
-    elif dim == "t1":
-        ind_dim = "t2"
-    elif dim == "f2":
-        ind_dim = "f1"
-    elif dim == "f1":
-        ind_dim = "f2"
+    if not indirect_dim:
+        if len(orig_data.dims) == 2:
+            ind_dim = list(set(orig_data.dims) - set([dim]))[0]
+        elif len(orig_data.dims) == 1:
+            ind_dim = orig_data.dims[0]
+        else:
+            raise ValueError(
+                "you must specify the indirect dimension, use argument indirect_dim= "
+            )
+    else:
+        ind_dim = indirect_dim
 
     if (
         isinstance(off_spectrum, dnpdata)

@@ -7,7 +7,7 @@ import os
 import glob
 
 
-def import_prospa(path, parameters_filename=None, experiment = None, verbose=False):
+def import_prospa(path, parameters_filename=None, experiment=None, verbose=False):
     """
     Import Kea data
 
@@ -37,7 +37,7 @@ def import_prospa(path, parameters_filename=None, experiment = None, verbose=Fal
             data_filename = filesList[0]
             filename, extension = os.path.splitext(os.path.split(data_filename)[-1])
     else:
-        raise OSError('%s not found'%path)
+        raise OSError("%s not found" % path)
 
     try:
         attrs = import_par(os.path.join(path, parameters_filename))
@@ -64,7 +64,7 @@ def import_prospa(path, parameters_filename=None, experiment = None, verbose=Fal
     # Assume direct dimension is 1st dimension
     data_shape = np.shape(np.squeeze(data))
 
-    dims, coords = prospa_coords(attrs, data_shape, experiment = experiment)
+    dims, coords = prospa_coords(attrs, data_shape, experiment=experiment)
 
     kea_data = dnpdata(data, coords, dims, attrs)
 
@@ -321,15 +321,19 @@ def prospa_coords(attrs, data_shape, experiment):
         increment = attrs["increment"]
         steps = attrs["nrSteps"]
 
-        t1 = np.r_[inter_pulse_delay:inter_pulse_delay+increment*(steps-1):1j*steps] / 1e6
+        t1 = (
+            np.r_[
+                inter_pulse_delay : inter_pulse_delay
+                + increment * (steps - 1) : 1j * steps
+            ]
+            / 1e6
+        )
 
         dims.append("t1")
         coords.append(t1)
 
         dims.append("Average")
         coords.append(np.arange(attrs["nrScans"]))
-
-
 
     else:
         dims_list = ["x", "y", "z", "q"]
