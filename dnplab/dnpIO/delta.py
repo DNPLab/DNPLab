@@ -82,14 +82,14 @@ def import_delta_data(path, params):
     file_opened.close()
 
     num_dims = [
-        unpack(">B", file_contents[12 + k : 13 + k])[0] for k in range(0, 1, 1)
+        unpack(">B", file_contents[12 + ix : 13 + ix])[0] for ix in range(0, 1, 1)
     ][0]
 
     params["nmr_frequency"] = [
-        unpack(">d", file_contents[1064 + k : 1072 + k])[0] for k in range(0, 64, 8)
+        unpack(">d", file_contents[1064 + ix : 1072 + ix])[0] for ix in range(0, 64, 8)
     ][0]
     axes_units = [
-        unpack(">B", file_contents[32 + k : 33 + k])[0] for k in range(1, 16, 2)
+        unpack(">B", file_contents[32 + ix : 33 + ix])[0] for ix in range(1, 16, 2)
     ][:num_dims]
     params["units"] = []
     for ix in range(num_dims):
@@ -106,7 +106,7 @@ def import_delta_data(path, params):
         else:
             params["units"].append("indexed")
 
-    endian = [unpack(">B", file_contents[8 + k : 9 + k])[0] for k in range(0, 1, 1)][0]
+    endian = [unpack(">B", file_contents[8 + ix : 9 + ix])[0] for ix in range(0, 1, 1)][0]
     if endian == 0:
         endian = ">d"
     elif endian == 1:
@@ -115,23 +115,23 @@ def import_delta_data(path, params):
         raise UnicodeTranslateError("Failed to determine endianness")
 
     num_pts = [
-        unpack(">I", file_contents[176 + k : 180 + k])[0] for k in range(0, 32, 4)
+        unpack(">I", file_contents[176 + ix : 180 + ix])[0] for ix in range(0, 32, 4)
     ]
     axis_type = [
-        unpack(">B", file_contents[24 + k : 25 + k])[0] for k in range(0, 8, 1)
+        unpack(">B", file_contents[24 + ix : 25 + ix])[0] for ix in range(0, 8, 1)
     ][:num_dims]
     axes_start = [
-        unpack(">d", file_contents[272 + k : 280 + k])[0] for k in range(0, 64, 8)
+        unpack(">d", file_contents[272 + ix : 280 + ix])[0] for ix in range(0, 64, 8)
     ][:num_dims]
     axes_stop = [
-        unpack(">d", file_contents[336 + k : 344 + k])[0] for k in range(0, 64, 8)
+        unpack(">d", file_contents[336 + ix : 344 + ix])[0] for ix in range(0, 64, 8)
     ][:num_dims]
     abscissa = []
     for ix in range(num_dims):
         abscissa.append(np.linspace(axes_start[ix], axes_stop[ix], num_pts[ix]))
 
     data_start = [
-        unpack(">I", file_contents[1284 + k : 1288 + k])[0] for k in range(0, 4, 4)
+        unpack(">I", file_contents[1284 + ix : 1288 + ix])[0] for ix in range(0, 4, 4)
     ][0]
 
     file_opened = open(path, "rb")
