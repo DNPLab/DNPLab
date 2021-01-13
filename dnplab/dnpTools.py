@@ -431,7 +431,14 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
         m += 1
 
 
-def signal_to_noise(all_data, dim="f2", signal_center=0, signal_width="full", noise_center="default", noise_width="default"):
+def signal_to_noise(
+    all_data,
+    dim="f2",
+    signal_center=0,
+    signal_width="full",
+    noise_center="default",
+    noise_width="default",
+):
     """Find signal-to-noise ratio
 
     Args:
@@ -465,45 +472,55 @@ def signal_to_noise(all_data, dim="f2", signal_center=0, signal_width="full", no
     else:
         raise TypeError("Invalid data")
 
-    if signal_width == "full" and (isinstance(signal_center, int) or isinstance(signal_center, float)):
+    if signal_width == "full" and (
+        isinstance(signal_center, int) or isinstance(signal_center, float)
+    ):
         s_data = data.real
     elif (isinstance(signal_width, int) or isinstance(signal_width, float)) and (
-            isinstance(signal_center, int) or isinstance(signal_center, float)):
-        signalMin = signal_center - _np.abs(signal_width) / 2.0
-        signalMax = signal_center + _np.abs(signal_width) / 2.0
+        isinstance(signal_center, int) or isinstance(signal_center, float)
+    ):
+        signalMin = signal_center - np.abs(signal_width) / 2.0
+        signalMax = signal_center + np.abs(signal_width) / 2.0
         s_data = data[dim, (signalMin, signalMax)].real
     else:
         raise ValueError("signal_center and signal_width must be int or float")
 
     if noise_center == "default" and noise_width == "default":
         noise_width = 0.05 * (max(data.coords[dim]) - min(data.coords[dim]))
-        noise_center = max(data.coords[dim]) - (_np.abs(noise_width) / 2.0)
-    elif (isinstance(noise_center, int) or isinstance(noise_center, float)) and noise_width == "default":
+        noise_center = max(data.coords[dim]) - (np.abs(noise_width) / 2.0)
+    elif (
+        isinstance(noise_center, int) or isinstance(noise_center, float)
+    ) and noise_width == "default":
         noise_width = 0.05 * (max(data.coords[dim]) - min(data.coords[dim]))
-        if noise_center + (_np.abs(noise_width) / 2.0) > max(data.coords[dim]):
+        if noise_center + (np.abs(noise_width) / 2.0) > max(data.coords[dim]):
             noise_width = 2 * (max(data.coords[dim]) - noise_center)
-    elif (isinstance(noise_width, int) or isinstance(noise_width, float)) and noise_center == "default":
-        noise_center = max(data.coords[dim]) - (_np.abs(noise_width) / 2.0)
+    elif (
+        isinstance(noise_width, int) or isinstance(noise_width, float)
+    ) and noise_center == "default":
+        noise_center = max(data.coords[dim]) - (np.abs(noise_width) / 2.0)
     elif (isinstance(noise_width, int) or isinstance(noise_width, float)) and (
-            isinstance(noise_center, int) or isinstance(noise_center, float)):
+        isinstance(noise_center, int) or isinstance(noise_center, float)
+    ):
         pass
     else:
         raise ValueError("noise_center and noise_width must be int or float")
 
-    noiseMin = noise_center - _np.abs(noise_width) / 2.0
-    noiseMax = noise_center + _np.abs(noise_width) / 2.0
+    noiseMin = noise_center - np.abs(noise_width) / 2.0
+    noiseMax = noise_center + np.abs(noise_width) / 2.0
     n_data = data[dim, (noiseMin, noiseMax)].real
 
     if len(data.shape) > 1:
         sig = []
         noi = []
         for ix in range(data.shape[1]):
-            sig.append(s_data.values[_np.argmax(s_data.values[:, ix], axis=0), ix])
-            noi.append(_np.std(n_data.values[:, ix], axis=0))
+            sig.append(s_data.values[np.argmax(s_data.values[:, ix], axis=0), ix])
+            noi.append(np.std(n_data.values[:, ix], axis=0))
 
-        s_n = _np.array(sig) / _np.array(noi)
+        s_n = np.array(sig) / np.array(noi)
     else:
-        s_n = s_data.values[_np.argmax(s_data.values, axis=0)] / _np.std(n_data.values, axis=0)
+        s_n = s_data.values[np.argmax(s_data.values, axis=0)] / np.std(
+            n_data.values, axis=0
+        )
 
     data.attrs["signal_to_noise"] = s_n
 

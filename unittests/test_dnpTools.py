@@ -64,6 +64,43 @@ class dnpTools_tester(unittest.TestCase):
             self.ws_off["enhancement"].values[-1], -0.02576615, places=6
         )
 
+    def test_signal_to_noise(self):
+
+        nmr.remove_offset(self.ws)
+        nmr.window(self.ws, linewidth=15)
+        nmr.fourier_transform(self.ws, zero_fill_factor=2)
+        nmr.autophase(self.ws, method="arctan")
+
+        dnp.dnpTools.signal_to_noise(
+            self.ws,
+            signal_center=0,
+            signal_width="full",
+            noise_center="default",
+            noise_width="default",
+        )
+
+        self.assertEqual(len(self.ws["proc"].attrs["signal_to_noise"]), 8)
+        self.assertAlmostEqual(
+            self.ws["proc"].attrs["signal_to_noise"][4], 10.91728842, places=6
+        )
+
+        nmr.remove_offset(self.ws_off)
+        nmr.window(self.ws_off, linewidth=15)
+        nmr.fourier_transform(self.ws_off, zero_fill_factor=2)
+        nmr.autophase(self.ws_off, method="search")
+
+        dnp.dnpTools.signal_to_noise(
+            self.ws_off,
+            signal_center=-10,
+            signal_width=100,
+            noise_center=200,
+            noise_width=50,
+        )
+
+        self.assertAlmostEqual(
+            self.ws_off["proc"].attrs["signal_to_noise"], 3.3986939859030096, places=6
+        )
+
     def test_mr_properties(self):
 
         info_1H = dnp.dnpTools.mr_properties("1H")
