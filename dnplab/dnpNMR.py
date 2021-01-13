@@ -475,7 +475,7 @@ def fourier_transform(
 
 
 def inverse_fourier_transform(
-    all_data, dim="t2", zero_fill_factor=1, shift=True, convert_from_ppm=True
+    all_data, dim="f2", zero_fill_factor=1, shift=True, convert_from_ppm=True
 ):
     """Perform Fourier Transform down dim dimension given in proc_parameters
 
