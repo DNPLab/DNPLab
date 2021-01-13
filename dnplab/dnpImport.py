@@ -108,6 +108,8 @@ def autodetect(test_path):
         type = "topspin"
     elif os.path.isdir(test_path) and path_exten == ".fid":
         type = "vnmrj"
+    elif path_exten in [".1d", ".2d", ".3d", ".4d"]:
+        type = "prospa"
     elif (
         os.path.isdir(test_path)
         and "acqu.par" in os.listdir(test_path)

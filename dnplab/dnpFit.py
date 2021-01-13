@@ -23,7 +23,9 @@ def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
     return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
 
 
-def exponential_fit(all_data, type="mono", stretched=False, dim="f2"):
+def exponential_fit(
+    all_data, type="mono", stretched=False, dim="f2", indirect_dim=None
+):
     """Fits various forms of exponential functions
 
     .. math::
@@ -55,14 +57,17 @@ def exponential_fit(all_data, type="mono", stretched=False, dim="f2"):
     else:
         raise TypeError("Invalid data")
 
-    if dim == "t2":
-        ind_dim = "t1"
-    elif dim == "t1":
-        ind_dim = "t2"
-    elif dim == "f2":
-        ind_dim = "f1"
-    elif dim == "f1":
-        ind_dim = "f2"
+    if not indirect_dim:
+        if len(data.dims) == 2:
+            ind_dim = list(set(data.dims) - set([dim]))[0]
+        elif len(data.dims) == 1:
+            ind_dim = data.dims[0]
+        else:
+            raise ValueError(
+                "you must specify the indirect dimension, use argument indirect_dim= "
+            )
+    else:
+        ind_dim = indirect_dim
 
     x_axis = data.coords[ind_dim]
     new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
