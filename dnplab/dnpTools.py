@@ -483,7 +483,9 @@ def signal_to_noise(
         signalMax = signal_center + np.abs(signal_width) / 2.0
         s_data = data[dim, (signalMin, signalMax)].real
     else:
-        raise ValueError("signal_center and signal_width must be int or float")
+        raise ValueError(
+            "signal_center and signal_width must be int or float, signal_width may also be 'full'"
+        )
 
     if noise_center == "default" and noise_width == "default":
         noise_width = 0.05 * (max(data.coords[dim]) - min(data.coords[dim]))
@@ -503,7 +505,9 @@ def signal_to_noise(
     ):
         pass
     else:
-        raise ValueError("noise_center and noise_width must be int or float")
+        raise ValueError(
+            "noise_center and noise_width must be int, float, or 'default'"
+        )
 
     noiseMin = noise_center - np.abs(noise_width) / 2.0
     noiseMax = noise_center + np.abs(noise_width) / 2.0
