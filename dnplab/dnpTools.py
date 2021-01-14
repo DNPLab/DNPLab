@@ -475,14 +475,7 @@ def signal_to_noise(
 
     """
 
-    isDict = False
-    if isinstance(all_data, (dict, dnpdata_collection)):
-        data = all_data["proc"].copy()
-        isDict = True
-    elif isinstance(all_data, dnpdata):
-        data = all_data.copy()
-    else:
-        raise TypeError("Invalid data")
+    data, isDict = return_data(all_data)
 
     if signal_width == "full" and (
         isinstance(signal_center, int) or isinstance(signal_center, float)
