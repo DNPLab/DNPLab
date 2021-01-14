@@ -65,17 +65,6 @@ def calculate_enhancement(
     """
 
     orig_data, isDict = return_data(all_data)
-    if not indirect_dim:
-        if len(orig_data.dims) == 2:
-            ind_dim = list(set(orig_data.dims) - set([dim]))[0]
-        elif len(orig_data.dims) == 1:
-            ind_dim = orig_data.dims[0]
-        else:
-            raise ValueError(
-                "you must specify the indirect dimension, use argument indirect_dim= "
-            )
-    else:
-        ind_dim = indirect_dim
 
     if (
         isinstance(off_spectrum, dnpdata)
@@ -86,6 +75,17 @@ def calculate_enhancement(
 
         data_off, is_ws_off = return_data(off_spectrum)
         data_on, is_ws_on = return_data(on_spectra)
+        if not indirect_dim:
+            if len(data_on.dims) == 2:
+                ind_dim = list(set(data_on.dims) - set([dim]))[0]
+            elif len(data_on.dims) == 1:
+                ind_dim = data_on.dims[0]
+            else:
+                raise ValueError(
+                    "you must specify the indirect dimension, use argument indirect_dim= "
+                )
+        else:
+            ind_dim = indirect_dim
 
         if integrate_width == "full":
             int_width_off = "full"
@@ -161,6 +161,18 @@ def calculate_enhancement(
             enh_coords_on = np.array(range(data_on.shape[-1]))
 
     elif isinstance(off_spectrum, int) and on_spectra == "all":
+
+        if not indirect_dim:
+            if len(orig_data.dims) == 2:
+                ind_dim = list(set(orig_data.dims) - set([dim]))[0]
+            elif len(orig_data.dims) == 1:
+                ind_dim = orig_data.dims[0]
+            else:
+                raise ValueError(
+                    "you must specify the indirect dimension, use argument indirect_dim= "
+                )
+        else:
+            ind_dim = indirect_dim
 
         enh_data = copy.deepcopy(all_data)
         if orig_data.ndim == 1:
@@ -513,7 +525,7 @@ def signal_to_noise(
     noiseMax = noise_center + np.abs(noise_width) / 2.0
     n_data = data[dim, (noiseMin, noiseMax)].real
 
-    if len(data.shape) > 1:
+    if data.ndim == 2:
         sig = []
         noi = []
         for ix in range(data.shape[1]):
@@ -521,10 +533,12 @@ def signal_to_noise(
             noi.append(np.std(n_data.values[:, ix], axis=0))
 
         s_n = np.array(sig) / np.array(noi)
-    else:
+    elif data.ndim == 1:
         s_n = s_data.values[np.argmax(s_data.values, axis=0)] / np.std(
             n_data.values, axis=0
         )
+    else:
+        raise TypeError("only 1D or 2D data currently supported")
 
     data.attrs["signal_to_noise"] = s_n
 
