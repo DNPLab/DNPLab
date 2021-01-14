@@ -106,7 +106,9 @@ def import_delta_data(path, params):
         else:
             params["units"].append("indexed")
 
-    endian = [unpack(">B", file_contents[8 + ix : 9 + ix])[0] for ix in range(0, 1, 1)][0]
+    endian = [unpack(">B", file_contents[8 + ix : 9 + ix])[0] for ix in range(0, 1, 1)][
+        0
+    ]
     if endian == 0:
         endian = ">d"
     elif endian == 1:
