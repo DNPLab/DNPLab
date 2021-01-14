@@ -1,6 +1,25 @@
-from . import dnpdata as _dnpdata, dnpdata_collection
+from . import dnpdata as dnpdata, dnpdata_collection
 import numpy as _np
 from scipy.optimize import curve_fit
+
+
+def return_data(all_data):
+
+    is_workspace = False
+    if isinstance(all_data, dnpdata):
+        data = all_data.copy()
+    elif isinstance(all_data, dict):
+        raise ValueError("Type dict is not supported")
+    elif isinstance(all_data, dnpdata_collection):
+        is_workspace = True
+        if all_data.processing_buffer in all_data.keys():
+            data = all_data[all_data.processing_buffer]
+        else:
+            raise ValueError("No data in processing buffer")
+    else:
+        raise ValueError("Data type not supported")
+
+    return data, is_workspace
 
 
 def t1_function(t_axis, T1, M_0, M_inf):
@@ -48,14 +67,7 @@ def exponential_fit(
 
     """
 
-    isDict = False
-    if isinstance(all_data, (dict, dnpdata_collection)):
-        data = all_data["proc"].copy()
-        isDict = True
-    elif isinstance(all_data, dnpdata):
-        data = all_data.copy()
-    else:
-        raise TypeError("Invalid data")
+    data, isDict = return_data(all_data)
 
     if not indirect_dim:
         if len(data.dims) == 2:
@@ -80,7 +92,7 @@ def exponential_fit(
         stdd = _np.sqrt(_np.diag(cov))
         fit = t1_function(new_axis, out[0], out[1], out[2])
 
-        fitData = _dnpdata(fit, [new_axis], [ind_dim])
+        fitData = dnpdata(fit, [new_axis], [ind_dim])
         fitData.attrs["T1"] = out[0]
         fitData.attrs["T1_stdd"] = stdd[0]
         fitData.attrs["M_0"] = out[1]
@@ -103,7 +115,7 @@ def exponential_fit(
             stdd = _np.sqrt(_np.diag(cov))
             fit = t2_function_nostretch(new_axis, out[0], out[1])
 
-        fitData = _dnpdata(fit, [new_axis], [ind_dim])
+        fitData = dnpdata(fit, [new_axis], [ind_dim])
         fitData.attrs["T2"] = out[1]
         fitData.attrs["T2_stdd"] = stdd[1]
         fitData.attrs["M_0"] = out[0]
@@ -117,7 +129,7 @@ def exponential_fit(
         stdd = _np.sqrt(_np.diag(cov))
         fit = exp_fit_func_1(new_axis, out[0], out[1], out[2])
 
-        fitData = _dnpdata(fit, [new_axis], [ind_dim])
+        fitData = dnpdata(fit, [new_axis], [ind_dim])
         fitData.attrs["tau"] = out[2]
         fitData.attrs["tau_stdd"] = stdd[2]
         fitData.attrs["C1"] = out[0]
@@ -130,7 +142,7 @@ def exponential_fit(
         stdd = _np.sqrt(_np.diag(cov))
         fit = exp_fit_func_2(new_axis, out[0], out[1], out[2], out[3], out[4])
 
-        fitData = _dnpdata(fit, [new_axis], [ind_dim])
+        fitData = dnpdata(fit, [new_axis], [ind_dim])
         fitData.attrs["tau1"] = out[2]
         fitData.attrs["tau1_stdd"] = stdd[2]
         fitData.attrs["tau2"] = out[4]
@@ -187,14 +199,7 @@ def enhancement_fit(dataDict):
 
     """
 
-    isDict = False
-    if isinstance(dataDict, (dict, dnpdata_collection)):
-        data = dataDict["proc"].copy()
-        isDict = True
-    elif isinstance(dataDict, _dnpdata):
-        data = dataDict.copy()
-    else:
-        raise TypeError("Incompatible data type")
+    data, isDict = return_data(all_data)
 
     power_axes = data.coords["power"]
 
@@ -207,7 +212,7 @@ def enhancement_fit(dataDict):
 
     fit = enhancement_function(power_axes, out[0], out[1])
 
-    fitData = _dnpdata(fit, [power_axes], ["power"])
+    fitData = dnpdata(fit, [power_axes], ["power"])
     fitData.attrs["E_max"] = out[0]
     fitData.attrs["E_max_stdd"] = stdd[0]
     fitData.attrs["power_half"] = out[1]
