@@ -4,8 +4,10 @@ import numpy as _np
 from scipy.optimize import curve_fit
 
 from . import dnpdata, dnpdata_collection
+from . import dnpTools
 
 import re
+import copy
 
 
 def return_data(all_data):
@@ -331,7 +333,8 @@ def calculate_enhancement(
             int_width_off = "full"
             int_width_on = "full"
         elif (
-            isinstance(integrate_width, list) or isinstance(integrate_width, np.ndarray)
+            isinstance(integrate_width, list)
+            or isinstance(integrate_width, _np.ndarray)
         ) and len(integrate_width) == 2:
             int_width_off = integrate_width[0]
             int_width_on = integrate_width[1]
@@ -347,7 +350,7 @@ def calculate_enhancement(
             pass
         elif (
             isinstance(integrate_center, list)
-            or isinstance(integrate_center, np.ndarray)
+            or isinstance(integrate_center, _np.ndarray)
         ) and len(integrate_center) == 2:
             int_center_off = integrate_center[0]
             int_center_on = integrate_center[1]
@@ -360,7 +363,7 @@ def calculate_enhancement(
             )
 
         if method == "integrate":
-            off_data1 = dnpNMR.integrate(
+            off_data1 = dnpTools.integrate(
                 data_off,
                 dim=dim,
                 integrate_center=int_center_off,
@@ -368,7 +371,7 @@ def calculate_enhancement(
             )
             off_data = off_data1.values
 
-            on_data1 = dnpNMR.integrate(
+            on_data1 = dnpTools.integrate(
                 data_on,
                 dim=dim,
                 integrate_center=int_center_on,
@@ -379,13 +382,13 @@ def calculate_enhancement(
         elif method == "amplitude":
             on_data = []
             if integrate_center == "max":
-                off_data = data_off.values[np.argmax(abs(data_off.values))]
+                off_data = data_off.values[_np.argmax(abs(data_off.values))]
                 if len(data_on.shape) == 1:
-                    on_data.append(data_on.values[np.argmax(abs(data_on.values))])
+                    on_data.append(data_on.values[_np.argmax(abs(data_on.values))])
                 else:
                     for indx in range(data_on.shape[-1]):
                         on_data.append(
-                            data_on.values[np.argmax(abs(data_on.values[indx])), indx]
+                            data_on.values[_np.argmax(abs(data_on.values[indx])), indx]
                         )
             else:
                 off_data = data_off.values[int_center_off]
@@ -398,7 +401,7 @@ def calculate_enhancement(
         if data_on.ndim == 2:
             enh_coords_on = data_on.coords[ind_dim]
         else:
-            enh_coords_on = np.array(range(data_on.shape[-1]))
+            enh_coords_on = _np.array(range(data_on.shape[-1]))
 
     elif isinstance(off_spectrum, int) and on_spectra == "all":
 
@@ -419,7 +422,8 @@ def calculate_enhancement(
             raise ValueError("data is 1D, enhancement will be equal to 1 !!")
 
         if (
-            isinstance(integrate_width, list) or isinstance(integrate_width, np.ndarray)
+            isinstance(integrate_width, list)
+            or isinstance(integrate_width, _np.ndarray)
         ) and len(integrate_width) > 1:
             raise ValueError("supply a single value for integrate_width, or use 'full'")
         elif isinstance(integrate_width, str) and integrate_width != "full":
@@ -427,7 +431,7 @@ def calculate_enhancement(
 
         if (
             isinstance(integrate_center, list)
-            or isinstance(integrate_center, np.ndarray)
+            or isinstance(integrate_center, _np.ndarray)
         ) and len(integrate_center) > 1:
             raise ValueError("supply a single value for integrate_center, or use 'max'")
         elif isinstance(integrate_center, str) and integrate_center != "max":
@@ -438,7 +442,7 @@ def calculate_enhancement(
 
         if method == "integrate":
 
-            dnpNMR.integrate(
+            dnpTools.integrate(
                 enh_data,
                 dim=dim,
                 integrate_center=integrate_center,
@@ -452,7 +456,7 @@ def calculate_enhancement(
             if integrate_center == "max":
                 for indx in range(orig_data.shape[-1]):
                     data_1.append(
-                        orig_data.values[np.argmax(abs(orig_data.values[indx])), indx]
+                        orig_data.values[_np.argmax(abs(orig_data.values[indx])), indx]
                     )
             else:
                 for indx in range(orig_data.shape[-1]):
@@ -467,14 +471,14 @@ def calculate_enhancement(
             on_coords_1 = orig_data.coords[ind_dim][: off_spectrum - 1]
             on_data_2 = data_1[off_spectrum:]
             on_coords_2 = orig_data.coords[ind_dim][off_spectrum:]
-            on_data = np.concatenate((on_data_1, on_data_2))
-            enh_coords_on = np.concatenate((on_coords_1, on_coords_2))
+            on_data = _np.concatenate((on_data_1, on_data_2))
+            enh_coords_on = _np.concatenate((on_coords_1, on_coords_2))
     else:
         raise TypeError(
             "the given combination of data, off_spectrum, and on_spectra is not valid"
         )
 
-    enh = np.real(np.array(on_data) / np.array(off_data))
+    enh = _np.real(_np.array(on_data) / _np.array(off_data))
     enhancementData = dnpdata(enh, [enh_coords_on], [ind_dim])
 
     if isDict:

@@ -29,17 +29,17 @@ def return_data(all_data):
 
 
 def exp_fit_func_1(x_axis, C1, C2, tau):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau)
+    return C1 + C2 * np.exp(-1.0 * x_axis / tau)
 
 
 def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
+    return C1 + C2 * np.exp(-1.0 * x_axis / tau1) + C3 * np.exp(-1.0 * x_axis / tau2)
 
 
 def baseline_fit(temp_coords, temp_data, type, order):
 
     if type == "polynomial":
-        base_line = _np.polyval(_np.polyfit(temp_coords, temp_data, order), temp_coords)
+        base_line = np.polyval(np.polyfit(temp_coords, temp_data, order), temp_coords)
     elif type == "exponential":
         temp_data = temp_data.real
         if order == 1:
@@ -112,13 +112,13 @@ def baseline(
         ind_dim = indirect_dim
 
     if reference_slice is not None:
-        if len(_np.shape(data.values)) == 1:
+        if len(np.shape(data.values)) == 1:
             reference_slice = None
             warnings.warn("ignoring reference_slice, this is 1D data")
         else:
             reference_slice -= 1
 
-    if len(_np.shape(data.values)) == 2:
+    if len(np.shape(data.values)) == 2:
         if reference_slice is not None:
             bline = baseline_fit(
                 data.coords[dim], data.values[:, reference_slice], type, order
@@ -132,7 +132,7 @@ def baseline(
         else:
             raise TypeError("invalid reference_slice")
 
-    elif len(_np.shape(data.values)) == 1:
+    elif len(np.shape(data.values)) == 1:
         bline = baseline_fit(data.coords[dim], data.values, type, order)
         data.values -= bline
 
@@ -186,8 +186,8 @@ def integrate(all_data, dim="f2", integrate_center=0, integrate_width="full"):
     if integrate_width == "full":
         pass
     elif isinstance(integrate_width, int) or isinstance(integrate_width, float):
-        integrateMin = integrate_center - _np.abs(integrate_width) / 2.0
-        integrateMax = integrate_center + _np.abs(integrate_width) / 2.0
+        integrateMin = integrate_center - np.abs(integrate_width) / 2.0
+        integrateMax = integrate_center + np.abs(integrate_width) / 2.0
         data = data[dim, (integrateMin, integrateMax)]
     else:
         raise ValueError("integrate_width must be 'full', int, or float")
@@ -199,7 +199,7 @@ def integrate(all_data, dim="f2", integrate_center=0, integrate_width="full"):
     }
 
     index = data.index(dim)
-    data.values = _np.trapz(data.values, x=data.coords[dim], axis=index)
+    data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
 
     data.coords.pop(dim)
 
@@ -211,7 +211,7 @@ def integrate(all_data, dim="f2", integrate_center=0, integrate_width="full"):
         return all_data
     else:
         return data
-        
+
 
 def mr_properties(nucleus, *args):
     """Return magnetic resonance property of specified isotope.
