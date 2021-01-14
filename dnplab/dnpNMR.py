@@ -268,132 +268,220 @@ def autophase(
         return data
 
 
-def exp_fit_func_1(x_axis, C1, C2, tau):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau)
-
-
-def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
-
-
-def baseline_fit(temp_coords, temp_data, type, order):
-
-    if type == "polynomial":
-        base_line = _np.polyval(_np.polyfit(temp_coords, temp_data, order), temp_coords)
-    elif type == "exponential":
-        temp_data = temp_data.real
-        if order == 1:
-            x0 = [temp_data[-1], temp_data[0], 1]
-            out, cov = curve_fit(
-                exp_fit_func_1, temp_coords, temp_data, x0, method="lm"
-            )
-            base_line = exp_fit_func_1(temp_coords, out[0], out[1], out[2])
-        elif order == 2:
-            x0 = [temp_data[-1], temp_data[0], 1, temp_data[0], 1]
-            out, cov = curve_fit(
-                exp_fit_func_2, temp_coords, temp_data, x0, method="lm"
-            )
-            base_line = exp_fit_func_2(
-                temp_coords, out[0], out[1], out[2], out[3], out[4]
-            )
-        else:
-            raise ValueError(
-                "Use order=1 for mono-exponential, order=2 for bi-exponential"
-            )
-
-    else:
-        raise TypeError("type must be either 'polynomial' or 'exponential'")
-
-    return base_line
-
-
-def baseline(
+def calculate_enhancement(
     all_data,
-    dim="f2",
+    off_spectrum=1,
+    on_spectra="all",
+    integrate_center=0,
+    integrate_width="full",
+    method="integrate",
+    dim="t2",
     indirect_dim=None,
-    type="polynomial",
-    order=1,
-    reference_slice=None,
 ):
-    """Baseline correction of NMR spectra down given dimension
+    """Calculate enhancement from DNP data
 
     Args:
-        all_data (object) : dnpdata object
+        all_data (dnpdata, dict): data container
 
-    +-----------------+------+---------------+---------------------------------------------------+
-    | parameter       | type | default       | description                                       |
-    +-----------------+------+---------------+---------------------------------------------------+
-    | dim             | str  | 'f2'          | Dimension to apply baseline correction            |
-    +-----------------+------+---------------+---------------------------------------------------+
-    | type            | str  | 'polynomial'  | type of baseline fit                              |
-    +-----------------+------+---------------+---------------------------------------------------+
-    | order           | int  | 1             | polynomial order, or 1=mono 2=bi exponential      |
-    +-----------------+------+---------------+---------------------------------------------------+
-    | reference_slice | int  | None          | slice of 2D data used to define the baseline      |
-    +-----------------+------+---------------+---------------------------------------------------+
+    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+    | parameter        | type                       | default     | description                                                          |
+    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+    | off_spectrum     | int or dnpdata             | 1           | slice of 2D data to be used as p = 0 spectrum, or dnpdata            |
+    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+    | on_spectra       | str or dnpdata             | "all"       | "all"  unless dnpdata given                                          |
+    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+    | integrate_center | str, int, list, or ndarray | 0           | "max", center of integration window, or index used to find amplitude |
+    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+    | integrate_width  | str, int, list, or ndarray | "full"      | "full" or width of integration window                                |
+    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+    | method           | str                        | "integrate" | either "integrate" or "ampltiude"                                    |
+    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+    | dim              | str                        | "t2"        | dimension to integrate down or search down for max                   |
+    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
 
-    returns:
-        all_data (dnpdata, dict): Baseline corrected data in container
-        attributes: "baseline", baseline function
+    Returns:
+        all_data (dnpdata, dict): data object with "enhancement" added
+
     """
 
-    data, isDict = return_data(all_data)
+    orig_data, isDict = return_data(all_data)
 
-    if not indirect_dim:
-        if len(data.dims) == 2:
-            ind_dim = list(set(data.dims) - set([dim]))[0]
-        elif len(data.dims) == 1:
-            ind_dim = data.dims[0]
+    if (
+        isinstance(off_spectrum, dnpdata)
+        or isinstance(off_spectrum, dnpdata_collection)
+    ) and (
+        isinstance(on_spectra, dnpdata) or isinstance(on_spectra, dnpdata_collection)
+    ):
+
+        data_off, is_ws_off = return_data(off_spectrum)
+        data_on, is_ws_on = return_data(on_spectra)
+        if not indirect_dim:
+            if len(data_on.dims) == 2:
+                ind_dim = list(set(data_on.dims) - set([dim]))[0]
+            elif len(data_on.dims) == 1:
+                ind_dim = data_on.dims[0]
+            else:
+                raise ValueError(
+                    "you must specify the indirect dimension, use argument indirect_dim= "
+                )
+        else:
+            ind_dim = indirect_dim
+
+        if integrate_width == "full":
+            int_width_off = "full"
+            int_width_on = "full"
+        elif (
+            isinstance(integrate_width, list) or isinstance(integrate_width, np.ndarray)
+        ) and len(integrate_width) == 2:
+            int_width_off = integrate_width[0]
+            int_width_on = integrate_width[1]
+        elif isinstance(integrate_width, int):
+            int_width_off = integrate_width
+            int_width_on = integrate_width
         else:
             raise ValueError(
-                "you must specify the indirect dimension, use argument indirect_dim= "
+                "integrate_width must be an integer, a list/array with len = 2, or 'full'"
             )
-    else:
-        ind_dim = indirect_dim
 
-    if reference_slice is not None:
-        if len(_np.shape(data.values)) == 1:
-            reference_slice = None
-            warnings.warn("ignoring reference_slice, this is 1D data")
+        if integrate_center == "max":
+            pass
+        elif (
+            isinstance(integrate_center, list)
+            or isinstance(integrate_center, np.ndarray)
+        ) and len(integrate_center) == 2:
+            int_center_off = integrate_center[0]
+            int_center_on = integrate_center[1]
+        elif isinstance(integrate_center, int):
+            int_center_off = integrate_center
+            int_center_on = integrate_center
         else:
-            reference_slice -= 1
-
-    if len(_np.shape(data.values)) == 2:
-        if reference_slice is not None:
-            bline = baseline_fit(
-                data.coords[dim], data.values[:, reference_slice], type, order
+            raise ValueError(
+                "integrate_center must be an integer, a list/array with len = 2, or 'max'"
             )
-            for ix in range(len(data.coords[ind_dim])):
-                data.values[:, ix] -= bline
-        elif reference_slice is None:
-            for ix in range(len(data.coords[ind_dim])):
-                bline = baseline_fit(data.coords[dim], data.values[:, ix], type, order)
-                data.values[:, ix] -= bline
+
+        if method == "integrate":
+            off_data1 = dnpNMR.integrate(
+                data_off,
+                dim=dim,
+                integrate_center=int_center_off,
+                integrate_width=int_width_off,
+            )
+            off_data = off_data1.values
+
+            on_data1 = dnpNMR.integrate(
+                data_on,
+                dim=dim,
+                integrate_center=int_center_on,
+                integrate_width=int_width_on,
+            )
+            on_data = on_data1.values
+
+        elif method == "amplitude":
+            on_data = []
+            if integrate_center == "max":
+                off_data = data_off.values[np.argmax(abs(data_off.values))]
+                if len(data_on.shape) == 1:
+                    on_data.append(data_on.values[np.argmax(abs(data_on.values))])
+                else:
+                    for indx in range(data_on.shape[-1]):
+                        on_data.append(
+                            data_on.values[np.argmax(abs(data_on.values[indx])), indx]
+                        )
+            else:
+                off_data = data_off.values[int_center_off]
+                if len(data_on.shape) == 1:
+                    on_data.append(data_on.values[int_center_on])
+                else:
+                    for indx in range(data_on.shape[-1]):
+                        on_data.append(data_on.values[int_center_on, indx])
+
+        if data_on.ndim == 2:
+            enh_coords_on = data_on.coords[ind_dim]
         else:
-            raise TypeError("invalid reference_slice")
+            enh_coords_on = np.array(range(data_on.shape[-1]))
 
-    elif len(_np.shape(data.values)) == 1:
-        bline = baseline_fit(data.coords[dim], data.values, type, order)
-        data.values -= bline
+    elif isinstance(off_spectrum, int) and on_spectra == "all":
 
+        if not indirect_dim:
+            if len(orig_data.dims) == 2:
+                ind_dim = list(set(orig_data.dims) - set([dim]))[0]
+            elif len(orig_data.dims) == 1:
+                ind_dim = orig_data.dims[0]
+            else:
+                raise ValueError(
+                    "you must specify the indirect dimension, use argument indirect_dim= "
+                )
+        else:
+            ind_dim = indirect_dim
+
+        enh_data = copy.deepcopy(all_data)
+        if orig_data.ndim == 1:
+            raise ValueError("data is 1D, enhancement will be equal to 1 !!")
+
+        if (
+            isinstance(integrate_width, list) or isinstance(integrate_width, np.ndarray)
+        ) and len(integrate_width) > 1:
+            raise ValueError("supply a single value for integrate_width, or use 'full'")
+        elif isinstance(integrate_width, str) and integrate_width != "full":
+            raise ValueError("the only allowed integrate_width string is 'full'")
+
+        if (
+            isinstance(integrate_center, list)
+            or isinstance(integrate_center, np.ndarray)
+        ) and len(integrate_center) > 1:
+            raise ValueError("supply a single value for integrate_center, or use 'max'")
+        elif isinstance(integrate_center, str) and integrate_center != "max":
+            raise ValueError("the only allowed integrate_center string is 'max'")
+
+        if off_spectrum == 0:
+            off_spectrum = 1
+
+        if method == "integrate":
+
+            dnpNMR.integrate(
+                enh_data,
+                dim=dim,
+                integrate_center=integrate_center,
+                integrate_width=integrate_width,
+            )
+            data, _isDict = return_data(enh_data)
+            data_1 = data.values
+
+        elif method == "amplitude":
+            data_1 = []
+            if integrate_center == "max":
+                for indx in range(orig_data.shape[-1]):
+                    data_1.append(
+                        orig_data.values[np.argmax(abs(orig_data.values[indx])), indx]
+                    )
+            else:
+                for indx in range(orig_data.shape[-1]):
+                    data_1.append(orig_data.values[integrate_center, indx])
+
+        off_data = data_1[off_spectrum - 1]
+        if off_spectrum == 1:
+            on_data = data_1[1:]
+            enh_coords_on = orig_data.coords[ind_dim][1:]
+        elif off_spectrum > 1:
+            on_data_1 = data_1[: off_spectrum - 1]
+            on_coords_1 = orig_data.coords[ind_dim][: off_spectrum - 1]
+            on_data_2 = data_1[off_spectrum:]
+            on_coords_2 = orig_data.coords[ind_dim][off_spectrum:]
+            on_data = np.concatenate((on_data_1, on_data_2))
+            enh_coords_on = np.concatenate((on_coords_1, on_coords_2))
     else:
-        raise ValueError("1D or 2D only")
+        raise TypeError(
+            "the given combination of data, off_spectrum, and on_spectra is not valid"
+        )
 
-    proc_parameters = {
-        "dim": dim,
-        "type": type,
-        "order": order,
-        "reference_slice": reference_slice,
-    }
-    proc_attr_name = "baseline"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
-    data.attrs["baseline"] = bline
+    enh = np.real(np.array(on_data) / np.array(off_data))
+    enhancementData = dnpdata(enh, [enh_coords_on], [ind_dim])
 
     if isDict:
-        all_data[all_data.processing_buffer] = data
+        all_data["enhancement"] = enhancementData
         return all_data
     else:
-        return data
+        return enhancementData
 
 
 def fourier_transform(
@@ -543,63 +631,6 @@ def inverse_fourier_transform(
         data.rename(dim, new_dim)
 
     proc_attr_name = "inverse_fourier_transform"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
-
-    if isDict:
-        all_data[all_data.processing_buffer] = data
-        return all_data
-    else:
-        return data
-
-
-def integrate(all_data, dim="f2", integrate_center=0, integrate_width="full"):
-    """Integrate data down given dimension
-
-    Args:
-        all_data (dnpdata,dict): Data container
-
-    +------------------+-------+---------+------------------------------+
-    | parameter        | type  | default | description                  |
-    +------------------+-------+---------+------------------------------+
-    | dim              | str   | 't2'    | dimension to integrate       |
-    +------------------+-------+---------+------------------------------+
-    | integrate_center | float | 0       | center of integration window |
-    +------------------+-------+---------+------------------------------+
-    | integrate_width  | float | 100     | width of integration window  |
-    +------------------+-------+---------+------------------------------+
-
-    Returns:
-        all_data (dnpdata,dict): Processed data
-
-    Example::
-
-        dnplab.dnpNMR.integrate(all_data)
-
-    """
-
-    data, isDict = return_data(all_data)
-
-    if integrate_width == "full":
-        pass
-    elif isinstance(integrate_width, int) or isinstance(integrate_width, float):
-        integrateMin = integrate_center - _np.abs(integrate_width) / 2.0
-        integrateMax = integrate_center + _np.abs(integrate_width) / 2.0
-        data = data[dim, (integrateMin, integrateMax)]
-    else:
-        raise ValueError("integrate_width must be 'full', int, or float")
-
-    proc_parameters = {
-        "dim": dim,
-        "integrate_center": integrate_center,
-        "integrate_width": integrate_width,
-    }
-
-    index = data.index(dim)
-    data.values = _np.trapz(data.values, x=data.coords[dim], axis=index)
-
-    data.coords.pop(dim)
-
-    proc_attr_name = "integrate"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if isDict:
