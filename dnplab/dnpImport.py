@@ -15,6 +15,8 @@ def load(path, data_type=None, *args, **kwargs):
     +-----------------+
     | vnmrj           |
     +-----------------+
+    | tnmr            |
+    +-----------------+
     | specman         |
     +-----------------+
     | xenon and xepr  |
@@ -61,8 +63,7 @@ def load(path, data_type=None, *args, **kwargs):
         return dnpIO.vnmrj.import_vnmrj(path, *args, **kwargs)
 
     elif data_type == "tnmr":
-        raise TypeError("tnmr module under construction")
-        # return dnpIO.tnmr.import_tnmr(path, *args, **kwargs)
+        return dnpIO.tnmr.import_tnmr(path, *args, **kwargs)
 
     elif data_type == "specman":
         return dnpIO.specman.import_specman(path, *args, **kwargs)
