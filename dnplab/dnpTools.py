@@ -4,6 +4,7 @@ Collection of tools and functions useful to process DNP-NMR data
 
 from . import dnpNMR, dnpdata, dnpdata_collection
 import numpy as np
+import scipy.integrate
 import copy
 
 from .mrProperties import gmrProperties, radicalProperties
@@ -156,7 +157,9 @@ def baseline(
         return data
 
 
-def integrate(all_data, dim="f2", integrate_center=0, integrate_width="full"):
+def integrate(
+    all_data, dim="f2", type="single", integrate_center=0, integrate_width="full"
+):
     """Integrate data down given dimension
 
     Args:
@@ -182,6 +185,13 @@ def integrate(all_data, dim="f2", integrate_center=0, integrate_width="full"):
     """
 
     data, isDict = return_data(all_data)
+    index = data.index(dim)
+
+    if type == "double":
+        data.attrs["first_integral"] = scipy.integrate.cumtrapz(
+            data.values, x=data.coords[dim], axis=index, initial=0
+        )
+        data.values = data.attrs["first_integral"]
 
     if integrate_width == "full":
         pass
@@ -192,16 +202,15 @@ def integrate(all_data, dim="f2", integrate_center=0, integrate_width="full"):
     else:
         raise ValueError("integrate_width must be 'full', int, or float")
 
+    data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
+
+    data.coords.pop(dim)
+
     proc_parameters = {
         "dim": dim,
         "integrate_center": integrate_center,
         "integrate_width": integrate_width,
     }
-
-    index = data.index(dim)
-    data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
-
-    data.coords.pop(dim)
 
     proc_attr_name = "integrate"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
