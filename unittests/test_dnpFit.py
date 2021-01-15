@@ -4,6 +4,7 @@ from numpy.testing import assert_array_equal
 import dnplab.dnpImport as wrapper
 import dnplab.dnpNMR as nmr
 import dnplab.dnpFit as efit
+import dnplab.dnpTools as tools
 import dnplab as dnp
 import numpy as np
 import os
@@ -22,10 +23,10 @@ class dnpFit_tester(unittest.TestCase):
         self.ws = nmr.window(self.ws, type="lorentz_gauss", linewidth=[5, 10])
         self.ws = nmr.fourier_transform(self.ws, zero_fill_factor=2)
         self.ws = nmr.autophase(self.ws, method="search", order="zero")
-        self.ws = nmr.baseline(
+        self.ws = tools.baseline(
             self.ws, type="polynomial", order=2, reference_slice=None
         )
-        self.ws = nmr.integrate(
+        self.ws = tools.integrate(
             self.ws, dim="f2", integrate_center=0, integrate_width=50
         )
         efit.exponential_fit(self.ws, type="T1")

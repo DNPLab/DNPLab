@@ -16,7 +16,14 @@ class dnpNMR_tester(unittest.TestCase):
         self.ws["raw"] = self.data
         self.ws.copy("raw", "proc")
 
+        path = os.path.join(".", "data", "topspin", "5")
+        data = wrapper.load(path, data_type="topspin")
+        self.ws_off = dnp.create_workspace()
+        self.ws_off.add("raw", data)
+        self.ws_off.copy("raw", "proc")
+
     def test_basic_nmr_processing(self):
+
         shape_data = np.shape(self.ws)
         n_pts = np.shape(self.ws["proc"])
         self.assertAlmostEqual(
@@ -162,30 +169,51 @@ class dnpNMR_tester(unittest.TestCase):
         self.assertAlmostEqual(
             min(self.ws["proc"].values[:, 3].real), -66.28951430959444, places=4
         )
-        self.ws.pop("temp")
-        self.ws.copy("keep", "proc")
-        self.ws.pop("keep")
 
-        self.ws = nmr.baseline(
-            self.ws, type="polynomial", order=1, reference_slice=None
+    def test_calc_enhancement(self):
+
+        nmr.remove_offset(self.ws)
+        nmr.window(self.ws, linewidth=15)
+        nmr.fourier_transform(self.ws, zero_fill_factor=2)
+        nmr.autophase(self.ws, method="arctan")
+
+        nmr.calculate_enhancement(
+            self.ws,
+            off_spectrum=1,
+            on_spectra="all",
+            integrate_center=0,
+            integrate_width="full",
+            method="integrate",
+            dim="f2",
         )
-        self.assertEqual(shape_data, np.shape(self.ws))
+
         self.assertAlmostEqual(
-            max(self.ws["proc"].values[:, 2].real), 351.9904580259595, places=4
+            self.ws["enhancement"].values[0], 1.0252541520454477, places=6
         )
         self.assertAlmostEqual(
-            min(self.ws["proc"].values[:, 2].real), -73.68315636898302, places=4
+            self.ws["enhancement"].values[-1], -1.3615844024369856, places=6
+        )
+
+        nmr.remove_offset(self.ws_off)
+        nmr.window(self.ws_off, linewidth=15)
+        nmr.fourier_transform(self.ws_off, zero_fill_factor=2)
+        nmr.autophase(self.ws_off, method="arctan")
+
+        nmr.calculate_enhancement(
+            self.ws_off,
+            off_spectrum=self.ws_off["proc"],
+            on_spectra=self.ws["proc"],
+            integrate_center="max",
+            integrate_width="full",
+            method="amplitude",
+            dim="f2",
+        )
+
+        self.assertAlmostEqual(
+            self.ws_off["enhancement"].values[0], -0.005967949713665632, places=6
         )
         self.assertAlmostEqual(
-            len(self.ws["proc"].attrs["baseline"]), len(self.ws["proc"].values)
-        )
-        nmr.integrate(self.ws, dim="f2", integrate_center=0, integrate_width=50)
-        self.assertEqual((8,), np.shape(self.ws["proc"].values))
-        self.assertAlmostEqual(
-            max(self.ws["proc"].values.real), 2031.4439405548092, places=4
-        )
-        self.assertAlmostEqual(
-            min(self.ws["proc"].values.real), -1655.6511804282302, places=4
+            self.ws_off["enhancement"].values[-1], 0.004154668257187268, places=6
         )
 
 
