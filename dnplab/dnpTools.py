@@ -5,7 +5,6 @@ Collection of tools and functions useful to process DNP-NMR data
 from . import dnpNMR, dnpdata, dnpdata_collection
 import numpy as np
 import scipy.integrate
-import copy
 
 from .mrProperties import gmrProperties, radicalProperties
 
