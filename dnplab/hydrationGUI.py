@@ -788,7 +788,7 @@ class hydrationGUI(QMainWindow):
     @staticmethod
     def int_workspace(workspace, int_params):
 
-        dnplab.dnpNMR.integrate(
+        dnplab.dnpTools.integrate(
             workspace,
             integrate_center=int_params["integrate_center"],
             integrate_width=int_params["integrate_width"],
