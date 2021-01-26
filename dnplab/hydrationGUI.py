@@ -533,7 +533,7 @@ class hydrationGUI(QMainWindow):
             self.smaxEdit.setVisible(False)
             self.tetheredCheckbox.setVisible(False)
             self.freeCheckbox.setVisible(False)
-            self.saveButton.setVisible(True)
+            self.saveButton.setVisible(False)
             self.show_wrkupCheckbox.setVisible(False)
             self.fit_wrkupCheckbox.setVisible(False)
             self.backButton.setText("Back")
@@ -1125,6 +1125,7 @@ class hydrationGUI(QMainWindow):
             self.nextButton.setVisible(False)
             self.autoButton.setVisible(False)
             self.t1plt.setVisible(False)
+            self.saveButton.setVisible(False)
 
             self.processData()
 
@@ -2734,7 +2735,11 @@ class hydrationGUI(QMainWindow):
     def Integration_Window_Edit(self):
         """This function passes the text from the various edit boxes to dnpHydration as floats and re-calculates
         hydration parameters."""
-        int_wind = float(self.intwindowEdit.text()) + 0.1
+        try:
+            int_wind = float(self.intwindowEdit.text()) + 0.1
+        except ValueError:
+            print("integration window must be numeric")
+            return
         self.gui_dict["processing_spec"]["integration_width"] = round(int_wind)
         if self.gui_dict["gui_function"]["sliders"]:
             self.intwindowSlider.setValue(
@@ -2748,7 +2753,13 @@ class hydrationGUI(QMainWindow):
 
     def Window_linewidth_Edit(self):
         """Adjust the line broadening for windowing."""
-        self.gui_dict["processing_spec"]["linewidth"] = float(self.linewidthEdit.text())
+        try:
+            self.gui_dict["processing_spec"]["linewidth"] = float(
+                self.linewidthEdit.text()
+            )
+        except ValueError:
+            print("linewidth must be numeric")
+            return
         if self.gui_dict["gui_function"]["sliders"]:
             self.processData()
         else:
