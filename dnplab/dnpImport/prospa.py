@@ -29,7 +29,7 @@ def import_prospa(path, parameters_filename = None, verbose = False):
     elif os.path.isdir(path):
         filesList = glob.glob(os.path.join(path, '*.[1-4]d'))
         if len(filesList) == 0:
-            raise ValueError('No binary data file in directory:')
+            raise ValueError('No binary data file in directory:',path)
         elif len(filesList) > 1:
             raise ValueError('More than one binary data file in directory:',fileList)
         else:
