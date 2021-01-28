@@ -747,32 +747,27 @@ class hydrationGUI(QMainWindow):
             self.phaseSlider.setValue(0)
             self.gui_dict["gui_function"]["sliders"] = True
 
-    def optCenter(self, width):
+    def optCenter(self, width, starting_center):
 
         optcenter_workspace = copy.deepcopy(self.processing_workspace)
         intgrl_array = []
-        if optcenter_workspace["proc"].ndim == 1:
-            max_index = np.argmax(abs(optcenter_workspace["proc"].values), axis=0)
-        elif optcenter_workspace["proc"].ndim == 2:
-            max_index = np.argmax(
-                np.sum(abs(optcenter_workspace["proc"].values), axis=1), axis=0
-            )
-        starting_center = round(optcenter_workspace["proc"].coords["f2"][max_index])
         indx = range(starting_center - 50, starting_center + 50)
         optcenter_workspace = self.phs_workspace(
             optcenter_workspace, self.gui_dict["processing_spec"]["original_phase"]
         )
-        int_params = {"integrate_width": width}
         for k in indx:
             iterativeopt_workspace = copy.deepcopy(optcenter_workspace)
-            int_params["integrate_center"] = k
-            iterativeopt_workspace = self.int_workspace(
-                iterativeopt_workspace, int_params
+            dnplab.dnpTools.integrate(
+                iterativeopt_workspace,
+                integrate_center=k,
+                integrate_width=width,
             )
             if len(iterativeopt_workspace["proc"].values) > 1:
-                intgrl_array.append(sum(abs(iterativeopt_workspace["proc"].values)))
+                intgrl_array.append(
+                    sum(abs(iterativeopt_workspace["proc"].real.values))
+                )
             else:
-                intgrl_array.append(abs(iterativeopt_workspace["proc"].values[0]))
+                intgrl_array.append(abs(iterativeopt_workspace["proc"].real.values[-1]))
         cent = np.argmax(intgrl_array)
         self.gui_dict["processing_spec"]["integration_center"] = indx[cent]
 
@@ -786,21 +781,9 @@ class hydrationGUI(QMainWindow):
         return workspace
 
     @staticmethod
-    def int_workspace(workspace, int_params):
-
-        dnplab.dnpTools.integrate(
-            workspace,
-            integrate_center=int_params["integrate_center"],
-            integrate_width=int_params["integrate_width"],
-        )
-        workspace["proc"].values = np.real(workspace["proc"].values)
-
-        return workspace
-
-    @staticmethod
     def phs_workspace(workspace, phase):
 
-        workspace["proc"].values = workspace["proc"].values * np.exp(-1j * phase)
+        workspace["proc"].values *= np.exp(-1j * phase)
 
         return workspace
 
@@ -1366,29 +1349,25 @@ class hydrationGUI(QMainWindow):
                 self.processing_workspace, self.gui_dict["processing_spec"]["phase"]
             )
 
-            int_params = {
-                "integrate_center": self.gui_dict["processing_spec"][
-                    "integration_center"
-                ],
-                "integrate_width": self.gui_dict["processing_spec"][
-                    "integration_width"
-                ],
-            }
-            nextproc_workspace = self.int_workspace(nextproc_workspace, int_params)
+            dnplab.dnpTools.integrate(
+                nextproc_workspace,
+                integrate_center=self.gui_dict["processing_spec"]["integration_center"],
+                integrate_width=self.gui_dict["processing_spec"]["integration_width"],
+            )
 
             if (
                 self.gui_dict["rawdata_function"]["folder"]
                 == self.gui_dict["folder_structure"]["p0"]
             ):
-                self.gui_dict["dnpLab_data"]["p0"] = nextproc_workspace["proc"].values[
-                    0
-                ]
+                self.gui_dict["dnpLab_data"]["p0"] = nextproc_workspace[
+                    "proc"
+                ].real.values[0]
             elif (
                 self.gui_dict["rawdata_function"]["folder"]
                 in self.gui_dict["folder_structure"]["enh"]
             ):
                 Ep = (
-                    nextproc_workspace["proc"].values[0]
+                    nextproc_workspace["proc"].real.values[0]
                     / self.gui_dict["dnpLab_data"]["p0"]
                 )
                 self.Ep.append(np.real(Ep))
@@ -1466,7 +1445,7 @@ class hydrationGUI(QMainWindow):
                         ].coords["t1"]
                         self.gui_dict["t1_fit"]["t1Amps"] = nextproc_workspace[
                             "proc"
-                        ].values
+                        ].real.values
 
                         self.gui_dict["t1_fit"]["xaxis"] = nextproc_workspace[
                             "fit"
@@ -1794,13 +1773,24 @@ class hydrationGUI(QMainWindow):
 
         if self.processing_workspace["proc"].ndim == 2:
             dnplab.dnpNMR.align(self.processing_workspace)
+            max_index = np.argmax(
+                abs(self.processing_workspace["proc"].values), axis=0
+            )[-1]
+        elif self.processing_workspace["proc"].ndim == 1:
+            max_index = np.argmax(abs(self.processing_workspace["proc"].values), axis=0)
+
+        width = 10
+        starting_center = round(
+            self.processing_workspace["proc"].coords["f2"][max_index]
+        )
+        temp_data = self.processing_workspace["proc"][
+            "f2", (starting_center - width, starting_center + width)
+        ].values
 
         if (
             self.optphsCheckbox.isChecked()
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
-
-            temp_data = self.processing_workspace["proc"].values
 
             if self.arctanCheckbox.isChecked():
                 self.gui_dict["processing_spec"]["original_phase"] = np.arctan(
@@ -1822,57 +1812,60 @@ class hydrationGUI(QMainWindow):
             self.optcentCheckbox.isChecked()
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
-            self.optCenter(10)
+            self.optCenter(width, starting_center)
+        else:
+            self.gui_dict["processing_spec"]["integration_center"] = starting_center
 
         if self.optwidthCheckbox.isChecked():
 
-            optwidth_workspace = copy.deepcopy(self.processing_workspace)
-            optwidth_workspace = self.phs_workspace(
-                optwidth_workspace, self.gui_dict["processing_spec"]["original_phase"]
+            ydata = abs(
+                np.real(
+                    self.processing_workspace["proc"][
+                        "f2",
+                        (
+                            self.gui_dict["processing_spec"]["integration_center"]
+                            - width / 2,
+                            self.gui_dict["processing_spec"]["integration_center"]
+                            + width / 2,
+                        ),
+                    ].values
+                    * np.exp(-1j * self.gui_dict["processing_spec"]["original_phase"])
+                )
             )
-
-            ydata = abs(np.real(optwidth_workspace["proc"].values))
+            xdata = np.ravel(
+                self.processing_workspace["proc"][
+                    "f2",
+                    (
+                        self.gui_dict["processing_spec"]["integration_center"]
+                        - width / 2,
+                        self.gui_dict["processing_spec"]["integration_center"]
+                        + width / 2,
+                    ),
+                ].coords["f2"]
+            )
             qual_factor = 1 / 3
-            if optwidth_workspace["proc"].ndim == 1:
-                xdata = np.ravel(optwidth_workspace["proc"].coords["f2"])
+            if self.processing_workspace["proc"].ndim == 1:
                 one_third = np.where(ydata > max(ydata) * qual_factor)
                 one_third = np.ravel(one_third)
-
-                best_width = xdata[one_third[-1]] - xdata[one_third[0]]
-
+                self.gui_dict["processing_spec"]["integration_width"] = (
+                    xdata[one_third[-1]] - xdata[one_third[0]]
+                )
             else:
-                xdata = np.ravel(optwidth_workspace["proc"].coords["f2"])
                 min_x = []
                 max_x = []
-                for k in range(0, len(ydata[0, :])):
-                    one_third = np.where(
-                        ydata[
-                            round(len(ydata[:, 0]) / 2)
-                            - 75 : round(len(ydata[:, 0]) / 2)
-                            + 75,
-                            k,
-                        ]
-                        > max(
-                            ydata[
-                                round(len(ydata[:, 0]) / 2)
-                                - 75 : round(len(ydata[:, 0]) / 2)
-                                + 75,
-                                k,
-                            ]
-                        )
-                        * qual_factor
-                    )
+                for k in range(0, ydata.shape[1]):
+                    one_third = np.where(ydata[:, k] > max(ydata[:, k]) * qual_factor)
                     one_third = np.ravel(one_third)
                     min_x.append(xdata[one_third[0]])
-                    max_x.append(xdata[one_third[len(one_third) - 1]])
+                    max_x.append(xdata[one_third[-1]])
+                self.gui_dict["processing_spec"]["integration_width"] = max(
+                    max_x
+                ) - min(min_x)
 
-                best_width = max(max_x) - min(min_x)
-
-            self.gui_dict["processing_spec"]["integration_width"] = abs(
-                round(best_width)
+            self.optCenter(
+                self.gui_dict["processing_spec"]["integration_width"],
+                self.gui_dict["processing_spec"]["integration_center"],
             )
-
-            self.optCenter(self.gui_dict["processing_spec"]["integration_width"])
             self.optcentCheckbox.setChecked(True)
 
         if self.gui_dict["gui_function"]["autoProcess"]:
@@ -1907,7 +1900,7 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["processing_spec"]["integration_width"]
             )
             self.intwindowEdit.setText(
-                str(self.gui_dict["processing_spec"]["integration_width"])
+                str(abs(round(self.gui_dict["processing_spec"]["integration_width"])))
             )
 
             self.gui_dict["gui_function"]["sliders"] = True
@@ -1941,18 +1934,18 @@ class hydrationGUI(QMainWindow):
             adjslider_workspace, self.gui_dict["processing_spec"]["phase"]
         )
 
-        int_params = {
-            "integrate_center": self.gui_dict["processing_spec"]["integration_center"],
-            "integrate_width": self.gui_dict["processing_spec"]["integration_width"],
-        }
-        adjslider_workspace = self.int_workspace(adjslider_workspace, int_params)
+        dnplab.dnpTools.integrate(
+            adjslider_workspace,
+            integrate_center=self.gui_dict["processing_spec"]["integration_center"],
+            integrate_width=self.gui_dict["processing_spec"]["integration_width"],
+        )
 
         if len(adjslider_workspace["proc"].values) == 1:
             pass
         else:
 
             self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords["t1"]
-            self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
+            self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].real.values
 
             try:
                 dnplab.dnpFit.exponential_fit(adjslider_workspace, type="T1")
@@ -1986,7 +1979,9 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords[
                     "t1"
                 ]
-                self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
+                self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace[
+                    "proc"
+                ].real.values
 
                 self.gui_dict["t1_fit"]["xaxis"] = adjslider_workspace["fit"].coords[
                     "t1"
