@@ -156,18 +156,6 @@ class hydrationGUI(QMainWindow):
         self.optphsCheckbox.resize(100, 20)
         self.optphsCheckbox.setText("Optimize")
 
-        self.arctanCheckbox = QCheckBox(self)
-        self.arctanCheckbox.setStyleSheet("font : bold 14px")
-        self.arctanCheckbox.move(580, 526)
-        self.arctanCheckbox.resize(100, 20)
-        self.arctanCheckbox.setText("arctan")
-
-        self.searchphsCheckbox = QCheckBox(self)
-        self.searchphsCheckbox.setStyleSheet("font : bold 14px")
-        self.searchphsCheckbox.move(650, 526)
-        self.searchphsCheckbox.resize(100, 20)
-        self.searchphsCheckbox.setText("search")
-
         self.optcentCheckbox = QCheckBox(self)
         self.optcentCheckbox.setStyleSheet("font : bold 14px")
         self.optcentCheckbox.move(490, 557)
@@ -463,8 +451,6 @@ class hydrationGUI(QMainWindow):
             self.phaseSlider.setVisible(False)
             self.optcentCheckbox.setVisible(False)
             self.optphsCheckbox.setVisible(False)
-            self.arctanCheckbox.setVisible(False)
-            self.searchphsCheckbox.setVisible(False)
             self.optwidthCheckbox.setVisible(False)
 
             if (
@@ -506,8 +492,6 @@ class hydrationGUI(QMainWindow):
             self.phaseSlider.setVisible(True)
             self.optcentCheckbox.setVisible(True)
             self.optphsCheckbox.setVisible(True)
-            self.arctanCheckbox.setVisible(True)
-            self.searchphsCheckbox.setVisible(True)
             self.optwidthCheckbox.setVisible(True)
             self.autoButton.setVisible(True)
             self.backButton.setVisible(True)
@@ -559,10 +543,6 @@ class hydrationGUI(QMainWindow):
         self.optcentCheckbox.setChecked(True)
         self.optphsCheckbox.clicked.connect(self.Optimize_Phase_Checkbox)
         self.optphsCheckbox.setChecked(True)
-        self.arctanCheckbox.clicked.connect(self.arctan_Checkbox)
-        self.arctanCheckbox.setChecked(False)
-        self.searchphsCheckbox.clicked.connect(self.search_Checkbox)
-        self.searchphsCheckbox.setChecked(True)
         self.optwidthCheckbox.clicked.connect(self.Optimize_Width_Checkbox)
         self.optwidthCheckbox.setChecked(False)
         self.nextButton.clicked.connect(self.Next_Button)
@@ -1698,6 +1678,7 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["rawdata_function"]["folder"]
                 in self.gui_dict["folder_structure"]["T1"]
             ):
+                self.nextButton.setText("Next")
                 if len(self.T1p) < 2:
                     self.T1p = []
                     self.T1p_stdd = []
@@ -1792,18 +1773,32 @@ class hydrationGUI(QMainWindow):
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
 
-            if self.arctanCheckbox.isChecked():
-                self.gui_dict["processing_spec"]["original_phase"] = np.arctan(
+            if self.processing_workspace["proc"].ndim == 2:
+                starting_phase = np.arctan(
                     np.sum(np.imag(temp_data)) / np.sum(np.real(temp_data))
                 )
+                phases = np.linspace(
+                    starting_phase - np.pi / 4, starting_phase + np.pi / 4, 100
+                )
+                imag_sum = []
+                for indx, k in enumerate(phases):
+                    ws_rot = copy.deepcopy(self.processing_workspace)
+                    ws_rot = self.phs_workspace(ws_rot, k)
+                    dnplab.dnpTools.integrate(
+                        ws_rot,
+                        integrate_center=starting_center,
+                        integrate_width=width * 2,
+                    )
+                    imag_sum.append(np.sum(abs(ws_rot["proc"].imag.values * -1j)))
 
-            elif self.searchphsCheckbox.isChecked():
+                self.gui_dict["processing_spec"]["original_phase"] = phases[
+                    np.argmin(imag_sum)
+                ]
+
+            elif self.processing_workspace["proc"].ndim == 1:
                 phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
                 rotated_data = (temp_data.reshape(-1, 1)) * np.exp(-1j * phases)
-                real_imag_ratio = (np.real(rotated_data) ** 2).sum(axis=0) / (
-                    (np.imag(rotated_data) ** 2).sum(axis=0)
-                )
-                bestindex = np.argmax(real_imag_ratio)
+                bestindex = np.argmin(abs(np.imag(rotated_data).sum(axis=0)))
                 self.gui_dict["processing_spec"]["original_phase"] = phases[
                     0, bestindex
                 ]
@@ -1983,6 +1978,10 @@ class hydrationGUI(QMainWindow):
                     "proc"
                 ].real.values
 
+                self.gui_dict["t1_fit"]["t1Amps_imag"] = adjslider_workspace[
+                    "proc"
+                ].imag.values
+
                 self.gui_dict["t1_fit"]["xaxis"] = adjslider_workspace["fit"].coords[
                     "t1"
                 ]
@@ -1990,7 +1989,6 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["t1_fit"]["t1Val"] = adjslider_workspace["fit"].attrs[
                     "T1"
                 ]
-
                 self.plot_enh()
 
         if self.gui_dict["gui_function"]["autoProcess"]:
@@ -2760,24 +2758,6 @@ class hydrationGUI(QMainWindow):
         else:
             pass
 
-    def arctan_Checkbox(self):
-        """Choose arctan phase calculation."""
-        if self.arctanCheckbox.isChecked():
-            self.searchphsCheckbox.setChecked(False)
-        else:
-            self.searchphsCheckbox.setChecked(True)
-
-        self.Optimize_Phase_Checkbox()
-
-    def search_Checkbox(self):
-        """Choose arctan phase calculation."""
-        if self.searchphsCheckbox.isChecked():
-            self.arctanCheckbox.setChecked(False)
-        else:
-            self.arctanCheckbox.setChecked(True)
-
-        self.Optimize_Phase_Checkbox()
-
     def Optimize_Phase_Checkbox(self):
         """Check this to have the GUI automatically choose the best phase."""
         if self.gui_dict["gui_function"]["sliders"]:
@@ -3158,6 +3138,13 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["t1_fit"]["tau"],
                 self.gui_dict["t1_fit"]["t1Amps"],
                 color="#46812B",
+                marker="o",
+                linestyle="none",
+            )
+            self.enhplt.axes.plot(
+                self.gui_dict["t1_fit"]["tau"],
+                self.gui_dict["t1_fit"]["t1Amps_imag"],
+                color="#FEBC11",
                 marker="o",
                 linestyle="none",
             )
