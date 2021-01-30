@@ -751,6 +751,120 @@ class hydrationGUI(QMainWindow):
         cent = np.argmax(intgrl_array)
         self.gui_dict["processing_spec"]["integration_center"] = indx[cent]
 
+    def optPhase(self, width, starting_center):
+
+        temp_data = self.processing_workspace["proc"][
+            "f2", (starting_center - width, starting_center + width)
+        ].values
+        starting_phase = np.arctan(
+            np.sum(np.imag(temp_data)) / np.sum(np.real(temp_data))
+        )
+
+        phases = np.linspace(
+            starting_phase - np.pi / 2, starting_phase + np.pi / 2, 100
+        ).reshape(1, -1)
+        rotated_data = (temp_data.reshape(-1, 1)) * np.exp(-1j * phases)
+        bestindex = np.argmax(
+            (np.real(rotated_data) ** 2).sum(axis=0)
+            / (np.imag(rotated_data) ** 2).sum(axis=0)
+        )
+        starting_phase = phases[0, bestindex]
+
+        if self.processing_workspace["proc"].ndim == 2:
+
+            phases = np.linspace(
+                starting_phase - np.pi / 4,
+                starting_phase + np.pi / 4,
+                100,
+            )
+            imag_sum = []
+            for indx, k in enumerate(phases):
+                ws_rot = copy.deepcopy(self.processing_workspace)
+                ws_rot = self.phs_workspace(ws_rot, k)
+                dnplab.dnpTools.integrate(
+                    ws_rot,
+                    integrate_center=starting_center,
+                    integrate_width=width * 2,
+                )
+                imag_sum.append(np.sum(abs(ws_rot["proc"].imag.values * -1j)))
+
+            starting_phase = phases[np.argmin(imag_sum)]
+
+        base_data1 = self.processing_workspace["proc"][
+            "f2",
+            (
+                (starting_center - width * 4),
+                (starting_center - width / 2),
+            ),
+        ].values
+        base_data2 = self.processing_workspace["proc"][
+            "f2",
+            (
+                (starting_center + width / 2),
+                (starting_center + width * 4),
+            ),
+        ].values
+        base_data = np.concatenate((base_data2, base_data1))
+
+        phases = np.linspace(
+            starting_phase - np.pi / 4, starting_phase + np.pi / 4, 100
+        ).reshape(1, -1)
+        rotated_data = (base_data.reshape(-1, 1)) * np.exp(-1j * phases)
+        bestindex = np.argmin(abs(np.real(rotated_data)).sum(axis=0))
+        self.gui_dict["processing_spec"]["original_phase"] = phases[0, bestindex]
+
+    def optWidth(self, starting_width):
+
+        ydata = abs(
+            np.real(
+                self.processing_workspace["proc"][
+                    "f2",
+                    (
+                        self.gui_dict["processing_spec"]["integration_center"]
+                        - starting_width / 2,
+                        self.gui_dict["processing_spec"]["integration_center"]
+                        + starting_width / 2,
+                    ),
+                ].values
+                * np.exp(-1j * self.gui_dict["processing_spec"]["original_phase"])
+            )
+        )
+        xdata = np.ravel(
+            self.processing_workspace["proc"][
+                "f2",
+                (
+                    self.gui_dict["processing_spec"]["integration_center"]
+                    - starting_width / 2,
+                    self.gui_dict["processing_spec"]["integration_center"]
+                    + starting_width / 2,
+                ),
+            ].coords["f2"]
+        )
+        qual_factor = 1 / 3
+        if self.processing_workspace["proc"].ndim == 1:
+            one_third = np.where(ydata > max(ydata) * qual_factor)
+            one_third = np.ravel(one_third)
+            self.gui_dict["processing_spec"]["integration_width"] = (
+                xdata[one_third[-1]] - xdata[one_third[0]]
+            )
+        else:
+            min_x = []
+            max_x = []
+            for k in range(0, ydata.shape[1]):
+                one_third = np.where(ydata[:, k] > max(ydata[:, k]) * qual_factor)
+                one_third = np.ravel(one_third)
+                min_x.append(xdata[one_third[0]])
+                max_x.append(xdata[one_third[-1]])
+            self.gui_dict["processing_spec"]["integration_width"] = max(max_x) - min(
+                min_x
+            )
+
+        self.optCenter(
+            self.gui_dict["processing_spec"]["integration_width"],
+            self.gui_dict["processing_spec"]["integration_center"],
+        )
+        self.optcentCheckbox.setChecked(True)
+
     @staticmethod
     def import_create_workspace(dir, type):
 
@@ -1764,104 +1878,32 @@ class hydrationGUI(QMainWindow):
         starting_center = round(
             self.processing_workspace["proc"].coords["f2"][max_index]
         )
-        temp_data = self.processing_workspace["proc"][
-            "f2", (starting_center - width, starting_center + width)
-        ].values
 
         if (
             self.optphsCheckbox.isChecked()
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
-
-            if self.processing_workspace["proc"].ndim == 2:
-                starting_phase = np.arctan(
-                    np.sum(np.imag(temp_data)) / np.sum(np.real(temp_data))
-                )
-                phases = np.linspace(
-                    starting_phase - np.pi / 4, starting_phase + np.pi / 4, 100
-                )
-                imag_sum = []
-                for indx, k in enumerate(phases):
-                    ws_rot = copy.deepcopy(self.processing_workspace)
-                    ws_rot = self.phs_workspace(ws_rot, k)
-                    dnplab.dnpTools.integrate(
-                        ws_rot,
-                        integrate_center=starting_center,
-                        integrate_width=width * 2,
-                    )
-                    imag_sum.append(np.sum(abs(ws_rot["proc"].imag.values * -1j)))
-
-                self.gui_dict["processing_spec"]["original_phase"] = phases[
-                    np.argmin(imag_sum)
-                ]
-
-            elif self.processing_workspace["proc"].ndim == 1:
-                phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
-                rotated_data = (temp_data.reshape(-1, 1)) * np.exp(-1j * phases)
-                bestindex = np.argmin(abs(np.imag(rotated_data).sum(axis=0)))
-                self.gui_dict["processing_spec"]["original_phase"] = phases[
-                    0, bestindex
-                ]
+            self.optPhase(width, starting_center)
 
         if (
             self.optcentCheckbox.isChecked()
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
             self.optCenter(width, starting_center)
+
+            if (
+                self.optphsCheckbox.isChecked()
+                or self.gui_dict["gui_function"]["autoProcess"]
+            ):
+                self.optPhase(
+                    width, self.gui_dict["processing_spec"]["integration_center"]
+                )
         else:
             self.gui_dict["processing_spec"]["integration_center"] = starting_center
 
         if self.optwidthCheckbox.isChecked():
 
-            ydata = abs(
-                np.real(
-                    self.processing_workspace["proc"][
-                        "f2",
-                        (
-                            self.gui_dict["processing_spec"]["integration_center"]
-                            - width / 2,
-                            self.gui_dict["processing_spec"]["integration_center"]
-                            + width / 2,
-                        ),
-                    ].values
-                    * np.exp(-1j * self.gui_dict["processing_spec"]["original_phase"])
-                )
-            )
-            xdata = np.ravel(
-                self.processing_workspace["proc"][
-                    "f2",
-                    (
-                        self.gui_dict["processing_spec"]["integration_center"]
-                        - width / 2,
-                        self.gui_dict["processing_spec"]["integration_center"]
-                        + width / 2,
-                    ),
-                ].coords["f2"]
-            )
-            qual_factor = 1 / 3
-            if self.processing_workspace["proc"].ndim == 1:
-                one_third = np.where(ydata > max(ydata) * qual_factor)
-                one_third = np.ravel(one_third)
-                self.gui_dict["processing_spec"]["integration_width"] = (
-                    xdata[one_third[-1]] - xdata[one_third[0]]
-                )
-            else:
-                min_x = []
-                max_x = []
-                for k in range(0, ydata.shape[1]):
-                    one_third = np.where(ydata[:, k] > max(ydata[:, k]) * qual_factor)
-                    one_third = np.ravel(one_third)
-                    min_x.append(xdata[one_third[0]])
-                    max_x.append(xdata[one_third[-1]])
-                self.gui_dict["processing_spec"]["integration_width"] = max(
-                    max_x
-                ) - min(min_x)
-
-            self.optCenter(
-                self.gui_dict["processing_spec"]["integration_width"],
-                self.gui_dict["processing_spec"]["integration_center"],
-            )
-            self.optcentCheckbox.setChecked(True)
+            self.optWidth(width)
 
         if self.gui_dict["gui_function"]["autoProcess"]:
             self.gui_dict["processing_spec"]["phase"] = self.gui_dict[
