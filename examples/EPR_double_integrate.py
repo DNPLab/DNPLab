@@ -11,7 +11,7 @@ import dnplab as dnp
 # pro tip: shorten the syntax by aiming to specific functions if you would like. For example, get the 'load' function of the dnpImport module and use it without dnplab.dnpImport. in front.
 from dnplab.dnpImport import load
 
-# lets use some 1D topspin data. All data enters into the same object structure, so this example applies to any NMR format. EPR data are demonstrated in a separate example.
+# lets use some 1D xenon EPR data.
 data = load("../data/bes3t/1D_CW.DTA", data_type="xenon")
 # pro tip: if you do not shorten the syntax using the above tip, make sure to use:
 #            data = dnplab.dnpImport.load(...
@@ -25,7 +25,7 @@ ws.add("raw", data)
 ws.copy("raw", "proc")
 # raw data are now in both ws["proc"] and ws["raw"]. The following processing steps will modify ws["proc"] but leave ws["raw"] unotuched so that you can always return to the original data.
 
-# pro tip: to see what attributes are available on import
+# pro tip: to see what attributes are available on import use:
 print("BEFORE PROCESSING: " + str(ws["raw"].attrs.keys()))
 
 # rename x axis to NMR style notation to more seamlessly interact with some functions
@@ -45,10 +45,12 @@ ws.copy("proc", "spec")
 dnp.dnpTools.integrate(ws, type="double")
 
 # access your processed spectrum as follows:
-# field axis
+# imported field axis
 x_axis = ws["raw"].coords["G"]
-# spectrum
-spectrum = ws["raw"].values
+# spectrum after any processing steps, before integration
+spectrum = ws["spec"].values
+# pro tip: your originally imported spectrum is ws["raw"].values
+
 # first integral
 first_integral = ws["proc"].attrs["first_integral"]
 # double integral value

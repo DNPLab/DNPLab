@@ -277,7 +277,7 @@ def calculate_enhancement(
     integrate_center=0,
     integrate_width="full",
     method="integrate",
-    dim="t2",
+    dim="f2",
     indirect_dim=None,
 ):
     """Calculate enhancement from DNP data
@@ -401,7 +401,7 @@ def calculate_enhancement(
         if data_on.ndim == 2:
             enh_coords_on = data_on.coords[ind_dim]
         else:
-            enh_coords_on = _np.array(range(data_on.shape[-1]))
+            enh_coords_on = _np.array(range(on_data.shape[-1]))
 
     elif isinstance(off_spectrum, int) and on_spectra == "all":
 
