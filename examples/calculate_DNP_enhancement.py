@@ -11,7 +11,10 @@ import numpy as np
 # Import DNPLab as dnp
 import dnplab as dnp
 
-# the enhancement function can use 2D datasets where one spectrum is the "Off" signal and the remainder are the "On" signal. Since none of our example data are of this nature, below we will import individual 1D spectra sequentially and calculate the enhancements. But first, if you have 2D data use the code:
+# the enhancement function can use 2D datasets where one spectrum is the "Off" signal and the
+# remainder are the "On" signal. Since none of our example data are of this nature, below we
+# will import individual 1D spectra sequentially and calculate the enhancements. But first,
+# if you have 2D data use the code:
 
 # find and import some 2D data
 data = dnp.dnpImport.load("..", data_type="")
@@ -26,13 +29,16 @@ dnp.dnpNMR.remove_offset(ws)
 dnp.dnpNMR.window(ws, linewidth=10)
 dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
 
-# With a 2D set ws["proc"].values, calculate the enhancements all at once with off_spectrum=1 specifying that the first slice of your 2D array is the off spectrum. **Note** This is the default behavior and the argument off_spectrum is not necessary unless the off spectrum is not the first slice.
+# With a 2D set ws["proc"].values, calculate the enhancements all at once with off_spectrum=1
+# specifying that the first slice of your 2D array is the off spectrum. **Note** This is the
+# default behavior and the argument off_spectrum is not necessary unless the off spectrum is
+# not the first slice.
 dnp.dnpNMR.calculate_enhancement(ws, off_spectrum=1)
 
 # access your array of enhancements as:
 enhancements = ws["enhancements"].values
 
-#################################################################################################
+#############################################################################################
 # If you have several 1D spectra to compare, you could do the following:
 
 # Start by importing the 1D "Off" spectrum:
@@ -57,7 +63,8 @@ filenames = [
 # create a workspace for the "On" spectra
 ws_on = dnp.create_workspace()
 
-# this loop imports each spectrum from the above list and calculates enhancement for each, appending them to an array called 'enhancements'
+# this loop imports each spectrum from the above list and calculates enhancement for each,
+# appending them to an array called 'enhancements'
 
 # create empty array to append to
 enhancements = []
@@ -70,7 +77,10 @@ for index, path in enumerate(filenames):
     dnp.dnpNMR.remove_offset(ws_on)
     dnp.dnpNMR.window(ws_on, linewidth=10)
     dnp.dnpNMR.fourier_transform(ws_on, zero_fill_factor=2)
-    # calculate enhancement and add to the ws_on["enhancement"] object. **Note** when entered this way you must choose the ws in which to add the object "enhancement". For example, to add the enhancements to the ws_off workspace, the first argument should be ws_off rather than ws_on.
+    # calculate enhancement and add to the ws_on["enhancement"] object. **Note** when
+    # entered this way you must choose the ws in which to add the object "enhancement".
+    # For example, to add the enhancements to the ws_off workspace, the first argument
+    # should be ws_off rather than ws_on.
     dnp.dnpNMR.calculate_enhancement(ws_on, off_spectrum=ws_off, on_spectra=ws_on)
     # append the enhancement to the array "enhancements"
     enhancements.append(ws_on["enhancement"].values)

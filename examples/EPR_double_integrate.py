@@ -8,22 +8,27 @@ This example demonstrates how to use DNPLab to load and double integrate EPR dat
 # Import DNPLab
 import dnplab as dnp
 
-# pro tip: shorten the syntax by aiming to specific functions if you would like. For example, get the 'load' function of the dnpImport module and use it without dnplab.dnpImport. in front.
+# pro tip: shorten the syntax by aiming to specific functions if you would like. For example,
+# get the 'load' function of the dnpImport module and use it without dnplab.dnpImport.
 from dnplab.dnpImport import load
 
 # lets use some 1D xenon EPR data.
 data = load("../data/bes3t/1D_CW.DTA", data_type="xenon")
 # pro tip: if you do not shorten the syntax using the above tip, make sure to use:
 #            data = dnplab.dnpImport.load(...
-# pro tip: the 'data_type' argument is generally not needed, dnpImport autodetects the type.
+# pro tip: the 'data_type' argument is generally not needed, dnpImport autodetects the
+# type.
 
-# create a workspace, this is a place to store multiple objects if multiple processing methods are to be compared.
+# create a workspace, this is a place to store multiple objects if multiple processing
+# methods are to be compared.
 ws = dnp.create_workspace()
 # add the data to the key 'raw'
 ws.add("raw", data)
 # copy the data to the processing buffer 'proc'
 ws.copy("raw", "proc")
-# raw data are now in both ws["proc"] and ws["raw"]. The following processing steps will modify ws["proc"] but leave ws["raw"] unotuched so that you can always return to the original data.
+# raw data are now in both ws["proc"] and ws["raw"]. The following processing steps
+# will modify ws["proc"] but leave ws["raw"] unotuched so that you can always return
+# to the original data.
 
 # pro tip: to see what attributes are available on import use:
 print("BEFORE PROCESSING: " + str(ws["raw"].attrs.keys()))
@@ -67,7 +72,8 @@ dnp.dnpResults.plot(ws["raw"], label="EPR Spectrum")
 dnp.dnpResults.legend()
 dnp.dnpResults.show()
 
-# pro tip: use matplotlib to plot arrays such as the attributes "first_integral" or "baseline" over the spectrum, in this case access the spectrum directly as '.values'
+# pro tip: use matplotlib to plot arrays such as the attributes "first_integral" or
+# "baseline" over the spectrum, in this case access the spectrum directly as '.values'
 import matplotlib.pyplot as plt
 
 plt.figure

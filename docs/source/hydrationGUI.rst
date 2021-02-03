@@ -20,7 +20,7 @@ To start the hydrationGUI type the command:
 Processing a single topspin data folder, either a 1D spectrum or 2D inversion recovery 
 ======================================================================================
 
-To work on a single topspin spectrum use the **Bruker** button to select a numbered folder containing a single spectrum, either 1D or 2D. You may make adjustments to the data phase and integration window center using the sliders. Use the “Optimize” checkboxes to search for and apply the “optimal” parameters. 
+To work on a single topspin spectrum use the **Get Directory** button to select a numbered folder containing a single spectrum, either 1D or 2D. You may make adjustments to the data phase and integration window using the sliders and edit box or the windowing linewidth using the edit box. Use the “Optimize” checkboxes to search for and apply the “optimal” parameters. For inversion recovery experiments the yellow markers in the top right hand plot are the imaginary parts of the integrals. The optimal integration window parameters and phase should result in all of these points occurring close to 0. 
 
 .. figure:: _static/images/hydrationGUI_importing_1d_2d.png
     :width: 720
@@ -77,7 +77,6 @@ The title of the main plot will let you know which folder you are currently work
 
 You may make adjustments to the data phase, integration window width, and integration window center using the sliders and window width edit box. Use the “Optimize” checkboxes to search for and apply the “optimal” parameters. For optimizing the width, checking Optimize selects the window that encompasses roughly 2/3 of the peak area while unchecking selects the default width of 10 ppm. For NMR at ~15MHz, 10 ppm corresponds to ~150MHz, which is a typical peak width for data collected at CNSI. If processing data collected at CNSI it is recommended you use the default 10 ppm window width. Regardless of the chosen width, it is always recommended that you be consistent to ensure comparability between data. When the **Next** or **Auto Process** buttons are pressed the width that is displayed in the plot will be used for integration. 
 
-The title of the main plot will let you know which folder you are currently working on. Use the Next button to advance through the dataset towards calculating hydration parameters, and the Back button to regress through the dataset. Auto Process will run through the entire dataset automatically and calculate hydration parameters.
 
 .. figure:: _static/images/hydrationGUI_ksigma.png
     :width: 720
@@ -118,39 +117,45 @@ If the mat workspace or h5 file were not saved from hydrationGUI, they can still
 
 The mat workspace must contain a structure named "odnp" with at least the following elements (the same structure accepted and saved by the MATLAB App called xODNP, available at MathWorks File Exchange https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp):
 
-+------------------+-----------------+-------------------------------------------------------+
-| **Variable**     | **Type**        | **Description**                             	     |
-+------------------+-----------------+-------------------------------------------------------+
-| odnp.Ep          | #x1 Double      | list of signal enhancements                           |      
-+------------------+-----------------+-------------------------------------------------------+
-| odnp.Epowers     | #x1 Double      | list of powers used to collect Ep                     |                 
-+------------------+-----------------+-------------------------------------------------------+
-| odnp.T1p         | #x1 Double      | list of T\ :sub:`1` values                            |
-+------------------+-----------------+-------------------------------------------------------+
-| odnp.T1p_stdd    | #x1 Double      | list of standard deviations in T1p                    |              
-+------------------+-----------------+-------------------------------------------------------+
-| odnp.T1powers    | #x1 Double      | list of powers used to collect T1p                    |                 
-+------------------+-----------------+-------------------------------------------------------+
-| odnp.T10         | single number   | T\ :sub:`1` value for power = 0, i.e. T\ :sub:`1` (0) |               
-+------------------+-----------------+-------------------------------------------------------+
-| odnp.T10_stdd    | single number   | standard deviation in T10                             |     
-+------------------+-----------------+-------------------------------------------------------+
++------------------+-----------------+---------------------------------------------------------+
+| **Variable**     | **Type**        | **Description**                                         |
++------------------+-----------------+---------------------------------------------------------+
+| odnp.Ep          | #x1 Double      | list of signal enhancements                             |      
++------------------+-----------------+---------------------------------------------------------+
+| odnp.Epowers     | #x1 Double      | list of powers used to collect Ep                       |                 
++------------------+-----------------+---------------------------------------------------------+
+| odnp.T1p         | #x1 Double      | list of T\ :sub:`1` values                              |
++------------------+-----------------+---------------------------------------------------------+
+| odnp.T1p_stdd    | #x1 Double      | list of standard deviations in T1p                      |              
++------------------+-----------------+---------------------------------------------------------+
+| odnp.T1powers    | #x1 Double      | list of powers used to collect T1p                      |                 
++------------------+-----------------+---------------------------------------------------------+
+| odnp.T10         | single number   | T\ :sub:`1` value for power = 0, i.e. T\ :sub:`1` (0)   |               
++------------------+-----------------+---------------------------------------------------------+
+| odnp.T10_stdd    | single number   | standard deviation in T10                               |     
++------------------+-----------------+---------------------------------------------------------+
+| odnp.T100        | single number   | T\ :sub:`1,0` (0)                                       |              
++------------------+-----------------+---------------------------------------------------------+
+| odnp.T100_stdd   | single number   | standard deviation in T100                              |     
++------------------+-----------------+---------------------------------------------------------+
 
 The h5 must contain a dictionary named 'hydration_inputs' with at least the following elements:
 
-+------------------+-----------------+-------------------------------------------------------+
-| **Key**          | **Type**        | **Description**                                       |
-+------------------+-----------------+-------------------------------------------------------+
-| E                | numpy array     | list of signal enhancements                           |      
-+------------------+-----------------+-------------------------------------------------------+
-| E_power          | numpy array     | list of powers used to collect Ep                     |                 
-+------------------+-----------------+-------------------------------------------------------+
-| T1               | numpy array     | list of T\ :sub:`1` values                            |
-+------------------+-----------------+-------------------------------------------------------+
-| T1_power         | numpy array     | list of powers used to collect T1p                    |                 
-+------------------+-----------------+-------------------------------------------------------+
-| T10              | float           | T\ :sub:`1` value for power = 0, i.e. T\ :sub:`1` (0) |               
-+------------------+-----------------+-------------------------------------------------------+
++------------------+-----------------+---------------------------------------------------------+
+| **Key**          | **Type**        | **Description**                                         |
++------------------+-----------------+---------------------------------------------------------+
+| E                | numpy array     | list of signal enhancements                             |      
++------------------+-----------------+---------------------------------------------------------+
+| E_power          | numpy array     | list of powers used to collect Ep                       |                 
++------------------+-----------------+---------------------------------------------------------+
+| T1               | numpy array     | list of T\ :sub:`1` values                              |
++------------------+-----------------+---------------------------------------------------------+
+| T1_power         | numpy array     | list of powers used to collect T1p                      |                 
++------------------+-----------------+---------------------------------------------------------+
+| T10              | float           | T\ :sub:`1` value for power = 0, i.e. T\ :sub:`1` (0)   |               
++------------------+-----------------+---------------------------------------------------------+
+| T100             | float           | T\ :sub:`1,0` (0)                                       |               
++------------------+-----------------+---------------------------------------------------------+
 
 and a separate dictionary named 'hydration_results' with at least the following elements:
 
@@ -160,6 +165,8 @@ and a separate dictionary named 'hydration_results' with at least the following 
 | T1_stdd          | numpy array     | list of standard deviations in T1    |     
 +------------------+-----------------+--------------------------------------+
 | T10_stdd         | float           | standard deviation in T10            |                 
++------------------+-----------------+--------------------------------------+
+| T100_stdd        | float           | standard deviation in T100           |                 
 +------------------+-----------------+--------------------------------------+
 
 .. figure:: _static/images/hydrationGUI_previous_results2.png
@@ -194,6 +201,6 @@ The terminal will display processing and calculation progress as well as standar
 Saving Results
 ==============
 
-After processing is complete and hydration parameters are calculated, the **Save results** button is available. Your results are saved in .csv, .h5, and .mat formats. The .h5 and .mat files can be imported by hydrationGUI. The .mat file can be imported by the MATLAB app called xODNP that is available at MathWorks File Exchange: https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp
+After processing is complete and hydration parameters are calculated, the **Save** button is available. Your results are saved in .csv, .h5, and .mat formats. The .h5 and .mat files can be imported by hydrationGUI. The .mat file can be imported by the MATLAB app called xODNP that is available at MathWorks File Exchange: https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp
 
 
