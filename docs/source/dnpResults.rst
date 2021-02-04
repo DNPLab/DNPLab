@@ -1,3 +1,5 @@
+.. _dnpResults:
+
 ==========
 dnpResults
 ==========
@@ -5,15 +7,11 @@ dnpResults
 Summary
 =======
 
-The following table summarizes all available functions in this module
-
-.. .. autosummary:: dnplab.dnpResults
-..    dnplab.dnpResults.imshow
-..    dnplab.dnpResults.plot
+The dnpResults module contains functions to plot data.
 
 
-Detailed Description of Functions
-=================================
+Detailed Descriptions of Functions
+==================================
 
 .. automodule:: dnplab.dnpResults
    :members:

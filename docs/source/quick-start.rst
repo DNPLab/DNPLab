@@ -33,8 +33,8 @@ Processing NMR Data
 .. code-block:: python
 
    # Remove DC offset from FID
-   workspace = dnp.dnpNMR.remove_offset(workspace)
+   dnp.dnpNMR.remove_offset(workspace)
    # Apply Exponential Apodization to data
-   workspace = dnp.dnpNMR.window(workspace)
+   dnp.dnpNMR.window(workspace)
    # Apply Fourier Transform to direct dimension by default (t2)
-   workspace = dnp.dnpNMR.fourier_transform(workspace)
+   dnp.dnpNMR.fourier_transform(workspace)

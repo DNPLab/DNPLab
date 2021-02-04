@@ -9,8 +9,8 @@ Summary
 
 Use dnpSave.save to save workspace in h5 format.
 
-Detailed Description of Functions
-=================================
+Detailed Descriptions of Functions
+==================================
 
 .. automodule:: dnplab.dnpSave
    :members:

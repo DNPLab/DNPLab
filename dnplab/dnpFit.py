@@ -75,7 +75,6 @@ def exponential_fit(
     Returns:
         dnpdata_collection or dnpdata: Processed data in container, updated with fit data
         attributes: "T1" value and "T1_stdd" standard deviation for type="T1", "T2" value and "T2_stdd" standard deviation for type="T2", "tau" and "tau_stdd" for type="mono", or "tau1", "tau1_stdd", "tau2", and "tau2_stdd" for type="bi"
-
     """
 
     data, isDict = return_data(all_data)
@@ -207,7 +206,6 @@ def enhancement_fit(dataDict):
         p_one_half_standard_deviation = workspace['fit'].attrs['p_half_stdd']
         Emax_fit = workspace['fit'].values
         Emax_fit_xaxis = workspace['fit'].coords
-
     """
 
     data, isDict = return_data(all_data)
@@ -259,7 +257,6 @@ def interpolate_T1(
 
     Returns:
         interp_T1 (np.array): The evaluated values, same shape as E_powers.
-
     """
 
     spin_C = spin_C / 1e6

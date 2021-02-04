@@ -1,8 +1,10 @@
+.. _hydrationGUI:
+
 ============
 hydrationGUI
 ============
 
-Type hydrationGUI at the command line to open an interactive tool for processing ODNP data and calculating hydration parameters. All data processing and calculating is done using buttons, checkboxes, sliders, and edit fields.
+The hydrationGUI is designed to work with the results of UCSB routines such as "rb_dnp1" used at the CNSI facility. 
 
 To start the hydrationGUI type the command:
 
@@ -20,7 +22,7 @@ To start the hydrationGUI type the command:
 Processing a single topspin data folder, either a 1D spectrum or 2D inversion recovery 
 ======================================================================================
 
-To work on a single topspin spectrum use the **Get Directory** button to select a numbered folder containing a single spectrum, either 1D or 2D. You may make adjustments to the data phase and integration window using the sliders and edit box or the windowing linewidth using the edit box. Use the “Optimize” checkboxes to search for and apply the “optimal” parameters. For inversion recovery experiments the yellow markers in the top right hand plot are the imaginary parts of the integrals. The optimal integration window parameters and phase should result in all of these points occurring close to 0. 
+To work on a single topspin spectrum use the **Get Directory** button to select a numbered folder containing a single spectrum, either 1D or 2D. You may make adjustments to the data phase and integration window using the sliders and edit box or the windowing linewidth using the edit box. Use the “Optimize” checkboxes to search for and apply the “optimal” parameters. For inversion recovery experiments the yellow markers in the top right hand plot are the imaginary parts of the integrals. The optimal integration window parameters and phase should result in all of these points occurring close to 0. See :ref:`dnpFit <dnpFit>` for the T\ :sub:`1` fit function.
 
 .. figure:: _static/images/hydrationGUI_importing_1d_2d.png
     :width: 720
@@ -85,7 +87,7 @@ You may make adjustments to the data phase, integration window width, and integr
 
     Presentation of dnpHydration results
 
-The results are displayed when finished. If a “Workup” is also present in the data folder it will be imported for comparison. Use the corresponding checkboxes to interact with the Workup results. Interaction with any parameter edit field or checkbox, as well as the T1 interpolation checkboxes, automatically updates the calculations. 
+The results are displayed when finished. If a “Workup” is also present in the data folder it will be imported for comparison. Use the corresponding checkboxes to interact with the Workup results. Interaction with any parameter edit field or checkbox, as well as the T1 interpolation checkboxes, automatically updates the calculations. Click :ref:`dnpHydration <dnpHydration>` to see how the data are arranged by the GUI and used to calculate hydration parameters.
 
 The **Restart** button will return you to the beginning of processing. If the **Only T1(0)** checkbox is selected, Restart will return you to the final folder that is the T\ :sub:`1` (0) measurement while all other processing will be retained. If the **Only T1(p)** checkbox is selected you will return to the beginning of the series of T\ :sub:`1` measurements and previous processing of the enhancement points is retained. 
 
@@ -93,14 +95,14 @@ The **Restart** button will return you to the beginning of processing. If the **
 Analyzing Workup results or previously saved GUI results
 ========================================================
 
-You may also load the results of “Workup” code processing with the **Workup** button, or you may select the .mat or .h5 files of a previously saved hydrationGUI session with the **GUI Result** button. The Workup folder must have at least the following elements:
+You may also load and analyze the results of “Workup” code processing with the **Get Directory** button, or you may select the .mat or .h5 files of a previously saved hydrationGUI session with the **Get File** button. The Workup folder must have at least the following elements:
 
 +-------------------------+------------------+-------------------------------------------------------------+
 | **Filename**            | **File type**    | **File contains**                                           |
 +-------------------------+------------------+-------------------------------------------------------------+
 | enhancementPowers.csv   | .csv file        | list of enhancements and corresponding power measurements   |                     
 +-------------------------+------------------+-------------------------------------------------------------+
-| kSigma.csv              | .csv file        | list of [spin_concentration * κ\ :sub:`σ` * s(p)] values	   |
+| kSigma.csv              | .csv file        | list of [spin_concentration * κ\ :sub:`σ` * s(p)] values.   |
 +-------------------------+------------------+-------------------------------------------------------------+
 | t1Powers.csv            | .csv file        | list of T\ :sub:`1` s and corresponding power measurements  |
 +-------------------------+------------------+-------------------------------------------------------------+
@@ -201,6 +203,6 @@ The terminal will display processing and calculation progress as well as standar
 Saving Results
 ==============
 
-After processing is complete and hydration parameters are calculated, the **Save** button is available. Your results are saved in .csv, .h5, and .mat formats. The .h5 and .mat files can be imported by hydrationGUI. The .mat file can be imported by the MATLAB app called xODNP that is available at MathWorks File Exchange: https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp
+After processing is complete and hydration parameters are calculated, the **Save** button is available. Your results are saved in .csv, .h5, and .mat formats. The .h5 and .mat files can be imported by hydrationGUI. The .mat file can be imported by the MATLAB app called xODNP that is available at MathWorks File Exchange: https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp. See :ref:`dnpHydration <dnpHydration>` for explanation of the saved inputs/results object.
 
 

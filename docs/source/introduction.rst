@@ -30,7 +30,7 @@ Importing Data
 --------------
 The data is imported using the :ref:`dnpImport <dnpImport>`  sub-package. This sub-package calls modules for importing various spectrometer formats (e.g. topspin, vnmrj, prospa, etc.).
 
-The data is imported as a :ref:`dnpdata <dnpdata>` object. The dnpdata object is a container for data (values), coordinates for each dimension (coords), dimension labels (dims), and experimental parameters (attrs). In addition, each processing step applied to the data is saved in the dnpdata object (stored as proc_attrs).
+The data is imported as a :ref:`dnpdata <dnpData>` object. The dnpdata object is a container for data (values), coordinates for each dimension (coords), dimension labels (dims), and experimental parameters (attrs). In addition, each processing step applied to the data is saved in the dnpdata object (stored as proc_attrs).
 
 The dnpdata object is a flexible data format which can handle N-dimensional data and coordinates together.
 

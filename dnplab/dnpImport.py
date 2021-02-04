@@ -92,7 +92,6 @@ def load(path, data_type=None, *args, **kwargs):
 
 
 def autodetect(test_path):
-    """Automatically detect type of data in directory and call dnpImport.load"""
 
     if test_path[-1] == os.sep:
         test_path = test_path[:-1]

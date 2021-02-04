@@ -81,7 +81,9 @@ Features
    auto_examples/index
    dnpData
    dnpImport
+   dnpIO
    dnpSave
+   dnpTools
    dnpNMR
    dnpFit
    dnpHydration

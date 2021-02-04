@@ -9,8 +9,8 @@ Summary
 
 Use dnpImport.load and the correct IO module will be automatically selected.
 
-Detailed Description of Functions
-=================================
+Detailed Descriptions of Functions
+==================================
 
 .. automodule:: dnplab.dnpImport
    :members:

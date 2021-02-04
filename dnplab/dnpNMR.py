@@ -59,7 +59,7 @@ def align(all_data, dim="f2", dim2=None):
         dim2 (str) : second dimension to align along
 
     returns:
-        all_data (dnpdata, dict): Aligned data in container
+        dnpdata: Aligned data in container
     """
 
     data, isDict = return_data(all_data)
@@ -157,8 +157,8 @@ def autophase(
     +-----------------+--------------+---------------+---------------------------------------------------+
 
     Returns:
-        all_data (dnpdata, dict): Autophased data in container
-        attributes: "phase_0" for order="zero", adds "phase_1" if order="first"
+        dnpdata: Autophased data, including attrs "phase_0" for order="zero", and "phase_1" if order="first"
+
     """
 
     data, isDict = return_data(all_data)
@@ -302,7 +302,7 @@ def calculate_enhancement(
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
 
     Returns:
-        all_data (dnpdata, dict): data object with "enhancement" added
+        dnpdata: data object with "enhancement" key added
 
     """
 
@@ -512,13 +512,7 @@ def fourier_transform(
     +------------------+------+---------+--------------------------------------------------+
 
     Returns:
-        all_data (dnpdata, dict): Processed data in container
-
-    Example:
-
-    .. code-block:: python
-
-        all_data = dnplab.dnpNMR.fourier_transform(all_data, proc_parameters)
+        dnpdata: data object after FT
     """
 
     # Determine if data is dictionary or dnpdata object
@@ -590,13 +584,7 @@ def inverse_fourier_transform(
     +------------------+------+---------+--------------------------------------------------+
 
     Returns:
-        all_data (dnpdata, dict): Processed data in container
-
-    Example:
-
-    .. code-block:: python
-
-        all_data = dnplab.dnpNMR.fourier_transform(all_data, proc_parameters)
+        dnpdata: data object after inverse FT
     """
 
     # Determine if data is dictionary or dnpdata object
@@ -657,9 +645,7 @@ def left_shift(all_data, dim="t2", shift_points=0):
     +---------------+------+---------+----------------------------------------------------------+
 
     Returns:
-        dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
-        dnpdata: If dnpdata object is given, return dnpdata object.
-
+        dnpdata: data object with left-shifted data
     """
 
     data, isDict = return_data(all_data)
@@ -695,12 +681,7 @@ def remove_offset(all_data, dim="t2", offset_points=10):
     +---------------+------+---------+----------------------------------------------------------+
 
     Returns:
-        dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
-        dnpdata: If dnpdata object is given, return dnpdata object.
-
-    Example::
-
-       workspace = dnplab.dnpNMR.remove_offset(workspace)
+        dnpdata: data object with offset removed
     """
 
     # Determine if data is dictionary or dnpdata object
@@ -761,9 +742,7 @@ def window(
     +-----------------+-------------------------+---------------+---------------------------------------------------+
 
     Returns:
-        all_data (dnpdata, dict): data object with window function applied
-        attributes: "window", window function
-
+        dnpdata: data object with window function applied, including attr "window"
     """
     data, isDict = return_data(all_data)
     dim_size = data.coords[dim].shape[-1]
@@ -844,6 +823,9 @@ def phasecycle(all_data, dim, receiver_phase):
         all_data (dnpdata_collection, dnpdata): data to process
         dim (str): dimension to perform phase cycle
         receiver_phase (numpy.array, list): Receiver Phase 0 (x), 1 (y), 2 (-x), 3 (-y)
+
+    Returns:
+        dnpdata: data object after phase cycle applied
     """
 
     data, isDict = return_data(all_data)
