@@ -81,6 +81,8 @@ def baseline(
     +=================+======+===============+===================================================+
     | dim             | str  | 'f2'          | Dimension to apply baseline correction            |
     +-----------------+------+---------------+---------------------------------------------------+
+    | indirect_dim    | str  | None          | indirect dimension                                |
+    +-----------------+------+---------------+---------------------------------------------------+
     | type            | str  | 'polynomial'  | type of baseline fit                              |
     +-----------------+------+---------------+---------------------------------------------------+
     | order           | int  | 1             | polynomial order, or 1=mono 2=bi exponential      |
@@ -159,15 +161,17 @@ def integrate(
     Args:
         all_data (dnpdata,dict): Data container
 
-    +------------------+-------+---------+------------------------------+
-    | parameter        | type  | default | description                  |
-    +==================+=======+=========+==============================+
-    | dim              | str   | 't2'    | dimension to integrate       |
-    +------------------+-------+---------+------------------------------+
-    | integrate_center | float | 0       | center of integration window |
-    +------------------+-------+---------+------------------------------+
-    | integrate_width  | float | 100     | width of integration window  |
-    +------------------+-------+---------+------------------------------+
+    +------------------+-------+----------+-------------------------------+
+    | parameter        | type  | default  | description                   |
+    +==================+=======+==========+===============================+
+    | dim              | str   | 'f2'     | dimension to integrate        |
+    +------------------+-------+----------+-------------------------------+
+    | type             | str   | 'single' | 'single' or 'double' integral |
+    +------------------+-------+----------+-------------------------------+
+    | integrate_center | float | 0        | center of integration window  |
+    +------------------+-------+----------+-------------------------------+
+    | integrate_width  | float | 100      | width of integration window   |
+    +------------------+-------+----------+-------------------------------+
 
     Returns:
         dnpdata: integrals of data
@@ -428,6 +432,10 @@ def signal_to_noise(
     noise_width="default",
 ):
     """Find signal-to-noise ratio
+
+    .. note::
+
+        S/N = signal / stdd(noise)
 
     Args:
         all_data (dnpdata,dict): Data container

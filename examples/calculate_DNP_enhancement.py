@@ -1,7 +1,7 @@
 # %% [markdown]
 """
 Calculate DNP enhancement
-============================
+=========================
 
 This example demonstrates how to import DNP-NMR data and calculate enhancement
 """
@@ -36,7 +36,6 @@ dnp.dnpNMR.calculate_enhancement(ws, off_spectrum=1)
 # %% [markdown]
 # If needed, access your array of enhancements as:
 enhancements = ws["enhancement"].values
-#
 # %%
 
 # %% [markdown]

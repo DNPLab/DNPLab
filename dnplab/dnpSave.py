@@ -7,8 +7,8 @@ def save(data_object, filename, save_type=None, *args, **kwargs):
 
     Args:
         data_object (dnpdata object) : dnpdata object to save
-        filename (str): name of file, end with .h5
-        save_type (str): Type of file to save (optional)
+        filename (str): name of file, must include extension .h5
+        save_type (str): Type of file to save (optional). Allowed values: "h5"
 
     """
 

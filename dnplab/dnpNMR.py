@@ -310,7 +310,9 @@ def calculate_enhancement(
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
     | method           | str                        | "integrate" | either "integrate" or "ampltiude"                                    |
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    | dim              | str                        | "t2"        | dimension to integrate down or search down for max                   |
+    | dim              | str                        | "f2"        | dimension to integrate down or search down for max                   |
+    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+    | indirect_dim     | str                        | None        | indirect dimension                                                   |
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
 
     Returns:
@@ -586,7 +588,7 @@ def inverse_fourier_transform(
     +------------------+------+---------+--------------------------------------------------+
     | parameter        | type | default | description                                      |
     +==================+======+=========+==================================================+
-    | dim              | str  | 't2'    | dimension to Fourier transform                   |
+    | dim              | str  | 'f2'    | dimension to Fourier transform                   |
     +------------------+------+---------+--------------------------------------------------+
     | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
     +------------------+------+---------+--------------------------------------------------+
@@ -650,11 +652,13 @@ def left_shift(all_data, dim="t2", shift_points=0):
     Args:
         all_data (dnpdata, dict): Data container for data
 
-    +---------------+------+---------+----------------------------------------------------------+
-    | parameter     | type | default | description                                              |
-    +===============+======+=========+==========================================================+
-    | shift_points  | int  | 0       | Number of points to remove from left of data             |
-    +---------------+------+---------+----------------------------------------------------------+
+    +---------------+------+---------+--------------------------------------------------+
+    | parameter     | type | default | description                                      |
+    +===============+======+=========+==================================================+
+    | dim           | str  | "t2"    | dimension to shift                               |
+    +---------------+------+---------+--------------------------------------------------+
+    | shift_points  | int  | 0       | Number of points to remove from left of data     |
+    +---------------+------+---------+--------------------------------------------------+
 
     Returns:
         dnpdata: data object with left-shifted data
@@ -851,7 +855,7 @@ def window(
 
 
 def phasecycle(all_data, dim, receiver_phase):
-    """Perform Phase Cycle down given dimension
+    """Phase cycle
 
     Args:
         all_data (dnpdata_collection, dnpdata): data to process

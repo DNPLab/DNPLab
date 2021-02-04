@@ -1,7 +1,7 @@
 # %% [markup]
 """
 DNPLab EPR data tutorial
-============================
+========================
 
 This example demonstrates how to use DNPLab to load and double integrate EPR data.
 

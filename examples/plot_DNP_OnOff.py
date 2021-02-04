@@ -1,7 +1,7 @@
 # %%
 """
 Plot DNP On/Off Signals
-============================
+=======================
 
 This first example demonstrates how to import two NMR spectra, one recorded with a microwave power of 0 W (off-signal) and one with a microwave power of 2 W (on-signal). The spectra are recorded using a Magritek Kea system.
 

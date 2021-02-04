@@ -1,7 +1,7 @@
 # %% [markdown]
 """
 DNPLab basics tutorial
-============================
+======================
 
 This example demonstrates how to import and process data. The user also learns how to access the various components of the data object and generally how to interact with the functions.
 
