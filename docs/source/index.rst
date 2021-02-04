@@ -79,9 +79,9 @@ Features
    install
    quick-start
    auto_examples/index
-   examples
    dnpData
    dnpImport
+   dnpSave
    dnpNMR
    dnpFit
    dnpHydration

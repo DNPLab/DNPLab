@@ -278,10 +278,7 @@ class HydrationCalculator:
         self.results = results
 
     def interpolate_T1(self, E_power: np.array, T1_power: np.array, T1: np.array):
-        """Returns the one-dimensional piecewise interpolant to a function with
-        given discrete data points (T1_power, T1), evaluated at E_power.
-
-        Points outside the data range will be extrapolated
+        """Returns interpolated T1 data using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
 
         Args:
             E_power: The x-coordinates at which to evaluate.

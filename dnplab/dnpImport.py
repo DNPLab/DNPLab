@@ -4,37 +4,38 @@ from . import dnpIO
 
 def load(path, data_type=None, *args, **kwargs):
     """Import data from different spectrometer formats
-    +-----------------+
-    | Supported Types |
-    +-----------------+
-    | prospa          |
-    +-----------------+
-    | topspin         |
-    +-----------------+
-    | delta           |
-    +-----------------+
-    | vnmrj           |
-    +-----------------+
-    | tnmr            |
-    +-----------------+
-    | specman         |
-    +-----------------+
-    | xenon and xepr  |
-    +-----------------+
-    | winepr and esp  |
-    +-----------------+
-    | h5              |
-    +-----------------+
-    | power           |
-    +-----------------+
-    | vna             |
-    +-----------------+
-    | cnsi_powers     |
-    +-----------------+
+
+    +--------------------+--------------+--------------------+
+    | parameter          | type         | allowed values     |
+    +====================+==============+====================+
+    | data_type          | str          | "prospa"           |
+    +--------------------+--------------+--------------------+
+    |                    |              | "topspin"          |
+    +--------------------+--------------+--------------------+
+    |                    |              | "delta"            |
+    +--------------------+--------------+--------------------+
+    |                    |              | "vnmrj"            |
+    +--------------------+--------------+--------------------+
+    |                    |              | "tnmr"             |
+    +--------------------+--------------+--------------------+
+    |                    |              | "specman"          |
+    +--------------------+--------------+--------------------+
+    |                    |              | "xenon" or "xepr"  |
+    +--------------------+--------------+--------------------+
+    |                    |              | "winepr" or "esp"  |
+    +--------------------+--------------+--------------------+
+    |                    |              | "h5"               |
+    +--------------------+--------------+--------------------+
+    |                    |              | "power"            |
+    +--------------------+--------------+--------------------+
+    |                    |              | "vna"              |
+    +--------------------+--------------+--------------------+
+    |                    |              | "cnsi_powers"      |
+    +--------------------+--------------+--------------------+
 
     Args:
         path (str): Path to data directory or file
-        data_type (str): Type of spectrometer data to import
+        data_type (str): Type of spectrometer data to import (optional)
 
     Returns:
         data (dnpData): Data object
@@ -91,7 +92,7 @@ def load(path, data_type=None, *args, **kwargs):
 
 
 def autodetect(test_path):
-    """Automatically detect type of data in directory"""
+    """Automatically detect type of data in directory and call dnpImport.load"""
 
     if test_path[-1] == os.sep:
         test_path = test_path[:-1]

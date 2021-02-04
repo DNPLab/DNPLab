@@ -28,7 +28,7 @@ Workflow
 
 Importing Data
 --------------
-The data is imported using the :ref:`dnpImport <import>`  sub-package. This sub-package contains modules for importing various spectrometer formats (e.g. :ref:`Topspin <topspin>`, :ref:`VnmrJ <vnmrj>`, :ref:`Prospa <prospa>`).
+The data is imported using the :ref:`dnpImport <dnpImport>`  sub-package. This sub-package calls modules for importing various spectrometer formats (e.g. topspin, vnmrj, prospa, etc.).
 
 The data is imported as a :ref:`dnpdata <dnpdata>` object. The dnpdata object is a container for data (values), coordinates for each dimension (coords), dimension labels (dims), and experimental parameters (attrs). In addition, each processing step applied to the data is saved in the dnpdata object (stored as proc_attrs).
 
@@ -46,4 +46,4 @@ The DNPLab workspace has the concept of a "processing_buffer" (typically called 
 
 Saving Data in h5 format
 ------------------------
-Once the data is processed, the entire workspace can be saved in a single file in the h5 format. This is done using the :ref:`h5 <h5>` module. The workspace can then be loaded, subsequent processing can be performed and the data can be saved again.
+Once the data is processed, the entire workspace can be saved in a single file in the h5 format. This is done using the :ref:`dnpSave <dnpSave>` module. The workspace can then be loaded, subsequent processing can be performed and the data can be saved again.

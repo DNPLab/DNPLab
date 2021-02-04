@@ -49,21 +49,32 @@ def exponential_fit(
 
     .. math::
 
-        f(t) = M_0 - M_{\infty} e^{-t/T_1}
-        f(t) = M_0 e^{(-2(t/T_2)^p}
-        f(t) = M_0 e^{(-2(t/T_2)}
-        f(t) = C1 + C2 e^{-x/tau}
-        f(t) = C1 + C2 e^{-x/tau1} + C3 e^{-x/tau2}
+        f(t) &= M_0 - M_{\infty} e^{-t/T_1} \\
+        
+             &= M_0 e^{(-2(t/T_2)^p} \\
+        
+             &= C1 + C2 e^{-x/tau} \\
+        
+             &= C1 + C2 e^{-x/tau1} + C3 e^{-x/tau2}
+
 
     Args:
-        all_data (dnpdata, dict): data container after processing inversion recovery data, after integration with dnpNMR.integrate
-        type (str) : "T1" for inversion recovery fit, "T2" for stretched exponential, "mono", or "bi"
-        stretch (boolean) : if False "p" is set to 1, if True "p" is a fit parameter
-        dim (str) : dimension to fit down
+        all_data (dnpdata, dict): data container, after integration with dnpTools.integrate
+        
+    +------------+------+---------+-----------------------------------------------------------------------------------+
+    | parameter  | type | default | description                                                                       |
+    +============+======+=========+===================================================================================+
+    | dim        | str  | "f2"    | dimension to fit down                                                             |
+    +------------+------+---------+-----------------------------------------------------------------------------------+
+    | type       | str  | "mono"  | "T1" for inversion recovery fit, "T2" for stretched exponential, "mono", or "bi"  |
+    +------------+------+---------+-----------------------------------------------------------------------------------+
+    | stretch    | bool | False   | if False "p" is set to 1, if True "p" is a fit parameter                          |
+    +------------+------+---------+-----------------------------------------------------------------------------------+
+
 
     Returns:
         dnpdata_collection or dnpdata: Processed data in container, updated with fit data
-        attributes: "T1" value and "T1_stdd" standard deviation for type="T1", "T2" value and "T2_stdd" standard deviation for type="T2", or "tau" and "tau_stdd" for type="mono", "tau1", "tau1_stdd", "tau2", and "tau2_stdd" for type="bi"
+        attributes: "T1" value and "T1_stdd" standard deviation for type="T1", "T2" value and "T2_stdd" standard deviation for type="T2", "tau" and "tau_stdd" for type="mono", or "tau1", "tau1_stdd", "tau2", and "tau2_stdd" for type="bi"
 
     """
 
@@ -173,7 +184,7 @@ def enhancement_fit(dataDict):
         f(p) = E_{max} p / (p_{1/2} + p)
 
     Args:
-        workspace
+        all_data (dnpdata, dict): data container
 
     Returns:
         all_data (dnpdata, dict): Processed data in container, updated with fit data
@@ -234,10 +245,7 @@ def interpolate_T1(
     T10=2.0,
     T100=2.5,
 ):
-    """Returns the one-dimensional piecewise interpolant to a function with
-    given discrete data points (T1_powers, T1), evaluated at E_powers.
-
-    Points outside the data range will be extrapolated
+    """Returns interpolated T1 data using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
 
     Args:
         E_powers: The x-coordinates at which to evaluate.

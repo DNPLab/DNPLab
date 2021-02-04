@@ -4,11 +4,12 @@ from . import dnpIO, dnpdata, dnpdata_collection, create_workspace
 
 def save(data_object, filename, save_type=None, *args, **kwargs):
     """Save data to h5 format
-    +-----------------+
-    | Supported Types |
-    +-----------------+
-    | h5              |
-    +-----------------+
+
+    +--------------------+--------------+--------------------+
+    | parameter          | type         | allowed values     |
+    +====================+==============+====================+
+    | save_type          | str          | "h5"               |
+    +--------------------+--------------+--------------------+
 
     Args:
         data_object (dnpdata object) : dnpdata object to save
@@ -37,7 +38,7 @@ def save(data_object, filename, save_type=None, *args, **kwargs):
 
 
 def autodetect(test_name):
-    """Automatically detect type of file to save"""
+    """Automatically detect type of file based on filename extension and save."""
 
     if test_name[-1] == os.sep:
         test_name = test_name[:-1]

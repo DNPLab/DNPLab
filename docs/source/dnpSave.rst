@@ -1,18 +1,18 @@
-.. _dnpImport:
+.. _dnpSave:
 
 =========
-dnpImport
+dnpSave
 =========
 
 Summary
 =======
 
-Use dnpImport.load and the correct IO module will be automatically selected.
+Use dnpSave.save to save workspace in h5 format.
 
 Detailed Description of Functions
 =================================
 
-.. automodule:: dnplab.dnpImport
+.. automodule:: dnplab.dnpSave
    :members:
    :show-inheritance:
    :member-order: bysource
