@@ -134,17 +134,17 @@ def autophase(
     force_positive=False,
 ):
     """Automatically phase correct data, or apply manual phase correction
-    
+
     .. math::
-    
+
         \mathrm{data}         &= \exp(-1j * \mathrm{phase}) &
-    
+
         \mathrm{phase(arctan)} &= \mathrm{arctan}(\mathrm{sum}(\mathrm{data.imag}) / \mathrm{sum}(\mathrm{data.real})) &
-    
+
         \mathrm{phase(search)} &= \mathrm{argmax}(\mathrm{sum}(phased\_real^{2}) / \mathrm{sum}(phased\_imag^{2})) &
-    
+
         phased\_real          &= \mathrm{data.real} * \exp(-1j * \mathrm{phase}) &
-        
+
         phased\_imag          &= \mathrm{data.imag} * \exp(-1j * \mathrm{phase}) &
 
     Args:
@@ -732,31 +732,31 @@ def window(
     inverse=False,
 ):
     """Apply Apodization to data down given dimension
-    
+
     .. math::
 
         \mathrm{exponential}    &=  \exp(-2t * \mathrm{linewidth}) &
-        
+
         \mathrm{gaussian}       &=  \exp((\mathrm{linewidth[0]} * t) - (\mathrm{linewidth[1]} * t^{2})) &
-        
+
         \mathrm{hamming}        &=  0.53836 + 0.46164\cos(\pi * n/(N-1)) &
-        
+
         \mathrm{han}            &=  0.5 + 0.5\cos(\pi * n/(N-1)) &
-        
+
         \mathrm{sin2}           &=  \cos((-0.5\pi * n/(N - 1)) + \pi)^{2} &
-        
+
         \mathrm{lorentz\_gauss} &=  \exp(L -  G^{2}) &
-        
+
                L(t)    &=  \pi * \mathrm{linewidth[0]} * t &
-                
+
                G(t)    &=  0.6\pi * \mathrm{linewidth[1]} * (\mathrm{gaussian\_max} * (N - 1) - t) &
-        
+
         \mathrm{traf}           &=  (f1 * (f1 + f2)) / (f1^{2} + f2^{2}) &
-                
+
                f1(t)   &=  \exp(-t * \pi * \mathrm{linewidth[0]}) &
-                
+
                f2(t)   &=  \exp((t - T) * \pi * \mathrm{linewidth[1]}) &
-        
+
 
     Args:
         all_data (dnpdata, dict): data container
