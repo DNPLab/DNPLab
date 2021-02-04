@@ -180,7 +180,7 @@ def enhancement_fit(dataDict):
 
     .. math::
 
-        f(p) = E_{max} p / (p_{1/2} + p)
+        f(p) = \mathrm{E_{max} * p} / (\mathrm{p_{1/2}} + \mathrm{p})
 
     Args:
         all_data (dnpdata, dict): data container
