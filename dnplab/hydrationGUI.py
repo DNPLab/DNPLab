@@ -156,18 +156,6 @@ class hydrationGUI(QMainWindow):
         self.optphsCheckbox.resize(100, 20)
         self.optphsCheckbox.setText("Optimize")
 
-        self.arctanCheckbox = QCheckBox(self)
-        self.arctanCheckbox.setStyleSheet("font : bold 14px")
-        self.arctanCheckbox.move(580, 526)
-        self.arctanCheckbox.resize(100, 20)
-        self.arctanCheckbox.setText("arctan")
-
-        self.searchphsCheckbox = QCheckBox(self)
-        self.searchphsCheckbox.setStyleSheet("font : bold 14px")
-        self.searchphsCheckbox.move(650, 526)
-        self.searchphsCheckbox.resize(100, 20)
-        self.searchphsCheckbox.setText("search")
-
         self.optcentCheckbox = QCheckBox(self)
         self.optcentCheckbox.setStyleSheet("font : bold 14px")
         self.optcentCheckbox.move(490, 557)
@@ -463,8 +451,6 @@ class hydrationGUI(QMainWindow):
             self.phaseSlider.setVisible(False)
             self.optcentCheckbox.setVisible(False)
             self.optphsCheckbox.setVisible(False)
-            self.arctanCheckbox.setVisible(False)
-            self.searchphsCheckbox.setVisible(False)
             self.optwidthCheckbox.setVisible(False)
 
             if (
@@ -506,8 +492,6 @@ class hydrationGUI(QMainWindow):
             self.phaseSlider.setVisible(True)
             self.optcentCheckbox.setVisible(True)
             self.optphsCheckbox.setVisible(True)
-            self.arctanCheckbox.setVisible(True)
-            self.searchphsCheckbox.setVisible(True)
             self.optwidthCheckbox.setVisible(True)
             self.autoButton.setVisible(True)
             self.backButton.setVisible(True)
@@ -533,7 +517,7 @@ class hydrationGUI(QMainWindow):
             self.smaxEdit.setVisible(False)
             self.tetheredCheckbox.setVisible(False)
             self.freeCheckbox.setVisible(False)
-            self.saveButton.setVisible(True)
+            self.saveButton.setVisible(False)
             self.show_wrkupCheckbox.setVisible(False)
             self.fit_wrkupCheckbox.setVisible(False)
             self.backButton.setText("Back")
@@ -559,10 +543,6 @@ class hydrationGUI(QMainWindow):
         self.optcentCheckbox.setChecked(True)
         self.optphsCheckbox.clicked.connect(self.Optimize_Phase_Checkbox)
         self.optphsCheckbox.setChecked(True)
-        self.arctanCheckbox.clicked.connect(self.arctan_Checkbox)
-        self.arctanCheckbox.setChecked(False)
-        self.searchphsCheckbox.clicked.connect(self.search_Checkbox)
-        self.searchphsCheckbox.setChecked(True)
         self.optwidthCheckbox.clicked.connect(self.Optimize_Width_Checkbox)
         self.optwidthCheckbox.setChecked(False)
         self.nextButton.clicked.connect(self.Next_Button)
@@ -747,34 +727,133 @@ class hydrationGUI(QMainWindow):
             self.phaseSlider.setValue(0)
             self.gui_dict["gui_function"]["sliders"] = True
 
-    def optCenter(self, width):
+    def optCenter(self, width, starting_center, phase):
 
         optcenter_workspace = copy.deepcopy(self.processing_workspace)
         intgrl_array = []
-        if optcenter_workspace["proc"].ndim == 1:
-            max_index = np.argmax(abs(optcenter_workspace["proc"].values), axis=0)
-        elif optcenter_workspace["proc"].ndim == 2:
-            max_index = np.argmax(
-                np.sum(abs(optcenter_workspace["proc"].values), axis=1), axis=0
-            )
-        starting_center = round(optcenter_workspace["proc"].coords["f2"][max_index])
         indx = range(starting_center - 50, starting_center + 50)
-        optcenter_workspace = self.phs_workspace(
-            optcenter_workspace, self.gui_dict["processing_spec"]["original_phase"]
-        )
-        int_params = {"integrate_width": width}
+        optcenter_workspace = self.phs_workspace(optcenter_workspace, phase)
         for k in indx:
             iterativeopt_workspace = copy.deepcopy(optcenter_workspace)
-            int_params["integrate_center"] = k
-            iterativeopt_workspace = self.int_workspace(
-                iterativeopt_workspace, int_params
+            dnplab.dnpTools.integrate(
+                iterativeopt_workspace,
+                integrate_center=k,
+                integrate_width=width,
             )
             if len(iterativeopt_workspace["proc"].values) > 1:
-                intgrl_array.append(sum(abs(iterativeopt_workspace["proc"].values)))
+                intgrl_array.append(
+                    sum(abs(iterativeopt_workspace["proc"].real.values))
+                )
             else:
-                intgrl_array.append(abs(iterativeopt_workspace["proc"].values[0]))
+                intgrl_array.append(abs(iterativeopt_workspace["proc"].real.values[-1]))
         cent = np.argmax(intgrl_array)
         self.gui_dict["processing_spec"]["integration_center"] = indx[cent]
+
+    def optPhase(self, width, starting_center, starting_phase):
+
+        temp_data = self.processing_workspace["proc"][
+            "f2", (starting_center - width, starting_center + width)
+        ].values
+
+        phases = np.linspace(
+            starting_phase - np.pi / 2, starting_phase + np.pi / 2, 100
+        ).reshape(1, -1)
+        rotated_data = (temp_data.reshape(-1, 1)) * np.exp(-1j * phases)
+        bestindex = np.argmax(
+            (np.real(rotated_data) ** 2).sum(axis=0)
+            / (np.imag(rotated_data) ** 2).sum(axis=0)
+        )
+        starting_phase = phases[0, bestindex]
+
+        if self.processing_workspace["proc"].ndim == 2:
+
+            phases = np.linspace(
+                starting_phase - np.pi / 4,
+                starting_phase + np.pi / 4,
+                100,
+            )
+            imag_sum = []
+            for indx, k in enumerate(phases):
+                ws_rot = copy.deepcopy(self.processing_workspace)
+                ws_rot = self.phs_workspace(ws_rot, k)
+                dnplab.dnpTools.integrate(
+                    ws_rot,
+                    integrate_center=starting_center,
+                    integrate_width=width * 2,
+                )
+                imag_sum.append(np.sum(abs(ws_rot["proc"].imag.values * -1j)))
+
+            starting_phase = phases[np.argmin(imag_sum)]
+
+        base_data1 = self.processing_workspace["proc"][
+            "f2",
+            (
+                (starting_center - width * 4),
+                (starting_center - width / 2),
+            ),
+        ].values
+        base_data2 = self.processing_workspace["proc"][
+            "f2",
+            (
+                (starting_center + width / 2),
+                (starting_center + width * 4),
+            ),
+        ].values
+        base_data = np.concatenate((base_data2, base_data1))
+
+        phases = np.linspace(
+            starting_phase - np.pi / 4, starting_phase + np.pi / 4, 100
+        ).reshape(1, -1)
+        rotated_data = (base_data.reshape(-1, 1)) * np.exp(-1j * phases)
+        bestindex = np.argmin(abs(np.real(rotated_data)).sum(axis=0))
+        self.gui_dict["processing_spec"]["original_phase"] = phases[0, bestindex]
+
+    def optWidth(self, starting_width, center, phase):
+
+        ydata = abs(
+            np.real(
+                self.processing_workspace["proc"][
+                    "f2",
+                    (
+                        center - starting_width / 2,
+                        center + starting_width / 2,
+                    ),
+                ].values
+                * np.exp(-1j * phase)
+            )
+        )
+        xdata = np.ravel(
+            self.processing_workspace["proc"][
+                "f2",
+                (
+                    center - starting_width / 2,
+                    center + starting_width / 2,
+                ),
+            ].coords["f2"]
+        )
+        qual_factor = 1 / 3
+        if self.processing_workspace["proc"].ndim == 1:
+            one_third = np.where(ydata > max(ydata) * qual_factor)
+            one_third = np.ravel(one_third)
+            self.gui_dict["processing_spec"]["integration_width"] = (
+                xdata[one_third[-1]] - xdata[one_third[0]]
+            )
+        else:
+            min_x = []
+            max_x = []
+            for k in range(0, ydata.shape[1]):
+                one_third = np.where(ydata[:, k] > max(ydata[:, k]) * qual_factor)
+                one_third = np.ravel(one_third)
+                min_x.append(xdata[one_third[0]])
+                max_x.append(xdata[one_third[-1]])
+            self.gui_dict["processing_spec"]["integration_width"] = max(max_x) - min(
+                min_x
+            )
+
+        self.optCenter(
+            self.gui_dict["processing_spec"]["integration_width"], center, phase
+        )
+        self.optcentCheckbox.setChecked(True)
 
     @staticmethod
     def import_create_workspace(dir, type):
@@ -786,21 +865,9 @@ class hydrationGUI(QMainWindow):
         return workspace
 
     @staticmethod
-    def int_workspace(workspace, int_params):
-
-        dnplab.dnpTools.integrate(
-            workspace,
-            integrate_center=int_params["integrate_center"],
-            integrate_width=int_params["integrate_width"],
-        )
-        workspace["proc"].values = np.real(workspace["proc"].values)
-
-        return workspace
-
-    @staticmethod
     def phs_workspace(workspace, phase):
 
-        workspace["proc"].values = workspace["proc"].values * np.exp(-1j * phase)
+        workspace["proc"].values *= np.exp(-1j * phase)
 
         return workspace
 
@@ -839,144 +906,119 @@ class hydrationGUI(QMainWindow):
 
     def GUI_Result(self):
         """Select either the h5 or the .mat files previously saved using the 'Save results' button."""
-        try:
 
-            print("GUI Results: " + self.flname)
+        print("GUI Results: " + self.flname)
 
-            x = self.flname.split(os.sep)
-            exten = self.flname.split(".")
+        x = self.flname.split(os.sep)
+        exten = self.flname.split(".")
 
-            self.pathLabel.setText(
-                "GUI RESULTS DIRECTORY: "
-                + x[len(x) - 2]
-                + " "
-                + os.sep
-                + " "
-                + x[len(x) - 1]
+        self.pathLabel.setText(
+            "GUI RESULTS DIRECTORY: "
+            + x[len(x) - 2]
+            + " "
+            + os.sep
+            + " "
+            + x[len(x) - 1]
+        )
+
+        self.ksiglabel = "DNPLab"
+        self.gui_dict["rawdata_function"]["folder"] = -3
+        self.gui_dict["gui_function"]["isLab"] = True
+        self.gui_dict["gui_function"]["isWorkup"] = False
+        self.gui_dict["gui_function"]["addWorkup"] = False
+        self.gui_dict["gui_function"]["T100_process"] = False
+        self.gui_dict["workup_function"]["show"] = False
+        self.gui_dict["workup_function"]["fit"] = False
+
+        self.reset_plots()
+
+        if "mat" in exten:
+            matin = loadmat(self.flname)
+
+            self.t10Edit.setText(str(round(float(matin["odnp"]["T10"]), 4)))
+            self.t100Edit.setText(str(round(float(matin["odnp"]["T100"]), 4)))
+
+            self.gui_dict["dnpLab_data"]["T100"] = float(matin["odnp"]["T100"])
+            self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
+                matin["odnp"]["T100_stdd"]
             )
+            self.gui_dict["dnpLab_data"]["T10"] = float(matin["odnp"]["T10"])
+            self.gui_dict["dnpLab_data"]["T10_stdd"] = float(matin["odnp"]["T10_stdd"])
+            epows = matin["odnp"]["Epowers"][0]
+            self.gui_dict["dnpLab_data"]["Epowers"] = np.ravel(epows[0])
+            ep = matin["odnp"]["Ep"][0]
+            self.Ep = np.ravel(ep[0])
+            t1pows = matin["odnp"]["T1powers"][0]
+            self.gui_dict["dnpLab_data"]["T1powers"] = np.ravel(t1pows[0])
+            t1p = matin["odnp"]["T1p"][0]
+            self.T1p = np.ravel(t1p[0])
+            t1perr = matin["odnp"]["T1p_stdd"][0]
+            self.T1p_stdd = np.ravel(t1perr[0])
 
-            self.ksiglabel = "DNPLab"
-            self.gui_dict["rawdata_function"]["folder"] = -3
-            self.gui_dict["gui_function"]["isLab"] = True
-            self.gui_dict["gui_function"]["isWorkup"] = False
-            self.gui_dict["gui_function"]["addWorkup"] = False
-            self.gui_dict["gui_function"]["T100_process"] = False
-            self.gui_dict["workup_function"]["show"] = False
-            self.gui_dict["workup_function"]["fit"] = False
+        elif "h5" in exten:
+            h5in = dnplab.dnpImport.load(self.flname, data_type="h5")
 
-            self.reset_plots()
+            self.t100Edit.setText(
+                str(round(float(h5in["hydration_inputs"]["T100"]), 4))
+            )
+            self.t10Edit.setText(str(round(float(h5in["hydration_inputs"]["T10"]), 4)))
 
-            if "mat" in exten:
-                matin = loadmat(self.flname)
+            self.gui_dict["dnpLab_data"]["T100"] = float(
+                h5in["hydration_inputs"]["T100"]
+            )
+            self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
+                h5in["hydration_results"]["T100_stdd"]
+            )
+            self.gui_dict["dnpLab_data"]["T10"] = float(h5in["hydration_inputs"]["T10"])
+            self.gui_dict["dnpLab_data"]["T10_stdd"] = float(
+                h5in["hydration_results"]["T10_stdd"]
+            )
+            self.gui_dict["dnpLab_data"]["Epowers"] = h5in["hydration_inputs"][
+                "E_power"
+            ]
+            self.Ep = h5in["hydration_inputs"]["E"]
+            self.gui_dict["dnpLab_data"]["T1powers"] = h5in["hydration_inputs"][
+                "T1_power"
+            ]
+            self.T1p = h5in["hydration_inputs"]["T1"]
+            self.T1p_stdd = h5in["hydration_results"]["T1_stdd"]
 
-                self.t10Edit.setText(str(round(float(matin["odnp"]["T10"]), 4)))
-                self.t100Edit.setText(str(round(float(matin["odnp"]["T100"]), 4)))
+        self.gui_dict["rawdata_function"]["nopowers"] = False
 
-                self.gui_dict["dnpLab_data"]["T100"] = float(matin["odnp"]["T100"])
-                self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
-                    matin["odnp"]["T100_stdd"]
-                )
-                self.gui_dict["dnpLab_data"]["T10"] = float(matin["odnp"]["T10"])
-                self.gui_dict["dnpLab_data"]["T10_stdd"] = float(
-                    matin["odnp"]["T10_stdd"]
-                )
-                epows = matin["odnp"]["Epowers"][0]
-                self.gui_dict["dnpLab_data"]["Epowers"] = np.ravel(epows[0])
-                ep = matin["odnp"]["Ep"][0]
-                self.Ep = np.ravel(ep[0])
-                t1pows = matin["odnp"]["T1powers"][0]
-                self.gui_dict["dnpLab_data"]["T1powers"] = np.ravel(t1pows[0])
-                t1p = matin["odnp"]["T1p"][0]
-                self.T1p = np.ravel(t1p[0])
-                t1perr = matin["odnp"]["T1p_stdd"][0]
-                self.T1p_stdd = np.ravel(t1perr[0])
+        self.finishProcessing()
 
-            elif "h5" in exten:
-                h5in = dnplab.dnpImport.load(self.flname, data_type="h5")
-
-                self.t100Edit.setText(
-                    str(round(float(h5in["hydration_inputs"]["T100"]), 4))
-                )
-                self.t10Edit.setText(
-                    str(round(float(h5in["hydration_inputs"]["T10"]), 4))
-                )
-
-                self.gui_dict["dnpLab_data"]["T100"] = float(
-                    h5in["hydration_inputs"]["T100"]
-                )
-                self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
-                    h5in["hydration_results"]["T100_stdd"]
-                )
-                self.gui_dict["dnpLab_data"]["T10"] = float(
-                    h5in["hydration_inputs"]["T10"]
-                )
-                self.gui_dict["dnpLab_data"]["T10_stdd"] = float(
-                    h5in["hydration_results"]["T10_stdd"]
-                )
-                self.gui_dict["dnpLab_data"]["Epowers"] = h5in["hydration_inputs"][
-                    "E_power"
-                ]
-                self.Ep = h5in["hydration_inputs"]["E"]
-                self.gui_dict["dnpLab_data"]["T1powers"] = h5in["hydration_inputs"][
-                    "T1_power"
-                ]
-                self.T1p = h5in["hydration_inputs"]["T1"]
-                self.T1p_stdd = h5in["hydration_results"]["T1_stdd"]
-
-            self.gui_dict["rawdata_function"]["nopowers"] = False
-
-            self.finishProcessing()
-
-            self.gui_dict["gui_function"]["buttons"] = True
-
-        except:
-            self.dataplt.axes.cla()
-            self.dataplt.draw()
-            self.pathLabel.setText("File type error ")
-            self.gui_dict["gui_function"]["buttons"] = False
+        self.gui_dict["gui_function"]["buttons"] = True
 
     def Workup_Directory(self):
         """Select the "Workup" folder that is the output of workup software used by the Han Lab."""
-        try:
 
-            self.gui_dict["workup_function"]["directory"] = self.flname + os.sep
-            print("Workup: " + self.flname)
-            x = self.flname.split(os.sep)
-            self.pathLabel.setText(
-                "WORKUP DIRECTORY: "
-                + x[len(x) - 3]
-                + " "
-                + os.sep
-                + " "
-                + x[len(x) - 2]
-            )
+        self.gui_dict["workup_function"]["directory"] = self.flname + os.sep
+        print("Workup: " + self.flname)
+        x = self.flname.split(os.sep)
+        self.pathLabel.setText(
+            "WORKUP DIRECTORY: " + x[len(x) - 3] + " " + os.sep + " " + x[len(x) - 2]
+        )
 
-            self.ksiglabel = "Workup"
-            self.gui_dict["rawdata_function"]["folder"] = -3
+        self.ksiglabel = "Workup"
+        self.gui_dict["rawdata_function"]["folder"] = -3
 
-            self.gui_dict["gui_function"]["isWorkup"] = True
-            self.gui_dict["gui_function"]["isLab"] = False
-            self.gui_dict["gui_function"]["addWorkup"] = False
-            self.gui_dict["gui_function"]["T100_process"] = False
-            self.gui_dict["workup_function"]["show"] = True
-            self.gui_dict["workup_function"]["fit"] = True
+        self.gui_dict["gui_function"]["isWorkup"] = True
+        self.gui_dict["gui_function"]["isLab"] = False
+        self.gui_dict["gui_function"]["addWorkup"] = False
+        self.gui_dict["gui_function"]["T100_process"] = False
+        self.gui_dict["workup_function"]["show"] = True
+        self.gui_dict["workup_function"]["fit"] = True
 
-            self.reset_plots()
-            self.processWorkup()
+        self.reset_plots()
+        self.processWorkup()
 
-            self.t10Edit.setText(str(round(self.gui_dict["workup_data"]["T10"], 4)))
+        self.t10Edit.setText(str(round(self.gui_dict["workup_data"]["T10"], 4)))
 
-            self.gui_dict["rawdata_function"]["nopowers"] = False
+        self.gui_dict["rawdata_function"]["nopowers"] = False
 
-            self.finishProcessing()
+        self.finishProcessing()
 
-            self.gui_dict["gui_function"]["buttons"] = True
-
-        except:
-            self.dataplt.axes.cla()
-            self.dataplt.draw()
-            self.pathLabel.setText("File type error")
-            self.gui_dict["gui_function"]["buttons"] = False
+        self.gui_dict["gui_function"]["buttons"] = True
 
     def processWorkup(self):
 
@@ -1062,6 +1104,8 @@ class hydrationGUI(QMainWindow):
         self.gui_dict["workup_data"]["T1p_stdd"] = t1P_stdd[0 : len(t1P_stdd) - 1]
         self.gui_dict["workup_data"]["T10"] = t1P[len(t1P) - 1]
         self.gui_dict["workup_data"]["T10_stdd"] = t1P_stdd[len(t1P_stdd) - 1]
+        self.gui_dict["workup_data"]["T100"] = 2.5
+        self.gui_dict["workup_data"]["T100_stdd"] = 0
         self.workupt10Edit.setText(str(round(self.gui_dict["workup_data"]["T10"], 4)))
 
         wrkupksig = np.loadtxt(
@@ -1084,60 +1128,54 @@ class hydrationGUI(QMainWindow):
 
     def NMR_Data(self):
         """Select any numbered folder of a topspin dataset that contains 1D or 2D data."""
-        try:
 
-            x = self.flname.split(os.sep)
-            self.pathLabel.setText(
-                "DATA DIRECTORY: " + x[len(x) - 2] + " " + os.sep + " " + x[len(x) - 1]
-            )
-            self.singlefolder = x[len(x) - 1]
+        x = self.flname.split(os.sep)
+        self.pathLabel.setText(
+            "DATA DIRECTORY: " + x[len(x) - 2] + " " + os.sep + " " + x[len(x) - 1]
+        )
+        self.singlefolder = x[len(x) - 1]
 
-            data = dnplab.dnpImport.load(self.flname)
-            self.dnpLab_workspace = dnplab.create_workspace("raw", data)
-            self.dnpLab_workspace.copy("raw", "proc")
+        data = dnplab.dnpImport.load(self.flname)
+        self.dnpLab_workspace = dnplab.create_workspace("raw", data)
+        self.dnpLab_workspace.copy("raw", "proc")
 
-            if self.dnpLab_workspace["proc"].ndim == 2:
-                print("T1 Measurement: " + self.flname)
-                self.gui_dict["rawdata_function"]["folder"] = -1
-            elif self.dnpLab_workspace["proc"].ndim == 1:
-                print("1D Data: " + self.flname)
-                self.gui_dict["rawdata_function"]["folder"] = -2
+        if self.dnpLab_workspace["proc"].ndim == 2:
+            print("T1 Measurement: " + self.flname)
+            self.gui_dict["rawdata_function"]["folder"] = -1
+        elif self.dnpLab_workspace["proc"].ndim == 1:
+            print("1D Data: " + self.flname)
+            self.gui_dict["rawdata_function"]["folder"] = -2
 
-            self.reset_plots()
-            self.plot_setter()
+        self.reset_plots()
+        self.plot_setter()
 
-            self.gui_dict["gui_function"]["buttons"] = False
-            self.gui_dict["gui_function"]["sliders"] = True
-            self.optcentCheckbox.setChecked(True)
-            self.optphsCheckbox.setChecked(True)
-            self.gui_dict["gui_function"]["isWorkup"] = False
-            self.gui_dict["gui_function"]["addWorkup"] = False
-            self.gui_dict["gui_function"]["isLab"] = False
-            self.gui_dict["gui_function"]["T100_process"] = False
-            self.gui_dict["workup_function"]["fit"] = False
-            self.gui_dict["workup_function"]["show"] = False
-            self.gui_dict["enhancement_plot"]["plotT1fit"] = True
-            self.backButton.setVisible(False)
-            self.p0Checkbox.setVisible(False)
-            self.onlyT1pCheckbox.setVisible(False)
-            self.onlyT10Checkbox.setVisible(False)
-            self.onlyT100Checkbox.setVisible(False)
-            self.nextButton.setVisible(False)
-            self.autoButton.setVisible(False)
-            self.t1plt.setVisible(False)
+        self.gui_dict["gui_function"]["buttons"] = False
+        self.gui_dict["gui_function"]["sliders"] = True
+        self.optcentCheckbox.setChecked(True)
+        self.optphsCheckbox.setChecked(True)
+        self.gui_dict["gui_function"]["isWorkup"] = False
+        self.gui_dict["gui_function"]["addWorkup"] = False
+        self.gui_dict["gui_function"]["isLab"] = False
+        self.gui_dict["gui_function"]["T100_process"] = False
+        self.gui_dict["workup_function"]["fit"] = False
+        self.gui_dict["workup_function"]["show"] = False
+        self.gui_dict["enhancement_plot"]["plotT1fit"] = True
+        self.backButton.setVisible(False)
+        self.p0Checkbox.setVisible(False)
+        self.onlyT1pCheckbox.setVisible(False)
+        self.onlyT10Checkbox.setVisible(False)
+        self.onlyT100Checkbox.setVisible(False)
+        self.nextButton.setVisible(False)
+        self.autoButton.setVisible(False)
+        self.t1plt.setVisible(False)
+        self.saveButton.setVisible(False)
 
-            self.processData()
+        self.processData()
 
-            if self.gui_dict["rawdata_function"]["folder"] == -2:
-                self.enhplt.setVisible(False)
-            elif self.gui_dict["rawdata_function"]["folder"] == -1:
-                self.enhplt.setVisible(True)
-
-        except:
-            self.dataplt.axes.cla()
-            self.dataplt.draw()
-            self.pathLabel.setText("Bruker data error")
-            self.gui_dict["gui_function"]["sliders"] = False
+        if self.gui_dict["rawdata_function"]["folder"] == -2:
+            self.enhplt.setVisible(False)
+        elif self.gui_dict["rawdata_function"]["folder"] == -1:
+            self.enhplt.setVisible(True)
 
     def Han_Lab_Button(self):
         """Select the base folder of a dataset generated using the 'rb_dnp1' command in topspin at UCSB.
@@ -1150,212 +1188,201 @@ class hydrationGUI(QMainWindow):
             Additional required files: power.mat and t1powers.mat OR power.csv and t1power.csv files that are the measurements of applied microwave powers
 
         """
-        try:
-            dirname = QFileDialog.getExistingDirectory(self)
-            if dirname:
-                pthnm = dirname
-            else:
-                return
-            pthnm = os.path.normpath(pthnm)
 
-            pthnm = pthnm + os.sep
-            self.gui_dict["rawdata_function"]["directory"] = pthnm
-            print("Data: " + pthnm)
-            x = pthnm.split(os.sep)
-            self.pathLabel.setText(
-                "DATA DIRECTORY: " + x[len(x) - 3] + " " + os.sep + " " + x[len(x) - 2]
-            )
+        dirname = QFileDialog.getExistingDirectory(self)
+        if dirname:
+            pthnm = dirname
+        else:
+            return
+        pthnm = os.path.normpath(pthnm)
 
-            self.gui_dict["folder_structure"] = {}
-            self.gui_dict["gui_function"]["isWorkup"] = False
-            self.gui_dict["gui_function"]["isLab"] = False
-            self.gui_dict["gui_function"]["addWorkup"] = False
-            self.gui_dict["workup_function"]["show"] = False
-            self.gui_dict["workup_function"]["fit"] = False
-            self.nextButton.setText("Next")
+        pthnm = pthnm + os.sep
+        self.gui_dict["rawdata_function"]["directory"] = pthnm
+        print("Data: " + pthnm)
+        x = pthnm.split(os.sep)
+        self.pathLabel.setText(
+            "DATA DIRECTORY: " + x[len(x) - 3] + " " + os.sep + " " + x[len(x) - 2]
+        )
 
-            if os.path.exists(pthnm + "40"):
+        self.gui_dict["folder_structure"] = {}
+        self.gui_dict["gui_function"]["isWorkup"] = False
+        self.gui_dict["gui_function"]["isLab"] = False
+        self.gui_dict["gui_function"]["addWorkup"] = False
+        self.gui_dict["workup_function"]["show"] = False
+        self.gui_dict["workup_function"]["fit"] = False
+        self.nextButton.setText("Next")
 
-                self.gui_dict["folder_structure"]["p0"] = 5
-                self.gui_dict["folder_structure"]["enh"] = list(range(6, 30))
-                self.gui_dict["folder_structure"]["T1"] = range(31, 41)
-                self.gui_dict["folder_structure"]["T10"] = 304
+        if os.path.exists(pthnm + "40"):
 
-            else:
+            self.gui_dict["folder_structure"]["p0"] = 5
+            self.gui_dict["folder_structure"]["enh"] = list(range(6, 30))
+            self.gui_dict["folder_structure"]["T1"] = range(31, 41)
+            self.gui_dict["folder_structure"]["T10"] = 304
 
-                self.gui_dict["folder_structure"]["p0"] = 5
-                self.gui_dict["folder_structure"]["enh"] = range(6, 27)
-                self.gui_dict["folder_structure"]["T1"] = range(28, 33)
-                self.gui_dict["folder_structure"]["T10"] = 304
+        else:
 
-            self.gui_dict["rawdata_function"]["nopowers"] = True
+            self.gui_dict["folder_structure"]["p0"] = 5
+            self.gui_dict["folder_structure"]["enh"] = range(6, 27)
+            self.gui_dict["folder_structure"]["T1"] = range(28, 33)
+            self.gui_dict["folder_structure"]["T10"] = 304
 
-            if (
-                os.path.exists(pthnm + "Workup" + os.sep)
-                and os.path.isfile(
-                    os.path.join(pthnm + "Workup", "enhancementPowers.csv")
-                )
-                and os.path.isfile(os.path.join(pthnm + "Workup", "kSigma.csv"))
-                and os.path.isfile(os.path.join(pthnm + "Workup", "t1Powers.csv"))
+        self.gui_dict["rawdata_function"]["nopowers"] = True
+
+        if (
+            os.path.exists(pthnm + "Workup" + os.sep)
+            and os.path.isfile(os.path.join(pthnm + "Workup", "enhancementPowers.csv"))
+            and os.path.isfile(os.path.join(pthnm + "Workup", "kSigma.csv"))
+            and os.path.isfile(os.path.join(pthnm + "Workup", "t1Powers.csv"))
+        ):
+
+            self.gui_dict["gui_function"]["addWorkup"] = True
+            self.gui_dict["workup_function"]["show"] = True
+
+            self.gui_dict["workup_function"]["directory"] = pthnm + "Workup" + os.sep
+
+            self.processWorkup()
+
+            if len(self.gui_dict["workup_data"]["Epowers"]) == len(
+                self.gui_dict["folder_structure"]["enh"]
+            ) and len(self.gui_dict["workup_data"]["T1powers"]) == len(
+                self.gui_dict["folder_structure"]["T1"]
+            ):
+                Epowers = self.gui_dict["workup_data"]["Epowers"]
+                T1powers = self.gui_dict["workup_data"]["T1powers"]
+
+                print("Found Workup output, using power values from Workup.")
+                self.gui_dict["rawdata_function"]["nopowers"] = False
+
+        if self.gui_dict["rawdata_function"]["nopowers"]:
+            if os.path.isfile(os.path.join(pthnm, "power.mat")) or os.path.isfile(
+                os.path.join(pthnm, "power.csv")
             ):
 
-                self.gui_dict["gui_function"]["addWorkup"] = True
-                self.gui_dict["workup_function"]["show"] = True
-
-                self.gui_dict["workup_function"]["directory"] = (
-                    pthnm + "Workup" + os.sep
-                )
-
-                self.processWorkup()
-
-                if len(self.gui_dict["workup_data"]["Epowers"]) == len(
-                    self.gui_dict["folder_structure"]["enh"]
-                ) and len(self.gui_dict["workup_data"]["T1powers"]) == len(
-                    self.gui_dict["folder_structure"]["T1"]
+                if os.path.isfile(pthnm + "t1_powers.mat") or os.path.isfile(
+                    pthnm + "t1_powers.csv"
                 ):
-                    Epowers = self.gui_dict["workup_data"]["Epowers"]
-                    T1powers = self.gui_dict["workup_data"]["T1powers"]
+                    print("No Workup output found, using power readings files.")
 
-                    print("Found Workup output, using power values from Workup.")
-                    self.gui_dict["rawdata_function"]["nopowers"] = False
-
-            if self.gui_dict["rawdata_function"]["nopowers"]:
-                if os.path.isfile(os.path.join(pthnm, "power.mat")) or os.path.isfile(
-                    os.path.join(pthnm, "power.csv")
-                ):
-
-                    if os.path.isfile(pthnm + "t1_powers.mat") or os.path.isfile(
-                        pthnm + "t1_powers.csv"
-                    ):
-                        print("No Workup output found, using power readings files.")
-
-                        E_power_List = dnplab.dnpIO.cnsi.get_powers(
-                            pthnm,
-                            "power",
-                            self.gui_dict["folder_structure"]["enh"],
-                        )
-                        # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
-                        Epowers = np.add(E_power_List, 21.9992)
-                        Epowers = np.divide(Epowers, 10)
-                        Epowers = np.power(10, Epowers)
-                        Epowers = np.multiply(1e-3, Epowers)
-                        # }}
-
-                        T1_power_List = dnplab.dnpIO.cnsi.get_powers(
-                            pthnm,
-                            "t1_powers",
-                            self.gui_dict["folder_structure"]["T1"],
-                        )
-                        # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
-                        T1powers = np.add(T1_power_List, 21.9992)
-                        T1powers = np.divide(T1powers, 10)
-                        T1powers = np.power(10, T1powers)
-                        T1powers = np.multiply(1e-3, T1powers)
-                        # }}
-
-                        self.gui_dict["rawdata_function"]["nopowers"] = False
-
-            if self.gui_dict["rawdata_function"]["nopowers"]:
-                print("No power readings found.")
-                print("Trying to find power settings in experiment titles...")
-                try:
-                    Eplist = []
-                    for k in self.gui_dict["folder_structure"]["enh"]:
-                        title = dnplab.dnpIO.topspin.load_title(pthnm, expNum=k)
-                        splitTitle = title.split(" ")
-                        Eplist.append(float(splitTitle[-1]))
-
-                    T1plist = []
-                    for k in self.gui_dict["folder_structure"]["T1"]:
-                        title = dnplab.dnpIO.topspin.load_title(pthnm, expNum=k)
-                        splitTitle = title.split(" ")
-                        T1plist.append(float(splitTitle[-1]))
-
-                    # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the relationship between the attenuation setting, the power meter reading, and the power delivered to the resonator.
-                    Epowers = np.multiply(-1, Eplist)
-                    Epowers = np.add(Epowers, 29.01525)
+                    E_power_List = dnplab.dnpIO.cnsi.get_powers(
+                        pthnm,
+                        "power",
+                        self.gui_dict["folder_structure"]["enh"],
+                    )
+                    # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
+                    Epowers = np.add(E_power_List, 21.9992)
                     Epowers = np.divide(Epowers, 10)
                     Epowers = np.power(10, Epowers)
                     Epowers = np.multiply(1e-3, Epowers)
+                    # }}
 
-                    T1powers = np.multiply(-1, T1plist)
-                    T1powers = np.add(T1powers, 29.01525)
+                    T1_power_List = dnplab.dnpIO.cnsi.get_powers(
+                        pthnm,
+                        "t1_powers",
+                        self.gui_dict["folder_structure"]["T1"],
+                    )
+                    # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
+                    T1powers = np.add(T1_power_List, 21.9992)
                     T1powers = np.divide(T1powers, 10)
                     T1powers = np.power(10, T1powers)
                     T1powers = np.multiply(1e-3, T1powers)
                     # }}
 
-                    print(
-                        "Powers taken from experiment titles. *WARNING: this is not accurate!"
-                    )
                     self.gui_dict["rawdata_function"]["nopowers"] = False
 
-                except:
-                    print(
-                        "No power readings available. E[p] and T1[p] are indexed by folder #. *WARNING: this is not accurate!"
-                    )
-                    Epowers = self.gui_dict["folder_structure"]["enh"]
-                    T1powers = self.gui_dict["folder_structure"]["T1"]
+        if self.gui_dict["rawdata_function"]["nopowers"]:
+            print("No power readings found.")
+            print("Trying to find power settings in experiment titles...")
+            try:
+                Eplist = []
+                for k in self.gui_dict["folder_structure"]["enh"]:
+                    title = dnplab.dnpIO.topspin.load_title(pthnm, expNum=k)
+                    splitTitle = title.split(" ")
+                    Eplist.append(float(splitTitle[-1]))
 
-            self.gui_dict["folder_structure"]["all"] = []
-            self.gui_dict["folder_structure"]["all"].append(
-                self.gui_dict["folder_structure"]["p0"]
-            )
-            for k in self.gui_dict["folder_structure"]["enh"]:
-                self.gui_dict["folder_structure"]["all"].append(k)
-            for k in self.gui_dict["folder_structure"]["T1"]:
-                self.gui_dict["folder_structure"]["all"].append(k)
-            self.gui_dict["folder_structure"]["all"].append(
-                self.gui_dict["folder_structure"]["T10"]
-            )
-            if os.path.exists(pthnm + "100" + os.sep):
-                self.gui_dict["folder_structure"]["T100"] = 100
-                self.gui_dict["folder_structure"]["all"].append(
-                    self.gui_dict["folder_structure"]["T100"]
+                T1plist = []
+                for k in self.gui_dict["folder_structure"]["T1"]:
+                    title = dnplab.dnpIO.topspin.load_title(pthnm, expNum=k)
+                    splitTitle = title.split(" ")
+                    T1plist.append(float(splitTitle[-1]))
+
+                # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the relationship between the attenuation setting, the power meter reading, and the power delivered to the resonator.
+                Epowers = np.multiply(-1, Eplist)
+                Epowers = np.add(Epowers, 29.01525)
+                Epowers = np.divide(Epowers, 10)
+                Epowers = np.power(10, Epowers)
+                Epowers = np.multiply(1e-3, Epowers)
+
+                T1powers = np.multiply(-1, T1plist)
+                T1powers = np.add(T1powers, 29.01525)
+                T1powers = np.divide(T1powers, 10)
+                T1powers = np.power(10, T1powers)
+                T1powers = np.multiply(1e-3, T1powers)
+                # }}
+
+                print(
+                    "Powers taken from experiment titles. *WARNING: this is not accurate!"
                 )
-                self.gui_dict["gui_function"]["T100_process"] = True
-            else:
-                self.gui_dict["folder_structure"]["T100"] = 999
-                self.gui_dict["dnpLab_data"]["T100_stdd"] = 0
-                self.gui_dict["gui_function"]["T100_process"] = False
-                self.onlyT100Checkbox.setChecked(False)
+                self.gui_dict["rawdata_function"]["nopowers"] = False
 
-            self.Ep = []
-            self.T1p = []
-            self.T1p_stdd = []
-            self.gui_dict["dnpLab_data"]["Epowers"] = Epowers
-            self.gui_dict["dnpLab_data"]["T1powers"] = T1powers
-            self.originalEPowers = self.gui_dict["dnpLab_data"]["Epowers"]
-            self.originalT1Powers = self.gui_dict["dnpLab_data"]["T1powers"]
-            self.gui_dict["gui_function"]["buttons"] = True
-            self.gui_dict["gui_function"]["sliders"] = True
-            self.optcentCheckbox.setChecked(True)
-            self.optphsCheckbox.setChecked(True)
+            except:
+                print(
+                    "No power readings available. E[p] and T1[p] are indexed by folder #. *WARNING: this is not accurate!"
+                )
+                Epowers = self.gui_dict["folder_structure"]["enh"]
+                T1powers = self.gui_dict["folder_structure"]["T1"]
 
-            self.gui_dict["rawdata_function"]["folder"] = self.gui_dict[
-                "folder_structure"
-            ]["p0"]
-            self.ksiglabel = "DNPLab"
-
-            self.reset_plots()
-            self.plot_setter()
-
-            self.dnpLab_workspace = self.import_create_workspace(
-                os.path.join(
-                    self.gui_dict["rawdata_function"]["directory"],
-                    str(self.gui_dict["rawdata_function"]["folder"]),
-                ),
-                "topspin",
+        self.gui_dict["folder_structure"]["all"] = []
+        self.gui_dict["folder_structure"]["all"].append(
+            self.gui_dict["folder_structure"]["p0"]
+        )
+        for k in self.gui_dict["folder_structure"]["enh"]:
+            self.gui_dict["folder_structure"]["all"].append(k)
+        for k in self.gui_dict["folder_structure"]["T1"]:
+            self.gui_dict["folder_structure"]["all"].append(k)
+        self.gui_dict["folder_structure"]["all"].append(
+            self.gui_dict["folder_structure"]["T10"]
+        )
+        if os.path.exists(pthnm + "100" + os.sep):
+            self.gui_dict["folder_structure"]["T100"] = 100
+            self.gui_dict["folder_structure"]["all"].append(
+                self.gui_dict["folder_structure"]["T100"]
             )
+            self.gui_dict["gui_function"]["T100_process"] = True
+        else:
+            self.gui_dict["folder_structure"]["T100"] = 999
+            self.gui_dict["dnpLab_data"]["T100_stdd"] = 0
+            self.gui_dict["gui_function"]["T100_process"] = False
+            self.onlyT100Checkbox.setChecked(False)
 
-            self.processData()
+        self.Ep = []
+        self.T1p = []
+        self.T1p_stdd = []
+        self.gui_dict["dnpLab_data"]["Epowers"] = Epowers
+        self.gui_dict["dnpLab_data"]["T1powers"] = T1powers
+        self.originalEPowers = self.gui_dict["dnpLab_data"]["Epowers"]
+        self.originalT1Powers = self.gui_dict["dnpLab_data"]["T1powers"]
+        self.gui_dict["gui_function"]["buttons"] = True
+        self.gui_dict["gui_function"]["sliders"] = True
+        self.optcentCheckbox.setChecked(True)
+        self.optphsCheckbox.setChecked(True)
 
-        except:
-            self.dataplt.axes.cla()
-            self.dataplt.draw()
-            self.pathLabel.setText("Han Lab data error ")
-            self.gui_dict["gui_function"]["buttons"] = False
-            self.gui_dict["gui_function"]["sliders"] = False
+        self.gui_dict["rawdata_function"]["folder"] = self.gui_dict["folder_structure"][
+            "p0"
+        ]
+        self.ksiglabel = "DNPLab"
+
+        self.reset_plots()
+        self.plot_setter()
+
+        self.dnpLab_workspace = self.import_create_workspace(
+            os.path.join(
+                self.gui_dict["rawdata_function"]["directory"],
+                str(self.gui_dict["rawdata_function"]["folder"]),
+            ),
+            "topspin",
+        )
+
+        self.processData()
 
     def Next_Button(self):
         """Use the Next button to step through the data folders."""
@@ -1365,29 +1392,25 @@ class hydrationGUI(QMainWindow):
                 self.processing_workspace, self.gui_dict["processing_spec"]["phase"]
             )
 
-            int_params = {
-                "integrate_center": self.gui_dict["processing_spec"][
-                    "integration_center"
-                ],
-                "integrate_width": self.gui_dict["processing_spec"][
-                    "integration_width"
-                ],
-            }
-            nextproc_workspace = self.int_workspace(nextproc_workspace, int_params)
+            dnplab.dnpTools.integrate(
+                nextproc_workspace,
+                integrate_center=self.gui_dict["processing_spec"]["integration_center"],
+                integrate_width=self.gui_dict["processing_spec"]["integration_width"],
+            )
 
             if (
                 self.gui_dict["rawdata_function"]["folder"]
                 == self.gui_dict["folder_structure"]["p0"]
             ):
-                self.gui_dict["dnpLab_data"]["p0"] = nextproc_workspace["proc"].values[
-                    0
-                ]
+                self.gui_dict["dnpLab_data"]["p0"] = nextproc_workspace[
+                    "proc"
+                ].real.values[0]
             elif (
                 self.gui_dict["rawdata_function"]["folder"]
                 in self.gui_dict["folder_structure"]["enh"]
             ):
                 Ep = (
-                    nextproc_workspace["proc"].values[0]
+                    nextproc_workspace["proc"].real.values[0]
                     / self.gui_dict["dnpLab_data"]["p0"]
                 )
                 self.Ep.append(np.real(Ep))
@@ -1465,7 +1488,7 @@ class hydrationGUI(QMainWindow):
                         ].coords["t1"]
                         self.gui_dict["t1_fit"]["t1Amps"] = nextproc_workspace[
                             "proc"
-                        ].values
+                        ].real.values
 
                         self.gui_dict["t1_fit"]["xaxis"] = nextproc_workspace[
                             "fit"
@@ -1718,6 +1741,7 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["rawdata_function"]["folder"]
                 in self.gui_dict["folder_structure"]["T1"]
             ):
+                self.nextButton.setText("Next")
                 if len(self.T1p) < 2:
                     self.T1p = []
                     self.T1p_stdd = []
@@ -1793,86 +1817,58 @@ class hydrationGUI(QMainWindow):
 
         if self.processing_workspace["proc"].ndim == 2:
             dnplab.dnpNMR.align(self.processing_workspace)
+            max_index = np.argmax(
+                abs(self.processing_workspace["proc"].values), axis=0
+            )[-1]
+        elif self.processing_workspace["proc"].ndim == 1:
+            max_index = np.argmax(abs(self.processing_workspace["proc"].values), axis=0)
+
+        width = self.gui_dict["processing_spec"]["integration_width"]
+        starting_center = round(
+            self.processing_workspace["proc"].coords["f2"][max_index]
+        )
+        starting_phase = np.arctan(
+            np.sum(self.processing_workspace["proc"].imag.values)
+            / np.sum(self.processing_workspace["proc"].real.values)
+        )
 
         if (
             self.optphsCheckbox.isChecked()
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
-
-            temp_data = self.processing_workspace["proc"].values
-
-            if self.arctanCheckbox.isChecked():
-                self.gui_dict["processing_spec"]["original_phase"] = np.arctan(
-                    np.sum(np.imag(temp_data)) / np.sum(np.real(temp_data))
-                )
-
-            elif self.searchphsCheckbox.isChecked():
-                phases = np.linspace(-np.pi / 2, np.pi / 2, 100).reshape(1, -1)
-                rotated_data = (temp_data.reshape(-1, 1)) * np.exp(-1j * phases)
-                real_imag_ratio = (np.real(rotated_data) ** 2).sum(axis=0) / (
-                    (np.imag(rotated_data) ** 2).sum(axis=0)
-                )
-                bestindex = np.argmax(real_imag_ratio)
-                self.gui_dict["processing_spec"]["original_phase"] = phases[
-                    0, bestindex
-                ]
+            self.optPhase(width, starting_center, starting_phase)
+        else:
+            self.gui_dict["processing_spec"]["original_phase"] = starting_phase
 
         if (
             self.optcentCheckbox.isChecked()
             or self.gui_dict["gui_function"]["autoProcess"]
         ):
-            self.optCenter(10)
+            self.optCenter(
+                width,
+                starting_center,
+                self.gui_dict["processing_spec"]["original_phase"],
+            )
+
+            if (
+                self.optphsCheckbox.isChecked()
+                or self.gui_dict["gui_function"]["autoProcess"]
+            ):
+                self.optPhase(
+                    width,
+                    self.gui_dict["processing_spec"]["integration_center"],
+                    self.gui_dict["processing_spec"]["original_phase"],
+                )
+        else:
+            self.gui_dict["processing_spec"]["integration_center"] = starting_center
 
         if self.optwidthCheckbox.isChecked():
 
-            optwidth_workspace = copy.deepcopy(self.processing_workspace)
-            optwidth_workspace = self.phs_workspace(
-                optwidth_workspace, self.gui_dict["processing_spec"]["original_phase"]
+            self.optWidth(
+                width,
+                self.gui_dict["processing_spec"]["integration_center"],
+                self.gui_dict["processing_spec"]["original_phase"],
             )
-
-            ydata = abs(np.real(optwidth_workspace["proc"].values))
-            qual_factor = 1 / 3
-            if optwidth_workspace["proc"].ndim == 1:
-                xdata = np.ravel(optwidth_workspace["proc"].coords["f2"])
-                one_third = np.where(ydata > max(ydata) * qual_factor)
-                one_third = np.ravel(one_third)
-
-                best_width = xdata[one_third[-1]] - xdata[one_third[0]]
-
-            else:
-                xdata = np.ravel(optwidth_workspace["proc"].coords["f2"])
-                min_x = []
-                max_x = []
-                for k in range(0, len(ydata[0, :])):
-                    one_third = np.where(
-                        ydata[
-                            round(len(ydata[:, 0]) / 2)
-                            - 75 : round(len(ydata[:, 0]) / 2)
-                            + 75,
-                            k,
-                        ]
-                        > max(
-                            ydata[
-                                round(len(ydata[:, 0]) / 2)
-                                - 75 : round(len(ydata[:, 0]) / 2)
-                                + 75,
-                                k,
-                            ]
-                        )
-                        * qual_factor
-                    )
-                    one_third = np.ravel(one_third)
-                    min_x.append(xdata[one_third[0]])
-                    max_x.append(xdata[one_third[len(one_third) - 1]])
-
-                best_width = max(max_x) - min(min_x)
-
-            self.gui_dict["processing_spec"]["integration_width"] = abs(
-                round(best_width)
-            )
-
-            self.optCenter(self.gui_dict["processing_spec"]["integration_width"])
-            self.optcentCheckbox.setChecked(True)
 
         if self.gui_dict["gui_function"]["autoProcess"]:
             self.gui_dict["processing_spec"]["phase"] = self.gui_dict[
@@ -1906,7 +1902,7 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["processing_spec"]["integration_width"]
             )
             self.intwindowEdit.setText(
-                str(self.gui_dict["processing_spec"]["integration_width"])
+                str(abs(round(self.gui_dict["processing_spec"]["integration_width"])))
             )
 
             self.gui_dict["gui_function"]["sliders"] = True
@@ -1940,18 +1936,18 @@ class hydrationGUI(QMainWindow):
             adjslider_workspace, self.gui_dict["processing_spec"]["phase"]
         )
 
-        int_params = {
-            "integrate_center": self.gui_dict["processing_spec"]["integration_center"],
-            "integrate_width": self.gui_dict["processing_spec"]["integration_width"],
-        }
-        adjslider_workspace = self.int_workspace(adjslider_workspace, int_params)
+        dnplab.dnpTools.integrate(
+            adjslider_workspace,
+            integrate_center=self.gui_dict["processing_spec"]["integration_center"],
+            integrate_width=self.gui_dict["processing_spec"]["integration_width"],
+        )
 
         if len(adjslider_workspace["proc"].values) == 1:
             pass
         else:
 
             self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords["t1"]
-            self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
+            self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].real.values
 
             try:
                 dnplab.dnpFit.exponential_fit(adjslider_workspace, type="T1")
@@ -1985,7 +1981,13 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords[
                     "t1"
                 ]
-                self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].values
+                self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace[
+                    "proc"
+                ].real.values
+
+                self.gui_dict["t1_fit"]["t1Amps_imag"] = adjslider_workspace[
+                    "proc"
+                ].imag.values
 
                 self.gui_dict["t1_fit"]["xaxis"] = adjslider_workspace["fit"].coords[
                     "t1"
@@ -1994,7 +1996,6 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["t1_fit"]["t1Val"] = adjslider_workspace["fit"].attrs[
                     "T1"
                 ]
-
                 self.plot_enh()
 
         if self.gui_dict["gui_function"]["autoProcess"]:
@@ -2593,6 +2594,8 @@ class hydrationGUI(QMainWindow):
                 {
                     "T1_stdd": self.gui_dict["workup_data"]["T1p_stdd"],
                     "T10_stdd": self.gui_dict["workup_data"]["T10_stdd"],
+                    "T100": self.gui_dict["workup_data"]["T100"],
+                    "T100_stdd": self.gui_dict["workup_data"]["T100_stdd"],
                 }
             )
         else:
@@ -2734,43 +2737,39 @@ class hydrationGUI(QMainWindow):
     def Integration_Window_Edit(self):
         """This function passes the text from the various edit boxes to dnpHydration as floats and re-calculates
         hydration parameters."""
-        int_wind = float(self.intwindowEdit.text()) + 0.1
+        try:
+            int_wind = float(self.intwindowEdit.text()) + 0.1
+        except ValueError:
+            print("integration window must be numeric")
+            return
         self.gui_dict["processing_spec"]["integration_width"] = round(int_wind)
         if self.gui_dict["gui_function"]["sliders"]:
+            self.gui_dict["gui_function"]["sliders"] = False
             self.intwindowSlider.setValue(
                 self.gui_dict["processing_spec"]["integration_width"]
             )
             self.intwindowEdit.setText(
                 str(self.gui_dict["processing_spec"]["integration_width"])
             )
+            self.optwidthCheckbox.setChecked(False)
+            self.gui_dict["gui_function"]["sliders"] = True
+            self.processData()
         else:
             pass
 
     def Window_linewidth_Edit(self):
         """Adjust the line broadening for windowing."""
-        self.gui_dict["processing_spec"]["linewidth"] = float(self.linewidthEdit.text())
+        try:
+            self.gui_dict["processing_spec"]["linewidth"] = float(
+                self.linewidthEdit.text()
+            )
+        except ValueError:
+            print("linewidth must be numeric")
+            return
         if self.gui_dict["gui_function"]["sliders"]:
             self.processData()
         else:
             pass
-
-    def arctan_Checkbox(self):
-        """Choose arctan phase calculation."""
-        if self.arctanCheckbox.isChecked():
-            self.searchphsCheckbox.setChecked(False)
-        else:
-            self.searchphsCheckbox.setChecked(True)
-
-        self.Optimize_Phase_Checkbox()
-
-    def search_Checkbox(self):
-        """Choose arctan phase calculation."""
-        if self.searchphsCheckbox.isChecked():
-            self.arctanCheckbox.setChecked(False)
-        else:
-            self.arctanCheckbox.setChecked(True)
-
-        self.Optimize_Phase_Checkbox()
 
     def Optimize_Phase_Checkbox(self):
         """Check this to have the GUI automatically choose the best phase."""
@@ -3152,6 +3151,13 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["t1_fit"]["tau"],
                 self.gui_dict["t1_fit"]["t1Amps"],
                 color="#46812B",
+                marker="o",
+                linestyle="none",
+            )
+            self.enhplt.axes.plot(
+                self.gui_dict["t1_fit"]["tau"],
+                self.gui_dict["t1_fit"]["t1Amps_imag"],
+                color="#FEBC11",
                 marker="o",
                 linestyle="none",
             )

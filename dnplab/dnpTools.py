@@ -1,7 +1,3 @@
-"""dnpTools
-Collection of tools and functions useful to process DNP-NMR data
-"""
-
 from . import dnpNMR, dnpdata, dnpdata_collection
 import numpy as np
 import scipy.integrate
@@ -82,8 +78,10 @@ def baseline(
 
     +-----------------+------+---------------+---------------------------------------------------+
     | parameter       | type | default       | description                                       |
-    +-----------------+------+---------------+---------------------------------------------------+
+    +=================+======+===============+===================================================+
     | dim             | str  | 'f2'          | Dimension to apply baseline correction            |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | indirect_dim    | str  | None          | indirect dimension                                |
     +-----------------+------+---------------+---------------------------------------------------+
     | type            | str  | 'polynomial'  | type of baseline fit                              |
     +-----------------+------+---------------+---------------------------------------------------+
@@ -92,9 +90,8 @@ def baseline(
     | reference_slice | int  | None          | slice of 2D data used to define the baseline      |
     +-----------------+------+---------------+---------------------------------------------------+
 
-    returns:
-        all_data (dnpdata, dict): Baseline corrected data in container
-        attributes: "baseline", baseline function
+    Returns:
+        dnpdata: Baseline corrected data, with attr "baseline" added
     """
 
     data, isDict = return_data(all_data)
@@ -164,23 +161,20 @@ def integrate(
     Args:
         all_data (dnpdata,dict): Data container
 
-    +------------------+-------+---------+------------------------------+
-    | parameter        | type  | default | description                  |
-    +------------------+-------+---------+------------------------------+
-    | dim              | str   | 't2'    | dimension to integrate       |
-    +------------------+-------+---------+------------------------------+
-    | integrate_center | float | 0       | center of integration window |
-    +------------------+-------+---------+------------------------------+
-    | integrate_width  | float | 100     | width of integration window  |
-    +------------------+-------+---------+------------------------------+
+    +------------------+-------+----------+-------------------------------+
+    | parameter        | type  | default  | description                   |
+    +==================+=======+==========+===============================+
+    | dim              | str   | 'f2'     | dimension to integrate        |
+    +------------------+-------+----------+-------------------------------+
+    | type             | str   | 'single' | 'single' or 'double' integral |
+    +------------------+-------+----------+-------------------------------+
+    | integrate_center | float | 0        | center of integration window  |
+    +------------------+-------+----------+-------------------------------+
+    | integrate_width  | float | 100      | width of integration window   |
+    +------------------+-------+----------+-------------------------------+
 
     Returns:
-        all_data (dnpdata,dict): Processed data
-
-    Example::
-
-        dnplab.dnpNMR.integrate(all_data)
-
+        dnpdata: integrals of data
     """
 
     data, isDict = return_data(all_data)
@@ -223,47 +217,47 @@ def integrate(
 
 def mr_properties(nucleus, *args):
     """Return magnetic resonance property of specified isotope.
-    This function is model after the Matlab function gmr written by Mirko Hrovat
-    https://www.mathworks.com/matlabcentral/fileexchange/12078-gmr-m-nmr-mri-properties
 
-    Reference: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818.
-    Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants .
-       or  http://physics.nist.gov/PhysRefData/codata86/codata86.html
-       or  http://www.isis.rl.ac.uk/neutronSites/constants.htm
-    Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
+    This function is modeled after the Matlab function gmr written by Mirko Hrovat: https://www.mathworks.com/matlabcentral/fileexchange/12078-gmr-m-nmr-mri-properties
+
+    Also see: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818. Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants, http://physics.nist.gov/PhysRefData/codata86/codata86.html, or http://www.isis.rl.ac.uk/neutronSites/constants.htm. Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
 
     Args:
 
-        nucleus:        String defining the nucleus e.g. 1H, 13C, etc.
+        nucleus:          '1H', '2H', '6Li', '13C', 14N', etc.
+        numerical:        If only a numerical is given in addition to the nucleus it must be a B0 value in Tesla and the Larmor frequency will be returned
 
-        args:           If numerical value is given, it is interpreted as the B0 value in Tesla and Larmor frequency is returned. As string the following values are valid:
+    +------------------+----------------------------------------------------------------------------+
+    | args             |  returns                                                                   |
+    +==================+============================================================================+
+    | "gamma"          | Gyromagnetic Ration [radians/T/s]                                          |
+    +------------------+----------------------------------------------------------------------------+
+    | "spin"           | Spin number of selected nucleus [1]                                        |
+    +------------------+----------------------------------------------------------------------------+
+    | "qmom"           | Quadrupole moment [fm^2] (100 barns)                                       |
+    +------------------+----------------------------------------------------------------------------+
+    | "natAbundance"   | Natural abundance [%]                                                      |
+    +------------------+----------------------------------------------------------------------------+
+    | "relSensitivity" | Relative sensitiviy with respect to 1H at constant B0                      |
+    +------------------+----------------------------------------------------------------------------+
+    | "moment"         | Magnetic dipole moment, abs(u)/uN = abs(gamma)*hbar[I(I + 1)]^1/2/uN,      |
+    +------------------+----------------------------------------------------------------------------+
+    | "qlw"            | quadrupolar line-width factor, Qlw = Q^2(2I + 3)/[I^2(2I + 1)]             |
+    +------------------+----------------------------------------------------------------------------+
 
-        gamma:          Return Gyromagnetic Ration [radians/T/s]
-        spin:           Spin number of selected nucleus [1]
-        qmom:           Quadrupole moment [fm^2} (100 barns)
-        natAbundance:   Natural abundance [%]
-        relSensitivity: Relative sensitiviy with respect to 1H at constant B0
-        moment:         Magnetic dipole moment in terms of the nuclear magneton, uN, |u|/uN = |gamma|*hbar[I(I + 1)]^1/2/uN , hbar=h/2pi.
-        qlw:            quadrupolar line-width factor as defined by: Qlw = Q^2(2I + 3)/[I^2(2I � 1)]
 
-    Returns:
-
+    Examples:
         .. code-block:: python
 
-            dnp.dnpTools.mrProperties('1H')
-            26.7522128                          # 1H Gyromagnetic Ratio (10^7r/Ts)
+            dnp.dnpTools.mrProperties('1H') = 26.7522128 # 1H Gyromagnetic Ratio (10^7r/Ts)
 
-            dnp.dnpTools.mrProperties('1H', 0.35)
-            14902114.17018196                   # 1H Larmor Frequency at 0.35 T (Hz)
+            dnp.dnpTools.mrProperties('1H', 0.35) = 14902114.17018196 # 1H Larmor Freq at .35 T (Hz)
 
-            dnp.dnpTools.mrProperties('2H', 'qmom')
-            0.286                               # Nuclear Quadrupole Moment (fm^2)
+            dnp.dnpTools.mrProperties('2H', 'qmom') = 0.286 # Nuclear Quadrupole Moment (fm^2)
 
-            value = dnp.dnpTools.mrProperties('6Li', 'natAbundance')
-            7.59                                # Natural Abundance (%)
+            dnp.dnpTools.mrProperties('6Li', 'natAbundance') = 7.59 # % Natural Abundance
 
-            value = dnp.dnpTools.mrProperties('6Li', 'relSensitivity')
-            0.000645                            # Relative sensitivity
+            dnp.dnpTools.mrProperties('6Li', 'relSensitivity') = 0.000645 # Relative sensitivity
     """
 
     if isinstance(nucleus, str):
@@ -333,8 +327,20 @@ def radical_properties(name):
 
     Args:
 
-    Returns:
+    +-----------+---------------------------------------------------------------+
+    | arg       |  returns                                                      |
+    +===========+===============================================================+
+    | "gfree"   | 2.00231930436153                                              |
+    +-----------+---------------------------------------------------------------+
+    | "tempo1"  | [[2.00980, 2.00622, 2.00220], "14N", [16.8, 20.5, 95.9]]      |
+    +-----------+---------------------------------------------------------------+
+    | "tempo2"  | [[2.00909, 2.00621, 2.00222], "14N", [20.2, 20.2, 102.1]]     |
+    +-----------+---------------------------------------------------------------+
+    | "bdpa"    | [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.0]]       |
+    +-----------+---------------------------------------------------------------+
 
+    Returns:
+        principle g values and hyperfine coupling tensor
     """
 
     name = name.lower()
@@ -357,16 +363,13 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
 
     Args:
         radical:        Radical name, see mrProperties.py
-        mwFreguency:    Microwave frequency in (Hz)
-        dnpNuclues:     Nucleus for DNP-NMR experiments
+        mwFrequency:    Microwave frequency in (Hz)
+        dnpNucleus:     Nucleus for DNP-NMR experiments
 
-        Returns:
-
+    Example:
         .. code-block:: python
 
-        dnp.dnpTools.show_dnp_poperties('gfree', 9.45e9, '1H')
-
-
+            dnp.dnpTools.show_dnp_poperties('gfree', 9.45e9, '1H')
     """
 
     # http://physics.nist.gov/constants
@@ -430,12 +433,16 @@ def signal_to_noise(
 ):
     """Find signal-to-noise ratio
 
+    .. note::
+
+        S/N = signal / stdd(noise)
+
     Args:
         all_data (dnpdata,dict): Data container
 
     +------------------+-------+-----------+------------------------------+
     | parameter        | type  | default   | description                  |
-    +------------------+-------+-----------+------------------------------+
+    +==================+=======+===========+==============================+
     | dim              | str   | 'f2'      | dimension                    |
     +------------------+-------+-----------+------------------------------+
     | signal_center    | float | 0         | center of signal             |
@@ -448,8 +455,7 @@ def signal_to_noise(
     +------------------+-------+-----------+------------------------------+
 
     Returns:
-        all_data (dnpdata,dict): data with signal_to_noise attribute added
-
+        dnpdata: data object with attr "signal_to_noise" added
     """
 
     data, isDict = return_data(all_data)

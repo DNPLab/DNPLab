@@ -59,7 +59,7 @@ def align(all_data, dim="f2", dim2=None):
         dim2 (str) : second dimension to align along
 
     returns:
-        all_data (dnpdata, dict): Aligned data in container
+        dnpdata: Aligned data in container
     """
 
     data, isDict = return_data(all_data)
@@ -133,14 +133,26 @@ def autophase(
     reference_slice=None,
     force_positive=False,
 ):
-    """Automatically phase data
+    """Automatically phase correct data, or apply manual phase correction
+
+    .. math::
+
+        \mathrm{data}         &= \exp(-1j * \mathrm{phase}) &
+
+        \mathrm{phase(arctan)} &= \mathrm{arctan}(\mathrm{sum}(\mathrm{data.imag}) / \mathrm{sum}(\mathrm{data.real})) &
+
+        \mathrm{phase(search)} &= \mathrm{argmax}(\mathrm{sum}(phased\_real^{2}) / \mathrm{sum}(phased\_imag^{2})) &
+
+        phased\_real          &= \mathrm{data.real} * \exp(-1j * \mathrm{phase}) &
+
+        phased\_imag          &= \mathrm{data.imag} * \exp(-1j * \mathrm{phase}) &
 
     Args:
         all_data (dnpdata_collection, dnpdata): Data object to autophase
 
     +-----------------+--------------+---------------+---------------------------------------------------+
     | parameter       | type         | default       | description                                       |
-    +-----------------+--------------+---------------+---------------------------------------------------+
+    +=================+==============+===============+===================================================+
     | method          | str          | 'search'      | method of searching for the best phase            |
     +-----------------+--------------+---------------+---------------------------------------------------+
     | order           | str          | 'zero'        | order of phase correction                         |
@@ -157,8 +169,8 @@ def autophase(
     +-----------------+--------------+---------------+---------------------------------------------------+
 
     Returns:
-        all_data (dnpdata, dict): Autophased data in container
-        attributes: "phase_0" for order="zero", adds "phase_1" if order="first"
+        dnpdata: Autophased data, including attrs "phase_0" for order="zero", and "phase_1" if order="first"
+
     """
 
     data, isDict = return_data(all_data)
@@ -277,7 +289,7 @@ def calculate_enhancement(
     integrate_center=0,
     integrate_width="full",
     method="integrate",
-    dim="t2",
+    dim="f2",
     indirect_dim=None,
 ):
     """Calculate enhancement from DNP data
@@ -287,7 +299,7 @@ def calculate_enhancement(
 
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
     | parameter        | type                       | default     | description                                                          |
-    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+    +==================+============================+=============+======================================================================+
     | off_spectrum     | int or dnpdata             | 1           | slice of 2D data to be used as p = 0 spectrum, or dnpdata            |
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
     | on_spectra       | str or dnpdata             | "all"       | "all"  unless dnpdata given                                          |
@@ -298,11 +310,13 @@ def calculate_enhancement(
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
     | method           | str                        | "integrate" | either "integrate" or "ampltiude"                                    |
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    | dim              | str                        | "t2"        | dimension to integrate down or search down for max                   |
+    | dim              | str                        | "f2"        | dimension to integrate down or search down for max                   |
+    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+    | indirect_dim     | str                        | None        | indirect dimension                                                   |
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
 
     Returns:
-        all_data (dnpdata, dict): data object with "enhancement" added
+        dnpdata: data object with "enhancement" key added
 
     """
 
@@ -401,7 +415,7 @@ def calculate_enhancement(
         if data_on.ndim == 2:
             enh_coords_on = data_on.coords[ind_dim]
         else:
-            enh_coords_on = _np.array(range(data_on.shape[-1]))
+            enh_coords_on = _np.array(range(on_data.shape[-1]))
 
     elif isinstance(off_spectrum, int) and on_spectra == "all":
 
@@ -501,7 +515,7 @@ def fourier_transform(
 
     +------------------+------+---------+--------------------------------------------------+
     | parameter        | type | default | description                                      |
-    +------------------+------+---------+--------------------------------------------------+
+    +==================+======+=========+==================================================+
     | dim              | str  | 't2'    | dimension to Fourier transform                   |
     +------------------+------+---------+--------------------------------------------------+
     | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
@@ -512,13 +526,7 @@ def fourier_transform(
     +------------------+------+---------+--------------------------------------------------+
 
     Returns:
-        all_data (dnpdata, dict): Processed data in container
-
-    Example:
-
-    .. code-block:: python
-
-        all_data = dnplab.dnpNMR.fourier_transform(all_data, proc_parameters)
+        dnpdata: data object after FT
     """
 
     # Determine if data is dictionary or dnpdata object
@@ -579,8 +587,8 @@ def inverse_fourier_transform(
 
     +------------------+------+---------+--------------------------------------------------+
     | parameter        | type | default | description                                      |
-    +------------------+------+---------+--------------------------------------------------+
-    | dim              | str  | 't2'    | dimension to Fourier transform                   |
+    +==================+======+=========+==================================================+
+    | dim              | str  | 'f2'    | dimension to Fourier transform                   |
     +------------------+------+---------+--------------------------------------------------+
     | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
     +------------------+------+---------+--------------------------------------------------+
@@ -590,13 +598,7 @@ def inverse_fourier_transform(
     +------------------+------+---------+--------------------------------------------------+
 
     Returns:
-        all_data (dnpdata, dict): Processed data in container
-
-    Example:
-
-    .. code-block:: python
-
-        all_data = dnplab.dnpNMR.fourier_transform(all_data, proc_parameters)
+        dnpdata: data object after inverse FT
     """
 
     # Determine if data is dictionary or dnpdata object
@@ -650,16 +652,16 @@ def left_shift(all_data, dim="t2", shift_points=0):
     Args:
         all_data (dnpdata, dict): Data container for data
 
-    +---------------+------+---------+----------------------------------------------------------+
-    | parameter     | type | default | description                                              |
-    +---------------+------+---------+----------------------------------------------------------+
-    | shift_points  | int  | 0       | Number of points to remove from left of data             |
-    +---------------+------+---------+----------------------------------------------------------+
+    +---------------+------+---------+--------------------------------------------------+
+    | parameter     | type | default | description                                      |
+    +===============+======+=========+==================================================+
+    | dim           | str  | "t2"    | dimension to shift                               |
+    +---------------+------+---------+--------------------------------------------------+
+    | shift_points  | int  | 0       | Number of points to remove from left of data     |
+    +---------------+------+---------+--------------------------------------------------+
 
     Returns:
-        dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
-        dnpdata: If dnpdata object is given, return dnpdata object.
-
+        dnpdata: data object with left-shifted data
     """
 
     data, isDict = return_data(all_data)
@@ -688,19 +690,14 @@ def remove_offset(all_data, dim="t2", offset_points=10):
 
     +---------------+------+---------+----------------------------------------------------------+
     | parameter     | type | default | description                                              |
-    +---------------+------+---------+----------------------------------------------------------+
+    +===============+======+=========+==========================================================+
     | dim           | str  | 't2'    | Dimension to calculate DC offset                         |
     +---------------+------+---------+----------------------------------------------------------+
     | offset_points | int  | 10      | Number of points at end of data to average for DC offset |
     +---------------+------+---------+----------------------------------------------------------+
 
     Returns:
-        dnpdata_collection: If workspace is given returns dnpdata_collection with data in processing buffer updated
-        dnpdata: If dnpdata object is given, return dnpdata object.
-
-    Example::
-
-       workspace = dnplab.dnpNMR.remove_offset(workspace)
+        dnpdata: data object with offset removed
     """
 
     # Determine if data is dictionary or dnpdata object
@@ -740,15 +737,37 @@ def window(
 ):
     """Apply Apodization to data down given dimension
 
+    .. math::
+
+        \mathrm{exponential}    &=  \exp(-2t * \mathrm{linewidth}) &
+
+        \mathrm{gaussian}       &=  \exp((\mathrm{linewidth[0]} * t) - (\mathrm{linewidth[1]} * t^{2})) &
+
+        \mathrm{hamming}        &=  0.53836 + 0.46164\cos(\pi * n/(N-1)) &
+
+        \mathrm{han}            &=  0.5 + 0.5\cos(\pi * n/(N-1)) &
+
+        \mathrm{sin2}           &=  \cos((-0.5\pi * n/(N - 1)) + \pi)^{2} &
+
+        \mathrm{lorentz\_gauss} &=  \exp(L -  G^{2}) &
+
+               L(t)    &=  \pi * \mathrm{linewidth[0]} * t &
+
+               G(t)    &=  0.6\pi * \mathrm{linewidth[1]} * (\mathrm{gaussian\_max} * (N - 1) - t) &
+
+        \mathrm{traf}           &=  (f1 * (f1 + f2)) / (f1^{2} + f2^{2}) &
+
+               f1(t)   &=  \exp(-t * \pi * \mathrm{linewidth[0]}) &
+
+               f2(t)   &=  \exp((t - T) * \pi * \mathrm{linewidth[1]}) &
+
+
     Args:
         all_data (dnpdata, dict): data container
 
-    .. note::
-        Axis units assumed to be seconds
-
     +-----------------+-------------------------+---------------+---------------------------------------------------+
     | parameter       | type                    | default       | description                                       |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
+    +=================+=========================+===============+===================================================+
     | dim             | str                     | 't2'          | Dimension to apply exponential apodization        |
     +-----------------+-------------------------+---------------+---------------------------------------------------+
     | type            | str                     | 'exponential' | type of apodization                               |
@@ -761,9 +780,7 @@ def window(
     +-----------------+-------------------------+---------------+---------------------------------------------------+
 
     Returns:
-        all_data (dnpdata, dict): data object with window function applied
-        attributes: "window", window function
-
+        dnpdata: data object with window function applied, including attr "window"
     """
     data, isDict = return_data(all_data)
     dim_size = data.coords[dim].shape[-1]
@@ -838,12 +855,15 @@ def window(
 
 
 def phasecycle(all_data, dim, receiver_phase):
-    """Perform Phase Cycle down given dimension
+    """Phase cycle
 
     Args:
         all_data (dnpdata_collection, dnpdata): data to process
         dim (str): dimension to perform phase cycle
         receiver_phase (numpy.array, list): Receiver Phase 0 (x), 1 (y), 2 (-x), 3 (-y)
+
+    Returns:
+        dnpdata: data object after phase cycle applied
     """
 
     data, isDict = return_data(all_data)

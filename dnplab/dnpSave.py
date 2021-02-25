@@ -4,16 +4,11 @@ from . import dnpIO, dnpdata, dnpdata_collection, create_workspace
 
 def save(data_object, filename, save_type=None, *args, **kwargs):
     """Save data to h5 format
-    +-----------------+
-    | Supported Types |
-    +-----------------+
-    | h5              |
-    +-----------------+
 
     Args:
         data_object (dnpdata object) : dnpdata object to save
-        filename (str): name of saved .csv or .h5 file
-        save_type (str): Type of spectrometer data to import
+        filename (str): name of file, must include extension .h5
+        save_type (str): Type of file to save (optional). Allowed values: "h5"
 
     """
 
@@ -37,7 +32,6 @@ def save(data_object, filename, save_type=None, *args, **kwargs):
 
 
 def autodetect(test_name):
-    """Automatically detect type of file to save"""
 
     if test_name[-1] == os.sep:
         test_name = test_name[:-1]

@@ -7,21 +7,11 @@ dnpNMR
 Summary
 =======
 
-The following table summarizes all available functions in this module
-
-.. .. autosummary:: dnplab.dnpNMR
-..    dnplab.dnpNMR.align
-..    dnplab.dnpNMR.autophase
-..    dnplab.dnpNMR.fourier_transform
-..    dnplab.dnpNMR.integrate
-..    dnplab.dnpNMR.remove_offset
-..    dnplab.dnpNMR.return_data
-..    dnplab.dnpNMR.update_parameters
-..    dnplab.dnpNMR.window
+The dnpNMR module contains functions to process and manipulate NMR data.
 
 
-Detailed Description of Functions
-=================================
+Detailed Descriptions of Functions
+==================================
 
 .. automodule:: dnplab.dnpNMR
    :members:

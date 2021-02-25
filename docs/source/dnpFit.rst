@@ -1,3 +1,5 @@
+.. _dnpFit:
+
 ======
 dnpFit
 ======
@@ -5,17 +7,11 @@ dnpFit
 Summary
 =======
 
-The following table summarizes all available functions in this module
-
-.. .. autosummary:: dnplab.dnpFit
-..    dnplab.dnpFit.enhancementFit
-..    dnplab.dnpFit.enhancementFunction
-..    dnplab.dnpFit.enhancementRes
-..    dnplab.dnpFit.t1Fit
+The dnpFit module contains functions to fit data.
 
 
-Detailed Description of Functions
-=================================
+Detailed Descriptions of Functions
+==================================
 
 .. automodule:: dnplab.dnpFit
    :members:
