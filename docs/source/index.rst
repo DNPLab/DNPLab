@@ -28,11 +28,11 @@
 
 .. |dnpLabGitLink| raw:: html
 
-   <a href="https://github.com/DNPLab/dnpLab" target="_blank"> DNPLab on Git Lab</a>
+   <a href="https://github.com/DNPLab/dnpLab" target="_blank"> DNPLab on GitHub</a>
 
 .. |dnpLabGitIssueTrackerLink| raw:: html
 
-   <a href="https://github.com/DNPLab/dnpLab/issues" target="_blank"> DNPLab Git Issue Tracker</a>
+   <a href="https://github.com/DNPLab/dnpLab/issues" target="_blank"> DNPLab GitHub Issue Tracker</a>
 
 
 =================
