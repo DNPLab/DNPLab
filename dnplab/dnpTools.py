@@ -1,5 +1,6 @@
 from . import dnpNMR, dnpdata, dnpdata_collection
 import numpy as np
+from scipy.optimize import curve_fit
 import scipy.integrate
 
 from .mrProperties import gmrProperties, radicalProperties
