@@ -1,46 +1,19 @@
-.. _import:
+.. _dnpImport:
 
 =========
 dnpImport
 =========
 
+Summary
+=======
 
-.. _topspin:
+Use dnpImport.load and the correct IO module will be automatically selected.
 
-Topspin Module
-==============
+Detailed Descriptions of Functions
+==================================
 
-.. automodule:: dnplab.dnpImport.topspin
+.. automodule:: dnplab.dnpImport
    :members:
    :show-inheritance:
    :member-order: bysource
 
-.. _vnmrj:
-
-(Open) VnmrJ Module
-===================
-
-.. automodule:: dnplab.dnpImport.vnmrj
-   :members:
-   :show-inheritance:
-   :member-order: bysource
-
-.. _prospa:
-
-Prospa Module
-=============
-
-.. automodule:: dnplab.dnpImport.prospa
-   :members:
-   :show-inheritance:
-   :member-order: bysource
-
-.. _h5:
-
-h5 Module
-=========
-
-.. automodule:: dnplab.dnpImport.h5
-   :members:
-   :show-inheritance:
-   :member-order: bysource

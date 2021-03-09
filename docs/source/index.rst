@@ -28,18 +28,18 @@
 
 .. |dnpLabGitLink| raw:: html
 
-   <a href="https://github.com/DNPLab/dnpLab" target="_blank"> DNPLab on Git Lab</a>
+   <a href="https://github.com/DNPLab/dnpLab" target="_blank"> DNPLab on GitHub</a>
 
 .. |dnpLabGitIssueTrackerLink| raw:: html
 
-   <a href="https://github.com/DNPLab/dnpLab/issues" target="_blank"> DNPLab Git Issue Tracker</a>
+   <a href="https://github.com/DNPLab/dnpLab/issues" target="_blank"> DNPLab GitHub Issue Tracker</a>
 
 
 =================
 Welcome to DNPLab
 =================
 
-Welcome to the DNPLab documentation. DNPLab is an Open Source Python package for importing and processing Dynamic Nuclear Polarization (DNP) data. The aim of the project is to provide a free, turn-key processing package for easy processing and analysis of DMP-NMR data.
+Welcome to the DNPLab documentation. DNPLab is an Open Source Python package for importing and processing Dynamic Nuclear Polarization (DNP) data. The aim of the project is to provide a free, turn-key processing package for easy processing and analysis of DNP-NMR data.
 
 DNPLab is a collaborative project created by
 
@@ -74,15 +74,16 @@ Features
 
 .. toctree::
    :maxdepth: 2
-   :caption: Documentation:
-   :numbered:
 
    introduction
    install
    quick-start
-   examples
+   auto_examples/index
    dnpData
    dnpImport
+   dnpIO
+   dnpSave
+   dnpTools
    dnpNMR
    dnpFit
    dnpHydration
