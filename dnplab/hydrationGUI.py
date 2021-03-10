@@ -938,10 +938,6 @@ class hydrationGUI(QMainWindow):
             self.t10Edit.setText(str(round(float(matin["odnp"]["T10"]), 4)))
             self.t100Edit.setText(str(round(float(matin["odnp"]["T100"]), 4)))
 
-            self.gui_dict["dnpLab_data"]["T100"] = float(matin["odnp"]["T100"])
-            self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
-                matin["odnp"]["T100_stdd"]
-            )
             self.gui_dict["dnpLab_data"]["T10"] = float(matin["odnp"]["T10"])
             self.gui_dict["dnpLab_data"]["T10_stdd"] = float(matin["odnp"]["T10_stdd"])
             epows = matin["odnp"]["Epowers"][0]
@@ -955,6 +951,15 @@ class hydrationGUI(QMainWindow):
             t1perr = matin["odnp"]["T1p_stdd"][0]
             self.T1p_stdd = np.ravel(t1perr[0])
 
+            self.gui_dict["dnpLab_data"]["T100"] = float(matin["odnp"]["T100"])
+            try:
+                self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
+                    matin["odnp"]["T100_stdd"]
+                )
+            except KeyError:
+                self.gui_dict["dnpLab_data"]["T100_stdd"] = 2.5
+                pass
+
         elif "h5" in exten:
             h5in = dnplab.dnpImport.load(self.flname, data_type="h5")
 
@@ -963,12 +968,6 @@ class hydrationGUI(QMainWindow):
             )
             self.t10Edit.setText(str(round(float(h5in["hydration_inputs"]["T10"]), 4)))
 
-            self.gui_dict["dnpLab_data"]["T100"] = float(
-                h5in["hydration_inputs"]["T100"]
-            )
-            self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
-                h5in["hydration_results"]["T100_stdd"]
-            )
             self.gui_dict["dnpLab_data"]["T10"] = float(h5in["hydration_inputs"]["T10"])
             self.gui_dict["dnpLab_data"]["T10_stdd"] = float(
                 h5in["hydration_results"]["T10_stdd"]
@@ -982,6 +981,17 @@ class hydrationGUI(QMainWindow):
             ]
             self.T1p = h5in["hydration_inputs"]["T1"]
             self.T1p_stdd = h5in["hydration_results"]["T1_stdd"]
+
+            self.gui_dict["dnpLab_data"]["T100"] = float(
+                h5in["hydration_inputs"]["T100"]
+            )
+            try:
+                self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
+                    h5in["hydration_results"]["T100_stdd"]
+                )
+            except KeyError:
+                self.gui_dict["dnpLab_data"]["T100_stdd"] = 2.5
+                pass
 
         self.gui_dict["rawdata_function"]["nopowers"] = False
 
@@ -2100,10 +2110,15 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["dnpLab_data"]["Epowers"] = enh[:, 0]
                 self.gui_dict["dnpLab_data"]["Ep"] = enh[:, 1]
 
+                if len(self.T1p_stdd) == (len(self.T1p) + 1):
+                    T1p_stdd = self.T1p_stdd[1:]
+                elif len(self.T1p_stdd) == len(self.T1p):
+                    T1p_stdd = self.T1p_stdd
                 t1 = np.array(
-                    [self.gui_dict["dnpLab_data"]["T1powers"], self.T1p, self.T1p_stdd]
+                    [self.gui_dict["dnpLab_data"]["T1powers"], self.T1p, T1p_stdd]
                 )
                 t1 = np.transpose(t1)
+
                 t1 = t1[t1[:, 0].argsort()]
                 self.gui_dict["dnpLab_data"]["T1powers"] = t1[:, 0]
                 self.gui_dict["dnpLab_data"]["T1p"] = t1[:, 1]
@@ -2182,11 +2197,7 @@ class hydrationGUI(QMainWindow):
                 + str(round(self.gui_dict["dnpLab_data"]["T10_stdd"], 4))
             )
             for k in range(0, len(self.T1p)):
-                print(
-                    str(round(self.T1p[k], 2))
-                    + " +/- "
-                    + str(round(self.T1p_stdd[k], 4))
-                )
+                print(str(round(self.T1p[k], 2)) + " +/- " + str(round(T1p_stdd[k], 4)))
 
             if self.gui_dict["gui_function"]["addWorkup"]:
                 print("---Workup Standard Deviations in T1s---")
@@ -2307,6 +2318,7 @@ class hydrationGUI(QMainWindow):
                 T1powers = self.gui_dict["dnpLab_data"]["T1powers"][
                     1 : len(self.gui_dict["dnpLab_data"]["T1powers"])
                 ]
+
             elif self.exOutliersCheckbox.isChecked():
 
                 avg = np.mean(self.gui_dict["dnpLab_data"]["T1p"])
