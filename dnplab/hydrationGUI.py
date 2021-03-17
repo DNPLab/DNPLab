@@ -935,6 +935,9 @@ class hydrationGUI(QMainWindow):
         if "mat" in exten:
             matin = loadmat(self.flname)
 
+            if "T100_stdd" not in matin["odnp"].keys():
+                matin["odnp"]["T100_stdd"] = 0
+
             self.t10Edit.setText(str(round(float(matin["odnp"]["T10"]), 4)))
             self.t100Edit.setText(str(round(float(matin["odnp"]["T100"]), 4)))
 
@@ -952,16 +955,15 @@ class hydrationGUI(QMainWindow):
             self.T1p_stdd = np.ravel(t1perr[0])
 
             self.gui_dict["dnpLab_data"]["T100"] = float(matin["odnp"]["T100"])
-            try:
-                self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
-                    matin["odnp"]["T100_stdd"]
-                )
-            except KeyError:
-                self.gui_dict["dnpLab_data"]["T100_stdd"] = 2.5
-                pass
+            self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
+                matin["odnp"]["T100_stdd"]
+            )
 
         elif "h5" in exten:
             h5in = dnplab.dnpImport.load(self.flname, data_type="h5")
+
+            if "T100_stdd" not in h5in["hydration_results"].keys():
+                h5in["hydration_results"]["T100_stdd"] = 0
 
             self.t100Edit.setText(
                 str(round(float(h5in["hydration_inputs"]["T100"]), 4))
@@ -985,13 +987,9 @@ class hydrationGUI(QMainWindow):
             self.gui_dict["dnpLab_data"]["T100"] = float(
                 h5in["hydration_inputs"]["T100"]
             )
-            try:
-                self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
-                    h5in["hydration_results"]["T100_stdd"]
-                )
-            except KeyError:
-                self.gui_dict["dnpLab_data"]["T100_stdd"] = 2.5
-                pass
+            self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
+                h5in["hydration_results"]["T100_stdd"]
+            )
 
         self.gui_dict["rawdata_function"]["nopowers"] = False
 
