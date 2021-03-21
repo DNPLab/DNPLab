@@ -41,7 +41,7 @@ def get_powers(path, power_file, experiment_list):
         expTime = []
         absTime = []
         for exp in experiment_list:
-            opened = open(os.path.join(path + str(exp), "audita.txt"))
+            opened = open(os.path.join(path, str(exp), "audita.txt"))
             lines = opened.readlines()
             absStart = lines[8].split(" ")[2] + " " + lines[8].split(" ")[3]
             splitup = re.findall(r"[\w']+", absStart)
@@ -85,14 +85,14 @@ def get_powers(path, power_file, experiment_list):
 
         threshold = 20
 
-        if os.path.isfile(path + power_file + ".mat"):
+        if os.path.isfile(os.path.join(path, power_file + ".mat")):
             print("Extracted powers from " + power_file + ".mat file")
             openfile = loadmat(os.path.join(path, power_file + ".mat"))
             power = openfile.pop("powerlist")
             power = np.array([x for i in power for x in i])
             exptime = openfile.pop("timelist")
             exptime = np.array([x for i in exptime for x in i])
-        elif os.path.isfile(path + power_file + ".csv"):
+        elif os.path.isfile(os.path.join(path, power_file + ".csv")):
             print("Extracted powers from " + power_file + ".csv file")
             openfile = open(os.path.join(path, power_file + ".csv", "r"))
             lines = openfile.readlines()
