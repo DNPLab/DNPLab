@@ -74,12 +74,11 @@ Features
 
 .. toctree::
    :maxdepth: 2
-   :caption: Documentation:
-   :numbered:
 
    introduction
    install
    quick-start
+   auto_examples/index
    examples
    dnpData
    dnpImport
