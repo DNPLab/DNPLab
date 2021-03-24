@@ -831,7 +831,6 @@ def window(
     if inverse:
         apwin = 1 / apwin
 
-    
     new_shape = [1 if ix != index else shape_data[index] for ix in range(data.ndim)]
     apwin = _np.reshape(apwin, new_shape)
 
