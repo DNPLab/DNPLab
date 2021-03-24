@@ -82,8 +82,11 @@ def import_prospa_dir(path, exp_list=None):
     ws = create_workspace()
 
     for ix, dir_ in enumerate(dirs):
-        tmp = import_prospa(os.path.join(path, dir_))
-        ws.add(dir_, tmp)
+        try:
+            tmp = import_prospa(os.path.join(path, dir_))
+            ws.add(dir_, tmp)
+        except ValueError as e:
+            print('Skipping folder: %s' % str(e))
 
     return ws
 
