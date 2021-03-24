@@ -785,6 +785,7 @@ def window(
     data, isDict = return_data(all_data)
     dim_size = data.coords[dim].shape[-1]
     shape_data = _np.shape(data.values)
+    index = data.index(dim)
 
     if (isinstance(linewidth, _np.ndarray) or isinstance(linewidth, list)) and len(
         linewidth
@@ -830,11 +831,11 @@ def window(
     if inverse:
         apwin = 1 / apwin
 
-    if len(shape_data) == 2:
-        for ix in range(shape_data[1]):
-            data.values[:, ix] *= apwin
-    else:
-        data.values *= apwin
+    
+    new_shape = [1 if ix != index else shape_data[index] for ix in range(data.ndim)]
+    apwin = _np.reshape(apwin, new_shape)
+
+    data.values *= apwin
 
     proc_parameters = {
         "type": type,
