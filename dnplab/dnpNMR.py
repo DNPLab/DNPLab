@@ -783,7 +783,7 @@ def window(
         dnpdata: data object with window function applied, including attr "window"
     """
     data, isDict = return_data(all_data)
-    dim_size = data.coords[dim].shape[-1]
+    dim_size = data.coords[dim].size
     shape_data = _np.shape(data.values)
     index = data.index(dim)
 
