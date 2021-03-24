@@ -86,7 +86,7 @@ def import_prospa_dir(path, exp_list=None):
             tmp = import_prospa(os.path.join(path, dir_))
             ws.add(dir_, tmp)
         except ValueError as e:
-            print('Skipping folder: %s' % str(e))
+            print("Skipping folder: %s" % str(e))
 
     return ws
 
