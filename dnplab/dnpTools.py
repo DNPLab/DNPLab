@@ -6,7 +6,7 @@ import scipy.integrate
 from .mrProperties import gmrProperties, radicalProperties
 
 
-def concat(data_list, dim, coord):
+def concat(data_list, dim, coord=None):
     """Concatenates list of data objects down another dimension
 
     args:
@@ -28,7 +28,11 @@ def concat(data_list, dim, coord):
     values = np.stack(values_list, axis=-1)
 
     dims.append(dim)
-    coords.append(coord)
+
+    if coord is None:
+        coords.append(np.array(range(len(values_list))))
+    else:
+        coords.append(coord)
 
     data = dnpdata(values, coords, dims, attrs)
 
