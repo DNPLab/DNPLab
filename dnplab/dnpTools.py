@@ -30,7 +30,7 @@ def concat(data_list, dim, coord=None):
     dims.append(dim)
 
     if coord is None:
-        coords.append(np.array(range(len(values_list))))
+        coords.append(values_list)
     else:
         coords.append(coord)
 
