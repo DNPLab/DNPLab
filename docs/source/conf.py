@@ -24,7 +24,7 @@ print(sys.path)
 # -- Project information -----------------------------------------------------
 
 project = u"DNPLab"
-copyright = u"2020, DNPLab"
+copyright = u"2021, DNPLab"
 author = u"DNPLab Team"
 
 from datetime import datetime
@@ -32,9 +32,9 @@ from datetime import datetime
 date = datetime.now().strftime(u"%m/%d/%Y, %H:%M:%S")
 
 # The short X.Y version
-version = u"1.0.2"
+version = u"1.0.3"
 # The full version, including alpha/beta/rc tags
-release = u"1.0.2"
+release = u"1.0.3"
 
 print(u"Build Time: " + date)
 print(u"Version: " + version)
@@ -111,11 +111,13 @@ exclude_patterns = []
 pygments_style = None
 
 # -- Options for Sphinx Gallery output -------------------------------------------------
+from sphinx_gallery.sorting import FileNameSortKey
 
 sphinx_gallery_conf = {
     "examples_dirs": "../../examples",  # path to your example scripts
     "gallery_dirs": "auto_examples",  # path to where to save gallery generated output
     "remove_config_comments": True,
+    'within_subsection_order': FileNameSortKey,
 }
 
 

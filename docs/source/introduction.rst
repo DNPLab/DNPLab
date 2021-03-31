@@ -2,7 +2,9 @@
 Introduction to DNPLab
 ======================
 
-The aim of DNPLab is to provide a turn-key data processing environment for DNP-NMR data. The software package is entirely written in Python and no proprietary software is required. DNPLab is published under the open-source MIT license.
+The aim of DNPLab is to provide a turn-key data processing environment for DNP-NMR data. The software package is entirely written in Python and no proprietary software is required.
+
+DNPLab is published under the open-source MIT license.
 
 In the following section, we introduce the intended workflow for processing DNP-NMR data with DNPLab. The DNPLab python package supports data formats of all major NMR platforms.
 
@@ -12,7 +14,8 @@ The general workflow is as follows:
 2. Create Workspace
 3. Process Data
 4. Save Data in h5 Format
-5. Further Processing and Analysis
+5. Further Processing and Data Analysis
+6. Create Report
 
 A key-feature of DNPLab is creating a workspace. The imported data is stored in a dnpdata object and the first object that is created during the import process is the *raw* object. It contains the raw data from the spectrometer and will be accessible at any time. All processing steps are automatically documented and the entire workspace can be saved as a single file in the h5 format.
 
