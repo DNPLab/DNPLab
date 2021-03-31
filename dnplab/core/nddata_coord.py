@@ -300,7 +300,7 @@ class nddata_coord_collection(object):
             raise ValueError("dims must be a list")
         if not isinstance(coords, list):
             raise ValueError("coords must be a list")
-        
+
         for index, coord in enumerate(coords):
             if isinstance(coord, (range, list)):
                 coords[index] = np.array(coord)
