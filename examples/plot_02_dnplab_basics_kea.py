@@ -1,5 +1,8 @@
 # %%
 """
+.. _02_dnplab_baseics_kea_data:
+
+=============================
 02 - DNPLab Basics (Kea Data)
 =============================
 
@@ -64,8 +67,8 @@ ws.copy("proc", "onSignal")
 
 ########## Plot Spectra ##########
 dnp.dnpResults.figure()
-dnp.dnpResults.plot(ws["offSignal"].real * 10 - 100, label="Off Signal x 10")
-dnp.dnpResults.plot(ws["onSignal"].real, label="On Signal")
+dnp.dnpResults.plot(ws["offSignal"].real * 10 - 100, label = "Off Signal x 10")
+dnp.dnpResults.plot(ws["onSignal"].real, label = "On Signal")
 dnp.dnpResults.xlim([30, -30])
 dnp.dnpResults.plt.xlabel("Chemical Shift [ppm]")
 dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")

@@ -1,5 +1,8 @@
 # %%
 """
+.. _01_dnplab_baseics_topspin_data:
+
+=================================
 01 - DNPLab Basics (TopSpin Data)
 =================================
 
@@ -80,6 +83,9 @@ nmr_frequency = ws["proc"].attrs["nmr_frequency"]
 dnp.dnpResults.figure()
 dnp.dnpResults.plot(ws["proc"].imag, label="Imaginary")
 dnp.dnpResults.plot(ws["proc"].real, label="Real")
+dnp.dnpResults.xlim([100, -100])
+dnp.dnpResults.plt.xlabel("Chemical Shift [ppm]")
+dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")
 dnp.dnpResults.legend()
 dnp.dnpResults.plt.grid(True)
 dnp.dnpResults.show()

@@ -1,5 +1,8 @@
 # %%
 """
+.. _05-calculate-dnp-enhancements:
+
+===============================
 05 - Calculate DNP Enhancements
 ===============================
 
@@ -10,13 +13,13 @@ This example demonstrates how to import DNP-NMR data and calculate the dnp enhan
 # ----------------
 # In this example, we will calculate the enhancement for each DNP spectrum, and create a figure of the DNP enhancement versus the microwave power. We will import the 2D dnpdata object created in the previous sample. If you are not yet familiar with how to concatenate individual spectra into the 2D danpdata object, check out this tutorial: :ref:`04-create-a-2d-dnpdata-object-from-individual-spectra`
 #
-# First, load the 2D data object. This will load the workspace which will have the raw data ("raw") and the processed NMR spectra ("proc").
+# First, load the 2D data object. This will load the workspace (ws) which will have the raw data ("raw") and the processed NMR spectra ("proc").
 
 import dnplab as dnp
 import numpy as np
 
 # file_name_path = "../data/prospa/toluene_10mM_Tempone/PowerBuildUp.h5"
-# dnp.dnpSave.load(ws,file_name_path)
+# dnp.dnpImport.load(file_name_path)
 
 powers = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40])
 
@@ -83,28 +86,17 @@ dnp.dnpNMR.calculate_enhancement(ws, off_spectrum = 0)
 # If needed, access your array of enhancements as:
 enhancements = ws["enhancement"].values
 # %%
-# Note: The default behavior of the calculate_enhancement function is to use the first spectrum as the Off singal and the argument off_spectrum is not necessary unless the off spectrum is not the first slice. 
-
-
-
-
-
-
-# %%
-# Fit Enhancement Factors
-# -----------------------
-# 
-# 
+# Note: The default behavior of the calculate_enhancement function is to use the first spectrum as the Off singal and the argument "off_spectrum" is not necessary unless the off spectrum is not the first slice.
 
 # %%
 # Plot Enhancement Data and Fit
 # -----------------------------
-# 
-# 
+# Finally, we can plot the enhancement data and the corresponding fit. 
 
 dnp.dnpResults.figure()
-dnp.dnpResults.plot(ws["enhancement"])
-# dnp.dnpResults.legend()
+dnp.dnpResults.plot(ws["enhancement"],linestyle = '-', marker = 'o', fillstyle = 'none')
+dnp.dnpResults.plt.xlabel("Microwave Power (dBm)")
+dnp.dnpResults.plt.ylabel("ODNP Enhancement Factor")
+dnp.dnpResults.plt.title("10 mM TEMPO in Toluene")
 dnp.dnpResults.plt.grid(True)
 dnp.dnpResults.show()
-
