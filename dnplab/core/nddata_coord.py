@@ -301,6 +301,10 @@ class nddata_coord_collection(object):
         if not isinstance(coords, list):
             raise ValueError("coords must be a list")
 
+        for index, coord in enumerate(coords):
+            if isinstance(coord, (range, list)):
+                coords[index] = np.array(coord)
+
         if self._check_dims:
             self._dims = dims
         else:
@@ -486,7 +490,7 @@ class nddata_coord_collection(object):
         if not isinstance(coord, (complex, float, int, np.ndarray, nddata_coord)):
             raise TypeError("coord must be type numpy not %s" % str(type(coord)))
 
-        if isinstance(coord, (float, int, complex)):
+        if isinstance(coord, (list, range, float, int, complex)):
             coord = np.array(coord)
 
         if dim not in self.dims:

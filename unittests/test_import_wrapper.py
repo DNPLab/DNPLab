@@ -11,6 +11,22 @@ class load_wrapper_tester(unittest.TestCase):
             ".", "data", "vnmrj", "10mM_tempol_in_water_array.fid"
         )
 
+
+        self.list_prospa_dir = [
+                './data/prospa/toluene_10mM_Tempone/1/data.1d',
+                './data/prospa/toluene_10mM_Tempone/2/data.1d',
+                './data/prospa/toluene_10mM_Tempone/3/data.1d',
+                './data/prospa/toluene_10mM_Tempone/4/data.1d',
+                './data/prospa/toluene_10mM_Tempone/5/data.1d',
+                './data/prospa/toluene_10mM_Tempone/6/data.1d',
+                './data/prospa/toluene_10mM_Tempone/7/data.1d',
+                './data/prospa/toluene_10mM_Tempone/8/data.1d',
+                './data/prospa/toluene_10mM_Tempone/9/data.1d',
+                './data/prospa/toluene_10mM_Tempone/10/data.1d',
+                ]
+        self.list_index = range(10)
+        self.dim_name = 'test_dim'
+
     def test_topspin(self):
         data = load(os.path.join(self.topspin_dir, str(1)), data_type="topspin")
         self.assertEqual(data.dims[0], "t2")
@@ -23,6 +39,9 @@ class load_wrapper_tester(unittest.TestCase):
 
     def test_vnmrj(self):
         load(self.vnmrj_dir, data_type="vnmrj")
+
+    def test_import_list(self):
+        load(self.list_prospa_dir, data_type = "prospa", dim = self.dim_name, coord = self.list_index)
 
 
 if __name__ == "__main__":
