@@ -89,3 +89,4 @@ dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")
 dnp.dnpResults.legend()
 dnp.dnpResults.plt.grid(True)
 dnp.dnpResults.show()
+ 
