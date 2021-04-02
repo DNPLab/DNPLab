@@ -36,40 +36,40 @@ dnp.dnpResults.plt.title("Inversion Recovery")
 dnp.dnpResults.plt.grid(True)
 dnp.dnpResults.show()
 
-# # %%
-# # Align Inversion Recovery Spectra
-# # --------------------------------
-# # The spectra shown here are the individual NMR spectra for different recovery times. Note, how this spectra are not perfectly aligned. This is can changed using the alining function. A more detailed description of the alining routine of DNPLab is given in tutorial :ref:`07_align_nmr_spectra`.
+# %%
+# Align Inversion Recovery Spectra
+# --------------------------------
+# The spectra shown here are the individual NMR spectra for different recovery times. Note, how this spectra are not perfectly aligned. This is can changed using the alining function. A more detailed description of the alining routine of DNPLab is given in tutorial :ref:`07_align_nmr_spectra`.
 
-# dnp.dnpNMR.align(ws)
+dnp.dnpNMR.align(ws)
 
-# dnp.dnpResults.plot(ws["proc"].real)
-# dnp.dnpResults.xlim([-50, 30])
-# dnp.dnpResults.plt.xlabel("Chemical Shift [ppm]")
-# dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")
-# dnp.dnpResults.plt.title("Inversion Recovery, Spectra Aligned")
-# dnp.dnpResults.plt.grid(True)
-# dnp.dnpResults.show()
+dnp.dnpResults.plot(ws["proc"].real)
+dnp.dnpResults.xlim([-50, 30])
+dnp.dnpResults.plt.xlabel("Chemical Shift [ppm]")
+dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")
+dnp.dnpResults.plt.title("Inversion Recovery, Spectra Aligned")
+dnp.dnpResults.plt.grid(True)
+dnp.dnpResults.show()
 
-# # %%
-# # To determine the T1 relaxation time, we first integrate the peak intensity across the entire spectrum. To save the spectral data, we move the processed NMR spectrum within the workspace out of the processing buffer into a new buffer called "ft". If we don't do that, the processing buffer (proc) will be overwritten by the integrate function.
+# %%
+# To determine the T1 relaxation time, we first integrate the peak intensity across the entire spectrum. To save the spectral data, we move the processed NMR spectrum within the workspace out of the processing buffer into a new buffer called "ft". If we don't do that, the processing buffer (proc) will be overwritten by the integrate function.
 
-# ws.copy("proc", "ft")
-# dnp.dnpTools.integrate(ws)
+ws.copy("proc", "ft")
+dnp.dnpTools.integrate(ws)
 
-# # %%
-# # Display Results
-# # ---------------
+# %%
+# Display Results
+# ---------------
 
-# # # Fit inversion-recovery build-up, display T1 and plot results
+# # Fit inversion-recovery build-up, display T1 and plot results
 
-# # # dnplab.dnpFit.t1Fit(ws)
-# # # print("T1 value (sec) = " + str(ws["fit"].attrs["t1"]))
+# # dnplab.dnpFit.t1Fit(ws)
+# # print("T1 value (sec) = " + str(ws["fit"].attrs["t1"]))
 
-# dnp.dnpResults.figure()
-# dnp.dnpResults.plot(ws["proc"].real, "-o", fillstyle = 'none')
-# dnp.dnpResults.plt.xlabel("Time t1 [s]")
-# dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")
-# dnp.dnpResults.plt.title("Inversion Recovery")
-# dnp.dnpResults.plt.grid(True)
-# dnp.dnpResults.show()
+dnp.dnpResults.figure()
+dnp.dnpResults.plot(ws["proc"].real, "-o", fillstyle = 'none')
+dnp.dnpResults.plt.xlabel("Time t1 [s]")
+dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")
+dnp.dnpResults.plt.title("Inversion Recovery")
+dnp.dnpResults.plt.grid(True)
+dnp.dnpResults.show()
