@@ -172,6 +172,10 @@ def autophase(
         dnpdata: Autophased data, including attrs "phase0" for order="zero", and "phase1" if order="first"
 
     """
+    if reference_slice == 0:
+        raise ValueError(
+            "please use indices from 1 to number of slices, i.e. use 1 instead of 0"
+        )
 
     data, isDict = return_data(all_data)
     shape_data = _np.shape(data.values)
@@ -216,8 +220,7 @@ def autophase(
                 temp_data = data.values
                 warnings.warn("ignoring reference_slice, this is 1D data")
             else:
-                reference_slice -= 1
-                temp_data = data.values[:, reference_slice]
+                temp_data = data.values[:, reference_slice - 1]
         else:
             temp_data = data.values
 
@@ -324,6 +327,10 @@ def calculate_enhancement(
         dnpdata: data object with "enhancement" key added
 
     """
+    if off_spectrum == 0:
+        raise ValueError(
+            "please use indices from 1 to number of slices, i.e. use 1 instead of 0"
+        )
 
     orig_data, isDict = return_data(all_data)
 
@@ -469,9 +476,6 @@ def calculate_enhancement(
             elif isinstance(integrate_center, str) and integrate_center != "max":
                 raise ValueError("the only allowed integrate_center string is 'max'")
 
-            if off_spectrum == 0:
-                off_spectrum = 1
-
             if method == "integrate":
 
                 dnpTools.integrate(
@@ -481,32 +485,24 @@ def calculate_enhancement(
                     integrate_width=integrate_width,
                 )
                 data, _isDict = return_data(enh_data)
-                data_1 = data.values
+                on_data = data.values
 
             elif method == "amplitude":
-                data_1 = []
+                on_data = []
                 if integrate_center == "max":
                     for indx in range(orig_data.shape[-1]):
-                        data_1.append(
+                        on_data.append(
                             orig_data.values[
                                 _np.argmax(abs(orig_data.values[indx])), indx
                             ]
                         )
                 else:
                     for indx in range(orig_data.shape[-1]):
-                        data_1.append(orig_data.values[integrate_center, indx])
+                        on_data.append(orig_data.values[integrate_center, indx])
 
-            off_data = data_1[off_spectrum - 1]
-            if off_spectrum == 1:
-                on_data = data_1[1:]
-                enh_coords_on = orig_data.coords[ind_dim][1:]
-            elif off_spectrum > 1:
-                on_data_1 = data_1[: off_spectrum - 1]
-                on_coords_1 = orig_data.coords[ind_dim][: off_spectrum - 1]
-                on_data_2 = data_1[off_spectrum:]
-                on_coords_2 = orig_data.coords[ind_dim][off_spectrum:]
-                on_data = _np.concatenate((on_data_1, on_data_2))
-                enh_coords_on = _np.concatenate((on_coords_1, on_coords_2))
+            off_data = on_data[off_spectrum - 1]
+            enh_coords_on = orig_data.coords[ind_dim]
+
         else:
             raise TypeError(
                 "the given combination of data, off_spectrum, and on_spectra is not valid"

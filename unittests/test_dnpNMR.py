@@ -6,6 +6,7 @@ import dnplab.dnpNMR as nmr
 import dnplab as dnp
 import numpy as np
 import os
+import copy
 
 
 class dnpNMR_tester(unittest.TestCase):
@@ -177,6 +178,8 @@ class dnpNMR_tester(unittest.TestCase):
         nmr.fourier_transform(self.ws, zero_fill_factor=2)
         nmr.autophase(self.ws, method="arctan")
 
+        ws = copy.deepcopy(self.ws)
+
         nmr.calculate_enhancement(
             self.ws,
             off_spectrum=1,
@@ -187,9 +190,7 @@ class dnpNMR_tester(unittest.TestCase):
             dim="f2",
         )
 
-        self.assertAlmostEqual(
-            self.ws["enhancement"].values[0], 1.0252541520454477, places=6
-        )
+        self.assertAlmostEqual(self.ws["enhancement"].values[0], 1.0, places=6)
         self.assertAlmostEqual(
             self.ws["enhancement"].values[-1], -1.3615844024369856, places=6
         )
@@ -214,6 +215,14 @@ class dnpNMR_tester(unittest.TestCase):
         )
         self.assertAlmostEqual(
             self.ws_off["enhancement"].values[-1], 0.004154668257187268, places=6
+        )
+
+        dnp.dnpTools.integrate(ws, integrate_center=0, integrate_width="full")
+        nmr.calculate_enhancement(ws, off_spectrum=1)
+
+        self.assertAlmostEqual(ws["enhancement"].values[0], 1.0, places=6)
+        self.assertAlmostEqual(
+            ws["enhancement"].values[-1], -1.3615844024369856, places=6
         )
 
 
