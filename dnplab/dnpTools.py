@@ -214,7 +214,7 @@ def integrate(
     +------------------+---------------+----------+-------------------------------+
     | integrate_center | float or list | 0        | center of integration window  |
     +------------------+---------------+----------+-------------------------------+
-    | integrate_width  | float or list | 100      | width of integration window   |
+    | integrate_width  | float or list | "full"   | width of integration window   |
     +------------------+---------------+----------+-------------------------------+
 
     Returns:
