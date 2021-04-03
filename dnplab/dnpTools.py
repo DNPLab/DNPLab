@@ -226,7 +226,7 @@ def integrate(
 
     data_new = None
     if type == "double":
-        data.attrs["first_integral"] = scipy.integrate.cumtrapz(
+        first_int = scipy.integrate.cumtrapz(
             data.values, x=data.coords[dim], axis=index, initial=0
         )
         data.values = first_int
@@ -284,26 +284,23 @@ def integrate(
             data_integrals.append(np.trapz(x.values, x=x.coords[dim], axis=index))
 
         data.values = np.array(data_integrals)
+        int_coords = [integrate_center, data.coords[ind_dim]]
+        indirect_dim = ["center", ind_dim]
 
     else:
         data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
+        int_coords = [data.coords[ind_dim]]
+        indirect_dim = [ind_dim]
 
-    data.coords.pop(dim)
-
-    proc_parameters = {
-        "dim": dim,
-        "integrate_center": integrate_center,
-        "integrate_width": integrate_width,
-    }
-
-    proc_attr_name = "integrate"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    integrate_data = dnpdata(data.values, int_coords, indirect_dim)
+    if type == "double":
+        integrate_data.attrs["first_integral"] = first_int
 
     if isDict:
-        all_data[all_data.processing_buffer] = data
+        all_data["integrate"] = integrate_data
         return all_data
     else:
-        return data
+        return integrate_data
 
 
 def mr_properties(nucleus, *args):

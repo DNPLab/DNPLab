@@ -43,7 +43,12 @@ def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
 
 
 def exponential_fit(
-    all_data, type="mono", stretched=False, dim="f2", indirect_dim=None
+    all_data,
+    type="mono",
+    stretched=False,
+    dim="f2",
+    indirect_dim=None,
+    ws_key="integrate",
 ):
     """Fits various forms of exponential functions
 
@@ -61,15 +66,19 @@ def exponential_fit(
     Args:
         all_data (dnpdata, dict): data container, after integration with dnpTools.integrate
         
-    +------------+------+---------+-----------------------------------------------------------------------------------+
-    | parameter  | type | default | description                                                                       |
-    +============+======+=========+===================================================================================+
-    | dim        | str  | "f2"    | dimension to fit down                                                             |
-    +------------+------+---------+-----------------------------------------------------------------------------------+
-    | type       | str  | "mono"  | "T1" for inversion recovery fit, "T2" for stretched exponential, "mono", or "bi"  |
-    +------------+------+---------+-----------------------------------------------------------------------------------+
-    | stretch    | bool | False   | if False "p" is set to 1, if True "p" is a fit parameter                          |
-    +------------+------+---------+-----------------------------------------------------------------------------------+
+    +---------------+------+-------------+-----------------------------------------------------------------------------------+
+    | parameter     | type | default     | description                                                                       |
+    +===============+======+=============+===================================================================================+
+    | dim           | str  | "f2"        | dimension to fit down                                                             |
+    +---------------+------+-------------+-----------------------------------------------------------------------------------+
+    | type          | str  | "mono"      | "T1" for inversion recovery fit, "T2" for stretched exponential, "mono", or "bi"  |
+    +---------------+------+-------------+-----------------------------------------------------------------------------------+
+    | stretch       | bool | False       | if False "p" is set to 1, if True "p" is a fit parameter                          |
+    +---------------+------+-------------+-----------------------------------------------------------------------------------+
+    | indirect_dim  | str  | None        | indirect dimension                                                                |
+    +---------------+------+-------------+-----------------------------------------------------------------------------------+
+    | ws_key        | str  | "integrate" | if False "p" is set to 1, if True "p" is a fit parameter                          |
+    +---------------+------+-------------+-----------------------------------------------------------------------------------+
 
 
     Returns:
@@ -79,96 +88,101 @@ def exponential_fit(
 
     data, isDict = return_data(all_data)
 
-    if not indirect_dim:
-        if len(data.dims) == 2:
-            ind_dim = list(set(data.dims) - set([dim]))[0]
-        elif len(data.dims) == 1:
-            ind_dim = data.dims[0]
-        else:
-            raise ValueError(
-                "you must specify the indirect dimension, use argument indirect_dim= "
-            )
+    if ws_key in all_data.keys():
+        x_axis = all_data[ws_key].coords
+        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
+        input_data = _np.real(all_data[ws_key].values)
     else:
-        ind_dim = indirect_dim
+        if not indirect_dim:
+            if len(data.dims) == 2:
+                ind_dim = list(set(data.dims) - set([dim]))[0]
+            elif len(data.dims) == 1:
+                ind_dim = data.dims[0]
+            else:
+                raise ValueError(
+                    "you must specify the indirect dimension, use argument indirect_dim= "
+                )
+        else:
+            ind_dim = indirect_dim
 
-    x_axis = data.coords[ind_dim]
-    new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
-    inputData = _np.real(data.values)
+        x_axis = data.coords[ind_dim]
+        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
+        input_data = _np.real(data.values)
 
     if type == "T1":
 
-        x0 = [1.0, inputData[-1], inputData[-1]]
-        out, cov = curve_fit(t1_function, x_axis, inputData, x0, method="lm")
+        x0 = [1.0, input_data[-1], input_data[-1]]
+        out, cov = curve_fit(t1_function, x_axis, input_data, x0, method="lm")
         stdd = _np.sqrt(_np.diag(cov))
         fit = t1_function(new_axis, out[0], out[1], out[2])
 
-        fitData = dnpdata(fit, [new_axis], [ind_dim])
-        fitData.attrs["T1"] = out[0]
-        fitData.attrs["T1_stdd"] = stdd[0]
-        fitData.attrs["M_0"] = out[1]
-        fitData.attrs["M_inf"] = out[2]
+        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data.attrs["T1"] = out[0]
+        fit_data.attrs["T1_stdd"] = stdd[0]
+        fit_data.attrs["M_0"] = out[1]
+        fit_data.attrs["M_inf"] = out[2]
 
     elif type == "T2":
 
         if stretched:
-            x0 = [inputData[0], 1.0, 1.0]
+            x0 = [input_data[0], 1.0, 1.0]
             out, cov = curve_fit(
-                t2_function_stretch, x_axis, inputData, x0, method="lm"
+                t2_function_stretch, x_axis, input_data, x0, method="lm"
             )
             stdd = _np.sqrt(_np.diag(cov))
             fit = t2_function_stretch(new_axis, out[0], out[1], out[2])
         else:
-            x0 = [inputData[0], 1.0]
+            x0 = [input_data[0], 1.0]
             out, cov = curve_fit(
-                t2_function_nostretch, x_axis, inputData, x0, method="lm"
+                t2_function_nostretch, x_axis, input_data, x0, method="lm"
             )
             stdd = _np.sqrt(_np.diag(cov))
             fit = t2_function_nostretch(new_axis, out[0], out[1])
 
-        fitData = dnpdata(fit, [new_axis], [ind_dim])
-        fitData.attrs["T2"] = out[1]
-        fitData.attrs["T2_stdd"] = stdd[1]
-        fitData.attrs["M_0"] = out[0]
+        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data.attrs["T2"] = out[1]
+        fit_data.attrs["T2_stdd"] = stdd[1]
+        fit_data.attrs["M_0"] = out[0]
         if stretched:
-            fitData.attrs["p"] = out[2]
+            fit_data.attrs["p"] = out[2]
 
     elif type == "mono":
 
-        x0 = [inputData[-1], 1.0, 100]
-        out, cov = curve_fit(exp_fit_func_1, x_axis, inputData, x0, method="lm")
+        x0 = [input_data[-1], 1.0, 100]
+        out, cov = curve_fit(exp_fit_func_1, x_axis, input_data, x0, method="lm")
         stdd = _np.sqrt(_np.diag(cov))
         fit = exp_fit_func_1(new_axis, out[0], out[1], out[2])
 
-        fitData = dnpdata(fit, [new_axis], [ind_dim])
-        fitData.attrs["tau"] = out[2]
-        fitData.attrs["tau_stdd"] = stdd[2]
-        fitData.attrs["C1"] = out[0]
-        fitData.attrs["C2"] = out[1]
+        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data.attrs["tau"] = out[2]
+        fit_data.attrs["tau_stdd"] = stdd[2]
+        fit_data.attrs["C1"] = out[0]
+        fit_data.attrs["C2"] = out[1]
 
     elif type == "bi":
 
-        x0 = [inputData[-1], 1.0, 100, 1.0, 100]
-        out, cov = curve_fit(exp_fit_func_2, x_axis, inputData, x0, method="lm")
+        x0 = [input_data[-1], 1.0, 100, 1.0, 100]
+        out, cov = curve_fit(exp_fit_func_2, x_axis, input_data, x0, method="lm")
         stdd = _np.sqrt(_np.diag(cov))
         fit = exp_fit_func_2(new_axis, out[0], out[1], out[2], out[3], out[4])
 
-        fitData = dnpdata(fit, [new_axis], [ind_dim])
-        fitData.attrs["tau1"] = out[2]
-        fitData.attrs["tau1_stdd"] = stdd[2]
-        fitData.attrs["tau2"] = out[4]
-        fitData.attrs["tau2_stdd"] = stdd[4]
-        fitData.attrs["C1"] = out[0]
-        fitData.attrs["C2"] = out[1]
-        fitData.attrs["C3"] = out[3]
+        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data.attrs["tau1"] = out[2]
+        fit_data.attrs["tau1_stdd"] = stdd[2]
+        fit_data.attrs["tau2"] = out[4]
+        fit_data.attrs["tau2_stdd"] = stdd[4]
+        fit_data.attrs["C1"] = out[0]
+        fit_data.attrs["C2"] = out[1]
+        fit_data.attrs["C3"] = out[3]
 
     else:
         raise TypeError("Invalid fit type")
 
     if isDict:
-        all_data["fit"] = fitData
+        all_data["fit"] = fit_data
         return all_data
     else:
-        return fitData
+        return fit_data
 
 
 def enhancement_function(power_array, E_max, power_half):
@@ -210,28 +224,31 @@ def enhancement_fit(dataDict):
 
     data, isDict = return_data(all_data)
 
-    power_axes = data.coords["power"]
+    if "enhancement" not in all_data.keys():
+        raise TypeError("please use dnpNMR.calculate_enhancement() first")
 
-    inputData = _np.real(data.values)
+    power_axes = all_data["enhancement"].coords["power"]
 
-    x0 = [inputData[-1], 0.1]
+    input_data = _np.real(all_data["enhancement"].values)
 
-    out, cov = curve_fit(enhancement_function, power_axes, inputData, x0, method="lm")
+    x0 = [input_data[-1], 0.1]
+
+    out, cov = curve_fit(enhancement_function, power_axes, input_data, x0, method="lm")
     stdd = _np.sqrt(_np.diag(cov))
 
     fit = enhancement_function(power_axes, out[0], out[1])
 
-    fitData = dnpdata(fit, [power_axes], ["power"])
-    fitData.attrs["E_max"] = out[0]
-    fitData.attrs["E_max_stdd"] = stdd[0]
-    fitData.attrs["power_half"] = out[1]
-    fitData.attrs["power_half_stdd"] = stdd[1]
+    fit_data = dnpdata(fit, [power_axes], ["power"])
+    fit_data.attrs["E_max"] = out[0]
+    fit_data.attrs["E_max_stdd"] = stdd[0]
+    fit_data.attrs["power_half"] = out[1]
+    fit_data.attrs["power_half_stdd"] = stdd[1]
 
     if isDict:
-        dataDict["fit"] = fitData
+        dataDict["fit"] = fit_data
         return dataDict
     else:
-        return fitData
+        return fit_data
 
 
 def interpolate_T1(
