@@ -129,7 +129,7 @@ def autophase(
     order="zero",
     pivot=0,
     delta=0,
-    phase=0,
+    phase=None,
     reference_slice=None,
     force_positive=False,
 ):
@@ -159,9 +159,9 @@ def autophase(
     +-----------------+--------------+---------------+---------------------------------------------------+
     | pivot           | int          | 0             | pivot point for first order correction            |
     +-----------------+--------------+---------------+---------------------------------------------------+
-    | delta           | float        | 0             | total change in phase magnitude for first order   |
+    | delta           | float or int | 0             | total change in phase magnitude for first order   |
     +-----------------+--------------+---------------+---------------------------------------------------+
-    | phase           | float        | 0             | manual phase correction                           |
+    | phase           | float or int | 0             | manual phase correction in radians                |
     +-----------------+--------------+---------------+---------------------------------------------------+
     | reference_slice | int, or None | None          | slice of 2D data used to define the phase         |
     +-----------------+--------------+---------------+---------------------------------------------------+
@@ -169,22 +169,27 @@ def autophase(
     +-----------------+--------------+---------------+---------------------------------------------------+
 
     Returns:
-        dnpdata: Autophased data, including attrs "phase_0" for order="zero", and "phase_1" if order="first"
+        dnpdata: Autophased data, including attrs "phase0" for order="zero", and "phase1" if order="first"
 
     """
 
     data, isDict = return_data(all_data)
     shape_data = _np.shape(data.values)
 
+    if phase is not None:
+        method = "manual"
+
     if method == "manual":
-        if order == "zero" and isinstance(phase, float):
-            data.attrs["phase_0"] = phase
-        elif order == "zero" and not isinstance(phase, float):
+        if order == "zero" and (isinstance(phase, float) or isinstance(phase, int)):
+            data.attrs["phase0"] = phase
+        elif order == "zero" and not (
+            isinstance(phase, float) or isinstance(phase, int)
+        ):
             raise ValueError(
                 "for a zero order phase correction you must supply a single phase"
             )
-        elif order == "first" and isinstance(phase, float):
-            data.attrs["phase_0"] = phase
+        elif order == "first" and (isinstance(phase, float) or isinstance(phase, int)):
+            data.attrs["phase0"] = phase
             order = "zero"
             warnings.warn(
                 "method=manual and order=first but only a single phase was given, switching to order=zero"
@@ -194,11 +199,11 @@ def autophase(
             and isinstance(phase, _np.ndarray)
             and len(phase) == shape_data[0]
         ):
-            data.attrs["phase_1"] = phase
+            data.attrs["phase1"] = phase
         elif (
             order == "first" and isinstance(phase, list) and len(phase) == shape_data[0]
         ):
-            data.attrs["phase_1"] = _np.array(phase)
+            data.attrs["phase1"] = _np.array(phase)
         else:
             raise ValueError(
                 "Invalid combination of phase order and phase value(s). Supply float for zero order, array or list for first order"
@@ -217,7 +222,7 @@ def autophase(
             temp_data = data.values
 
         if method == "arctan":
-            data.attrs["phase_0"] = _np.arctan(
+            data.attrs["phase0"] = _np.arctan(
                 _np.sum(_np.imag(temp_data.reshape(-1, 1)))
                 / _np.sum(_np.real(temp_data.reshape(-1, 1)))
             )
@@ -227,27 +232,27 @@ def autophase(
             real_imag_ratio = (_np.real(rotated_data) ** 2).sum(axis=0) / (
                 (_np.imag(rotated_data) ** 2).sum(axis=0)
             )
-            data.attrs["phase_0"] = phases_0[_np.argmax(real_imag_ratio)]
+            data.attrs["phase0"] = phases_0[_np.argmax(real_imag_ratio)]
         else:
             raise TypeError("Invalid autophase method")
 
     if order == "zero":
-        data.values *= _np.exp(-1j * data.attrs["phase_0"])
+        data.values *= _np.exp(-1j * data.attrs["phase0"])
     elif order == "first":
         if method == "manual":
-            data.attrs["phase_1"] = phase
+            data.attrs["phase1"] = phase
         else:
             pivot_ratio = pivot / len(data.values)
-            data.attrs["phase_1"] = _np.linspace(
-                data.attrs["phase_0"] - delta * pivot_ratio,
-                data.attrs["phase_0"] + delta * (1 - pivot_ratio),
+            data.attrs["phase1"] = _np.linspace(
+                data.attrs["phase0"] - delta * pivot_ratio,
+                data.attrs["phase0"] + delta * (1 - pivot_ratio),
                 len(data.values),
             )
         if len(shape_data) == 2:
             for ix in range(shape_data[1]):
-                data.values[:, ix] *= _np.exp(-1j * data.attrs["phase_1"])
+                data.values[:, ix] *= _np.exp(-1j * data.attrs["phase1"])
         else:
-            data.values *= _np.exp(-1j * data.attrs["phase_1"])
+            data.values *= _np.exp(-1j * data.attrs["phase1"])
     else:
         raise TypeError("Invalid order or order & phase pair")
 
@@ -322,184 +327,199 @@ def calculate_enhancement(
 
     orig_data, isDict = return_data(all_data)
 
-    if (
-        isinstance(off_spectrum, dnpdata)
-        or isinstance(off_spectrum, dnpdata_collection)
-    ) and (
-        isinstance(on_spectra, dnpdata) or isinstance(on_spectra, dnpdata_collection)
-    ):
+    if any(x[0] == "integrate" for x in all_data["proc"].proc_attrs):
+        enh = _np.real(orig_data.values / orig_data.values[off_spectrum - 1])
+        enhancement_data = dnpdata(enh, [orig_data.coords], [orig_data.dims])
 
-        data_off, is_ws_off = return_data(off_spectrum)
-        data_on, is_ws_on = return_data(on_spectra)
-        if not indirect_dim:
-            if len(data_on.dims) == 2:
-                ind_dim = list(set(data_on.dims) - set([dim]))[0]
-            elif len(data_on.dims) == 1:
-                ind_dim = data_on.dims[0]
-            else:
-                raise ValueError(
-                    "you must specify the indirect dimension, use argument indirect_dim= "
-                )
-        else:
-            ind_dim = indirect_dim
-
-        if integrate_width == "full":
-            int_width_off = "full"
-            int_width_on = "full"
-        elif (
-            isinstance(integrate_width, list)
-            or isinstance(integrate_width, _np.ndarray)
-        ) and len(integrate_width) == 2:
-            int_width_off = integrate_width[0]
-            int_width_on = integrate_width[1]
-        elif isinstance(integrate_width, int):
-            int_width_off = integrate_width
-            int_width_on = integrate_width
-        else:
-            raise ValueError(
-                "integrate_width must be an integer, a list/array with len = 2, or 'full'"
-            )
-
-        if integrate_center == "max":
-            pass
-        elif (
-            isinstance(integrate_center, list)
-            or isinstance(integrate_center, _np.ndarray)
-        ) and len(integrate_center) == 2:
-            int_center_off = integrate_center[0]
-            int_center_on = integrate_center[1]
-        elif isinstance(integrate_center, int):
-            int_center_off = integrate_center
-            int_center_on = integrate_center
-        else:
-            raise ValueError(
-                "integrate_center must be an integer, a list/array with len = 2, or 'max'"
-            )
-
-        if method == "integrate":
-            off_data1 = dnpTools.integrate(
-                data_off,
-                dim=dim,
-                integrate_center=int_center_off,
-                integrate_width=int_width_off,
-            )
-            off_data = off_data1.values
-
-            on_data1 = dnpTools.integrate(
-                data_on,
-                dim=dim,
-                integrate_center=int_center_on,
-                integrate_width=int_width_on,
-            )
-            on_data = on_data1.values
-
-        elif method == "amplitude":
-            on_data = []
-            if integrate_center == "max":
-                off_data = data_off.values[_np.argmax(abs(data_off.values))]
-                if len(data_on.shape) == 1:
-                    on_data.append(data_on.values[_np.argmax(abs(data_on.values))])
-                else:
-                    for indx in range(data_on.shape[-1]):
-                        on_data.append(
-                            data_on.values[_np.argmax(abs(data_on.values[indx])), indx]
-                        )
-            else:
-                off_data = data_off.values[int_center_off]
-                if len(data_on.shape) == 1:
-                    on_data.append(data_on.values[int_center_on])
-                else:
-                    for indx in range(data_on.shape[-1]):
-                        on_data.append(data_on.values[int_center_on, indx])
-
-        if data_on.ndim == 2:
-            enh_coords_on = data_on.coords[ind_dim]
-        else:
-            enh_coords_on = _np.array(range(on_data.shape[-1]))
-
-    elif isinstance(off_spectrum, int) and on_spectra == "all":
-
-        if not indirect_dim:
-            if len(orig_data.dims) == 2:
-                ind_dim = list(set(orig_data.dims) - set([dim]))[0]
-            elif len(orig_data.dims) == 1:
-                ind_dim = orig_data.dims[0]
-            else:
-                raise ValueError(
-                    "you must specify the indirect dimension, use argument indirect_dim= "
-                )
-        else:
-            ind_dim = indirect_dim
-
-        enh_data = copy.deepcopy(all_data)
-        if orig_data.ndim == 1:
-            raise ValueError("data is 1D, enhancement will be equal to 1 !!")
+    else:
 
         if (
-            isinstance(integrate_width, list)
-            or isinstance(integrate_width, _np.ndarray)
-        ) and len(integrate_width) > 1:
-            raise ValueError("supply a single value for integrate_width, or use 'full'")
-        elif isinstance(integrate_width, str) and integrate_width != "full":
-            raise ValueError("the only allowed integrate_width string is 'full'")
+            isinstance(off_spectrum, dnpdata)
+            or isinstance(off_spectrum, dnpdata_collection)
+        ) and (
+            isinstance(on_spectra, dnpdata)
+            or isinstance(on_spectra, dnpdata_collection)
+        ):
 
-        if (
-            isinstance(integrate_center, list)
-            or isinstance(integrate_center, _np.ndarray)
-        ) and len(integrate_center) > 1:
-            raise ValueError("supply a single value for integrate_center, or use 'max'")
-        elif isinstance(integrate_center, str) and integrate_center != "max":
-            raise ValueError("the only allowed integrate_center string is 'max'")
-
-        if off_spectrum == 0:
-            off_spectrum = 1
-
-        if method == "integrate":
-
-            dnpTools.integrate(
-                enh_data,
-                dim=dim,
-                integrate_center=integrate_center,
-                integrate_width=integrate_width,
-            )
-            data, _isDict = return_data(enh_data)
-            data_1 = data.values
-
-        elif method == "amplitude":
-            data_1 = []
-            if integrate_center == "max":
-                for indx in range(orig_data.shape[-1]):
-                    data_1.append(
-                        orig_data.values[_np.argmax(abs(orig_data.values[indx])), indx]
+            data_off, is_ws_off = return_data(off_spectrum)
+            data_on, is_ws_on = return_data(on_spectra)
+            if not indirect_dim:
+                if len(data_on.dims) == 2:
+                    ind_dim = list(set(data_on.dims) - set([dim]))[0]
+                elif len(data_on.dims) == 1:
+                    ind_dim = data_on.dims[0]
+                else:
+                    raise ValueError(
+                        "you must specify the indirect dimension, use argument indirect_dim= "
                     )
             else:
-                for indx in range(orig_data.shape[-1]):
-                    data_1.append(orig_data.values[integrate_center, indx])
+                ind_dim = indirect_dim
 
-        off_data = data_1[off_spectrum - 1]
-        if off_spectrum == 1:
-            on_data = data_1[1:]
-            enh_coords_on = orig_data.coords[ind_dim][1:]
-        elif off_spectrum > 1:
-            on_data_1 = data_1[: off_spectrum - 1]
-            on_coords_1 = orig_data.coords[ind_dim][: off_spectrum - 1]
-            on_data_2 = data_1[off_spectrum:]
-            on_coords_2 = orig_data.coords[ind_dim][off_spectrum:]
-            on_data = _np.concatenate((on_data_1, on_data_2))
-            enh_coords_on = _np.concatenate((on_coords_1, on_coords_2))
-    else:
-        raise TypeError(
-            "the given combination of data, off_spectrum, and on_spectra is not valid"
-        )
+            if integrate_width == "full":
+                int_width_off = "full"
+                int_width_on = "full"
+            elif (
+                isinstance(integrate_width, list)
+                or isinstance(integrate_width, _np.ndarray)
+            ) and len(integrate_width) == 2:
+                int_width_off = integrate_width[0]
+                int_width_on = integrate_width[1]
+            elif isinstance(integrate_width, int):
+                int_width_off = integrate_width
+                int_width_on = integrate_width
+            else:
+                raise ValueError(
+                    "integrate_width must be an integer, a list/array with len = 2, or 'full'"
+                )
 
-    enh = _np.real(_np.array(on_data) / _np.array(off_data))
-    enhancementData = dnpdata(enh, [enh_coords_on], [ind_dim])
+            if integrate_center == "max":
+                pass
+            elif (
+                isinstance(integrate_center, list)
+                or isinstance(integrate_center, _np.ndarray)
+            ) and len(integrate_center) == 2:
+                int_center_off = integrate_center[0]
+                int_center_on = integrate_center[1]
+            elif isinstance(integrate_center, int):
+                int_center_off = integrate_center
+                int_center_on = integrate_center
+            else:
+                raise ValueError(
+                    "integrate_center must be an integer, a list/array with len = 2, or 'max'"
+                )
+
+            if method == "integrate":
+                off_data1 = dnpTools.integrate(
+                    data_off,
+                    dim=dim,
+                    integrate_center=int_center_off,
+                    integrate_width=int_width_off,
+                )
+                off_data = off_data1.values
+
+                on_data1 = dnpTools.integrate(
+                    data_on,
+                    dim=dim,
+                    integrate_center=int_center_on,
+                    integrate_width=int_width_on,
+                )
+                on_data = on_data1.values
+
+            elif method == "amplitude":
+                on_data = []
+                if integrate_center == "max":
+                    off_data = data_off.values[_np.argmax(abs(data_off.values))]
+                    if len(data_on.shape) == 1:
+                        on_data.append(data_on.values[_np.argmax(abs(data_on.values))])
+                    else:
+                        for indx in range(data_on.shape[-1]):
+                            on_data.append(
+                                data_on.values[
+                                    _np.argmax(abs(data_on.values[indx])), indx
+                                ]
+                            )
+                else:
+                    off_data = data_off.values[int_center_off]
+                    if len(data_on.shape) == 1:
+                        on_data.append(data_on.values[int_center_on])
+                    else:
+                        for indx in range(data_on.shape[-1]):
+                            on_data.append(data_on.values[int_center_on, indx])
+
+            if data_on.ndim == 2:
+                enh_coords_on = data_on.coords[ind_dim]
+            else:
+                enh_coords_on = _np.array(range(on_data.shape[-1]))
+
+        elif isinstance(off_spectrum, int) and on_spectra == "all":
+
+            if not indirect_dim:
+                if len(orig_data.dims) == 2:
+                    ind_dim = list(set(orig_data.dims) - set([dim]))[0]
+                elif len(orig_data.dims) == 1:
+                    ind_dim = orig_data.dims[0]
+                else:
+                    raise ValueError(
+                        "you must specify the indirect dimension, use argument indirect_dim= "
+                    )
+            else:
+                ind_dim = indirect_dim
+
+            enh_data = copy.deepcopy(all_data)
+            if orig_data.ndim == 1:
+                raise ValueError("data is 1D, enhancement will be equal to 1 !!")
+
+            if (
+                isinstance(integrate_width, list)
+                or isinstance(integrate_width, _np.ndarray)
+            ) and len(integrate_width) > 1:
+                raise ValueError(
+                    "supply a single value for integrate_width, or use 'full'"
+                )
+            elif isinstance(integrate_width, str) and integrate_width != "full":
+                raise ValueError("the only allowed integrate_width string is 'full'")
+
+            if (
+                isinstance(integrate_center, list)
+                or isinstance(integrate_center, _np.ndarray)
+            ) and len(integrate_center) > 1:
+                raise ValueError(
+                    "supply a single value for integrate_center, or use 'max'"
+                )
+            elif isinstance(integrate_center, str) and integrate_center != "max":
+                raise ValueError("the only allowed integrate_center string is 'max'")
+
+            if off_spectrum == 0:
+                off_spectrum = 1
+
+            if method == "integrate":
+
+                dnpTools.integrate(
+                    enh_data,
+                    dim=dim,
+                    integrate_center=integrate_center,
+                    integrate_width=integrate_width,
+                )
+                data, _isDict = return_data(enh_data)
+                data_1 = data.values
+
+            elif method == "amplitude":
+                data_1 = []
+                if integrate_center == "max":
+                    for indx in range(orig_data.shape[-1]):
+                        data_1.append(
+                            orig_data.values[
+                                _np.argmax(abs(orig_data.values[indx])), indx
+                            ]
+                        )
+                else:
+                    for indx in range(orig_data.shape[-1]):
+                        data_1.append(orig_data.values[integrate_center, indx])
+
+            off_data = data_1[off_spectrum - 1]
+            if off_spectrum == 1:
+                on_data = data_1[1:]
+                enh_coords_on = orig_data.coords[ind_dim][1:]
+            elif off_spectrum > 1:
+                on_data_1 = data_1[: off_spectrum - 1]
+                on_coords_1 = orig_data.coords[ind_dim][: off_spectrum - 1]
+                on_data_2 = data_1[off_spectrum:]
+                on_coords_2 = orig_data.coords[ind_dim][off_spectrum:]
+                on_data = _np.concatenate((on_data_1, on_data_2))
+                enh_coords_on = _np.concatenate((on_coords_1, on_coords_2))
+        else:
+            raise TypeError(
+                "the given combination of data, off_spectrum, and on_spectra is not valid"
+            )
+
+        enh = _np.real(_np.array(on_data) / _np.array(off_data))
+        enhancement_data = dnpdata(enh, [enh_coords_on], [ind_dim])
 
     if isDict:
-        all_data["enhancement"] = enhancementData
+        all_data["enhancement"] = enhancement_data
         return all_data
     else:
-        return enhancementData
+        return enhancement_data
 
 
 def fourier_transform(

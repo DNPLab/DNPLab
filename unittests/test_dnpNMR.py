@@ -120,8 +120,8 @@ class dnpNMR_tester(unittest.TestCase):
         self.assertAlmostEqual(
             min(self.ws["proc"].values[:, 3].real), -65.59778997862813, places=4
         )
-        phs0 = self.ws["proc"].attrs["phase_0"]
-        phs1 = self.ws["proc"].attrs["phase_1"]
+        phs0 = self.ws["proc"].attrs["phase0"]
+        phs1 = self.ws["proc"].attrs["phase1"]
         self.assertEqual(len(phs1), len(self.ws["proc"].values))
         self.ws.copy("proc", "keep")
         self.ws.copy("temp", "proc")
