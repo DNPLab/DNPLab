@@ -226,8 +226,10 @@ def integrate(
 
     if len(data.dims) == 2:
         ind_dim = list(set(data.dims) - set([dim]))[0]
+        indirect_coords = data.coords[ind_dim]
     elif len(data.dims) == 1:
-        ind_dim = data.dims[0]
+        ind_dim = "index"
+        indirect_coords = [0]
 
     data_new = None
     if type == "double":
@@ -289,12 +291,12 @@ def integrate(
             data_integrals.append(np.trapz(x.values, x=x.coords[dim], axis=index))
 
         data.values = np.array(data_integrals)
-        int_coords = [integrate_center, data.coords[ind_dim]]
+        int_coords = [integrate_center, indirect_coords]
         indirect_dim = ["center", ind_dim]
 
     else:
         data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
-        int_coords = [data.coords[ind_dim]]
+        int_coords = [indirect_coords]
         indirect_dim = [ind_dim]
 
     integrate_data = dnpdata(data.values, int_coords, indirect_dim)

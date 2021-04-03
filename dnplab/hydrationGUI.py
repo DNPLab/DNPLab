@@ -734,18 +734,19 @@ class hydrationGUI(QMainWindow):
         indx = range(starting_center - 50, starting_center + 50)
         optcenter_workspace = self.phs_workspace(optcenter_workspace, phase)
         for k in indx:
-            iterativeopt_workspace = copy.deepcopy(optcenter_workspace)
             dnplab.dnpTools.integrate(
-                iterativeopt_workspace,
+                optcenter_workspace,
                 integrate_center=k,
                 integrate_width=width,
             )
-            if len(iterativeopt_workspace["proc"].values) > 1:
+            if len(optcenter_workspace["integrate"].values) > 1:
                 intgrl_array.append(
-                    sum(abs(iterativeopt_workspace["proc"].real.values))
+                    sum(abs(optcenter_workspace["integrate"].real.values))
                 )
             else:
-                intgrl_array.append(abs(iterativeopt_workspace["proc"].real.values[-1]))
+                intgrl_array.append(
+                    abs(optcenter_workspace["integrate"].real.values[-1])
+                )
         cent = np.argmax(intgrl_array)
         self.gui_dict["processing_spec"]["integration_center"] = indx[cent]
 
@@ -774,14 +775,19 @@ class hydrationGUI(QMainWindow):
             )
             imag_sum = []
             for indx, k in enumerate(phases):
-                ws_rot = copy.deepcopy(self.processing_workspace)
-                ws_rot = self.phs_workspace(ws_rot, k)
+                self.processing_workspace = self.phs_workspace(
+                    self.processing_workspace, k
+                )
                 dnplab.dnpTools.integrate(
-                    ws_rot,
+                    self.processing_workspace,
                     integrate_center=starting_center,
                     integrate_width=width * 2,
                 )
-                imag_sum.append(np.sum(abs(ws_rot["proc"].imag.values * -1j)))
+                imag_sum.append(
+                    np.sum(
+                        abs(self.processing_workspace["integrate"].imag.values * -1j)
+                    )
+                )
 
             starting_phase = phases[np.argmin(imag_sum)]
 
@@ -1411,14 +1417,14 @@ class hydrationGUI(QMainWindow):
                 == self.gui_dict["folder_structure"]["p0"]
             ):
                 self.gui_dict["dnpLab_data"]["p0"] = nextproc_workspace[
-                    "proc"
+                    "integrate"
                 ].real.values[0]
             elif (
                 self.gui_dict["rawdata_function"]["folder"]
                 in self.gui_dict["folder_structure"]["enh"]
             ):
                 Ep = (
-                    nextproc_workspace["proc"].real.values[0]
+                    nextproc_workspace["integrate"].real.values[0]
                     / self.gui_dict["dnpLab_data"]["p0"]
                 )
                 self.Ep.append(np.real(Ep))
@@ -1495,7 +1501,7 @@ class hydrationGUI(QMainWindow):
                             "proc"
                         ].coords["t1"]
                         self.gui_dict["t1_fit"]["t1Amps"] = nextproc_workspace[
-                            "proc"
+                            "integrate"
                         ].real.values
 
                         self.gui_dict["t1_fit"]["xaxis"] = nextproc_workspace[
@@ -1950,12 +1956,13 @@ class hydrationGUI(QMainWindow):
             integrate_width=self.gui_dict["processing_spec"]["integration_width"],
         )
 
-        if len(adjslider_workspace["proc"].values) == 1:
+        if len(adjslider_workspace["integrate"].values) == 1:
             pass
         else:
-
             self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords["t1"]
-            self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].real.values
+            self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace[
+                "integrate"
+            ].real.values
 
             try:
                 dnplab.dnpFit.exponential_fit(adjslider_workspace, type="T1")
@@ -1990,11 +1997,11 @@ class hydrationGUI(QMainWindow):
                     "t1"
                 ]
                 self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace[
-                    "proc"
+                    "integrate"
                 ].real.values
 
                 self.gui_dict["t1_fit"]["t1Amps_imag"] = adjslider_workspace[
-                    "proc"
+                    "integrate"
                 ].imag.values
 
                 self.gui_dict["t1_fit"]["xaxis"] = adjslider_workspace["fit"].coords[
