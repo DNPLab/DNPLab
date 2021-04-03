@@ -224,6 +224,11 @@ def integrate(
     data, isDict = return_data(all_data)
     index = data.index(dim)
 
+    if len(data.dims) == 2:
+        ind_dim = list(set(data.dims) - set([dim]))[0]
+    elif len(data.dims) == 1:
+        ind_dim = data.dims[0]
+
     data_new = None
     if type == "double":
         first_int = scipy.integrate.cumtrapz(
@@ -543,7 +548,7 @@ def signal_to_noise(
     +------------------+-------+-----------+------------------------------+
 
     Returns:
-        dnpdata: data object with attr "signal_to_noise" added
+        dnpdata: data object with attr "s_n" added
     """
 
     data, isDict = return_data(all_data)
@@ -604,7 +609,7 @@ def signal_to_noise(
     else:
         raise TypeError("only 1D or 2D data currently supported")
 
-    data.attrs["signal_to_noise"] = s_n
+    data.attrs["s_n"] = s_n
 
     if isDict:
         all_data[all_data.processing_buffer] = data

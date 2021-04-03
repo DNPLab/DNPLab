@@ -88,23 +88,23 @@ def exponential_fit(
 
     data, isDict = return_data(all_data)
 
+    if not indirect_dim:
+        if len(data.dims) == 2:
+            ind_dim = list(set(data.dims) - set([dim]))[0]
+        elif len(data.dims) == 1:
+            ind_dim = data.dims[0]
+        else:
+            raise ValueError(
+                "you must specify the indirect dimension, use argument indirect_dim= "
+            )
+    else:
+        ind_dim = indirect_dim
+
     if ws_key in all_data.keys():
         x_axis = all_data[ws_key].coords
         new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
         input_data = _np.real(all_data[ws_key].values)
     else:
-        if not indirect_dim:
-            if len(data.dims) == 2:
-                ind_dim = list(set(data.dims) - set([dim]))[0]
-            elif len(data.dims) == 1:
-                ind_dim = data.dims[0]
-            else:
-                raise ValueError(
-                    "you must specify the indirect dimension, use argument indirect_dim= "
-                )
-        else:
-            ind_dim = indirect_dim
-
         x_axis = data.coords[ind_dim]
         new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
         input_data = _np.real(data.values)
