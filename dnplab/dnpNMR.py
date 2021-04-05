@@ -845,7 +845,7 @@ def window(
     }
     proc_attr_name = "window"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
-    data.attrs["window"] = apwin
+    # data.attrs["window"] = apwin
 
     if isDict:
         all_data[all_data.processing_buffer] = data

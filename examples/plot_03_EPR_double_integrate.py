@@ -38,7 +38,7 @@ print("BEFORE PROCESSING: " + str(ws["raw"].attrs.keys()))
 # Process EPR Data and Plot Results
 # ---------------------------------
 # In this section, we will demonstrate how to process the EPR data and plot the results. Start with renaming the x-axis to NMR style notation to more seamlessly interact with some functions. "f2" is the default for argument dim.
-ws["proc"].rename("G", "f2")
+# ws["proc"].rename("G", "f2")
 
 # %%
 # You can display the current axis names with
@@ -47,7 +47,9 @@ print("proc axis names: " + str(ws["proc"].dims))
 
 # %%
 # Now, let's perform a baseline correction using a zeroth order polynomial to remove a DC offset
-dnp.dnpTools.baseline(ws, type = "polynomial", order = 0)
+# print(ws["proc"].dims)
+
+dnp.dnpTools.baseline(ws, dim = "B0", type = "polynomial", order = 0)
 
 # %%
 # Keep a copy of the processed spectrum before integrating
@@ -55,11 +57,11 @@ ws.copy("proc", "spec")
 
 # %%
 # Now let's double integrate the EPR spectrum. 
-dnp.dnpTools.integrate(ws, type = "double")
+dnp.dnpTools.integrate(ws, dim = "B0", type = "double")
 
 # %%
 # If needed, access your processed spectrum as follows:
-x_axis = ws["raw"].coords["G"]                          # Imported field axis
+x_axis = ws["raw"].coords["B0"]                          # Imported field axis
 spectrum = ws["spec"].values                            # Spectrum after any processing steps, before integration
 first_integral = ws["proc"].attrs["first_integral"]     # First integral
 double_integral = ws["proc"].values                     # Double integral
@@ -84,11 +86,11 @@ dnp.dnpResults.show()
 import matplotlib.pyplot as plt
 
 plt.figure
-plt.plot(ws["raw"].coords["G"], ws["spec"].values, label = "Corrected EPR Spectrum")
-plt.plot(ws["raw"].coords["G"], ws["raw"].values, label = "Original EPR Spectrum")
-plt.plot(ws["raw"].coords["G"], ws["proc"].attrs["baseline"], label = "Baseline")
+plt.plot(ws["raw"].coords["B0"], ws["spec"].values, label = "Corrected EPR Spectrum")
+plt.plot(ws["raw"].coords["B0"], ws["raw"].values, label = "Original EPR Spectrum")
+plt.plot(ws["raw"].coords["B0"], ws["proc"].attrs["baseline"], label = "Baseline")
 plt.plot(
-    ws["raw"].coords["G"], ws["proc"].attrs["first_integral"], label = "First Integral"
+    ws["raw"].coords["B0"], ws["proc"].attrs["first_integral"], label = "First Integral"
 )
 plt.legend()
 plt.title("EPR Spectrum, Baseline Correction, Double Integration")
