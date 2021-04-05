@@ -20,11 +20,18 @@ ws = dnp.dnpImport.load(file_name_path)
 
 # %%
 # Integrate Calculate DNP Enhancement Factors
-# ---------------------------------
-# The DNP enhancement factors are calculated using the "calculate_enhancement" function. 
+# -------------------------------------------
+# Without the integral region the calculate_enhancement function will calculate the enhancement over the entire spectrum
+# First lets take a look at the data that is in the workspace
 
+print(ws.keys())
 
+# %%
+# Now integrate First define the integral region
 
+dnp.dnpTools.integrate(ws["Aligned"], integrate_center = [2, 7], integrate_width = [1, 1])
+
+print(ws.keys())
 
 
 # dnp.dnpNMR.calculate_enhancement(ws, off_spectrum = 0)
