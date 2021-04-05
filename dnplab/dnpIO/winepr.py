@@ -170,6 +170,10 @@ def load_spc(path, params):
     ]:
         dims = ["t2"]
     elif params["x_unit"] in ["G", "mT", "T", "Field", "field"]:
+        if params["x_unit"] == "G":
+            abscissa = [x / 10 for x in abscissa]
+        elif params["x_unit"] == "T":
+            abscissa = [x * 1000 for x in abscissa]
         dims = ["B0"]
     else:
         dims = ["t2"]
