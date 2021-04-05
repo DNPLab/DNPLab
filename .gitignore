@@ -1,3 +1,6 @@
+#DNPLab
+*.h5
+
 # VS Code
 .vscode/*
 

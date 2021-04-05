@@ -99,8 +99,8 @@ dnp.dnpResults.show()
 # -------------------------
 # DNPLab has built-in capabilities to save large data sets, so we can save the already concatenated and processed NMR data in a single file and load just this file for further processing.
 
-# file_name_path = "../data/prospa/toluene_10mM_Tempone/PowerBuildUp.h5"
-# dnp.dnpSave.save(ws,file_name_path)
+file_name_path = "../data/prospa/toluene_10mM_Tempone/PowerBuildUp.h5"
+dnp.dnpSave.save(ws,file_name_path, overwrite = True)
 
 # # %%
 # # Here the 2D dnpdata object is stored in "PowerBuildUp.h5" in the hdf5 file format.
