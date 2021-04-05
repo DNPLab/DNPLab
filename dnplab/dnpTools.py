@@ -304,7 +304,7 @@ def integrate(
         integrate_data.attrs["first_integral"] = first_int
 
     if isDict:
-        all_data["integrate"] = integrate_data
+        all_data["integrals"] = integrate_data
         return all_data
     else:
         return integrate_data

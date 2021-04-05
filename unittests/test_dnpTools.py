@@ -94,34 +94,34 @@ class dnpTools_tester(unittest.TestCase):
         ws2 = copy.deepcopy(ws)
         ws3 = copy.deepcopy(ws)
         dnp.dnpTools.integrate(ws, dim="f2", integrate_center=0, integrate_width=50)
-        self.assertEqual((8,), np.shape(ws["integrate"].values))
+        self.assertEqual((8,), np.shape(ws["integrals"].values))
         self.assertAlmostEqual(
-            max(ws["integrate"].values.real), 6170.447249940133, places=4
+            max(ws["integrals"].values.real), 6170.447249940133, places=4
         )
         self.assertAlmostEqual(
-            min(ws["integrate"].values.real), -7188.897892203664, places=4
+            min(ws["integrals"].values.real), -7188.897892203664, places=4
         )
 
         dnp.dnpTools.integrate(
             ws2, dim="f2", integrate_center=[-10, 0, 10], integrate_width=50
         )
-        self.assertEqual((3, 8), np.shape(ws2["integrate"].values))
+        self.assertEqual((3, 8), np.shape(ws2["integrals"].values))
         self.assertAlmostEqual(
-            max(ws2["integrate"].values.real[1]), 6170.447249940133, places=4
+            max(ws2["integrals"].values.real[1]), 6170.447249940133, places=4
         )
         self.assertAlmostEqual(
-            min(ws2["integrate"].values.real[1]), -7188.897892203664, places=4
+            min(ws2["integrals"].values.real[1]), -7188.897892203664, places=4
         )
 
         dnp.dnpTools.integrate(
             ws3, dim="f2", integrate_center=[-10, 0, 10], integrate_width=[10, 50, 10]
         )
-        self.assertEqual((3, 8), np.shape(ws2["integrate"].values))
+        self.assertEqual((3, 8), np.shape(ws2["integrals"].values))
         self.assertAlmostEqual(
-            max(ws3["integrate"].values.real[1]), 6170.447249940133, places=4
+            max(ws3["integrals"].values.real[1]), 6170.447249940133, places=4
         )
         self.assertAlmostEqual(
-            min(ws3["integrate"].values.real[1]), -7188.897892203664, places=4
+            min(ws3["integrals"].values.real[1]), -7188.897892203664, places=4
         )
 
     def test_mr_properties(self):

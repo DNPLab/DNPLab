@@ -48,7 +48,7 @@ def exponential_fit(
     stretched=False,
     dim="t1",
     indirect_dim=None,
-    ws_key="integrate",
+    ws_key="integrals",
 ):
     """Fits various forms of exponential functions
 
@@ -77,7 +77,7 @@ def exponential_fit(
     +---------------+------+-------------+-----------------------------------------------------------------------------------+
     | indirect_dim  | str  | None        | indirect dimension                                                                |
     +---------------+------+-------------+-----------------------------------------------------------------------------------+
-    | ws_key        | str  | "integrate" | if False "p" is set to 1, if True "p" is a fit parameter                          |
+    | ws_key        | str  | "integrals" | if False "p" is set to 1, if True "p" is a fit parameter                          |
     +---------------+------+-------------+-----------------------------------------------------------------------------------+
 
 

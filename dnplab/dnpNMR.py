@@ -299,7 +299,7 @@ def calculate_enhancement(
     method="integrate",
     dim="f2",
     indirect_dim=None,
-    ws_key="integrate",
+    ws_key="integrals",
 ):
     """Calculate enhancement from DNP data
 
@@ -323,10 +323,10 @@ def calculate_enhancement(
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
     | indirect_dim     | str                        | None        | indirect dimension                                                   |
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    | ws_key           | str                        | "integrate" | object to use as values for calculating enhancement                  |
+    | ws_key           | str                        | "integrals" | object to use as values for calculating enhancement                  |
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
     Returns:
-        dnpdata: data object with "enhancement" key added
+        dnpdata: data object with "enhancements" key added
 
     """
     if off_spectrum == 0:
@@ -490,7 +490,7 @@ def calculate_enhancement(
                     integrate_center=integrate_center,
                     integrate_width=integrate_width,
                 )
-                on_data = enh_data["integrate"].values
+                on_data = enh_data["integrals"].values
 
             elif method == "amplitude":
                 on_data = []
@@ -517,7 +517,7 @@ def calculate_enhancement(
         enhancement_data = dnpdata(enh, [enh_coords_on], [ind_dim])
 
     if isDict:
-        all_data["enhancement"] = enhancement_data
+        all_data["enhancements"] = enhancement_data
         return all_data
     else:
         return enhancement_data

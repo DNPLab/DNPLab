@@ -736,13 +736,13 @@ class hydrationGUI(QMainWindow):
                 integrate_center=k,
                 integrate_width=width,
             )
-            if len(optcenter_workspace["integrate"].values) > 1:
+            if len(optcenter_workspace["integrals"].values) > 1:
                 intgrl_array.append(
-                    sum(abs(optcenter_workspace["integrate"].real.values))
+                    sum(abs(optcenter_workspace["integrals"].real.values))
                 )
             else:
                 intgrl_array.append(
-                    abs(optcenter_workspace["integrate"].real.values[-1])
+                    abs(optcenter_workspace["integrals"].real.values[-1])
                 )
         cent = np.argmax(intgrl_array)
         self.gui_dict["processing_spec"]["integration_center"] = indx[cent]
@@ -782,7 +782,7 @@ class hydrationGUI(QMainWindow):
                 )
                 imag_sum.append(
                     np.sum(
-                        abs(self.processing_workspace["integrate"].imag.values * -1j)
+                        abs(self.processing_workspace["integrals"].imag.values * -1j)
                     )
                 )
 
@@ -1414,14 +1414,14 @@ class hydrationGUI(QMainWindow):
                 == self.gui_dict["folder_structure"]["p0"]
             ):
                 self.gui_dict["dnpLab_data"]["p0"] = nextproc_workspace[
-                    "integrate"
+                    "integrals"
                 ].real.values[0]
             elif (
                 self.gui_dict["rawdata_function"]["folder"]
                 in self.gui_dict["folder_structure"]["enh"]
             ):
                 Ep = (
-                    nextproc_workspace["integrate"].real.values[0]
+                    nextproc_workspace["integrals"].real.values[0]
                     / self.gui_dict["dnpLab_data"]["p0"]
                 )
                 self.Ep.append(np.real(Ep))
@@ -1498,7 +1498,7 @@ class hydrationGUI(QMainWindow):
                             "proc"
                         ].coords["t1"]
                         self.gui_dict["t1_fit"]["t1Amps"] = nextproc_workspace[
-                            "integrate"
+                            "integrals"
                         ].real.values
 
                         self.gui_dict["t1_fit"]["xaxis"] = nextproc_workspace[
@@ -1953,12 +1953,12 @@ class hydrationGUI(QMainWindow):
             integrate_width=self.gui_dict["processing_spec"]["integration_width"],
         )
 
-        if len(adjslider_workspace["integrate"].values) == 1:
+        if len(adjslider_workspace["integrals"].values) == 1:
             pass
         else:
             self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords["t1"]
             self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace[
-                "integrate"
+                "integrals"
             ].real.values
 
             try:
@@ -1994,11 +1994,11 @@ class hydrationGUI(QMainWindow):
                     "t1"
                 ]
                 self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace[
-                    "integrate"
+                    "integrals"
                 ].real.values
 
                 self.gui_dict["t1_fit"]["t1Amps_imag"] = adjslider_workspace[
-                    "integrate"
+                    "integrals"
                 ].imag.values
 
                 self.gui_dict["t1_fit"]["xaxis"] = adjslider_workspace["fit"].coords[
