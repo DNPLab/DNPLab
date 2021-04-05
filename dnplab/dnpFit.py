@@ -224,12 +224,12 @@ def enhancement_fit(dataDict):
 
     data, isDict = return_data(all_data)
 
-    if "enhancement" not in all_data.keys():
+    if "enhancements" not in all_data.keys():
         raise TypeError("please use dnpNMR.calculate_enhancement() first")
 
-    power_axes = all_data["enhancement"].coords["power"]
+    power_axes = all_data["enhancements"].coords["power"]
 
-    input_data = _np.real(all_data["enhancement"].values)
+    input_data = _np.real(all_data["enhancements"].values)
 
     x0 = [input_data[-1], 0.1]
 
