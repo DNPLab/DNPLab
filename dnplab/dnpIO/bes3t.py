@@ -197,7 +197,20 @@ def load_dta(path_dta, path_ygf, params):
             params["x_points"],
         )
     ]
-    dims = [params["x_unit"]]
+
+    if "x_unit" not in params.keys() or params["x_unit"] in [
+        "s",
+        "ms",
+        "ns",
+        "ps",
+        "Time",
+        "time",
+    ]:
+        dims = ["t2"]
+    elif params["x_unit"] in ["G", "mT", "T", "Field", "field"]:
+        dims = ["B0"]
+    else:
+        dims = ["t2"]
 
     if params["data_type"] == "CPLX":
         spec = spec.astype(dtype=params["sweep_format"]).view(dtype=np.dtype("complex"))
@@ -205,9 +218,10 @@ def load_dta(path_dta, path_ygf, params):
     if "y_points" in params.keys() and params["y_points"] != 1:
         spec = np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
 
-        dims.append(params["y_unit"])
-        if dims[0] == dims[1]:
-            dims = ["t2", "t1"]
+        if "y_unit" in params.keys():
+            dims.append(params["y_unit"])
+        else:
+            dims.append("t1")
 
         if path_ygf != "none":
             if params["slice_type"] == "linear":
