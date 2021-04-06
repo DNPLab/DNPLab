@@ -1,8 +1,35 @@
 import os
 from . import dnpIO
 
+from .dnpTools import concat
 
-def load(path, data_type=None, *args, **kwargs):
+
+def load(path, data_type=None, dim=None, coord=None, *args, **kwargs):
+    """Import data from different spectrometer formats
+
+    Args:
+        path (str): Path to data directory or file
+        data_type (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+
+    Returns:
+        data (dnpData): Data object
+    """
+
+    if isinstance(path, list):
+        data_list = []
+        if dim is None:
+            dim = "unnamed"
+        for filename in path:
+            data = load_file(filename, data_type=data_type, *args, **kwargs)
+            data_list.append(data)
+
+        return concat(data_list, dim=dim, coord=coord)
+
+    else:
+        return load_file(path, data_type=data_type, *args, **kwargs)
+
+
+def load_file(path, data_type=None, *args, **kwargs):
     """Import data from different spectrometer formats
 
     Args:

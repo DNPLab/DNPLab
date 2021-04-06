@@ -6,7 +6,7 @@ import scipy.integrate
 from .mrProperties import gmrProperties, radicalProperties
 
 
-def concat(data_list, dim, coord):
+def concat(data_list, dim, coord=None):
     """Concatenates list of data objects down another dimension
 
     args:
@@ -19,7 +19,17 @@ def concat(data_list, dim, coord):
 
     """
 
+    shape = data_list[0].shape
     values_list = [data.values for data in data_list]
+
+    for values in values_list:
+        this_shape = values.shape
+        if this_shape != shape:
+            raise IndexError(
+                "Cannot concatenate data objects. Array shapes do not match.",
+                this_shape,
+                shape,
+            )
 
     dims = data_list[0].dims
     coords = data_list[0].coords.coords
@@ -28,7 +38,11 @@ def concat(data_list, dim, coord):
     values = np.stack(values_list, axis=-1)
 
     dims.append(dim)
-    coords.append(coord)
+
+    if coord is None:
+        coords.append(values_list)
+    else:
+        coords.append(coord)
 
     data = dnpdata(values, coords, dims, attrs)
 
@@ -191,17 +205,17 @@ def integrate(
     Args:
         all_data (dnpdata,dict): Data container
 
-    +------------------+-------+----------+-------------------------------+
-    | parameter        | type  | default  | description                   |
-    +==================+=======+==========+===============================+
-    | dim              | str   | 'f2'     | dimension to integrate        |
-    +------------------+-------+----------+-------------------------------+
-    | type             | str   | 'single' | 'single' or 'double' integral |
-    +------------------+-------+----------+-------------------------------+
-    | integrate_center | float | 0        | center of integration window  |
-    +------------------+-------+----------+-------------------------------+
-    | integrate_width  | float | 100      | width of integration window   |
-    +------------------+-------+----------+-------------------------------+
+    +------------------+---------------+----------+-------------------------------+
+    | parameter        | type          | default  | description                   |
+    +==================+===============+==========+===============================+
+    | dim              | str           | 'f2'     | dimension to integrate        |
+    +------------------+---------------+----------+-------------------------------+
+    | type             | str           | 'single' | 'single' or 'double' integral |
+    +------------------+---------------+----------+-------------------------------+
+    | integrate_center | float or list | 0        | center of integration window  |
+    +------------------+---------------+----------+-------------------------------+
+    | integrate_width  | float or list | "full"   | width of integration window   |
+    +------------------+---------------+----------+-------------------------------+
 
     Returns:
         dnpdata: integrals of data
@@ -210,39 +224,90 @@ def integrate(
     data, isDict = return_data(all_data)
     index = data.index(dim)
 
+    if len(data.dims) == 2:
+        ind_dim = list(set(data.dims) - set([dim]))[0]
+        indirect_coords = data.coords[ind_dim]
+    elif len(data.dims) == 1:
+        ind_dim = "index"
+        indirect_coords = [0]
+
+    data_new = None
     if type == "double":
-        data.attrs["first_integral"] = scipy.integrate.cumtrapz(
+        first_int = scipy.integrate.cumtrapz(
             data.values, x=data.coords[dim], axis=index, initial=0
         )
-        data.values = data.attrs["first_integral"]
+        data.values = first_int
 
     if integrate_width == "full":
         pass
-    elif isinstance(integrate_width, int) or isinstance(integrate_width, float):
+    elif (isinstance(integrate_width, int) or isinstance(integrate_width, float)) and (
+        isinstance(integrate_center, int) or isinstance(integrate_center, float)
+    ):
         integrateMin = integrate_center - np.abs(integrate_width) / 2.0
         integrateMax = integrate_center + np.abs(integrate_width) / 2.0
         data = data[dim, (integrateMin, integrateMax)]
+
+    elif (
+        (isinstance(integrate_width, list) and isinstance(integrate_center, list))
+        and (all((isinstance(x, int) or isinstance(x, float)) for x in integrate_width))
+        and (
+            all((isinstance(x, int) or isinstance(x, float)) for x in integrate_center)
+        )
+    ):
+        if len(integrate_width) != len(integrate_center):
+            raise TypeError(
+                "If integrate_center and integrate_width are both lists, they must be the same length"
+            )
+
+        integrateMin = []
+        integrateMax = []
+        for x, cent in enumerate(integrate_center):
+            integrateMin.append((cent - np.abs(integrate_width[x]) / 2.0))
+            integrateMax.append((cent + np.abs(integrate_width[x]) / 2.0))
+        data_new = []
+        for mx, mn in enumerate(integrateMin):
+            data_new.append(data[dim, (mn, integrateMax[mx])])
+    elif (
+        (isinstance(integrate_width, int) or isinstance(integrate_width, float))
+        and isinstance(integrate_center, list)
+    ) and (all((isinstance(x, int) or isinstance(x, float)) for x in integrate_center)):
+        integrateMin = []
+        integrateMax = []
+        for cent in integrate_center:
+            integrateMin.append((cent - np.abs(integrate_width) / 2.0))
+            integrateMax.append((cent + np.abs(integrate_width) / 2.0))
+        data_new = []
+        for mx, mn in enumerate(integrateMin):
+            data_new.append(data[dim, (mn, integrateMax[mx])])
+
     else:
-        raise ValueError("integrate_width must be 'full', int, or float")
+        raise ValueError(
+            "integrate_width must be 'full', int, float, or list of int or float; integrate_center must be int, float, or list of ints or floats"
+        )
 
-    data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
+    if data_new and isinstance(data_new, list):
+        data_integrals = []
+        for x in data_new:
+            data_integrals.append(np.trapz(x.values, x=x.coords[dim], axis=index))
 
-    data.coords.pop(dim)
+        data.values = np.array(data_integrals)
+        int_coords = [integrate_center, indirect_coords]
+        indirect_dim = ["center", ind_dim]
 
-    proc_parameters = {
-        "dim": dim,
-        "integrate_center": integrate_center,
-        "integrate_width": integrate_width,
-    }
+    else:
+        data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
+        int_coords = [indirect_coords]
+        indirect_dim = [ind_dim]
 
-    proc_attr_name = "integrate"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    integrate_data = dnpdata(data.values, int_coords, indirect_dim)
+    if type == "double":
+        integrate_data.attrs["first_integral"] = first_int
 
     if isDict:
-        all_data[all_data.processing_buffer] = data
+        all_data["integrals"] = integrate_data
         return all_data
     else:
-        return data
+        return integrate_data
 
 
 def mr_properties(nucleus, *args):
@@ -485,7 +550,7 @@ def signal_to_noise(
     +------------------+-------+-----------+------------------------------+
 
     Returns:
-        dnpdata: data object with attr "signal_to_noise" added
+        dnpdata: data object with attr "s_n" added
     """
 
     data, isDict = return_data(all_data)
@@ -546,7 +611,7 @@ def signal_to_noise(
     else:
         raise TypeError("only 1D or 2D data currently supported")
 
-    data.attrs["signal_to_noise"] = s_n
+    data.attrs["s_n"] = s_n
 
     if isDict:
         all_data[all_data.processing_buffer] = data
