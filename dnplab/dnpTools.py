@@ -224,9 +224,16 @@ def integrate(
     data, isDict = return_data(all_data)
     index = data.index(dim)
 
+    if len(data.dims) == 2:
+        ind_dim = list(set(data.dims) - set([dim]))[0]
+        indirect_coords = data.coords[ind_dim]
+    elif len(data.dims) == 1:
+        ind_dim = "index"
+        indirect_coords = [0]
+
     data_new = None
     if type == "double":
-        data.attrs["first_integral"] = scipy.integrate.cumtrapz(
+        first_int = scipy.integrate.cumtrapz(
             data.values, x=data.coords[dim], axis=index, initial=0
         )
         data.values = first_int
@@ -284,26 +291,23 @@ def integrate(
             data_integrals.append(np.trapz(x.values, x=x.coords[dim], axis=index))
 
         data.values = np.array(data_integrals)
+        int_coords = [integrate_center, indirect_coords]
+        indirect_dim = ["center", ind_dim]
 
     else:
         data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
+        int_coords = [indirect_coords]
+        indirect_dim = [ind_dim]
 
-    data.coords.pop(dim)
-
-    proc_parameters = {
-        "dim": dim,
-        "integrate_center": integrate_center,
-        "integrate_width": integrate_width,
-    }
-
-    proc_attr_name = "integrate"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    integrate_data = dnpdata(data.values, int_coords, indirect_dim)
+    if type == "double":
+        integrate_data.attrs["first_integral"] = first_int
 
     if isDict:
-        all_data[all_data.processing_buffer] = data
+        all_data["integrals"] = integrate_data
         return all_data
     else:
-        return data
+        return integrate_data
 
 
 def mr_properties(nucleus, *args):
@@ -546,7 +550,7 @@ def signal_to_noise(
     +------------------+-------+-----------+------------------------------+
 
     Returns:
-        dnpdata: data object with attr "signal_to_noise" added
+        dnpdata: data object with attr "s_n" added
     """
 
     data, isDict = return_data(all_data)
@@ -607,7 +611,7 @@ def signal_to_noise(
     else:
         raise TypeError("only 1D or 2D data currently supported")
 
-    data.attrs["signal_to_noise"] = s_n
+    data.attrs["s_n"] = s_n
 
     if isDict:
         all_data[all_data.processing_buffer] = data

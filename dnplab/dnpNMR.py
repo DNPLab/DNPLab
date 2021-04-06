@@ -299,6 +299,7 @@ def calculate_enhancement(
     method="integrate",
     dim="f2",
     indirect_dim=None,
+    ws_key="integrals",
 ):
     """Calculate enhancement from DNP data
 
@@ -322,9 +323,10 @@ def calculate_enhancement(
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
     | indirect_dim     | str                        | None        | indirect dimension                                                   |
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-
+    | ws_key           | str                        | "integrals" | object to use as values for calculating enhancement                  |
+    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
     Returns:
-        dnpdata: data object with "enhancement" key added
+        dnpdata: data object with "enhancements" key added
 
     """
     if off_spectrum == 0:
@@ -334,9 +336,13 @@ def calculate_enhancement(
 
     orig_data, isDict = return_data(all_data)
 
-    if any(x[0] == "integrate" for x in all_data["proc"].proc_attrs):
-        enh = _np.real(orig_data.values / orig_data.values[off_spectrum - 1])
-        enhancement_data = dnpdata(enh, [orig_data.coords], [orig_data.dims])
+    if ws_key in all_data.keys():
+        enh = _np.real(
+            all_data[ws_key].values / all_data[ws_key].values[off_spectrum - 1]
+        )
+        enhancement_data = dnpdata(
+            enh, [all_data[ws_key].coords], [all_data[ws_key].dims]
+        )
 
     else:
 
@@ -484,8 +490,7 @@ def calculate_enhancement(
                     integrate_center=integrate_center,
                     integrate_width=integrate_width,
                 )
-                data, _isDict = return_data(enh_data)
-                on_data = data.values
+                on_data = enh_data["integrals"].values
 
             elif method == "amplitude":
                 on_data = []
@@ -512,7 +517,7 @@ def calculate_enhancement(
         enhancement_data = dnpdata(enh, [enh_coords_on], [ind_dim])
 
     if isDict:
-        all_data["enhancement"] = enhancement_data
+        all_data["enhancements"] = enhancement_data
         return all_data
     else:
         return enhancement_data
