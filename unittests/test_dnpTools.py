@@ -93,11 +93,35 @@ class dnpTools_tester(unittest.TestCase):
         nmr.fourier_transform(ws, zero_fill_factor=2)
         nmr.autophase(ws, method="arctan")
 
+        ws2 = copy.deepcopy(ws)
+        ws3 = copy.deepcopy(ws)
         dnp.dnpTools.integrate(ws, dim="f2", integrate_center=0, integrate_width=50)
         self.assertEqual((8,), np.shape(ws["proc"].values))
         self.assertAlmostEqual(max(ws["proc"].values.real), 6170.447249940133, places=4)
         self.assertAlmostEqual(
             min(ws["proc"].values.real), -7188.897892203664, places=4
+        )
+
+        dnp.dnpTools.integrate(
+            ws2, dim="f2", integrate_center=[-10, 0, 10], integrate_width=50
+        )
+        self.assertEqual((3, 8), np.shape(ws2["proc"].values))
+        self.assertAlmostEqual(
+            max(ws2["proc"].values.real[1]), 6170.447249940133, places=4
+        )
+        self.assertAlmostEqual(
+            min(ws2["proc"].values.real[1]), -7188.897892203664, places=4
+        )
+
+        dnp.dnpTools.integrate(
+            ws3, dim="f2", integrate_center=[-10, 0, 10], integrate_width=[10, 50, 10]
+        )
+        self.assertEqual((3, 8), np.shape(ws2["proc"].values))
+        self.assertAlmostEqual(
+            max(ws3["proc"].values.real[1]), 6170.447249940133, places=4
+        )
+        self.assertAlmostEqual(
+            min(ws3["proc"].values.real[1]), -7188.897892203664, places=4
         )
 
     def test_mr_properties(self):
