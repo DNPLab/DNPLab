@@ -325,6 +325,7 @@ def calculate_enhancement(
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
     | ws_key           | str                        | "integrals" | object to use as values for calculating enhancement                  |
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+    
     Returns:
         dnpdata: data object with "enhancements" key added
 
