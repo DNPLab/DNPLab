@@ -79,11 +79,9 @@ class dnpdata(nddata.nddata_core):
 
         string += "attrs:\n"
 
-        max_attrs = 5
-
         for ix, key in enumerate(self.attrs.keys()):
-            if ix == max_attrs:
-                string += "\t+%i attrs" % (len(self.attrs) - max_attrs)
+            if ix == max_print_attrs:
+                string += "\t+%i attrs" % (len(self.attrs) - max_print_attrs)
                 break
             string += "\t{!r}: {!r}\n".format(key, self.attrs[key])
 
