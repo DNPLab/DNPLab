@@ -6,7 +6,7 @@
 08 - Calculate DNP Enhancements (II)
 ====================================
 
-This is a slightly more advanaced example demonstrating how to ingegrate multiple regions of an NMR spectrum and calculate the DNP enhancement for two different regions.
+In an earlier tutorial (:ref:`05-calculate-dnp-enhancements-i`) we demonstrated how to use DNPLab to calculate DNP enhancement factors by simply integrating over the entire NMR spectrum. This is a slightly more advanced example demonstrating how to ingegrate multiple regions of an NMR spectrum and calculate the DNP enhancement for two different regions.
 """
 # %%
 # Load NMR Spectra
@@ -29,9 +29,9 @@ print(ws.keys())
 # %%
 # Now integrate First define the integral region
 
-dnp.dnpTools.integrate(ws["Aligned"], integrate_center = [2, 7], integrate_width = [1, 1])
+# dnp.dnpTools.integrate(ws["Aligned"], integrate_center = [2, 7], integrate_width = [1, 1])
 
-print(ws.keys())
+# print(ws.keys())
 
 
 # dnp.dnpNMR.calculate_enhancement(ws, off_spectrum = 0)
