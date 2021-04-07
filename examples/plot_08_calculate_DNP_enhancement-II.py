@@ -27,11 +27,20 @@ ws = dnp.dnpImport.load(file_name_path)
 print(ws.keys())
 
 # %%
+# We can see that there are four keys in the workspace: "Aligned", "NotAligned"," proc", and "raw". 
+# %%
 # Now integrate First define the integral region
 
-dnp.dnpTools.integrate(ws["Aligned"], integrate_center = [2, 7], integrate_width = [1, 1])
+
+ws.processing_buffer = "Aligned"
+
+dnp.dnpTools.integrate(ws, integrate_center = [2, 7], integrate_width = [1, 1])
+
+ws.processing_buffer = "proc"
+
 
 print(ws.keys())
+
 
 
 # dnp.dnpNMR.calculate_enhancement(ws, off_spectrum = 0)
@@ -50,10 +59,13 @@ print(ws.keys())
 # # ---------------------
 # # Finally, we can plot the enhancement data versus the microwave power.
 
-# dnp.dnpResults.figure()
+ws["integrals"].reorder(["power"])
+
+dnp.dnpResults.figure()
 # dnp.dnpResults.plot(ws["enhancement"],linestyle = '-', marker = 'o', fillstyle = 'none')
+dnp.dnpResults.plot(ws["integrals"])
 # dnp.dnpResults.plt.xlabel("Microwave Power (dBm)")
 # dnp.dnpResults.plt.ylabel("ODNP Enhancement Factor")
-# dnp.dnpResults.plt.title("10 mM TEMPO in Toluene")
-# dnp.dnpResults.plt.grid(True)
-# dnp.dnpResults.show()
+dnp.dnpResults.plt.title("10 mM TEMPO in Toluene")
+dnp.dnpResults.plt.grid(True)
+dnp.dnpResults.show()
