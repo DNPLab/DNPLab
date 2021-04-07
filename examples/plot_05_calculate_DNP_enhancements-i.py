@@ -24,7 +24,7 @@ ws = dnp.dnpImport.load(file_name_path)
 # Calculate DNP Enhancement Factors
 # ---------------------------------
 # The DNP enhancement factors are calculated using the "calculate_enhancement" function. 
-dnp.dnpNMR.calculate_enhancement(ws, off_spectrum = 0)
+dnp.dnpNMR.calculate_enhancement(ws, off_spectrum = 1)
 
 # %%
 # .. note::
@@ -33,7 +33,7 @@ dnp.dnpNMR.calculate_enhancement(ws, off_spectrum = 0)
 
 # %%
 # If needed, access your array of enhancements as:
-enhancements = ws["enhancement"].values
+enhancements = ws["enhancements"].values
 
 # %%
 # Plot Enhancement Data
@@ -41,7 +41,7 @@ enhancements = ws["enhancement"].values
 # Finally, we can plot the enhancement data versus the microwave power.
 
 dnp.dnpResults.figure()
-dnp.dnpResults.plot(ws["enhancement"],linestyle = '-', marker = 'o', fillstyle = 'none')
+dnp.dnpResults.plot(ws["enhancements"],linestyle = '-', marker = 'o', fillstyle = 'none')
 dnp.dnpResults.plt.xlabel("Microwave Power (dBm)")
 dnp.dnpResults.plt.ylabel("ODNP Enhancement Factor")
 dnp.dnpResults.plt.title("10 mM TEMPO in Toluene")
