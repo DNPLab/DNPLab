@@ -61,10 +61,15 @@ dnp.dnpTools.integrate(ws, dim = "B0", type = "double")
 
 # %%
 # If needed, access your processed spectrum as follows:
+
+# print(ws["proc"].keys())
+
 x_axis = ws["raw"].coords["B0"]                          # Imported field axis
 spectrum = ws["spec"].values                            # Spectrum after any processing steps, before integration
-first_integral = ws["proc"].attrs["first_integral"]     # First integral
-double_integral = ws["proc"].values                     # Double integral
+# first_integral = ws["proc"].attrs["first_integral"]     # First integral
+double_integral = ws["integrals"].values                     # Double integral
+print(double_integral)
+
 
 # %%
 # Your originally imported spectrum is still accessible using ws["raw"].values.
@@ -76,24 +81,31 @@ print("AFTER PROCESSING: " + str(ws["proc"].attrs.keys()))
 # First, let's start with plotting the original EPR spectrum (note the 'raw' keyword) using dnpResults
 dnp.dnpResults.plot(ws["raw"])
 dnp.dnpResults.plt.title("EPR Spectrum, raw data")
+dnp.dnpResults.plt.xlabel("Magnetic Field (mT)")
 dnp.dnpResults.plt.grid(True)
 dnp.dnpResults.plt.tight_layout()
 dnp.dnpResults.show()
 
 # %%
+# Note the DC offset of about -0.5.
+
+
+# %%
 # Hint: Use matplotlib to plot arrays such as the attributes "first_integral" or "baseline" over the spectrum, in this case access the spectrum directly as '.values'
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
-plt.figure
-plt.plot(ws["raw"].coords["B0"], ws["spec"].values, label = "Corrected EPR Spectrum")
-plt.plot(ws["raw"].coords["B0"], ws["raw"].values, label = "Original EPR Spectrum")
-plt.plot(ws["raw"].coords["B0"], ws["proc"].attrs["baseline"], label = "Baseline")
-plt.plot(
-    ws["raw"].coords["B0"], ws["proc"].attrs["first_integral"], label = "First Integral"
-)
-plt.legend()
-plt.title("EPR Spectrum, Baseline Correction, Double Integration")
-plt.grid(True)
-plt.tight_layout()
-plt.show()
+
+# plt.figure
+# plt.plot(ws["raw"].coords["B0"], ws["spec"].values, label = "Corrected EPR Spectrum")
+# plt.plot(ws["raw"].coords["B0"], ws["raw"].values, label = "Original EPR Spectrum")
+# plt.plot(ws["raw"].coords["B0"], ws["proc"].attrs["baseline"], label = "Baseline")
+# plt.plot(ws["raw"].coords["B0"], ws["integrals"].values, label = "DI")
+# # plt.plot(
+# #     ws["raw"].coords["B0"], ws["proc"].attrs["first_integral"], label = "First Integral"
+# # )
+# plt.legend()
+# plt.title("EPR Spectrum, Baseline Correction, Double Integration")
+# plt.grid(True)
+# plt.tight_layout()
+# plt.show()
