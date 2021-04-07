@@ -67,7 +67,7 @@ dnp.dnpTools.integrate(ws)
 # # print("T1 value (sec) = " + str(ws["fit"].attrs["t1"]))
 
 dnp.dnpResults.figure()
-dnp.dnpResults.plot(ws["proc"].real, "-o", fillstyle = 'none')
+dnp.dnpResults.plot(ws["integrals"], "o", fillstyle = 'none')
 dnp.dnpResults.plt.xlabel("Time t1 [s]")
 dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")
 dnp.dnpResults.plt.title("Inversion Recovery")
