@@ -45,6 +45,8 @@ class dnpdata(nddata.nddata_core):
         super().__init__(values, dims, coords, attrs)
         self.version = version
         self.proc_attrs = []
+        self.max_print_attrs = 5
+        self.print_values = False
 
     @property
     def _constructor(self):
@@ -68,6 +70,9 @@ class dnpdata(nddata.nddata_core):
 
         string += " {} ({})\n".format(type(self.values).__name__, self.values.dtype)
 
+        if self.print_values is True:
+            string += str(self.values) + '\n'
+
         string += "dims:\n\t"
 
         string += "{}\n".format(self.dims)
@@ -80,8 +85,8 @@ class dnpdata(nddata.nddata_core):
         string += "attrs:\n"
 
         for ix, key in enumerate(self.attrs.keys()):
-            if ix == max_print_attrs:
-                string += "\t+%i attrs" % (len(self.attrs) - max_print_attrs)
+            if ix == self.max_print_attrs:
+                string += "\t+%i attrs" % (len(self.attrs) - self.max_print_attrs)
                 break
             string += "\t{!r}: {!r}\n".format(key, self.attrs[key])
 
