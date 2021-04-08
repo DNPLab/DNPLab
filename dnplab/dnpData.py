@@ -14,6 +14,7 @@ core_attrs_list = ["nmr_frequency"]
 
 np.set_printoptions(threshold=15)
 
+
 class dnpdata(nddata.nddata_core):
     """
     dnpdata Class for handling dnp data
@@ -69,7 +70,7 @@ class dnpdata(nddata.nddata_core):
         string += " {} ({})\n".format(type(self.values).__name__, self.values.dtype)
 
         if self.print_values is True:
-            string += str(self.values) + '\n'
+            string += str(self.values) + "\n"
 
         string += "dims:\n\t"
 
