@@ -5,16 +5,14 @@ from collections.abc import MutableMapping
 
 import numpy as np
 
-from dnplab.core import nddata
+from .core import nddata
+from .version import __version__
 
-version = "1.0"
+version = __version__
 
 core_attrs_list = ["nmr_frequency"]
 
-max_print_attrs = 5
-
 np.set_printoptions(threshold=15)
-
 
 class dnpdata(nddata.nddata_core):
     """
