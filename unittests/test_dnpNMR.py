@@ -44,9 +44,11 @@ class dnpNMR_tester(unittest.TestCase):
             min(self.ws["proc"].values[:, 1].real), -4.131066564358336, places=4
         )
 
+        self.ws.copy("proc", "temp")
         nmr.left_shift(self.ws, shift_points=100)
         shifted_n_pts = np.shape(self.ws["proc"])
         self.assertEqual(shifted_n_pts[0], n_pts[0] - 100)
+        self.ws.copy("temp", "proc")
 
         wf = nmr.hamming_window(len(self.ws["proc"].values))
         self.assertEqual(max(wf), 1.0)
@@ -63,12 +65,11 @@ class dnpNMR_tester(unittest.TestCase):
         nmr.window(self.ws, type="hamming", inverse=True)
         self.assertAlmostEqual(
             max(self.ws["proc"].values[0]),
-            0.5161067112438683 + 0.09394610999972597j,
+            2.5727782192869477 - 4.397983406867447j,
             places=4,
         )
-
         self.ws.copy("temp", "proc")
-        self.ws.pop("temp")
+
         wf = nmr.sin2_window(len(self.ws["proc"]))
         self.assertEqual(max(wf), 1.0)
 
@@ -76,6 +77,16 @@ class dnpNMR_tester(unittest.TestCase):
 
         wf = nmr.exponential_window(self.ws["proc"], "t2", 5)
         self.assertAlmostEqual(min(wf), 0.00035733315645396175, places=4)
+
+        self.ws.copy("proc", "temp")
+        nmr.window(self.ws, type="gaussian", linewidth=[2, 10])
+        self.assertAlmostEqual(
+            max(self.ws["proc"].values[:, 1].real),
+            5.456135803263017,
+            places=4,
+        )
+        self.ws.copy("temp", "proc")
+        self.ws.pop("temp")
 
         nmr.window(self.ws, type="exponential", linewidth=5)
         self.assertEqual(shape_data, np.shape(self.ws))

@@ -780,7 +780,11 @@ def gaussian_window(all_data, dim, lw):
     Returns:
         array: gaussian window function
     """
-    if not isinstance(lw, list) or len(lw) != 2 or any([isinstance(x, list) for x in lw]):
+    if (
+        not isinstance(lw, list)
+        or len(lw) != 2
+        or any([isinstance(x, list) for x in lw])
+    ):
         raise ValueError("lw must a list with len=2 for the gaussian window")
     else:
         data, _ = return_data(all_data)
