@@ -749,6 +749,147 @@ def remove_offset(all_data, dim="t2", offset_points=10):
         return data
 
 
+def exponential_window(all_data, dim, lw):
+    """Calculate exponential window function
+
+    .. math::
+        \mathrm{exponential}  &=  \exp(-2t * \mathrm{linewidth}) &
+
+    Args:
+        all_data (dnpdata, dict): data container
+        dim (str): dimension to window
+        lw (int or float): linewidth
+
+    Returns:
+        array: exponential window function
+    """
+    data, _ = return_data(all_data)
+    return _np.exp(-2 * data.coords[dim] * lw)
+
+
+def gaussian_window(all_data, dim, lw):
+    """Calculate gaussian window function
+
+    .. math::
+        \mathrm{gaussian}  &=  \exp((\mathrm{linewidth[0]} * t) - (\mathrm{linewidth[1]} * t^{2})) &
+
+    Args:
+        all_data (dnpdata, dict): data container
+        dim (str): dimension to window
+
+    Returns:
+        array: gaussian window function
+    """
+    if not isinstance(lw, list) or len(lw) != 2 or any([isinstance(x, list) for x in lw]):
+        raise ValueError("lw must a list with len=2 for the gaussian window")
+    else:
+        data, _ = return_data(all_data)
+        return _np.exp((lw[0] * data.coords[dim]) - (lw[1] * data.coords[dim] ** 2))
+
+
+def hamming_window(dim_size):
+    """Calculate hamming window function
+
+    .. math::
+        \mathrm{hamming}  &=  0.53836 + 0.46164\cos(\pi * n/(N-1)) &
+
+    Args:
+        dim_size(int): length of array to window
+
+    Returns:
+        array: hamming window function
+    """
+    return 0.53836 + 0.46164 * _np.cos(
+        1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
+    )
+
+
+def hann_window(dim_size):
+    """Calculate hann window function
+
+    .. math::
+        \mathrm{han}  &=  0.5 + 0.5\cos(\pi * n/(N-1)) &
+
+    Args:
+        dim_size(int): length of array to window
+
+    Returns:
+        array: hann window function
+    """
+    return 0.5 + 0.5 * _np.cos(1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1))
+
+
+def lorentz_gauss_window(all_data, dim, exp_lw, gauss_lw, gaussian_max=0):
+    """Calculate lorentz-gauss window function
+
+    .. math::
+        \mathrm{lorentz\_gauss} &=  \exp(L -  G^{2}) &
+
+           L(t)    &=  \pi * \mathrm{linewidth[0]} * t &
+
+           G(t)    &=  0.6\pi * \mathrm{linewidth[1]} * (\mathrm{gaussian\_max} * (N - 1) - t) &
+
+
+    Args:
+        all_data (dnpdata, dict): data container
+        dim (str): dimension to window
+        exp_lw (int or float): exponential linewidth
+        gauss_lw (int or float): gaussian linewidth
+        gaussian_max (int): location of maximum in gaussian window
+
+    Returns:
+        array: gauss_lorentz window function
+    """
+    data, _ = return_data(all_data)
+    dim_size = data.coords[dim].size
+    expo = _np.pi * data.coords[dim] * exp_lw
+    gaus = 0.6 * _np.pi * gauss_lw * (gaussian_max * (dim_size - 1) - data.coords[dim])
+    return _np.exp(expo - gaus ** 2).reshape(dim_size)
+
+
+def sin2_window(dim_size):
+    """Calculate sin-squared window function
+
+    .. math::
+        \mathrm{sin2}  &=  \cos((-0.5\pi * n/(N - 1)) + \pi)^{2} &
+
+    Args:
+        dim_size(int): length of array to window
+
+    Returns:
+        array: sin-squared window function
+    """
+    return (
+        _np.cos((-0.5 * _np.pi * _np.arange(dim_size) / (dim_size - 1)) + _np.pi) ** 2
+    )
+
+
+def traf_window(all_data, dim, exp_lw, gauss_lw):
+    """Calculate traf window function
+
+    .. math::
+        \mathrm{traf}           &=  (f1 * (f1 + f2)) / (f1^{2} + f2^{2}) &
+
+               f1(t)   &=  \exp(-t * \pi * \mathrm{linewidth[0]}) &
+
+               f2(t)   &=  \exp((t - T) * \pi * \mathrm{linewidth[1]}) &
+
+
+    Args:
+        all_data (dnpdata, dict): data container
+        dim (str): dimension to window
+        exp_lw (int or float): exponential linewidth
+        gauss_lw (int or float): gaussian linewidth
+
+    Returns:
+        array: traf window function
+    """
+    data, _ = return_data(all_data)
+    E_t = _np.exp(-1 * data.coords[dim] * _np.pi * exp_lw)
+    e_t = _np.exp((data.coords[dim] - max(data.coords[dim])) * _np.pi * gauss_lw)
+    return (E_t * (E_t + e_t)) / ((E_t ** 2) + (e_t ** 2))
+
+
 def window(
     all_data,
     dim="t2",
@@ -812,39 +953,30 @@ def window(
     if (isinstance(linewidth, _np.ndarray) or isinstance(linewidth, list)) and len(
         linewidth
     ) == 2:
-        a = linewidth[0]
-        b = linewidth[1]
+        exp_lw = linewidth[0]
+        gauss_lw = linewidth[1]
     elif isinstance(linewidth, int) or isinstance(linewidth, float):
-        a = linewidth
-        b = linewidth
+        exp_lw = linewidth
+        gauss_lw = linewidth
     else:
         raise ValueError("linewidth must be int/float, or list/ndarray with len==2")
 
     if type == "exponential":
-        apwin = _np.exp(-2 * data.coords[dim] * linewidth)
+        apwin = exponential_window(all_data, dim, linewidth)
     elif type == "gaussian":
-        apwin = _np.exp((a * data.coords[dim]) - (b * data.coords[dim] ** 2))
+        apwin = gaussian_window(all_data, dim, [exp_lw, gauss_lw])
     elif type == "hamming":
-        apwin = 0.53836 + 0.46164 * _np.cos(
-            1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
-        )
+        apwin = hamming_window(dim_size)
     elif type == "hann":
-        apwin = 0.5 + 0.5 * _np.cos(
-            1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
-        )
+        apwin = hann_window(dim_size)
     elif type == "lorentz_gauss":
-        expo = _np.pi * data.coords[dim] * a
-        gaus = 0.6 * _np.pi * b * (gaussian_max * (dim_size - 1) - data.coords[dim])
-        apwin = _np.exp(expo - gaus ** 2).reshape(dim_size)
-    elif type == "sin2":
-        apwin = (
-            _np.cos((-0.5 * _np.pi * _np.arange(dim_size) / (dim_size - 1)) + _np.pi)
-            ** 2
+        apwin = lorentz_gauss_window(
+            all_data, dim, exp_lw, gauss_lw, gaussian_max=gaussian_max
         )
+    elif type == "sin2":
+        apwin = sin2_window(dim_size)
     elif type == "traf":
-        E_t = _np.exp(-1 * data.coords[dim] * _np.pi * a)
-        e_t = _np.exp((data.coords[dim] - max(data.coords[dim])) * _np.pi * b)
-        apwin = (E_t * (E_t + e_t)) / ((E_t ** 2) + (e_t ** 2))
+        apwin = traf_window(all_data, dim, exp_lw, gauss_lw)
     else:
         raise ValueError("Invalid window type")
 
@@ -867,7 +999,6 @@ def window(
     }
     proc_attr_name = "window"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
-    data.attrs["window"] = apwin
 
     if isDict:
         all_data[all_data.processing_buffer] = data
