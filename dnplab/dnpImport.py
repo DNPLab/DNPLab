@@ -16,6 +16,9 @@ def load(path, data_type=None, dim=None, coord=None, *args, **kwargs):
     """
 
     if isinstance(path, list):
+        if coord and len(coord) != len(path):
+            raise ValueError("The length of coord must equal the number of paths given")
+
         data_list = []
         if dim is None:
             dim = "unnamed"
