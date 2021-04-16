@@ -3,19 +3,17 @@ import numpy as _np
 from scipy.optimize import curve_fit
 
 
-def return_data(all_data):
+def return_data(all_data, ws_key = None):
 
     is_workspace = False
     if isinstance(all_data, dnpdata):
         data = all_data.copy()
-    elif isinstance(all_data, dict):
-        raise ValueError("Type dict is not supported")
     elif isinstance(all_data, dnpdata_collection):
         is_workspace = True
-        if all_data.processing_buffer in all_data.keys():
+        if ws_key is None:
             data = all_data[all_data.processing_buffer]
         else:
-            raise ValueError("No data in processing buffer")
+            data = all_data[ws_key]
     else:
         raise ValueError("Data type not supported")
 
@@ -47,7 +45,6 @@ def exponential_fit(
     type="mono",
     stretched=False,
     dim="t1",
-    indirect_dim=None,
     ws_key="integrals",
 ):
     """Fits various forms of exponential functions
@@ -86,28 +83,10 @@ def exponential_fit(
         attributes: "T1" value and "T1_stdd" standard deviation for type="T1", "T2" value and "T2_stdd" standard deviation for type="T2", "tau" and "tau_stdd" for type="mono", or "tau1", "tau1_stdd", "tau2", and "tau2_stdd" for type="bi"
     """
 
-    data, isDict = return_data(all_data)
-
-    if ws_key in all_data.keys():
-        x_axis = all_data[ws_key].coords[dim]
-        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
-        input_data = _np.real(all_data[ws_key].values)
-        ind_dim = dim
-    else:
-        if not indirect_dim:
-            if len(data.dims) == 2:
-                ind_dim = list(set(data.dims) - set([dim]))[0]
-            elif len(data.dims) == 1:
-                ind_dim = data.dims[0]
-            else:
-                raise ValueError(
-                    "you must specify the indirect dimension, use argument indirect_dim= "
-                )
-        else:
-            ind_dim = indirect_dim
-        x_axis = data.coords[ind_dim]
-        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
-        input_data = _np.real(data.values)
+    data, isDict = return_data(all_data, ws_key)
+    x_axis = data.coords[dim]
+    new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
+    input_data = _np.real(data.values)
 
     if type == "T1":
 
@@ -116,7 +95,7 @@ def exponential_fit(
         stdd = _np.sqrt(_np.diag(cov))
         fit = t1_function(new_axis, out[0], out[1], out[2])
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["T1"] = out[0]
         fit_data.attrs["T1_stdd"] = stdd[0]
         fit_data.attrs["M_0"] = out[1]
@@ -139,7 +118,7 @@ def exponential_fit(
             stdd = _np.sqrt(_np.diag(cov))
             fit = t2_function_nostretch(new_axis, out[0], out[1])
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["T2"] = out[1]
         fit_data.attrs["T2_stdd"] = stdd[1]
         fit_data.attrs["M_0"] = out[0]
@@ -153,7 +132,7 @@ def exponential_fit(
         stdd = _np.sqrt(_np.diag(cov))
         fit = exp_fit_func_1(new_axis, out[0], out[1], out[2])
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["tau"] = out[2]
         fit_data.attrs["tau_stdd"] = stdd[2]
         fit_data.attrs["C1"] = out[0]
@@ -166,7 +145,7 @@ def exponential_fit(
         stdd = _np.sqrt(_np.diag(cov))
         fit = exp_fit_func_2(new_axis, out[0], out[1], out[2], out[3], out[4])
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["tau1"] = out[2]
         fit_data.attrs["tau1_stdd"] = stdd[2]
         fit_data.attrs["tau2"] = out[4]
