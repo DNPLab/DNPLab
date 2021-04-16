@@ -5,11 +5,14 @@ from collections.abc import MutableMapping
 
 import numpy as np
 
-from dnplab.core import nddata
+from .core import nddata
+from .version import __version__
 
-version = "1.0"
+version = __version__
 
 core_attrs_list = ["nmr_frequency"]
+
+np.set_printoptions(threshold=15)
 
 
 class dnpdata(nddata.nddata_core):
@@ -41,6 +44,8 @@ class dnpdata(nddata.nddata_core):
         super().__init__(values, dims, coords, attrs)
         self.version = version
         self.proc_attrs = []
+        self.max_print_attrs = 5
+        self.print_values = False
 
     @property
     def _constructor(self):
@@ -58,24 +63,33 @@ class dnpdata(nddata.nddata_core):
         """
         String representation of dnpdata object
         """
-        if len(self.attrs) < 20:
-            return "values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\nproc_attrs:\n{}".format(
-                self.values, self.dims, self.coords, self.attrs, self.proc_attrs
-            )
-        else:
-            core_attrs = {
-                k: self.attrs[k] for k in core_attrs_list if k in core_attrs_list
-            }
-            num_additional_attrs = len(self.attrs) - len(core_attrs)
-            return (
-                "values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}\n + {} attrs".format(
-                    self.values,
-                    self.dims,
-                    self.coords,
-                    core_attrs,
-                    num_additional_attrs,
-                )
-            )
+
+        string = "values:\n\t"
+        string += " x ".join(map(str, self.shape))
+
+        string += " {} ({})\n".format(type(self.values).__name__, self.values.dtype)
+
+        if self.print_values is True:
+            string += str(self.values) + "\n"
+
+        string += "dims:\n\t"
+
+        string += "{}\n".format(self.dims)
+
+        string += "coords:\n\t"
+        string += "\n\t".join(map(repr, self.coords))
+
+        string += "\n"
+
+        string += "attrs:\n"
+
+        for ix, key in enumerate(self.attrs.keys()):
+            if ix == self.max_print_attrs:
+                string += "\t+%i attrs" % (len(self.attrs) - self.max_print_attrs)
+                break
+            string += "\t{!r}: {!r}\n".format(key, self.attrs[key])
+
+        return string
 
     def add_proc_attrs(self, proc_attr_name, proc_dict):
         """
@@ -328,7 +342,16 @@ class dnpdata_collection(MutableMapping):
         return "dnpdata_collection({})".format(self.__data_dict)
 
     def __str__(self):
-        return "{}\n".format([(key, self[key].__str__()) for key in self.keys()])
+        string = ""
+
+        for key in self.keys():
+            string += "-" * (2 + len(repr(key))) + "\n"
+            string += "|" + repr(key) + "|" + "\n"
+            string += "-" * (2 + len(repr(key))) + "\n"
+            string += str(self.__data_dict[key]) + "\n"
+            string += "\n\n"
+
+        return string
 
     def window(self, processing_buffer="proc", inplace=False, **kwargs):
         """
