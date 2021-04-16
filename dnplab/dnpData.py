@@ -15,7 +15,6 @@ core_attrs_list = ["nmr_frequency"]
 np.set_printoptions(threshold=15)
 
 
-
 class dnpdata(nddata.nddata_core):
     """
     dnpdata Class for handling dnp data
