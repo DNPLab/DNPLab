@@ -52,13 +52,13 @@ class dnpNMR_tester(unittest.TestCase):
         nmr.window(self.ws, type="hamming")
 
         self.ws.copy("temp", "proc")
-        self.ws = nmr.window(self.ws, type="hann")
+        nmr.window(self.ws, type="hann")
 
         self.ws.copy("temp", "proc")
         nmr.window(self.ws, type="lorentz_gauss", linewidth=[5, 10])
 
         self.ws.copy("temp", "proc")
-        self.ws = nmr.window(self.ws, type="hamming", linewidth=5, inverse=True)
+        nmr.window(self.ws, type="hamming", linewidth=5, inverse=True)
         self.ws.copy("temp", "proc")
         nmr.window(self.ws, type="sin2")
 

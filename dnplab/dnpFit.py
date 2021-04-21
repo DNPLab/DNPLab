@@ -180,7 +180,6 @@ def exponential_fit(
 
     if isDict:
         all_data["fit"] = fit_data
-        return all_data
     else:
         return fit_data
 
@@ -246,7 +245,6 @@ def enhancement_fit(dataDict):
 
     if isDict:
         dataDict["fit"] = fit_data
-        return dataDict
     else:
         return fit_data
 
