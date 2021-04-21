@@ -118,7 +118,6 @@ def align(all_data, dim="f2", dim2=None):
 
     if isDict:
         all_data[all_data.processing_buffer] = data
-        return all_data
     else:
         return data
 
@@ -285,7 +284,6 @@ def autophase(
 
     if isDict:
         all_data[all_data.processing_buffer] = data
-        return all_data
     else:
         return data
 
@@ -519,7 +517,6 @@ def calculate_enhancement(
 
     if isDict:
         all_data["enhancements"] = enhancement_data
-        return all_data
     else:
         return enhancement_data
 
@@ -591,7 +588,6 @@ def fourier_transform(
 
     if isDict:
         all_data[all_data.processing_buffer] = data
-        return all_data
     else:
         return data
 
@@ -663,7 +659,6 @@ def inverse_fourier_transform(
 
     if isDict:
         all_data[all_data.processing_buffer] = data
-        return all_data
     else:
         return data
 
@@ -699,7 +694,6 @@ def left_shift(all_data, dim="t2", shift_points=0):
 
     if isDict:
         all_data[all_data.processing_buffer] = shifted_data
-        return all_data
     else:
         return shifted_data
 
@@ -744,7 +738,6 @@ def remove_offset(all_data, dim="t2", offset_points=10):
 
     if isDict:
         all_data[all_data.processing_buffer] = data
-        return all_data
     else:
         return data
 
@@ -870,7 +863,6 @@ def window(
 
     if isDict:
         all_data[all_data.processing_buffer] = data
-        return all_data
     else:
         return data
 
