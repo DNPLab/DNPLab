@@ -22,6 +22,10 @@ class nddata_core(object):
 
         self._nddata_core_version = _nddata_core_version
 
+        # if values is list, convert to numpy array
+        if isinstance(values, list):
+            values = np.array(values)
+
         # verify values are numpy array
         if isinstance(values, np.ndarray):
             self._values = values
