@@ -70,7 +70,7 @@ class dnpTools_tester(unittest.TestCase):
         nmr.fourier_transform(ws, zero_fill_factor=2)
         nmr.autophase(ws, method="search")
 
-        ws = dnp.dnpTools.baseline(ws, type="polynomial", order=1, reference_slice=None)
+        dnp.dnpTools.baseline(ws, type="polynomial", order=1, reference_slice=None)
         self.assertEqual(shape_data, np.shape(ws))
         self.assertAlmostEqual(
             max(ws["proc"].values[:, 2].real), 29.894686521140628, places=4

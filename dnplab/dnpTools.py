@@ -192,7 +192,6 @@ def baseline(
 
     if isDict:
         all_data[all_data.processing_buffer] = data
-        return all_data
     else:
         return data
 
@@ -305,7 +304,6 @@ def integrate(
 
     if isDict:
         all_data["integrals"] = integrate_data
-        return all_data
     else:
         return integrate_data
 
@@ -615,6 +613,5 @@ def signal_to_noise(
 
     if isDict:
         all_data[all_data.processing_buffer] = data
-        return all_data
     else:
         return data
