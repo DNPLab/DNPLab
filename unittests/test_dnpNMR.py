@@ -86,6 +86,7 @@ class dnpNMR_tester(unittest.TestCase):
             places=4,
         )
         self.ws.copy("temp", "proc")
+
         self.ws.pop("temp")
 
         nmr.window(self.ws, type="exponential", linewidth=5)
