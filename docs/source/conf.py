@@ -118,6 +118,7 @@ sphinx_gallery_conf = {
     "gallery_dirs": "auto_examples",  # path to where to save gallery generated output
     "remove_config_comments": True,
     'within_subsection_order': FileNameSortKey,
+    'run_stale_examples': True,
 }
 
 
