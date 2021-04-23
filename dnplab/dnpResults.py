@@ -159,7 +159,7 @@ def plot(data, *args, **kwargs):
     coord = data.coords[0]
     dim = data.dims[0]
 
-    plt.plot(coord, data.values, *args, **kwargs)
+    plt.plot(coord, data.values.real, *args, **kwargs)
 
 
 show = plt.show

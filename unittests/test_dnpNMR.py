@@ -7,6 +7,7 @@ import dnplab as dnp
 import numpy as np
 import os
 import copy
+import matplotlib.pyplot as plt
 
 
 class dnpNMR_tester(unittest.TestCase):
@@ -47,30 +48,48 @@ class dnpNMR_tester(unittest.TestCase):
         nmr.left_shift(self.ws, shift_points=100)
         shifted_n_pts = np.shape(self.ws["proc"])
         self.assertEqual(shifted_n_pts[0], n_pts[0] - 100)
+        self.ws.copy("temp", "proc")
 
-        self.ws.copy("temp", "proc")
-        nmr.window(self.ws, type="hamming")
+        wf = nmr.hamming_window(len(self.ws["proc"].values))
+        self.assertEqual(max(wf), 1.0)
+        self.assertAlmostEqual(min(wf), 0.07671999999999995, places=4)
 
-        self.ws.copy("temp", "proc")
-        nmr.window(self.ws, type="hann")
+        wf = nmr.hann_window(len(self.ws["proc"].values))
+        self.assertEqual(max(wf), 1.0)
+        self.assertEqual(min(wf), 0.0)
 
-        self.ws.copy("temp", "proc")
-        nmr.window(self.ws, type="lorentz_gauss", linewidth=[5, 10])
+        wf = nmr.lorentz_gauss_window(self.ws["proc"], dim="t2", exp_lw=5, gauss_lw=10)
+        self.assertAlmostEqual(max(wf), 1.1895922020471337, places=4)
 
+        self.ws.copy("proc", "temp")
+        nmr.window(self.ws, type="hamming", inverse=True)
+        self.assertAlmostEqual(
+            max(self.ws["proc"].values[0]),
+            2.5727782192869477 - 4.397983406867447j,
+            places=4,
+        )
         self.ws.copy("temp", "proc")
-        nmr.window(self.ws, type="hamming", linewidth=5, inverse=True)
-        self.ws.copy("temp", "proc")
-        nmr.window(self.ws, type="sin2")
 
-        self.ws.copy("temp", "proc")
-        nmr.window(self.ws, type="traf", linewidth=[1, 1])
-        self.assertEqual(self.ws["proc"].proc_attrs[1][0], "window")
-        self.assertEqual(self.ws["proc"].proc_attrs[1][1]["type"], "traf")
+        wf = nmr.sin2_window(len(self.ws["proc"]))
+        self.assertEqual(max(wf), 1.0)
 
+        wf = nmr.traf_window(self.ws["proc"], dim="t2", exp_lw=1, gauss_lw=1)
+
+        wf = nmr.exponential_window(self.ws["proc"], "t2", 5)
+        self.assertAlmostEqual(min(wf), 0.00035733315645396175, places=4)
+
+        self.ws.copy("proc", "temp")
+        nmr.window(self.ws, type="gaussian", linewidth=[2, 10])
+        self.assertAlmostEqual(
+            max(self.ws["proc"].values[:, 1].real),
+            5.456135803263017,
+            places=4,
+        )
         self.ws.copy("temp", "proc")
-        nmr.window(self.ws, type="exponential", linewidth=5)
 
         self.ws.pop("temp")
+
+        nmr.window(self.ws, type="exponential", linewidth=5)
         self.assertEqual(shape_data, np.shape(self.ws))
         self.assertAlmostEqual(
             max(self.ws["proc"].values[:, 1].real), 5.390978190372195, places=4

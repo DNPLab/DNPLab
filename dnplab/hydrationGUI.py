@@ -1021,7 +1021,12 @@ class hydrationGUI(QMainWindow):
         self.gui_dict["workup_function"]["fit"] = True
 
         self.reset_plots()
-        self.processWorkup()
+        try:
+            self.processWorkup()
+        except:
+            raise TypeError(
+                "Workup is wrong format. Check formats of enhancementPowers.csv and t1Powers.csv."
+            )
 
         self.t10Edit.setText(str(round(self.gui_dict["workup_data"]["T10"], 4)))
 
@@ -1251,13 +1256,19 @@ class hydrationGUI(QMainWindow):
 
             self.gui_dict["workup_function"]["directory"] = pthnm + "Workup" + os.sep
 
-            self.processWorkup()
+            try:
+                self.processWorkup()
+            except:
+                raise TypeError(
+                    "Workup found, but wrong format. Remove Workup from data folder and try again. Check formats of enhancementPowers.csv and t1Powers.csv."
+                )
 
             if len(self.gui_dict["workup_data"]["Epowers"]) == len(
                 self.gui_dict["folder_structure"]["enh"]
             ) and len(self.gui_dict["workup_data"]["T1powers"]) == len(
                 self.gui_dict["folder_structure"]["T1"]
             ):
+
                 Epowers = self.gui_dict["workup_data"]["Epowers"]
                 T1powers = self.gui_dict["workup_data"]["T1powers"]
 
@@ -1272,33 +1283,35 @@ class hydrationGUI(QMainWindow):
                 if os.path.isfile(pthnm + "t1_powers.mat") or os.path.isfile(
                     pthnm + "t1_powers.csv"
                 ):
-                    print("No Workup output found, using power readings files.")
+                    print("Workup not loaded, using power readings files.")
+                    try:
+                        E_power_List = dnplab.dnpIO.cnsi.get_powers(
+                            pthnm,
+                            "power",
+                            self.gui_dict["folder_structure"]["enh"],
+                        )
+                        # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
+                        Epowers = np.add(E_power_List, 21.9992)
+                        Epowers = np.divide(Epowers, 10)
+                        Epowers = np.power(10, Epowers)
+                        Epowers = np.multiply(1e-3, Epowers)
+                        # }}
 
-                    E_power_List = dnplab.dnpIO.cnsi.get_powers(
-                        pthnm,
-                        "power",
-                        self.gui_dict["folder_structure"]["enh"],
-                    )
-                    # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
-                    Epowers = np.add(E_power_List, 21.9992)
-                    Epowers = np.divide(Epowers, 10)
-                    Epowers = np.power(10, Epowers)
-                    Epowers = np.multiply(1e-3, Epowers)
-                    # }}
+                        T1_power_List = dnplab.dnpIO.cnsi.get_powers(
+                            pthnm,
+                            "t1_powers",
+                            self.gui_dict["folder_structure"]["T1"],
+                        )
+                        # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
+                        T1powers = np.add(T1_power_List, 21.9992)
+                        T1powers = np.divide(T1powers, 10)
+                        T1powers = np.power(10, T1powers)
+                        T1powers = np.multiply(1e-3, T1powers)
+                        # }}
 
-                    T1_power_List = dnplab.dnpIO.cnsi.get_powers(
-                        pthnm,
-                        "t1_powers",
-                        self.gui_dict["folder_structure"]["T1"],
-                    )
-                    # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
-                    T1powers = np.add(T1_power_List, 21.9992)
-                    T1powers = np.divide(T1powers, 10)
-                    T1powers = np.power(10, T1powers)
-                    T1powers = np.multiply(1e-3, T1powers)
-                    # }}
-
-                    self.gui_dict["rawdata_function"]["nopowers"] = False
+                        self.gui_dict["rawdata_function"]["nopowers"] = False
+                    except:
+                        print("Error loading power files.")
 
         if self.gui_dict["rawdata_function"]["nopowers"]:
             print("No power readings found.")
