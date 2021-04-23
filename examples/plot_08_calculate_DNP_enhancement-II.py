@@ -27,7 +27,7 @@ This is a slightly more advanaced example demonstrating how to ingegrate multipl
 # print(ws.keys())
 
 # # %%
-# # We can see that there are four keys in the workspace: "Aligned", "NotAligned"," proc", and "raw". 
+# # We can see that there are four keys in the workspace: "Aligned", "NotAligned"," proc", and "raw".
 # # %%
 # # Now integrate First define the integral region
 
@@ -40,7 +40,6 @@ This is a slightly more advanaced example demonstrating how to ingegrate multipl
 
 
 # print(ws.keys())
-
 
 
 # # dnp.dnpNMR.calculate_enhancement(ws, off_spectrum = 0)

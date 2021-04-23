@@ -13,6 +13,7 @@ This example demonstrates how to import data from an inversion recovery NMR expe
 # -------------------------------
 # Start with importing data and create the DNPLab workspace
 import dnplab as dnp
+
 file_name_path = "../data/topspin/304"
 data = dnp.dnpImport.load(file_name_path)
 
@@ -23,8 +24,8 @@ ws.copy("raw", "proc")
 # %%
 # Next, we process the FIDs to obtain the NMR spectrum
 dnp.dnpNMR.remove_offset(ws)
-dnp.dnpNMR.window(ws, linewidth = 10)
-dnp.dnpNMR.fourier_transform(ws, zero_fill_factor = 2)
+dnp.dnpNMR.window(ws, linewidth=10)
+dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
 
 dnp.dnpNMR.autophase(ws)
 
@@ -63,11 +64,12 @@ dnp.dnpTools.integrate(ws)
 
 # # Fit inversion-recovery build-up, display T1 and plot results
 
-# # dnplab.dnpFit.t1Fit(ws)
-# # print("T1 value (sec) = " + str(ws["fit"].attrs["t1"]))
+dnp.dnpFit.exponential_fit(ws, type="T1")
+print("T1 value (sec) = " + str(ws["fit"].attrs["T1"]))
 
 dnp.dnpResults.figure()
-dnp.dnpResults.plot(ws["integrals"], "o", fillstyle = 'none')
+dnp.dnpResults.plot(ws["integrals"], "o", fillstyle="none")
+dnp.dnpResults.plot(ws["fit"])
 dnp.dnpResults.plt.xlabel("Time t1 [s]")
 dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")
 dnp.dnpResults.plt.title("Inversion Recovery")
