@@ -19,16 +19,12 @@ class dnpFit_tester(unittest.TestCase):
         self.ws.copy("raw", "proc")
 
     def test_fit_functions(self):
-        self.ws = nmr.remove_offset(self.ws)
-        self.ws = nmr.window(self.ws, type="lorentz_gauss", linewidth=[5, 10])
-        self.ws = nmr.fourier_transform(self.ws, zero_fill_factor=2)
-        self.ws = nmr.autophase(self.ws, method="search", order="zero")
-        self.ws = tools.baseline(
-            self.ws, type="polynomial", order=2, reference_slice=None
-        )
-        self.ws = tools.integrate(
-            self.ws, dim="f2", integrate_center=0, integrate_width=50
-        )
+        nmr.remove_offset(self.ws)
+        nmr.window(self.ws, type="lorentz_gauss", linewidth=[5, 10])
+        nmr.fourier_transform(self.ws, zero_fill_factor=2)
+        nmr.autophase(self.ws, method="search", order="zero")
+        tools.baseline(self.ws, type="polynomial", order=2, reference_slice=None)
+        tools.integrate(self.ws, dim="f2", integrate_center=0, integrate_width=50)
         efit.exponential_fit(self.ws, type="T1")
         self.assertAlmostEqual(self.ws["fit"].attrs["T1"], 2.140702947551208, places=4)
 

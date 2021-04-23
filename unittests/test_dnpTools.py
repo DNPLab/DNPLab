@@ -40,10 +40,8 @@ class dnpTools_tester(unittest.TestCase):
             noise_width="default",
         )
 
-        self.assertEqual(len(ws["proc"].attrs["signal_to_noise"]), 8)
-        self.assertAlmostEqual(
-            ws["proc"].attrs["signal_to_noise"][4], 10.91728842, places=6
-        )
+        self.assertEqual(len(ws["proc"].attrs["s_n"]), 8)
+        self.assertAlmostEqual(ws["proc"].attrs["s_n"][4], 10.91728842, places=6)
 
         nmr.remove_offset(self.ws_off)
         nmr.window(self.ws_off, linewidth=15)
@@ -59,7 +57,7 @@ class dnpTools_tester(unittest.TestCase):
         )
 
         self.assertAlmostEqual(
-            self.ws_off["proc"].attrs["signal_to_noise"], 3.3986939859030096, places=6
+            self.ws_off["proc"].attrs["s_n"], 3.3986939859030096, places=6
         )
 
     def test_baseline(self):
@@ -72,7 +70,7 @@ class dnpTools_tester(unittest.TestCase):
         nmr.fourier_transform(ws, zero_fill_factor=2)
         nmr.autophase(ws, method="search")
 
-        ws = dnp.dnpTools.baseline(ws, type="polynomial", order=1, reference_slice=None)
+        dnp.dnpTools.baseline(ws, type="polynomial", order=1, reference_slice=None)
         self.assertEqual(shape_data, np.shape(ws))
         self.assertAlmostEqual(
             max(ws["proc"].values[:, 2].real), 29.894686521140628, places=4
@@ -93,11 +91,37 @@ class dnpTools_tester(unittest.TestCase):
         nmr.fourier_transform(ws, zero_fill_factor=2)
         nmr.autophase(ws, method="arctan")
 
+        ws2 = copy.deepcopy(ws)
+        ws3 = copy.deepcopy(ws)
         dnp.dnpTools.integrate(ws, dim="f2", integrate_center=0, integrate_width=50)
-        self.assertEqual((8,), np.shape(ws["proc"].values))
-        self.assertAlmostEqual(max(ws["proc"].values.real), 6170.447249940133, places=4)
+        self.assertEqual((8,), np.shape(ws["integrals"].values))
         self.assertAlmostEqual(
-            min(ws["proc"].values.real), -7188.897892203664, places=4
+            max(ws["integrals"].values.real), 6170.447249940133, places=4
+        )
+        self.assertAlmostEqual(
+            min(ws["integrals"].values.real), -7188.897892203664, places=4
+        )
+
+        dnp.dnpTools.integrate(
+            ws2, dim="f2", integrate_center=[-10, 0, 10], integrate_width=50
+        )
+        self.assertEqual((3, 8), np.shape(ws2["integrals"].values))
+        self.assertAlmostEqual(
+            max(ws2["integrals"].values.real[1]), 6170.447249940133, places=4
+        )
+        self.assertAlmostEqual(
+            min(ws2["integrals"].values.real[1]), -7188.897892203664, places=4
+        )
+
+        dnp.dnpTools.integrate(
+            ws3, dim="f2", integrate_center=[-10, 0, 10], integrate_width=[10, 50, 10]
+        )
+        self.assertEqual((3, 8), np.shape(ws2["integrals"].values))
+        self.assertAlmostEqual(
+            max(ws3["integrals"].values.real[1]), 6170.447249940133, places=4
+        )
+        self.assertAlmostEqual(
+            min(ws3["integrals"].values.real[1]), -7188.897892203664, places=4
         )
 
     def test_mr_properties(self):

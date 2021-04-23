@@ -133,7 +133,8 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
             )
             for key in proc_dict:
                 value = proc_dict[key]
-                proc_attrs_group_subgroup.attrs[key] = value
+                if value is not None:
+                    proc_attrs_group_subgroup.attrs[key] = value
 
 
 def write_dict(dnpDataGroup, dnpDataObject):

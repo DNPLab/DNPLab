@@ -30,7 +30,7 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
     elif os.path.isdir(path):
         filesList = glob.glob(os.path.join(path, "*.[1-4]d"))
         if len(filesList) == 0:
-            raise ValueError("No binary data file in directory:")
+            raise ValueError("No binary data file in directory:", path)
         elif len(filesList) > 1:
             raise ValueError("More than one binary data file in directory:", filesList)
         else:
@@ -82,8 +82,11 @@ def import_prospa_dir(path, exp_list=None):
     ws = create_workspace()
 
     for ix, dir_ in enumerate(dirs):
-        tmp = import_prospa(os.path.join(path, dir_))
-        ws.add(dir_, tmp)
+        try:
+            tmp = import_prospa(os.path.join(path, dir_))
+            ws.add(dir_, tmp)
+        except ValueError as e:
+            print("Skipping folder: %s" % str(e))
 
     return ws
 
