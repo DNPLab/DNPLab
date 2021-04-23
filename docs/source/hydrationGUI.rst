@@ -4,6 +4,9 @@
 hydrationGUI
 ============
 
+.. note::
+    An earlier version of DNPLab required installing PyQt5 to use the GUI of the hydration module. This has lead to some cross-platform problems. If you would like to use the GUI of the hydration module, you need to install PyQt5 manually.
+    
 The hydrationGUI is designed to work with the results of UCSB routines such as "rb_dnp1" used at the CNSI facility. 
 
 To start the hydrationGUI type the command:

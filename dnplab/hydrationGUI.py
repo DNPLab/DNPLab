@@ -35,9 +35,6 @@ from matplotlib.figure import Figure
 import numpy as np
 from scipy.io import loadmat, savemat
 import copy
-import re
-import datetime
-import time
 
 import dnplab
 
@@ -734,18 +731,19 @@ class hydrationGUI(QMainWindow):
         indx = range(starting_center - 50, starting_center + 50)
         optcenter_workspace = self.phs_workspace(optcenter_workspace, phase)
         for k in indx:
-            iterativeopt_workspace = copy.deepcopy(optcenter_workspace)
             dnplab.dnpTools.integrate(
-                iterativeopt_workspace,
+                optcenter_workspace,
                 integrate_center=k,
                 integrate_width=width,
             )
-            if len(iterativeopt_workspace["proc"].values) > 1:
+            if len(optcenter_workspace["integrals"].values) > 1:
                 intgrl_array.append(
-                    sum(abs(iterativeopt_workspace["proc"].real.values))
+                    sum(abs(optcenter_workspace["integrals"].real.values))
                 )
             else:
-                intgrl_array.append(abs(iterativeopt_workspace["proc"].real.values[-1]))
+                intgrl_array.append(
+                    abs(optcenter_workspace["integrals"].real.values[-1])
+                )
         cent = np.argmax(intgrl_array)
         self.gui_dict["processing_spec"]["integration_center"] = indx[cent]
 
@@ -774,14 +772,19 @@ class hydrationGUI(QMainWindow):
             )
             imag_sum = []
             for indx, k in enumerate(phases):
-                ws_rot = copy.deepcopy(self.processing_workspace)
-                ws_rot = self.phs_workspace(ws_rot, k)
+                self.processing_workspace = self.phs_workspace(
+                    self.processing_workspace, k
+                )
                 dnplab.dnpTools.integrate(
-                    ws_rot,
+                    self.processing_workspace,
                     integrate_center=starting_center,
                     integrate_width=width * 2,
                 )
-                imag_sum.append(np.sum(abs(ws_rot["proc"].imag.values * -1j)))
+                imag_sum.append(
+                    np.sum(
+                        abs(self.processing_workspace["integrals"].imag.values * -1j)
+                    )
+                )
 
             starting_phase = phases[np.argmin(imag_sum)]
 
@@ -935,13 +938,12 @@ class hydrationGUI(QMainWindow):
         if "mat" in exten:
             matin = loadmat(self.flname)
 
+            if "T100_stdd" not in matin["odnp"].keys():
+                matin["odnp"]["T100_stdd"] = 0
+
             self.t10Edit.setText(str(round(float(matin["odnp"]["T10"]), 4)))
             self.t100Edit.setText(str(round(float(matin["odnp"]["T100"]), 4)))
 
-            self.gui_dict["dnpLab_data"]["T100"] = float(matin["odnp"]["T100"])
-            self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
-                matin["odnp"]["T100_stdd"]
-            )
             self.gui_dict["dnpLab_data"]["T10"] = float(matin["odnp"]["T10"])
             self.gui_dict["dnpLab_data"]["T10_stdd"] = float(matin["odnp"]["T10_stdd"])
             epows = matin["odnp"]["Epowers"][0]
@@ -955,20 +957,22 @@ class hydrationGUI(QMainWindow):
             t1perr = matin["odnp"]["T1p_stdd"][0]
             self.T1p_stdd = np.ravel(t1perr[0])
 
+            self.gui_dict["dnpLab_data"]["T100"] = float(matin["odnp"]["T100"])
+            self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
+                matin["odnp"]["T100_stdd"]
+            )
+
         elif "h5" in exten:
             h5in = dnplab.dnpImport.load(self.flname, data_type="h5")
+
+            if "T100_stdd" not in h5in["hydration_results"].keys():
+                h5in["hydration_results"]["T100_stdd"] = 0
 
             self.t100Edit.setText(
                 str(round(float(h5in["hydration_inputs"]["T100"]), 4))
             )
             self.t10Edit.setText(str(round(float(h5in["hydration_inputs"]["T10"]), 4)))
 
-            self.gui_dict["dnpLab_data"]["T100"] = float(
-                h5in["hydration_inputs"]["T100"]
-            )
-            self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
-                h5in["hydration_results"]["T100_stdd"]
-            )
             self.gui_dict["dnpLab_data"]["T10"] = float(h5in["hydration_inputs"]["T10"])
             self.gui_dict["dnpLab_data"]["T10_stdd"] = float(
                 h5in["hydration_results"]["T10_stdd"]
@@ -982,6 +986,13 @@ class hydrationGUI(QMainWindow):
             ]
             self.T1p = h5in["hydration_inputs"]["T1"]
             self.T1p_stdd = h5in["hydration_results"]["T1_stdd"]
+
+            self.gui_dict["dnpLab_data"]["T100"] = float(
+                h5in["hydration_inputs"]["T100"]
+            )
+            self.gui_dict["dnpLab_data"]["T100_stdd"] = float(
+                h5in["hydration_results"]["T100_stdd"]
+            )
 
         self.gui_dict["rawdata_function"]["nopowers"] = False
 
@@ -1010,7 +1021,12 @@ class hydrationGUI(QMainWindow):
         self.gui_dict["workup_function"]["fit"] = True
 
         self.reset_plots()
-        self.processWorkup()
+        try:
+            self.processWorkup()
+        except:
+            raise TypeError(
+                "Workup is wrong format. Check formats of enhancementPowers.csv and t1Powers.csv."
+            )
 
         self.t10Edit.setText(str(round(self.gui_dict["workup_data"]["T10"], 4)))
 
@@ -1240,13 +1256,19 @@ class hydrationGUI(QMainWindow):
 
             self.gui_dict["workup_function"]["directory"] = pthnm + "Workup" + os.sep
 
-            self.processWorkup()
+            try:
+                self.processWorkup()
+            except:
+                raise TypeError(
+                    "Workup found, but wrong format. Remove Workup from data folder and try again. Check formats of enhancementPowers.csv and t1Powers.csv."
+                )
 
             if len(self.gui_dict["workup_data"]["Epowers"]) == len(
                 self.gui_dict["folder_structure"]["enh"]
             ) and len(self.gui_dict["workup_data"]["T1powers"]) == len(
                 self.gui_dict["folder_structure"]["T1"]
             ):
+
                 Epowers = self.gui_dict["workup_data"]["Epowers"]
                 T1powers = self.gui_dict["workup_data"]["T1powers"]
 
@@ -1261,33 +1283,35 @@ class hydrationGUI(QMainWindow):
                 if os.path.isfile(pthnm + "t1_powers.mat") or os.path.isfile(
                     pthnm + "t1_powers.csv"
                 ):
-                    print("No Workup output found, using power readings files.")
+                    print("Workup not loaded, using power readings files.")
+                    try:
+                        E_power_List = dnplab.dnpIO.cnsi.get_powers(
+                            pthnm,
+                            "power",
+                            self.gui_dict["folder_structure"]["enh"],
+                        )
+                        # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
+                        Epowers = np.add(E_power_List, 21.9992)
+                        Epowers = np.divide(Epowers, 10)
+                        Epowers = np.power(10, Epowers)
+                        Epowers = np.multiply(1e-3, Epowers)
+                        # }}
 
-                    E_power_List = dnplab.dnpIO.cnsi.get_powers(
-                        pthnm,
-                        "power",
-                        self.gui_dict["folder_structure"]["enh"],
-                    )
-                    # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
-                    Epowers = np.add(E_power_List, 21.9992)
-                    Epowers = np.divide(Epowers, 10)
-                    Epowers = np.power(10, Epowers)
-                    Epowers = np.multiply(1e-3, Epowers)
-                    # }}
+                        T1_power_List = dnplab.dnpIO.cnsi.get_powers(
+                            pthnm,
+                            "t1_powers",
+                            self.gui_dict["folder_structure"]["T1"],
+                        )
+                        # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
+                        T1powers = np.add(T1_power_List, 21.9992)
+                        T1powers = np.divide(T1powers, 10)
+                        T1powers = np.power(10, T1powers)
+                        T1powers = np.multiply(1e-3, T1powers)
+                        # }}
 
-                    T1_power_List = dnplab.dnpIO.cnsi.get_powers(
-                        pthnm,
-                        "t1_powers",
-                        self.gui_dict["folder_structure"]["T1"],
-                    )
-                    # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
-                    T1powers = np.add(T1_power_List, 21.9992)
-                    T1powers = np.divide(T1powers, 10)
-                    T1powers = np.power(10, T1powers)
-                    T1powers = np.multiply(1e-3, T1powers)
-                    # }}
-
-                    self.gui_dict["rawdata_function"]["nopowers"] = False
+                        self.gui_dict["rawdata_function"]["nopowers"] = False
+                    except:
+                        print("Error loading power files.")
 
         if self.gui_dict["rawdata_function"]["nopowers"]:
             print("No power readings found.")
@@ -1403,14 +1427,14 @@ class hydrationGUI(QMainWindow):
                 == self.gui_dict["folder_structure"]["p0"]
             ):
                 self.gui_dict["dnpLab_data"]["p0"] = nextproc_workspace[
-                    "proc"
+                    "integrals"
                 ].real.values[0]
             elif (
                 self.gui_dict["rawdata_function"]["folder"]
                 in self.gui_dict["folder_structure"]["enh"]
             ):
                 Ep = (
-                    nextproc_workspace["proc"].real.values[0]
+                    nextproc_workspace["integrals"].real.values[0]
                     / self.gui_dict["dnpLab_data"]["p0"]
                 )
                 self.Ep.append(np.real(Ep))
@@ -1487,7 +1511,7 @@ class hydrationGUI(QMainWindow):
                             "proc"
                         ].coords["t1"]
                         self.gui_dict["t1_fit"]["t1Amps"] = nextproc_workspace[
-                            "proc"
+                            "integrals"
                         ].real.values
 
                         self.gui_dict["t1_fit"]["xaxis"] = nextproc_workspace[
@@ -1942,12 +1966,13 @@ class hydrationGUI(QMainWindow):
             integrate_width=self.gui_dict["processing_spec"]["integration_width"],
         )
 
-        if len(adjslider_workspace["proc"].values) == 1:
+        if len(adjslider_workspace["integrals"].values) == 1:
             pass
         else:
-
             self.gui_dict["t1_fit"]["tau"] = adjslider_workspace["proc"].coords["t1"]
-            self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace["proc"].real.values
+            self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace[
+                "integrals"
+            ].real.values
 
             try:
                 dnplab.dnpFit.exponential_fit(adjslider_workspace, type="T1")
@@ -1982,11 +2007,11 @@ class hydrationGUI(QMainWindow):
                     "t1"
                 ]
                 self.gui_dict["t1_fit"]["t1Amps"] = adjslider_workspace[
-                    "proc"
+                    "integrals"
                 ].real.values
 
                 self.gui_dict["t1_fit"]["t1Amps_imag"] = adjslider_workspace[
-                    "proc"
+                    "integrals"
                 ].imag.values
 
                 self.gui_dict["t1_fit"]["xaxis"] = adjslider_workspace["fit"].coords[
@@ -2100,10 +2125,15 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["dnpLab_data"]["Epowers"] = enh[:, 0]
                 self.gui_dict["dnpLab_data"]["Ep"] = enh[:, 1]
 
+                if len(self.T1p_stdd) == (len(self.T1p) + 1):
+                    T1p_stdd = self.T1p_stdd[1:]
+                elif len(self.T1p_stdd) == len(self.T1p):
+                    T1p_stdd = self.T1p_stdd
                 t1 = np.array(
-                    [self.gui_dict["dnpLab_data"]["T1powers"], self.T1p, self.T1p_stdd]
+                    [self.gui_dict["dnpLab_data"]["T1powers"], self.T1p, T1p_stdd]
                 )
                 t1 = np.transpose(t1)
+
                 t1 = t1[t1[:, 0].argsort()]
                 self.gui_dict["dnpLab_data"]["T1powers"] = t1[:, 0]
                 self.gui_dict["dnpLab_data"]["T1p"] = t1[:, 1]
@@ -2182,11 +2212,7 @@ class hydrationGUI(QMainWindow):
                 + str(round(self.gui_dict["dnpLab_data"]["T10_stdd"], 4))
             )
             for k in range(0, len(self.T1p)):
-                print(
-                    str(round(self.T1p[k], 2))
-                    + " +/- "
-                    + str(round(self.T1p_stdd[k], 4))
-                )
+                print(str(round(self.T1p[k], 2)) + " +/- " + str(round(T1p_stdd[k], 4)))
 
             if self.gui_dict["gui_function"]["addWorkup"]:
                 print("---Workup Standard Deviations in T1s---")
@@ -2307,6 +2333,7 @@ class hydrationGUI(QMainWindow):
                 T1powers = self.gui_dict["dnpLab_data"]["T1powers"][
                     1 : len(self.gui_dict["dnpLab_data"]["T1powers"])
                 ]
+
             elif self.exOutliersCheckbox.isChecked():
 
                 avg = np.mean(self.gui_dict["dnpLab_data"]["T1p"])

@@ -56,108 +56,114 @@ def load_dsc(path):
     file_opened.close()
 
     params = {}
+    sweep_domain = None
     for ix in range(len(dscfile_contents)):
-        par = dscfile_contents[ix].rstrip("\t").rstrip("\n")
-        if "MWFQ" in par:
-            params["frequency"] = float(par.replace("MWFQ", "").strip()) / 1e9
-        elif "Power" in par and "Atten" not in par:
-            params["power"] = float(par.replace("Power", "").replace("mW", "").strip())
-        elif "PowerAtten" in par:
-            params["attenuation"] = int(
-                float(par.replace("PowerAtten", "").replace("dB", "").strip())
-            )
-        elif "Attenuation" in par:
-            params["pulse_attenuation"] = int(
-                float(par.replace("Attenuation", "").replace("dB", "").strip())
-            )
-        elif "CenterField" in par:
-            params["center_field"] = float(
-                par.replace("CenterField", "").replace("G", "").strip()
-            )
-        elif "ConvTime" in par:
-            params["conversion_time"] = float(
-                par.replace("ConvTime", "").replace("ms", "").strip()
-            )
-        elif "TimeConst" in par:
-            params["time_constant"] = float(
-                par.replace("TimeConst", "").replace("ms", "").strip()
-            )
-        elif "ModAmp" in par:
-            params["modulation_amplitude"] = float(
-                par.replace("ModAmp", "").replace("G", "").strip()
-            )
-        elif "ModFreq" in par:
-            params["modulation_frequency"] = float(
-                par.replace("ModFreq", "").replace("kHz", "").strip()
-            )
-        elif "NbScansDone" in par:
-            params["nscans"] = int(par.replace("NbScansDone", "").strip())
-        elif "Temperature" in par:
-            params["temperature"] = float(
-                par.replace("Temperature", "").replace("K", "").strip()
-            )
-        elif "XNAM" in par:
-            sweep_domain = par.replace("XNAM", "").replace("'", "").strip()
-        elif "XUNI" in par:
-            params["x_unit"] = par.replace("XUNI", "").replace("'", "").strip()
-        elif "XPTS" in par:
-            params["x_points"] = int(par.replace("XPTS", "").strip())
-        elif "XMIN" in par:
-            params["x_min"] = float(par.replace("XMIN", "").strip())
-        elif "XWID" in par:
-            params["x_width"] = float(par.replace("XWID", "").strip())
-        elif "XTYP" in par:
-            xtyp = par.replace("XTYP", "").strip()
-            if xtyp == "IGD":
-                params["sweep_type"] = "nonlinear"
-            elif xtyp == "IDX":
-                params["sweep_type"] = "linear"
+        try:
+            par = dscfile_contents[ix].rstrip("\t").rstrip("\n")
+            if "MWFQ" in par:
+                params["frequency"] = float(par.replace("MWFQ", "").strip()) / 1e9
+            elif "Power" in par and "Atten" not in par:
+                params["power"] = float(
+                    par.replace("Power", "").replace("mW", "").strip()
+                )
+            elif "PowerAtten" in par:
+                params["attenuation"] = int(
+                    float(par.replace("PowerAtten", "").replace("dB", "").strip())
+                )
+            elif "Attenuation" in par:
+                params["pulse_attenuation"] = int(
+                    float(par.replace("Attenuation", "").replace("dB", "").strip())
+                )
+            elif "CenterField" in par:
+                params["center_field"] = float(
+                    par.replace("CenterField", "").replace("G", "").strip()
+                )
+            elif "ConvTime" in par:
+                params["conversion_time"] = float(
+                    par.replace("ConvTime", "").replace("ms", "").strip()
+                )
+            elif "TimeConst" in par:
+                params["time_constant"] = float(
+                    par.replace("TimeConst", "").replace("ms", "").strip()
+                )
+            elif "ModAmp" in par:
+                params["modulation_amplitude"] = float(
+                    par.replace("ModAmp", "").replace("G", "").strip()
+                )
+            elif "ModFreq" in par:
+                params["modulation_frequency"] = float(
+                    par.replace("ModFreq", "").replace("kHz", "").strip()
+                )
+            elif "NbScansDone" in par:
+                params["nscans"] = int(par.replace("NbScansDone", "").strip())
+            elif "Temperature" in par:
+                params["temperature"] = float(
+                    par.replace("Temperature", "").replace("K", "").strip()
+                )
+            elif "XNAM" in par:
+                sweep_domain = par.replace("XNAM", "").replace("'", "").strip()
+            elif "XUNI" in par:
+                params["x_unit"] = par.replace("XUNI", "").replace("'", "").strip()
+            elif "XPTS" in par:
+                params["x_points"] = int(par.replace("XPTS", "").strip())
+            elif "XMIN" in par:
+                params["x_min"] = float(par.replace("XMIN", "").strip())
+            elif "XWID" in par:
+                params["x_width"] = float(par.replace("XWID", "").strip())
+            elif "XTYP" in par:
+                xtyp = par.replace("XTYP", "").strip()
+                if xtyp == "IGD":
+                    params["sweep_type"] = "nonlinear"
+                elif xtyp == "IDX":
+                    params["sweep_type"] = "linear"
 
-        elif "IRFMT" in par:
-            dfmt = par.replace("IRFMT", "").strip()
-            if dfmt == "D":
-                params["sweep_format"] = "float64"
-            elif dfmt == "F":
-                params["sweep_format"] = "float32"
-            elif dfmt == "C":
-                params["sweep_format"] = "int8"
-            elif dfmt == "S":
-                params["sweep_format"] = "int16"
-            elif dfmt == "I":
-                params["sweep_format"] = "int32"
+            elif "IRFMT" in par:
+                dfmt = par.replace("IRFMT", "").strip()
+                if dfmt == "D":
+                    params["sweep_format"] = "float64"
+                elif dfmt == "F":
+                    params["sweep_format"] = "float32"
+                elif dfmt == "C":
+                    params["sweep_format"] = "int8"
+                elif dfmt == "S":
+                    params["sweep_format"] = "int16"
+                elif dfmt == "I":
+                    params["sweep_format"] = "int32"
 
-        elif "YUNI" in par:
-            params["y_unit"] = par.replace("YUNI", "").replace("'", "").strip()
-        elif "YPTS" in par:
-            params["y_points"] = int(par.replace("YPTS", "").strip())
-        elif "YMIN" in par:
-            params["y_min"] = float(par.replace("YMIN", "").strip())
-        elif "YWID" in par:
-            params["y_max"] = float(par.replace("YWID", "").strip())
-        elif "YTYP" in par:
-            ytyp = par.replace("YTYP", "").strip()
-            if ytyp == "IGD":
-                params["slice_type"] = "nonlinear"
-            elif ytyp == "IDX":
-                params["slice_type"] = "linear"
+            elif "YUNI" in par:
+                params["y_unit"] = par.replace("YUNI", "").replace("'", "").strip()
+            elif "YPTS" in par:
+                params["y_points"] = int(par.replace("YPTS", "").strip())
+            elif "YMIN" in par:
+                params["y_min"] = float(par.replace("YMIN", "").strip())
+            elif "YWID" in par:
+                params["y_max"] = float(par.replace("YWID", "").strip())
+            elif "YTYP" in par:
+                ytyp = par.replace("YTYP", "").strip()
+                if ytyp == "IGD":
+                    params["slice_type"] = "nonlinear"
+                elif ytyp == "IDX":
+                    params["slice_type"] = "linear"
 
-        elif "YFMT" in par:
-            yfmt = par.replace("YFMT", "").strip()
-            if yfmt == "D":
-                params["slice_format"] = "float64"
-            elif yfmt == "F":
-                params["slice_format"] = "float32"
-            elif yfmt == "C":
-                params["slice_format"] = "int8"
-            elif yfmt == "S":
-                params["slice_format"] = "int16"
-            elif yfmt == "I":
-                params["slice_format"] = "int32"
+            elif "YFMT" in par:
+                yfmt = par.replace("YFMT", "").strip()
+                if yfmt == "D":
+                    params["slice_format"] = "float64"
+                elif yfmt == "F":
+                    params["slice_format"] = "float32"
+                elif yfmt == "C":
+                    params["slice_format"] = "int8"
+                elif yfmt == "S":
+                    params["slice_format"] = "int16"
+                elif yfmt == "I":
+                    params["slice_format"] = "int32"
 
-        elif "IKKF" in par:
-            params["data_type"] = par.replace("IKKF", "").strip()
-        elif "BSEQ" in par:
-            params["endian"] = par.replace("BSEQ", "").strip()
+            elif "IKKF" in par:
+                params["data_type"] = par.replace("IKKF", "").strip()
+            elif "BSEQ" in par:
+                params["endian"] = par.replace("BSEQ", "").strip()
+        except ValueError:
+            continue
 
     if sweep_domain == "Time" and int(params["attenuation"]) == 60:
         params.pop("attenuation", None)
@@ -197,7 +203,24 @@ def load_dta(path_dta, path_ygf, params):
             params["x_points"],
         )
     ]
-    dims = [params["x_unit"]]
+
+    if "x_unit" not in params.keys() or params["x_unit"] in [
+        "s",
+        "ms",
+        "ns",
+        "ps",
+        "Time",
+        "time",
+    ]:
+        dims = ["t2"]
+    elif params["x_unit"] in ["G", "mT", "T", "Field", "field"]:
+        if params["x_unit"] == "G":
+            abscissa = [x / 10 for x in abscissa]
+        elif params["x_unit"] == "T":
+            abscissa = [x * 1000 for x in abscissa]
+        dims = ["B0"]
+    else:
+        dims = ["t2"]
 
     if params["data_type"] == "CPLX":
         spec = spec.astype(dtype=params["sweep_format"]).view(dtype=np.dtype("complex"))
@@ -205,10 +228,16 @@ def load_dta(path_dta, path_ygf, params):
     if "y_points" in params.keys() and params["y_points"] != 1:
         spec = np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
 
-        dims.append(params["y_unit"])
-        if dims[0] == dims[1]:
-            dims = ["t2", "t1"]
+        if "y_unit" in params.keys():
+            dims.append(params["y_unit"])
+        else:
+            dims.append("t1")
 
+        abscissa.append(
+            np.linspace(params["y_min"], params["y_max"], params["y_points"])
+        )
+
+        """
         if path_ygf != "none":
             if params["slice_type"] == "linear":
                 warnings.warn("axis is linear, confirm that indirect axis is correct")
@@ -228,6 +257,7 @@ def load_dta(path_dta, path_ygf, params):
         else:
             warnings.warn("indirect axis format not supported, axis is only indexed")
             abscissa.append([range(params["y_points"])])
+        """
 
     params.pop("endian", None)
     params.pop("sweep_format", None)
