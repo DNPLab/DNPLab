@@ -24,9 +24,9 @@ The following packages are required to run DNPLab:
      - 3.3 or higher
    * - h5py
      - 2.10 or higher
-   * - PyQt5
-     - 5.14
 
+.. note::
+  An earlier version of DNPLab required installing PyQt5 to use the GUI of the hydration module. This has lead to some cross-platform problems. If you would like to use the GUI of the hydration module, you need to install PyQt5 manually.
 
 .. _installing:
 
@@ -54,13 +54,13 @@ The output will look similar to this (not the actual version and path to locatio
 .. code-block:: bash
 
     Name: dnplab
-    Version: 1.0.2
+    Version: 1.0.3
     Summary: dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy
     Home-page: http://dnpLab.net
     Author: DNPLab Team
     Author-email: None
     License: MIT
     Location: /Path/to/Package
-    Requires: numpy, scipy, matplotlib, h5py, PyQt5
+    Requires: numpy, scipy, matplotlib, h5py
     Required-by: 
 

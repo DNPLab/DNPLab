@@ -1,9 +1,12 @@
 # %%
 """
-Plot DNP On/Off Signals
-=======================
+.. _02_dnplab_baseics_kea_data:
 
-This first example demonstrates how to import two NMR spectra, one recorded with a microwave power of 0 W (off-signal) and one with a microwave power of 2 W (on-signal). The spectra are recorded using a Magritek Kea system.
+=============================
+02 - DNPLab Basics (Kea Data)
+=============================
+
+In this example we demonstrate how to import two NMR spectra, one recorded with a microwave power of 0 W (off-signal) and one with a microwave power of 2 W (on-signal). The spectra are recorded using a Magritek Kea system.
 
 The example script has three different sections:
 
@@ -61,10 +64,11 @@ ws.copy("proc", "onSignal")
 # ---------------------------------------
 #
 #
-# ########## Plot Spectra ##########
+
+########## Plot Spectra ##########
 dnp.dnpResults.figure()
-dnp.dnpResults.plot(ws["offSignal"].real * 10 - 100, label="Off Signal x 10")
-dnp.dnpResults.plot(ws["onSignal"].real, label="On Signal")
+dnp.dnpResults.plot(ws["offSignal"].real * 10 - 100, label = "Off Signal x 10")
+dnp.dnpResults.plot(ws["onSignal"].real, label = "On Signal")
 dnp.dnpResults.xlim([30, -30])
 dnp.dnpResults.plt.xlabel("Chemical Shift [ppm]")
 dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")
