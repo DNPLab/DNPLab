@@ -32,9 +32,9 @@ from datetime import datetime
 date = datetime.now().strftime(u"%m/%d/%Y, %H:%M:%S")
 
 # The short X.Y version
-version = u"1.0.3"
+version = u"1.0.5"
 # The full version, including alpha/beta/rc tags
-release = u"1.0.3"
+release = u"1.0.5"
 
 print(u"Build Time: " + date)
 print(u"Version: " + version)
