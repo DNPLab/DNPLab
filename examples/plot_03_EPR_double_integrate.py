@@ -17,7 +17,7 @@ This example demonstrates how to use DNPLab to load an EPR spectrum and double i
 import dnplab as dnp
 
 # %%
-# and then import an EPR spectrum. DNPLab can handle spectra recorded on different spectrometers such as the Bruker ElexSys or EMX system. 
+# and then import an EPR spectrum. DNPLab can handle spectra recorded on different spectrometers such as the Bruker ElexSys or EMX system.
 data = dnp.dnpImport.load("../data/bes3t/1D_CW.DTA")
 
 # %%
@@ -49,25 +49,25 @@ print("proc axis names: " + str(ws["proc"].dims))
 # Now, let's perform a baseline correction using a zeroth order polynomial to remove a DC offset
 # print(ws["proc"].dims)
 
-dnp.dnpTools.baseline(ws, dim = "B0", type = "polynomial", order = 0)
+dnp.dnpTools.baseline(ws, dim="B0", type="polynomial", order=0)
 
 # %%
 # Keep a copy of the processed spectrum before integrating
 ws.copy("proc", "spec")
 
 # %%
-# Now let's double integrate the EPR spectrum. 
-dnp.dnpTools.integrate(ws, dim = "B0", type = "double")
+# Now let's double integrate the EPR spectrum.
+dnp.dnpTools.integrate(ws, dim="B0", type="double")
 
 # %%
 # If needed, access your processed spectrum as follows:
 
 # print(ws["proc"].keys())
 
-x_axis = ws["raw"].coords["B0"]                          # Imported field axis
-spectrum = ws["spec"].values                            # Spectrum after any processing steps, before integration
+x_axis = ws["raw"].coords["B0"]  # Imported field axis
+spectrum = ws["spec"].values  # Spectrum after any processing steps, before integration
 # first_integral = ws["proc"].attrs["first_integral"]     # First integral
-double_integral = ws["integrals"].values                     # Double integral
+double_integral = ws["integrals"].values  # Double integral
 print(double_integral)
 
 
