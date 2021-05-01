@@ -68,7 +68,7 @@ x_axis = ws["proc"].coords["f2"]        # ppm axis
 spectrum = ws["proc"].values            # spectrum
 
 # %%
-# DNPLab automatically takes care of the name of the coordinates. By default, the dimensions are named "t2" for the direct dimensions and "t1" for the indirect dimension before performing a Fourier Transformation. After the Fourier Transformation these dimensions will be called "t2" and "t1". However, you can rename dimensions at anytime. For example like this:
+# DNPLab automatically takes care of the name of the coordinates. By default, the dimensions are named "t2" for the direct dimensions and "t1" for the indirect dimension before performing a Fourier Transformation. After the Fourier Transformation these dimensions will be called "f2" and "f1". However, you can rename dimensions at anytime. For example, like this:
 
 ws["proc"].rename("f2", "ppm")
 
@@ -78,7 +78,7 @@ ws["proc"].rename("f2", "ppm")
 nmr_frequency = ws["proc"].attrs["nmr_frequency"]
 
 # %%
-# The following commands will generate a plot of the complex NRM spectrum, and will show the imaginary and real part in the same figure.
+# The following will generate a plot of the NMR spectrum, and will show the imaginary and real part in the same figure.
 
 dnp.dnpResults.figure()
 dnp.dnpResults.plot(ws["proc"].imag, label="Imaginary")

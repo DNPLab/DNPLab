@@ -24,7 +24,7 @@ file_name_path = "../data/h5/PowerBuildUp.h5"
 ws = dnp.dnpImport.load(file_name_path)
 
 # %%
-# When plotting the data you notice that the peaks are not on top of each other due to the drift of the magnetic field.
+# When plotting the data notice that the peaks are not aligned due, in this case, to magnetic field drift.
 
 dnp.dnpResults.figure()
 dnp.dnpResults.plot(ws["proc"].real)
@@ -38,7 +38,7 @@ dnp.dnpResults.show()
 # %%
 # Align Spectra
 # -------------
-# The spectra shown in the figure above are not aligned. Next, we will use the align function to correct for the magnetic field drift. First we start with making a copy of the processing buffer ("proc") and saving it under the name "NotAligned". In the next step the data is aligned by calling the function ``dnp.dnpNMR.align()``. This process will take a couple of seconds, especially if the 2D NMR data set is large. Once this operation is completed, we copy the data set from the processing buffer to a new dnpdata object simply called "Aligned".
+# To align the spectra, first start with making a copy of the processing buffer ("proc") and saving it under the name "NotAligned". Next, align the data by calling the function ``dnp.dnpNMR.align()``. This process may take a couple of seconds if the 2D NMR data set is large. Once this operation is completed, copy the data set from the processing buffer to a new dnpdata object simply called "Aligned".
 
 ws.copy("proc", "NotAligned")                       # Copy processing buffer
 dnp.dnpNMR.align(ws)                                # Align NMR spectra
