@@ -89,8 +89,73 @@ _dspfvs_table_13 = {
     96: 2.995,
 }
 
+dspfvs_table = _np.array(
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [
+            179,
+            201,
+            533,
+            709,
+            1097,
+            1449,
+            2225,
+            2929,
+            4481,
+            5889,
+            8993,
+            11809,
+            18017,
+            23649,
+            36065,
+            47329,
+            72161,
+            94689,
+            144353,
+            189409,
+            288737,
+        ],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [
+            184,
+            219,
+            384,
+            602,
+            852,
+            1668,
+            2292,
+            3368,
+            4616,
+            6768,
+            9264,
+            13568,
+            18560,
+            27392,
+            36992,
+            55040,
+            73856,
+            110336,
+            147584,
+            220928,
+            295040,
+        ],
+    ]
+)
+decim_array = _np.array(
+    [2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024]
+)
 
-def find_group_delay(decim, dspfvs):
+
+def find_group_delay(attrsDict):
     """
     Determine group delay from tables
 
@@ -101,23 +166,34 @@ def find_group_delay(decim, dspfvs):
     Returns:
         float: Group delay. Number of points FID is shifted by DSP. The ceiling of this number (group delay rounded up) is the number of points should be removed from the start of the FID.
     """
+
     group_delay = 0
-    if decim == 1:
+    if attrsDict["DECIM"] == 1:
         group_delay = 0
     else:
-        if dspfvs == 10:
-            group_delay = _dspfvs_table_10[int(decim)]
-        elif dspfvs == 11:
-            group_delay = _dspfvs_table_11[int(decim)]
-        elif dspfvs == 12:
-            group_delay = _dspfvs_table_12[int(decim)]
-        elif dspfvs == 13:
-            group_delay = _dspfvs_table_13[int(decim)]
+        if attrsDict["DSPFVS"] == 10:
+            group_delay = _dspfvs_table_10[int(attrsDict["DECIM"])]
+        elif attrsDict["DSPFVS"] == 11:
+            group_delay = _dspfvs_table_11[int(attrsDict["DECIM"])]
+        elif attrsDict["DSPFVS"] == 12:
+            group_delay = _dspfvs_table_12[int(attrsDict["DECIM"])]
+        elif attrsDict["DSPFVS"] == 13:
+            group_delay = _dspfvs_table_13[int(attrsDict["DECIM"])]
         else:
             print("dspfvs not defined")
 
-    return group_delay
 
+    """if "GRPDLY" in attrsDict.keys():
+        group_delay = attrsDict["GRPDLY"]
+    else:
+        try:
+            group_delay = dspfvs_table[attrsDict["DSPFVS"], where(decim_array == attrsDict["DECIM"])[0]] // 2 / attrsDict["DECIM"]
+        except:
+            group_delay = 0"""
+
+    print(group_delay)
+
+    return group_delay
 
 def load_title(
     path="1" + _os.sep, titlePath=_os.path.join("pdata", "1"), titleFilename="title"
@@ -282,7 +358,7 @@ def topspin_fid(path, paramFilename="acqus"):
     raw = _np.fromfile(_os.path.join(path, "fid"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
+    group_delay = find_group_delay(attrsDict)
     group_delay = int(_np.ceil(group_delay))
 
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
@@ -444,7 +520,7 @@ def import_ser(path, paramFilename="acqus", TD=False):
     raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
+    group_delay = find_group_delay(attrsDict)
     group_delay = int(_np.ceil(group_delay))
 
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
@@ -495,7 +571,7 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
     raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
+    group_delay = find_group_delay(attrsDict)
     group_delay = int(_np.ceil(group_delay))
 
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
