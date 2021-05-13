@@ -27,6 +27,7 @@ def exponential_fit(
     all_data,
     type="mono",
     stretched=False,
+    bounds=False,
     dim="t1",
     indirect_dim=None,
     ws_key="integrals",
@@ -35,13 +36,13 @@ def exponential_fit(
 
     .. math::
 
-        f(t) &= M_0 - M_{\infty} e^{-t/T_1} \\
+        f(t) &= M_{0} - M_{\infty} e^{-t/T_{1}} \\
         
-             &= M_0 e^{(-2(t/T_2)^p} \\
+             &= M_{0} e^{(-2(t/T_{2})^{p}} \\
         
-             &= C1 + C2 e^{-x/tau} \\
+             &= C1 + C2 e^{-t/tau} \\
         
-             &= C1 + C2 e^{-x/tau1} + C3 e^{-x/tau2}
+             &= C1 + C2 e^{-t/tau1} + C3 e^{-t/tau2}
 
 
     Args:
@@ -93,7 +94,15 @@ def exponential_fit(
     if type == "T1":
 
         x0 = [1.0, input_data[-1], input_data[-1]]
-        out, cov = curve_fit(dnpMath.t1_function, x_axis, input_data, x0, method="lm")
+        if bounds:
+            out, cov = curve_fit(
+                dnpMath.t1_function, x_axis, input_data, x0, bounds=bounds, method="trf"
+            )
+        else:
+            out, cov = curve_fit(
+                dnpMath.t1_function, x_axis, input_data, x0, method="lm"
+            )
+
         stdd = _np.sqrt(_np.diag(cov))
         fit = dnpMath.t1_function(new_axis, out[0], out[1], out[2])
 
@@ -107,19 +116,32 @@ def exponential_fit(
 
         x0 = [input_data[0], 1.0, 1.0]
         if stretched:
-            out, cov = curve_fit(
-                dnpMath.t2_function, x_axis, input_data, x0, method="lm"
-            )
+            if bounds:
+                out, cov = curve_fit(
+                    dnpMath.t2_function,
+                    x_axis,
+                    input_data,
+                    x0,
+                    bounds=bounds,
+                    method="trf",
+                )
+            else:
+                out, cov = curve_fit(
+                    dnpMath.t2_function, x_axis, input_data, x0, method="lm"
+                )
         else:
+            if not bounds:
+                bounds = (
+                    [float("-inf"), float("-inf"), 0.99999],
+                    [float("inf"), float("inf"), 1.00001],
+                )
+
             out, cov = curve_fit(
                 dnpMath.t2_function,
                 x_axis,
                 input_data,
                 x0,
-                bounds=(
-                    [float("-inf"), float("-inf"), 0.99999],
-                    [float("inf"), float("inf"), 1.00001],
-                ),
+                bounds=bounds,
                 method="trf",
             )
             out[2] = 1.0
@@ -136,7 +158,15 @@ def exponential_fit(
     elif type == "mono":
 
         x0 = [input_data[-1], 1.0, 100]
-        out, cov = curve_fit(dnpMath.monoexp_fit, x_axis, input_data, x0, method="lm")
+        if bounds:
+            out, cov = curve_fit(
+                dnpMath.monoexp_fit, x_axis, input_data, x0, bounds=bounds, method="trf"
+            )
+        else:
+            out, cov = curve_fit(
+                dnpMath.monoexp_fit, x_axis, input_data, x0, method="lm"
+            )
+
         stdd = _np.sqrt(_np.diag(cov))
         fit = dnpMath.monoexp_fit(new_axis, out[0], out[1], out[2])
 
@@ -149,7 +179,13 @@ def exponential_fit(
     elif type == "bi":
 
         x0 = [input_data[-1], 1.0, 100, 1.0, 100]
-        out, cov = curve_fit(dnpMath.biexp_fit, x_axis, input_data, x0, method="lm")
+        if bounds:
+            out, cov = curve_fit(
+                dnpMath.biexp_fit, x_axis, input_data, x0, bounds=bounds, method="trf"
+            )
+        else:
+            out, cov = curve_fit(dnpMath.biexp_fit, x_axis, input_data, x0, method="lm")
+
         stdd = _np.sqrt(_np.diag(cov))
         fit = dnpMath.biexp_fit(new_axis, out[0], out[1], out[2], out[3], out[4])
 
@@ -214,12 +250,21 @@ def enhancement_fit(dataDict):
     input_data = _np.real(all_data["enhancements"].values)
 
     x0 = [input_data[-1], 0.1]
+    if bounds:
+        out, cov = curve_fit(
+            dnpMath.buildup_function,
+            power_axes,
+            input_data,
+            x0,
+            bounds=bounds,
+            method="trf",
+        )
+    else:
+        out, cov = curve_fit(
+            dnpMath.buildup_function, power_axes, input_data, x0, method="lm"
+        )
 
-    out, cov = curve_fit(
-        dnpMath.buildup_function, power_axes, input_data, x0, method="lm"
-    )
     stdd = _np.sqrt(_np.diag(cov))
-
     fit = dnpMath.buildup_function(power_axes, out[0], out[1])
 
     fit_data = dnpdata(fit, [power_axes], ["power"])
