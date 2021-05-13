@@ -3,6 +3,7 @@ from dnplab import dnpdata
 from numpy.testing import assert_array_equal
 import dnplab.dnpImport as wrapper
 import dnplab.dnpNMR as nmr
+import dnplab.dnpMath as Math
 import dnplab as dnp
 import numpy as np
 import os
@@ -50,15 +51,15 @@ class dnpNMR_tester(unittest.TestCase):
         self.assertEqual(shifted_n_pts[0], n_pts[0] - 100)
         self.ws.copy("temp", "proc")
 
-        wf = nmr.hamming_window(len(self.ws["proc"].values))
+        wf = Math.hamming_window(len(self.ws["proc"].values))
         self.assertEqual(max(wf), 1.0)
         self.assertAlmostEqual(min(wf), 0.07671999999999995, places=4)
 
-        wf = nmr.hann_window(len(self.ws["proc"].values))
+        wf = Math.hann_window(len(self.ws["proc"].values))
         self.assertEqual(max(wf), 1.0)
         self.assertEqual(min(wf), 0.0)
 
-        wf = nmr.lorentz_gauss_window(self.ws["proc"], dim="t2", exp_lw=5, gauss_lw=10)
+        wf = Math.lorentz_gauss_window(self.ws["proc"], dim="t2", exp_lw=5, gauss_lw=10)
         self.assertAlmostEqual(max(wf), 1.1895922020471337, places=4)
 
         self.ws.copy("proc", "temp")
@@ -70,12 +71,12 @@ class dnpNMR_tester(unittest.TestCase):
         )
         self.ws.copy("temp", "proc")
 
-        wf = nmr.sin2_window(len(self.ws["proc"]))
+        wf = Math.sin2_window(len(self.ws["proc"]))
         self.assertEqual(max(wf), 1.0)
 
-        wf = nmr.traf_window(self.ws["proc"], dim="t2", exp_lw=1, gauss_lw=1)
+        wf = Math.traf_window(self.ws["proc"], dim="t2", exp_lw=1, gauss_lw=1)
 
-        wf = nmr.exponential_window(self.ws["proc"], "t2", 5)
+        wf = Math.exponential_window(self.ws["proc"], "t2", 5)
         self.assertAlmostEqual(min(wf), 0.00035733315645396175, places=4)
 
         self.ws.copy("proc", "temp")

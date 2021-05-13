@@ -5,6 +5,7 @@ from .dnpNMR import *
 from . import dnpIO
 from .dnpFit import *
 from .dnpTools import *
+from .dnpMath import *
 from .dnpHydration import *
 from . import core
 from .dnpResults import *

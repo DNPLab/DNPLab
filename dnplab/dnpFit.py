@@ -1,4 +1,5 @@
 from . import dnpdata as dnpdata, dnpdata_collection
+from . import dnpMath
 import numpy as _np
 from scipy.optimize import curve_fit
 
@@ -20,26 +21,6 @@ def return_data(all_data):
         raise ValueError("Data type not supported")
 
     return data, is_workspace
-
-
-def t1_function(t_axis, T1, M_0, M_inf):
-    return M_0 - M_inf * _np.exp(-1.0 * t_axis / T1)
-
-
-def t2_function_stretch(x_axis, M_0, T2, p):
-    return M_0 * _np.exp(-2.0 * (x_axis / T2) ** p)
-
-
-def t2_function_nostretch(x_axis, M_0, T2):
-    return M_0 * _np.exp(-2.0 * (x_axis / T2) ** 1.0)
-
-
-def exp_fit_func_1(x_axis, C1, C2, tau):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau)
-
-
-def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
 
 
 def exponential_fit(
@@ -112,9 +93,9 @@ def exponential_fit(
     if type == "T1":
 
         x0 = [1.0, input_data[-1], input_data[-1]]
-        out, cov = curve_fit(t1_function, x_axis, input_data, x0, method="lm")
+        out, cov = curve_fit(dnpMath.t1_function, x_axis, input_data, x0, method="lm")
         stdd = _np.sqrt(_np.diag(cov))
-        fit = t1_function(new_axis, out[0], out[1], out[2])
+        fit = dnpMath.t1_function(new_axis, out[0], out[1], out[2])
 
         fit_data = dnpdata(fit, [new_axis], [ind_dim])
         fit_data.attrs["T1"] = out[0]
@@ -127,17 +108,17 @@ def exponential_fit(
         if stretched:
             x0 = [input_data[0], 1.0, 1.0]
             out, cov = curve_fit(
-                t2_function_stretch, x_axis, input_data, x0, method="lm"
+                dnpMath.t2_function, x_axis, input_data, x0, method="lm"
             )
             stdd = _np.sqrt(_np.diag(cov))
-            fit = t2_function_stretch(new_axis, out[0], out[1], out[2])
+            fit = dnpMath.t2_function(new_axis, out[0], out[1], out[2])
         else:
             x0 = [input_data[0], 1.0]
             out, cov = curve_fit(
-                t2_function_nostretch, x_axis, input_data, x0, method="lm"
+                dnpMath.t2_function, x_axis, input_data, x0, method="lm"
             )
             stdd = _np.sqrt(_np.diag(cov))
-            fit = t2_function_nostretch(new_axis, out[0], out[1])
+            fit = dnpMath.t2_function(new_axis, out[0], out[1])
 
         fit_data = dnpdata(fit, [new_axis], [ind_dim])
         fit_data.attrs["T2"] = out[1]
@@ -149,9 +130,9 @@ def exponential_fit(
     elif type == "mono":
 
         x0 = [input_data[-1], 1.0, 100]
-        out, cov = curve_fit(exp_fit_func_1, x_axis, input_data, x0, method="lm")
+        out, cov = curve_fit(dnpMath.monoexp_fit, x_axis, input_data, x0, method="lm")
         stdd = _np.sqrt(_np.diag(cov))
-        fit = exp_fit_func_1(new_axis, out[0], out[1], out[2])
+        fit = dnpMath.monoexp_fit(new_axis, out[0], out[1], out[2])
 
         fit_data = dnpdata(fit, [new_axis], [ind_dim])
         fit_data.attrs["tau"] = out[2]
@@ -162,9 +143,9 @@ def exponential_fit(
     elif type == "bi":
 
         x0 = [input_data[-1], 1.0, 100, 1.0, 100]
-        out, cov = curve_fit(exp_fit_func_2, x_axis, input_data, x0, method="lm")
+        out, cov = curve_fit(dnpMath.biexp_fit, x_axis, input_data, x0, method="lm")
         stdd = _np.sqrt(_np.diag(cov))
-        fit = exp_fit_func_2(new_axis, out[0], out[1], out[2], out[3], out[4])
+        fit = dnpMath.biexp_fit(new_axis, out[0], out[1], out[2], out[3], out[4])
 
         fit_data = dnpdata(fit, [new_axis], [ind_dim])
         fit_data.attrs["tau1"] = out[2]
@@ -182,10 +163,6 @@ def exponential_fit(
         all_data["fit"] = fit_data
     else:
         return fit_data
-
-
-def enhancement_function(power_array, E_max, power_half):
-    return E_max * power_array / (power_half + power_array)
 
 
 def enhancement_fit(dataDict):
@@ -232,10 +209,12 @@ def enhancement_fit(dataDict):
 
     x0 = [input_data[-1], 0.1]
 
-    out, cov = curve_fit(enhancement_function, power_axes, input_data, x0, method="lm")
+    out, cov = curve_fit(
+        dnpMath.buildup_function, power_axes, input_data, x0, method="lm"
+    )
     stdd = _np.sqrt(_np.diag(cov))
 
-    fit = enhancement_function(power_axes, out[0], out[1])
+    fit = dnpMath.buildup_function(power_axes, out[0], out[1])
 
     fit_data = dnpdata(fit, [power_axes], ["power"])
     fit_data.attrs["E_max"] = out[0]
@@ -247,71 +226,3 @@ def enhancement_fit(dataDict):
         dataDict["fit"] = fit_data
     else:
         return fit_data
-
-
-def interpolate_T1(
-    E_powers=False,
-    T1_powers=False,
-    T1_array=False,
-    interp_method="linear",
-    spin_C=100,
-    T10=2.0,
-    T100=2.5,
-):
-    """Returns interpolated T1 data using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
-
-    Args:
-        E_powers: The x-coordinates at which to evaluate.
-        T1_powers: The x-coordinates of the data points, must be increasing.
-            Otherwise, T1_power is internally sorted.
-        T1_array: The y-coordinates of the data points, same length as T1_power.
-        interp_method: "second_order" or "linear".
-        spin_C: unpaired electron spin concentration in uM.
-        T10: T1 measured with unpaired electrons.
-        T100: T1 measured without unpaired electrons.
-
-    Returns:
-        interp_T1 (np.array): The evaluated values, same shape as E_powers.
-    """
-
-    spin_C = spin_C / 1e6
-
-    # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
-    if interp_method == "second_order":
-
-        delta_T1_water = T1_array[-1] - T1_array[0]
-        T1_water = T100
-        macro_C = spin_C
-
-        kHH = (1.0 / T10 - 1.0 / T1_water) / macro_C
-        krp = (
-            (1.0 / T1_array)
-            - (1.0 / (T1_water + delta_T1_water * T1_powers))
-            - (kHH * (macro_C))
-        ) / (spin_C)
-
-        p = _np.polyfit(T1_powers, krp, 2)
-        T1_fit_2order = _np.polyval(p, E_powers)
-
-        interp_T1 = 1.0 / (
-            ((spin_C) * T1_fit_2order)
-            + (1.0 / (T1_water + delta_T1_water * E_powers))
-            + (kHH * (macro_C))
-        )
-
-    # linear fit, Franck et al. PNMRS (Eq. 39)
-    elif interp_method == "linear":
-
-        linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
-
-        p = _np.polyfit(T1_powers, linear_t1, 1)
-        T1_fit_linear = _np.polyval(p, E_powers)
-
-        interp_T1 = T1_fit_linear / (
-            1.0 + (T1_fit_linear / T10) - (T1_fit_linear / T100)
-        )
-
-    else:
-        raise Exception("invalid interp_method")
-
-    return interp_T1
