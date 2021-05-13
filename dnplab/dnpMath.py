@@ -25,7 +25,7 @@ def exponential_window(all_data, dim, lw):
     """Calculate exponential window function
 
     .. math::
-        \mathrm{exponential}  &=  \exp(-2t * \mathrm{linewidth}) &
+        \mathrm{exponential} =  e^{-2t * \mathrm{linewidth}}
 
     Args:
         all_data (dnpdata, dict): data container
@@ -43,7 +43,7 @@ def gaussian_window(all_data, dim, lw):
     """Calculate gaussian window function
 
     .. math::
-        \mathrm{gaussian}  &=  \exp((\mathrm{linewidth[0]} * t) - (\mathrm{linewidth[1]} * t^{2})) &
+        \mathrm{gaussian} = e^{((\mathrm{linewidth}[0] * t) - (\mathrm{linewidth}[1] * t^{2}))}
 
     Args:
         all_data (dnpdata, dict): data container
@@ -67,7 +67,7 @@ def hamming_window(dim_size):
     """Calculate hamming window function
 
     .. math::
-        \mathrm{hamming}  &=  0.53836 + 0.46164\cos(\pi * n/(N-1)) &
+        \mathrm{hamming} = 0.53836 + 0.46164\cos(\pi * n / (N-1))
 
     Args:
         dim_size(int): length of array to window
@@ -84,7 +84,7 @@ def hann_window(dim_size):
     """Calculate hann window function
 
     .. math::
-        \mathrm{han}  &=  0.5 + 0.5\cos(\pi * n/(N-1)) &
+        \mathrm{han} = 0.5 + 0.5\cos(\pi * n / (N-1))
 
     Args:
         dim_size(int): length of array to window
@@ -127,7 +127,7 @@ def sin2_window(dim_size):
     """Calculate sin-squared window function
 
     .. math::
-        \mathrm{sin2}  &=  \cos((-0.5\pi * n/(N - 1)) + \pi)^{2} &
+        \sin^{2}  =  \cos((-0.5\pi * n / (N - 1)) + \pi)^{2}
 
     Args:
         dim_size(int): length of array to window
@@ -144,7 +144,7 @@ def traf_window(all_data, dim, exp_lw, gauss_lw):
     """Calculate traf window function
 
     .. math::
-        \mathrm{traf}           &=  (f1 * (f1 + f2)) / (f1^{2} + f2^{2}) &
+        \mathrm{traf}  &=  (f1 * (f1 + f2)) / (f1^{2} + f2^{2}) &
 
                f1(t)   &=  \exp(-t * \pi * \mathrm{linewidth[0]}) &
 
@@ -166,24 +166,100 @@ def traf_window(all_data, dim, exp_lw, gauss_lw):
     return (E_t * (E_t + e_t)) / ((E_t ** 2) + (e_t ** 2))
 
 
-def t1_function(t_axis, T1, M_0, M_inf):
-    return M_0 - M_inf * _np.exp(-1.0 * t_axis / T1)
+def t1_function(t, T1, M_0, M_inf):
+    """Calculate exponential T1 curve
+
+    .. math::
+        f(t) = M_0 - M_{\infty} e^{-t/T_{1}}
+
+    Args:
+        t (array): time series
+        T_{1} (float): T1 value
+        M_{0} (float): see equation
+        M_{\infty} (float): see equation
+
+    Returns:
+        array: T1 curve
+    """
+
+    return M_0 - M_inf * _np.exp(-1.0 * t / T1)
 
 
-def t2_function(x_axis, M_0, T2, p):
-    return M_0 * _np.exp(-2.0 * (x_axis / T2) ** p)
+def t2_function(t, M_0, T2, p):
+    """Calculate stretched or un-stretched (p=1) exponential T2 curve
+
+    .. math::
+        f(t) = M_{0} e^{(-2(t/T_{2})^{p}}
+
+    Args:
+        t (array): time series
+        M_{0} (float): see equation
+        T_{2} (float): T2 value
+        p (float): see equation
+
+    Returns:
+        array: T2 curve
+    """
+
+    return M_0 * _np.exp(-2.0 * (t / T2) ** p)
 
 
-def monoexp_fit(x_axis, C1, C2, tau):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau)
+def monoexp_fit(t, C1, C2, tau):
+    """Calculate mono-exponential curve
+
+    .. math::
+        f(t) = C1 + C2 e^{-t/tau}
+
+    Args:
+        t (array): time series
+        C1 (float): see equation
+        C2 (float): see equation
+        tau (float): see equation
+
+    Returns:
+        array: mono-exponential curve
+    """
+
+    return C1 + C2 * _np.exp(-1.0 * t / tau)
 
 
-def biexp_fit(x_axis, C1, C2, tau1, C3, tau2):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
+def biexp_fit(t, C1, C2, tau1, C3, tau2):
+    """Calculate bi-exponential curve
+
+    .. math::
+        f(t) = C1 + C2 e^{-t/tau1} + C3 e^{-t/tau2}
+
+    Args:
+        t (array): time series
+        C1 (float): see equation
+        C2 (float): see equation
+        C3 (float): see equation
+        tau1 (float): see equation
+        tau2 (float): see equation
+
+    Returns:
+        array: bi-exponential curve
+    """
+
+    return C1 + C2 * _np.exp(-1.0 * t / tau1) + C3 * _np.exp(-1.0 * t / tau2)
 
 
-def buildup_function(power_array, E_max, power_half):
-    return E_max * power_array / (power_half + power_array)
+def buildup_function(p, E_max, p_half):
+    """Calculate asymptotic buildup curve
+
+    .. math::
+        f(p) = E_{max} * p / (p_{1/2} + p)
+
+    Args:
+        p (array): power series
+        E_{max} (float): maximum enhancement
+        p_{1/2} (float): power at half saturation
+
+    Returns:
+        array: buildup curve
+    """
+
+    return E_max * p / (p_half + p)
 
 
 def interpolate_T1(
