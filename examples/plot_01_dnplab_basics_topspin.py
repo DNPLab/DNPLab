@@ -43,15 +43,15 @@ ws.copy("raw", "proc")
 # Next, perform some basic processing. Simply pass the entire workspace, 'ws', to the functions and ws["proc"] will be manipulated. For example:
 
 dnp.dnpNMR.remove_offset(ws)
-dnp.dnpNMR.window(ws, linewidth=20)
-dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
+dnp.dnpNMR.window(ws, linewidth = 20)
+dnp.dnpNMR.fourier_transform(ws, zero_fill_factor = 2)
 
 # %%
 # This procedure removes the DC offset, performs a apodization with a window function (20 Hz linewidth), followed by a Fourier transforms.
 #
 # NMR spectra are typically phase sensitive and the final processing step is often phasing the spectra. In DNPLab you can either manually phase correct the spectrum using the 'autophase' function using the 'manual' keyword and giving a phase explicitely:
 
-dnp.dnpNMR.autophase(ws, method="manual", phase=np.pi / 2)
+dnp.dnpNMR.autophase(ws, method = "manual", phase = np.pi / 2)
 
 # %%
 # Or by using the autophase function to automatically search for and apply the best phase angle
@@ -63,8 +63,8 @@ dnp.dnpNMR.autophase(ws)
 # -------------------
 # If needed, access your processed spectrum as follows:
 
-x_axis = ws["proc"].coords["f2"]  # ppm axis
-spectrum = ws["proc"].values  # spectrum
+x_axis = ws["proc"].coords["f2"]        # ppm axis
+spectrum = ws["proc"].values            # spectrum
 
 # %%
 # DNPLab automatically takes care of the name of the coordinates. By default, the dimensions are named "t2" for the direct dimensions and "t1" for the indirect dimension before performing a Fourier Transformation. After the Fourier Transformation these dimensions will be called "f2" and "f1". However, you can rename dimensions at anytime. For example, like this:

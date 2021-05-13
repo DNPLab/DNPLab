@@ -13,7 +13,7 @@ Depending on how you record a set of DNP-NMR experiments, you will either end up
 # %%
 # Load NMR Spectra
 # ----------------
-# For this example a set of 1D NMR spectra is imported. Each spectrum is recorded using a different microwave power. The import function of DNPLab can handle a list of spectra and will automatically create the dnpdata object. To load multiple spectra first create a list of paths to the individual spectra (alternatively, you can loop over the folder index, however, for educational purposes we keep this simple for now).
+# For this example a set of 1D NMR spectra is imported. Each spectrum is recorded using a different microwave power. The import function of DNPLab can handle a list of spectra and will automatically create the dnpdata object. To load multiple spectra first create a list of paths to the individual spectra (alternatively, you can loop over the folder index, however, for educational purposes we keep this simple for now). 
 import dnplab as dnp
 import numpy as np
 
@@ -63,55 +63,11 @@ filenames = [
 
 # %%
 # Create an array with the power levels. The length of this array should match the number of spectra. The Python list "filenames" and the array of power levels will become input arguments to the load function. Here, the dimension is called "Power" and the values stored in "powers" serves as the "coord" input argument. When importing the spectra DNPLab will automatically create a 2D object with a new dimension namend "Power" and the data is concatenated into a single 2D dnpdata object.
-powers = np.array(
-    [
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10,
-        11,
-        12,
-        13,
-        14,
-        15,
-        16,
-        17,
-        18,
-        19,
-        20,
-        21,
-        22,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30,
-        31,
-        32,
-        33,
-        34,
-        35,
-        36,
-        37,
-        38,
-        39,
-        40,
-    ]
-)  # Power in dBm
+powers = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40])   # Power in dBm
 
 # %%
 # Now load the data and assign the power array to coord,
-data = dnp.dnpImport.load(filenames, dim="Power", coord=powers)
+data = dnp.dnpImport.load(filenames, dim = "Power", coord = powers)
 
 # %%
 # Finally, we can create the workspace, add the data to the "raw" object, and copy the "raw" data to the processing buffer.
@@ -124,8 +80,8 @@ ws.copy("raw", "proc")
 # --------------------------------
 # Once the 2D data set is created, NMR processing is straightforward. Here, we apply a line-broadening of 10 Hz, perform a Fourier Transformation, and zero-filling of the data set to twice the number of points.
 dnp.dnpNMR.remove_offset(ws)
-dnp.dnpNMR.window(ws, linewidth=10)
-dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
+dnp.dnpNMR.window(ws, linewidth = 10)
+dnp.dnpNMR.fourier_transform(ws, zero_fill_factor = 2)
 
 # %%
 # Finally, the 1D spectra are plotted.
@@ -144,7 +100,7 @@ dnp.dnpResults.show()
 # DNPLab has built-in capabilities to save large data sets, so we can save the already concatenated and processed NMR data in a single file and load just this file for further processing.
 
 file_name_path = "../data/h5/PowerBuildUp.h5"
-dnp.dnpSave.save(ws, file_name_path, overwrite=True)
+dnp.dnpSave.save(ws,file_name_path, overwrite = True)
 
 # %%
 # DNPLab saves the 2D dnpdata object in the hdf5 file format. We will use this data in the next example (:ref:`05-calculate-dnp-enhancements-i`) for further processing.

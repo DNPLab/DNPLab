@@ -16,7 +16,7 @@ The align routine implemented in DNPLab overlays each individual scan by maximiz
 # %%
 # Load NMR Spectral Data
 # ----------------------
-# Start with importing the NMR spectra from the prevous example (:ref:`04-create-a-2d-dnpdata-object-from-individual-spectra`).
+# Start with importing the NMR spectra from the prevous example (:ref:`04-create-a-2d-dnpdata-object-from-individual-spectra`). 
 
 import dnplab as dnp
 
@@ -40,9 +40,9 @@ dnp.dnpResults.show()
 # -------------
 # To align the spectra, first start with making a copy of the processing buffer ("proc") and saving it under the name "NotAligned". Next, align the data by calling the function ``dnp.dnpNMR.align()``. This process may take a couple of seconds if the 2D NMR data set is large. Once this operation is completed, copy the data set from the processing buffer to a new dnpdata object simply called "Aligned".
 
-ws.copy("proc", "NotAligned")  # Copy processing buffer
-dnp.dnpNMR.align(ws)  # Align NMR spectra
-ws.copy("proc", "Aligned")  # Copy aligned spectra to new object
+ws.copy("proc", "NotAligned")                       # Copy processing buffer
+dnp.dnpNMR.align(ws)                                # Align NMR spectra
+ws.copy("proc", "Aligned")                          # Copy aligned spectra to new object
 
 # %%
 # Next, let's plot the aligned data.
@@ -64,4 +64,4 @@ dnp.dnpResults.show()
 # The last step is to save the aligned spectra. Similar to the previous example (:ref:`04-create-a-2d-dnpdata-object-from-individual-spectra`) we will save the entire workspace in the hdf5 file format.
 
 file_name_path = "../data/h5/PowerBuildUpAligned.h5"
-dnp.dnpSave.save(ws, file_name_path, overwrite=True)
+dnp.dnpSave.save(ws,file_name_path, overwrite = True)

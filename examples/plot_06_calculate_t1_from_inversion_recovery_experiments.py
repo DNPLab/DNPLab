@@ -13,7 +13,6 @@ This example demonstrates how to import data from an inversion recovery NMR expe
 # -------------------------------
 # Start with importing data and creating the DNPLab workspace. Note that the data are added to the workspace as 'raw' then copied to the processing buffer 'proc' to preserve the raw data during processing.
 import dnplab as dnp
-
 file_name_path = "../data/topspin/304"
 data = dnp.dnpImport.load(file_name_path)
 
@@ -24,8 +23,8 @@ ws.copy("raw", "proc")
 # %%
 # Next, we process the FIDs to obtain the frequency domain NMR spectrum
 dnp.dnpNMR.remove_offset(ws)
-dnp.dnpNMR.window(ws, linewidth=10)
-dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
+dnp.dnpNMR.window(ws, linewidth = 10)
+dnp.dnpNMR.fourier_transform(ws, zero_fill_factor = 2)
 
 dnp.dnpNMR.autophase(ws)
 
