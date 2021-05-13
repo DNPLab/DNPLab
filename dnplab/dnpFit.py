@@ -105,27 +105,33 @@ def exponential_fit(
 
     elif type == "T2":
 
+        x0 = [input_data[0], 1.0, 1.0]
         if stretched:
-            x0 = [input_data[0], 1.0, 1.0]
             out, cov = curve_fit(
                 dnpMath.t2_function, x_axis, input_data, x0, method="lm"
             )
-            stdd = _np.sqrt(_np.diag(cov))
-            fit = dnpMath.t2_function(new_axis, out[0], out[1], out[2])
         else:
-            x0 = [input_data[0], 1.0]
             out, cov = curve_fit(
-                dnpMath.t2_function, x_axis, input_data, x0, method="lm"
+                dnpMath.t2_function,
+                x_axis,
+                input_data,
+                x0,
+                bounds=(
+                    [float("-inf"), float("-inf"), 0.99999],
+                    [float("inf"), float("inf"), 1.00001],
+                ),
+                method="trf",
             )
-            stdd = _np.sqrt(_np.diag(cov))
-            fit = dnpMath.t2_function(new_axis, out[0], out[1])
+            out[2] = 1.0
+
+        stdd = _np.sqrt(_np.diag(cov))
+        fit = dnpMath.t2_function(new_axis, out[0], out[1], out[2])
 
         fit_data = dnpdata(fit, [new_axis], [ind_dim])
         fit_data.attrs["T2"] = out[1]
         fit_data.attrs["T2_stdd"] = stdd[1]
         fit_data.attrs["M_0"] = out[0]
-        if stretched:
-            fit_data.attrs["p"] = out[2]
+        fit_data.attrs["p"] = out[2]
 
     elif type == "mono":
 
