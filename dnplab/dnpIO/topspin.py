@@ -89,87 +89,20 @@ _dspfvs_table_13 = {
     96: 2.995,
 }
 
-dspfvs_table = _np.array(
-    [
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [
-            179,
-            201,
-            533,
-            709,
-            1097,
-            1449,
-            2225,
-            2929,
-            4481,
-            5889,
-            8993,
-            11809,
-            18017,
-            23649,
-            36065,
-            47329,
-            72161,
-            94689,
-            144353,
-            189409,
-            288737,
-        ],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [
-            184,
-            219,
-            384,
-            602,
-            852,
-            1668,
-            2292,
-            3368,
-            4616,
-            6768,
-            9264,
-            13568,
-            18560,
-            27392,
-            36992,
-            55040,
-            73856,
-            110336,
-            147584,
-            220928,
-            295040,
-        ],
-    ]
-)
-decim_array = _np.array(
-    [2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192, 256, 384, 512, 768, 1024]
-)
-
 
 def find_group_delay(attrsDict):
     """
     Determine group delay from tables
 
     Args:
-        decim: Decimation factor of the digital filter (factor by which oversampling rate exeeds sampling rate).
-        dspfvs: Firmware version for Bruker Console.
+        attrsDict (dict): dictionary of topspin acquisition parameters
 
     Returns:
         float: Group delay. Number of points FID is shifted by DSP. The ceiling of this number (group delay rounded up) is the number of points should be removed from the start of the FID.
     """
-
     group_delay = 0
     if attrsDict["DECIM"] == 1:
-        group_delay = 0
+        pass
     else:
         if attrsDict["DSPFVS"] == 10:
             group_delay = _dspfvs_table_10[int(attrsDict["DECIM"])]
@@ -179,21 +112,16 @@ def find_group_delay(attrsDict):
             group_delay = _dspfvs_table_12[int(attrsDict["DECIM"])]
         elif attrsDict["DSPFVS"] == 13:
             group_delay = _dspfvs_table_13[int(attrsDict["DECIM"])]
+        elif 20 <= attrsDict["DSPFVS"] <= 23:
+            if "GRPDLY" in attrsDict.keys():
+                group_delay = attrsDict["GRPDLY"]
+            else:
+                print("group delay not found in acqus file, setting to 0")
         else:
-            print("dspfvs not defined")
-
-
-    """if "GRPDLY" in attrsDict.keys():
-        group_delay = attrsDict["GRPDLY"]
-    else:
-        try:
-            group_delay = dspfvs_table[attrsDict["DSPFVS"], where(decim_array == attrsDict["DECIM"])[0]] // 2 / attrsDict["DECIM"]
-        except:
-            group_delay = 0"""
-
-    print(group_delay)
+            print("dspfvs parameter not found in acqus file, setting group delay to 0")
 
     return group_delay
+
 
 def load_title(
     path="1" + _os.sep, titlePath=_os.path.join("pdata", "1"), titleFilename="title"
@@ -367,8 +295,7 @@ def topspin_fid(path, paramFilename="acqus"):
 
     data = data / attrsDict["RG"]
 
-    importantParamsDict = {}
-    importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
+    importantParamsDict = {"nmr_frequency": attrsDict["SFO1"] * 1e6}
     output = _dnpdata(data, [t], ["t2"], importantParamsDict)
 
     return output
@@ -543,8 +470,7 @@ def import_ser(path, paramFilename="acqus", TD=False):
 
     data = data / attrsDict["RG"]
 
-    importantParamsDict = {}
-    importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
+    importantParamsDict = {"nmr_frequency": attrsDict["SFO1"] * 1e6}
     output = _dnpdata(data, [t, vdList], ["t2", "t1"], importantParamsDict)
 
     return output
@@ -586,8 +512,7 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
     data = data[:, 0] + 1j * data[:, 1] - data[:, 2] - 1j * data[:, 3]
     data = data / attrsDict["RG"]
 
-    importantParamsDict = {}
-    importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
+    importantParamsDict = {"nmr_frequency": attrsDict["SFO1"] * 1e6}
 
     output = _dnpdata(data, [t], ["t2"], importantParamsDict)
     return output
