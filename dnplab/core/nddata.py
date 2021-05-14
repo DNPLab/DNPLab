@@ -732,7 +732,6 @@ class nddata_core(object):
         return a
 
     def concatenate(self, b, dim):
-        """"""
 
         if not dim in b.dims:
             raise ValueError("dim does not exist")
@@ -753,7 +752,6 @@ class nddata_core(object):
         )
 
     def new_dim(self, dim, coord):
-        """"""
         self.coords.append(dim, np.r_[coord])
         self.values = np.expand_dims(self.values, -1)
 
