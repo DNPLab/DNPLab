@@ -74,7 +74,6 @@ class nddata_coord(object):
             self._type = "linear"
 
     def transform(self, new_domain, shift=False):
-        """"""
 
         if new_domain not in allowed_domains:
             raise ValueError("domain not supported")
@@ -97,7 +96,6 @@ class nddata_coord(object):
         return nddata_coord(self.dim, slice(start, stop, step))
 
     def reduce(self):
-        """"""
 
         if hasattr(self, "_array"):
             start = self._array[0]
@@ -119,7 +117,6 @@ class nddata_coord(object):
 
     @dim.setter
     def dim(self, dim):
-        """"""
 
         if isinstance(dim, str):
             self.__dim = dim
@@ -128,12 +125,10 @@ class nddata_coord(object):
 
     @property
     def start(self):
-        """"""
         return self.__start
 
     @start.setter
     def start(self, b):
-        """"""
         if isinstance(b, (int, float)):
             self.__start = b
         if hasattr(self, "_array"):
@@ -141,12 +136,10 @@ class nddata_coord(object):
 
     @property
     def stop(self):
-        """"""
         return self.__stop
 
     @stop.setter
     def stop(self, b):
-        """"""
         if isinstance(b, (int, float)):
             self.__stop = b
         if hasattr(self, "_array"):
@@ -154,12 +147,10 @@ class nddata_coord(object):
 
     @property
     def step(self):
-        """"""
         return self.__step
 
     @step.setter
     def step(self, b):
-        """"""
         if isinstance(b, (int, float)):
             self.__step = b
         if hasattr(self, "_array"):
@@ -176,7 +167,6 @@ class nddata_coord(object):
 
     @array.setter
     def array(self, b):
-        """"""
         if isinstance(b, np.ndarray):
             self._array = b
         else:
@@ -187,20 +177,16 @@ class nddata_coord(object):
         del self._array
 
     def slice(self, *args):
-        """"""
         return self.array[slice(*args)]
 
     def __getitem__(self, x):
-        """"""
         return self.array[x]
 
     def _del_array(self):
-        """"""
         del self._array
 
     @property
     def size(self):
-        """"""
         if hasattr(self, "_array"):
             return self.array.size  # 3 times faster when array is stored in object
         else:
@@ -465,7 +451,6 @@ class nddata_coord_collection(object):
         return out
 
     def copy(self):
-        """"""
         return deepcopy(self)
 
     def reorder_index(self, new_order):
@@ -474,7 +459,6 @@ class nddata_coord_collection(object):
         self._dims = [self._dims[x] for x in new_order]
 
     def rename(self, dim, new_dim):
-        """"""
 
         if isinstance(self[dim], nddata_coord):
             self[dim].dim = new_dim
