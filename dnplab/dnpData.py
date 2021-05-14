@@ -124,7 +124,7 @@ class dnpdata(nddata.nddata_core):
             Axes information is lost
 
         Example:
-        data.squeeze()
+            data.squeeze()
         """
         remove_axes = []
         for axes_ix, axes_value in enumerate(self.coords):
@@ -187,8 +187,8 @@ class dnpdata_collection(MutableMapping):
         """
 
         Args:
-            *args:
-            **kwargs:
+            *args: args
+            **kwargs: kwargs
 
         Examples:
             >>> raw = dnpdata()
@@ -257,7 +257,6 @@ class dnpdata_collection(MutableMapping):
 
     @processing_buffer.setter
     def processing_buffer(self, new_processing_buffer):
-        """"""
         if isinstance(new_processing_buffer, str):
             self._processing_buffer = new_processing_buffer
         else:
@@ -357,11 +356,12 @@ class dnpdata_collection(MutableMapping):
         """
 
         Args:
-            processing_buffer:
-            inplace:
-            **kwargs:
+            processing_buffer: processing_buffer
+            inplace: inplace
+            **kwargs: kwargs
 
         Returns:
+            window: window
 
         Examples:
             >>> ws_original = dnpdata_collection(
