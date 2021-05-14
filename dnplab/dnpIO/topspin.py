@@ -100,9 +100,10 @@ def find_group_delay(attrsDict):
     Returns:
         float: Group delay. Number of points FID is shifted by DSP. The ceiling of this number (group delay rounded up) is the number of points should be removed from the start of the FID.
     """
+
     group_delay = 0
-    if attrsDict["DECIM"] == 1:
-        pass
+    if attrsDict["DSPFIRM"] != 0 and "GRPDLY" in attrsDict.keys():
+        group_delay = attrsDict["GRPDLY"]
     else:
         if attrsDict["DSPFVS"] == 10:
             group_delay = _dspfvs_table_10[int(attrsDict["DECIM"])]
@@ -112,13 +113,10 @@ def find_group_delay(attrsDict):
             group_delay = _dspfvs_table_12[int(attrsDict["DECIM"])]
         elif attrsDict["DSPFVS"] == 13:
             group_delay = _dspfvs_table_13[int(attrsDict["DECIM"])]
-        elif 20 <= attrsDict["DSPFVS"] <= 23:
-            if "GRPDLY" in attrsDict.keys():
-                group_delay = attrsDict["GRPDLY"]
-            else:
-                print("group delay not found in acqus file, setting to 0")
         else:
-            print("dspfvs parameter not found in acqus file, setting group delay to 0")
+            print(
+                "GRPDLY and DSPFVS parameters not found in acqus file, setting group delay to 0"
+            )
 
     return group_delay
 
