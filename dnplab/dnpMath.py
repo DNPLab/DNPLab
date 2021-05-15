@@ -39,7 +39,7 @@ def convert_power(watts=False, dBm=False, loss=0):
     """
 
     if watts and dBm:
-        raise("Give powers in watts OR in dBm, not both together")
+        raise ("Give powers in watts OR in dBm, not both together")
 
     if dBm:
         powers = _np.add(dBm, loss)
@@ -292,4 +292,3 @@ def buildup_function(p, E_max, p_half):
     """
 
     return E_max * p / (p_half + p)
-
