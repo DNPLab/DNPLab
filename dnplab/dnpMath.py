@@ -1,4 +1,5 @@
 import numpy as _np
+
 from . import dnpdata, dnpdata_collection
 
 
@@ -19,6 +20,37 @@ def return_data(all_data):
         raise ValueError("Data type not supported")
 
     return data, is_workspace
+
+
+def convert_power(watts=False, dBm=False, loss=0):
+    """Convert between Watts and dBm
+
+    .. math::
+        \mathrm{dBm} =  10 * log((\mathrm{watts} + \mathrm{loss}) * 1000)
+        \mathrm{Watts} =  1E^{-3} * 10^{(\mathrm{dBm} + \mathrm{loss}) / 10}
+
+    Args:
+        watts (float, int, list, array): microwave power(s) in Watts
+        dBm (float, int, list, array): microwave power(s) in dBm
+        loss (float, int, list, array): constant loss characteristic of your device, in same units given to convert from
+
+    Returns:
+        array: converted microwave power(s)
+    """
+
+    if watts and dBm:
+        raise("Give powers in watts OR in dBm, not both together")
+
+    if dBm:
+        powers = _np.add(dBm, loss)
+        powers = _np.divide(powers, 10)
+        powers = _np.power(10, powers)
+        powers = _np.multiply(1e-3, powers)
+
+    if watts:
+        powers = 10 * _np.log((watts + loss) * 1e3)
+
+    return powers
 
 
 def exponential_window(all_data, dim, lw):
@@ -261,70 +293,3 @@ def buildup_function(p, E_max, p_half):
 
     return E_max * p / (p_half + p)
 
-
-def interpolate_T1(
-    E_powers=False,
-    T1_powers=False,
-    T1_array=False,
-    interp_method="linear",
-    spin_C=100,
-    T10=2.0,
-    T100=2.5,
-):
-    """Returns interpolated T1 data using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
-
-    Args:
-        E_powers: The x-coordinates at which to evaluate.
-        T1_powers: The x-coordinates of the data points, must be increasing.
-            Otherwise, T1_power is internally sorted.
-        T1_array: The y-coordinates of the data points, same length as T1_power.
-        interp_method: "second_order" or "linear".
-        spin_C: unpaired electron spin concentration in uM.
-        T10: T1 measured with unpaired electrons.
-        T100: T1 measured without unpaired electrons.
-
-    Returns:
-        interp_T1 (np.array): The evaluated values, same shape as E_powers.
-    """
-
-    spin_C = spin_C / 1e6
-
-    # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
-    if interp_method == "second_order":
-
-        delta_T1_water = T1_array[-1] - T1_array[0]
-        T1_water = T100
-        macro_C = spin_C
-
-        kHH = (1.0 / T10 - 1.0 / T1_water) / macro_C
-        krp = (
-            (1.0 / T1_array)
-            - (1.0 / (T1_water + delta_T1_water * T1_powers))
-            - (kHH * (macro_C))
-        ) / (spin_C)
-
-        p = _np.polyfit(T1_powers, krp, 2)
-        T1_fit_2order = _np.polyval(p, E_powers)
-
-        interp_T1 = 1.0 / (
-            ((spin_C) * T1_fit_2order)
-            + (1.0 / (T1_water + delta_T1_water * E_powers))
-            + (kHH * (macro_C))
-        )
-
-    # linear fit, Franck et al. PNMRS (Eq. 39)
-    elif interp_method == "linear":
-
-        linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
-
-        p = _np.polyfit(T1_powers, linear_t1, 1)
-        T1_fit_linear = _np.polyval(p, E_powers)
-
-        interp_T1 = T1_fit_linear / (
-            1.0 + (T1_fit_linear / T10) - (T1_fit_linear / T100)
-        )
-
-    else:
-        raise Exception("invalid interp_method")
-
-    return interp_T1
