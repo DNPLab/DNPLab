@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 
 from . import dnpdata, dnpdata_collection
 
@@ -42,13 +42,13 @@ def convert_power(watts=False, dBm=False, loss=0):
         raise("Give powers in watts OR in dBm, not both together")
 
     if dBm:
-        powers = np.add(dBm, loss)
-        powers = np.divide(powers, 10)
-        powers = np.power(10, powers)
-        powers = np.multiply(1e-3, powers)
+        powers = _np.add(dBm, loss)
+        powers = _np.divide(powers, 10)
+        powers = _np.power(10, powers)
+        powers = _np.multiply(1e-3, powers)
 
     if watts:
-        powers = 10 * np.log((watts + loss) * 1e3)
+        powers = 10 * _np.log((watts + loss) * 1e3)
 
     return powers
 
@@ -68,7 +68,7 @@ def exponential_window(all_data, dim, lw):
         array: exponential window function
     """
     data, _ = return_data(all_data)
-    return np.exp(-2 * data.coords[dim] * lw)
+    return _np.exp(-2 * data.coords[dim] * lw)
 
 
 def gaussian_window(all_data, dim, lw):
@@ -92,7 +92,7 @@ def gaussian_window(all_data, dim, lw):
         raise ValueError("lw must a list with len=2 for the gaussian window")
     else:
         data, _ = return_data(all_data)
-        return np.exp((lw[0] * data.coords[dim]) - (lw[1] * data.coords[dim] ** 2))
+        return _np.exp((lw[0] * data.coords[dim]) - (lw[1] * data.coords[dim] ** 2))
 
 
 def hamming_window(dim_size):
@@ -107,8 +107,8 @@ def hamming_window(dim_size):
     Returns:
         array: hamming window function
     """
-    return 0.53836 + 0.46164 * np.cos(
-        1.0 * np.pi * np.arange(dim_size) / (dim_size - 1)
+    return 0.53836 + 0.46164 * _np.cos(
+        1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
     )
 
 
@@ -124,7 +124,7 @@ def hann_window(dim_size):
     Returns:
         array: hann window function
     """
-    return 0.5 + 0.5 * np.cos(1.0 * np.pi * np.arange(dim_size) / (dim_size - 1))
+    return 0.5 + 0.5 * _np.cos(1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1))
 
 
 def lorentz_gauss_window(all_data, dim, exp_lw, gauss_lw, gaussian_max=0):
@@ -150,9 +150,9 @@ def lorentz_gauss_window(all_data, dim, exp_lw, gauss_lw, gaussian_max=0):
     """
     data, _ = return_data(all_data)
     dim_size = data.coords[dim].size
-    expo = np.pi * data.coords[dim] * exp_lw
-    gaus = 0.6 * np.pi * gauss_lw * (gaussian_max * (dim_size - 1) - data.coords[dim])
-    return np.exp(expo - gaus ** 2).reshape(dim_size)
+    expo = _np.pi * data.coords[dim] * exp_lw
+    gaus = 0.6 * _np.pi * gauss_lw * (gaussian_max * (dim_size - 1) - data.coords[dim])
+    return _np.exp(expo - gaus ** 2).reshape(dim_size)
 
 
 def sin2_window(dim_size):
@@ -168,7 +168,7 @@ def sin2_window(dim_size):
         array: sin-squared window function
     """
     return (
-        np.cos((-0.5 * np.pi * np.arange(dim_size) / (dim_size - 1)) + np.pi) ** 2
+        _np.cos((-0.5 * _np.pi * _np.arange(dim_size) / (dim_size - 1)) + _np.pi) ** 2
     )
 
 
@@ -193,8 +193,8 @@ def traf_window(all_data, dim, exp_lw, gauss_lw):
         array: traf window function
     """
     data, _ = return_data(all_data)
-    E_t = np.exp(-1 * data.coords[dim] * np.pi * exp_lw)
-    e_t = np.exp((data.coords[dim] - max(data.coords[dim])) * np.pi * gauss_lw)
+    E_t = _np.exp(-1 * data.coords[dim] * _np.pi * exp_lw)
+    e_t = _np.exp((data.coords[dim] - max(data.coords[dim])) * _np.pi * gauss_lw)
     return (E_t * (E_t + e_t)) / ((E_t ** 2) + (e_t ** 2))
 
 
@@ -214,7 +214,7 @@ def t1_function(t, T1, M_0, M_inf):
         array: T1 curve
     """
 
-    return M_0 - M_inf * np.exp(-1.0 * t / T1)
+    return M_0 - M_inf * _np.exp(-1.0 * t / T1)
 
 
 def t2_function(t, M_0, T2, p):
@@ -233,7 +233,7 @@ def t2_function(t, M_0, T2, p):
         array: T2 curve
     """
 
-    return M_0 * np.exp(-2.0 * (t / T2) ** p)
+    return M_0 * _np.exp(-2.0 * (t / T2) ** p)
 
 
 def monoexp_fit(t, C1, C2, tau):
@@ -252,7 +252,7 @@ def monoexp_fit(t, C1, C2, tau):
         array: mono-exponential curve
     """
 
-    return C1 + C2 * np.exp(-1.0 * t / tau)
+    return C1 + C2 * _np.exp(-1.0 * t / tau)
 
 
 def biexp_fit(t, C1, C2, tau1, C3, tau2):
@@ -273,7 +273,7 @@ def biexp_fit(t, C1, C2, tau1, C3, tau2):
         array: bi-exponential curve
     """
 
-    return C1 + C2 * np.exp(-1.0 * t / tau1) + C3 * np.exp(-1.0 * t / tau2)
+    return C1 + C2 * _np.exp(-1.0 * t / tau1) + C3 * _np.exp(-1.0 * t / tau2)
 
 
 def buildup_function(p, E_max, p_half):
