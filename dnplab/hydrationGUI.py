@@ -980,11 +980,11 @@ class hydrationGUI(QMainWindow):
             self.gui_dict["dnpLab_data"]["Epowers"] = h5in["hydration_inputs"][
                 "E_power"
             ]
-            self.Ep = h5in["hydration_inputs"]["E"]
+            self.Ep = h5in["hydration_inputs"]["E_array"]
             self.gui_dict["dnpLab_data"]["T1powers"] = h5in["hydration_inputs"][
                 "T1_power"
             ]
-            self.T1p = h5in["hydration_inputs"]["T1"]
+            self.T1p = h5in["hydration_inputs"]["T1_array"]
             self.T1p_stdd = h5in["hydration_results"]["T1_stdd"]
 
             self.gui_dict["dnpLab_data"]["T100"] = float(
@@ -1290,11 +1290,10 @@ class hydrationGUI(QMainWindow):
                             "power",
                             self.gui_dict["folder_structure"]["enh"],
                         )
-                        # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
-                        Epowers = np.add(E_power_List, 21.9992)
-                        Epowers = np.divide(Epowers, 10)
-                        Epowers = np.power(10, Epowers)
-                        Epowers = np.multiply(1e-3, Epowers)
+                        # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path from the microwave source and amplifier to the power meter and the path to the resonator
+                        Epowers = dnplab.dnpMath.convert_power(
+                            dBm=E_power_List, loss=21.9992
+                        )
                         # }}
 
                         T1_power_List = dnplab.dnpIO.cnsi.get_powers(
@@ -1302,11 +1301,10 @@ class hydrationGUI(QMainWindow):
                             "t1_powers",
                             self.gui_dict["folder_structure"]["T1"],
                         )
-                        # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path to the power meter and the path to the resonator
-                        T1powers = np.add(T1_power_List, 21.9992)
-                        T1powers = np.divide(T1powers, 10)
-                        T1powers = np.power(10, T1powers)
-                        T1powers = np.multiply(1e-3, T1powers)
+                        # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the degree of attenuation difference between the path from the microwave source and amplifier to the power meter and the path to the resonator
+                        T1powers = dnplab.dnpMath.convert_power(
+                            dBm=T1_power_List, loss=21.9992
+                        )
                         # }}
 
                         self.gui_dict["rawdata_function"]["nopowers"] = False
@@ -1331,16 +1329,10 @@ class hydrationGUI(QMainWindow):
 
                 # {{ These corrections to the power values are here to bring the powers to roughly the same magnitude as the results of the workup processing but should not be considered to be the actual correction. This can only be known by measuring the relationship between the attenuation setting, the power meter reading, and the power delivered to the resonator.
                 Epowers = np.multiply(-1, Eplist)
-                Epowers = np.add(Epowers, 29.01525)
-                Epowers = np.divide(Epowers, 10)
-                Epowers = np.power(10, Epowers)
-                Epowers = np.multiply(1e-3, Epowers)
+                Epowers = dnplab.dnpMath.convert_power(dBm=E_power_List, loss=29.01525)
 
                 T1powers = np.multiply(-1, T1plist)
-                T1powers = np.add(T1powers, 29.01525)
-                T1powers = np.divide(T1powers, 10)
-                T1powers = np.power(10, T1powers)
-                T1powers = np.multiply(1e-3, T1powers)
+                T1powers = dnplab.dnpMath.convert_power(dBm=T1plist, loss=29.01525)
                 # }}
 
                 print(
@@ -2243,13 +2235,13 @@ class hydrationGUI(QMainWindow):
         The GUI builds the input structure:
 
            dict =   {
-                     'E' (numpy.array)        : signal enhancements,
+                     'E_array' (numpy.array)        : signal enhancements,
 
-                     'E_power' (numpy.array)  : microwave powers corresponding to                          the array 'E',
+                     'E_powers' (numpy.array)  : microwave powers corresponding to                          the array 'E',
 
-                     'T1' (numpy.array)       : T1 times,
+                     'T1_array' (numpy.array)       : T1 times,
 
-                     'T1_power' (numpy.array) : microwave powers corresponding to                          the array 'T1',
+                     'T1_powers' (numpy.array) : microwave powers corresponding to                          the array 'T1',
 
                      'T10' (float)            : T1 time collected without microwave                        power,
 
@@ -2261,7 +2253,7 @@ class hydrationGUI(QMainWindow):
 
                      'smax_model' (str)       : choice of model for setting s_max.                         Allowed values are 'tethered' where                        s_max=1 OR 'free' where s_max is                           calculated using spin_C,
 
-                     't1_interp_method' (str) : choice of linear or second order                           interpolation of T1 onto E_power.                          Allowed values are 'linear' OR                             'second_order'.
+                     'interpolate_method' (str) : choice of linear or second order                           interpolation of T1 onto E_power.                          Allowed values are 'linear' OR                             'second_order'.
                      }
 
         """
@@ -2277,7 +2269,7 @@ class hydrationGUI(QMainWindow):
             T10 = float(self.t10Edit.text())
             if self.freeCheckbox.isChecked():
                 smax_model = "free"
-                self.wrkup_smax = 1 - (2 / (3 + (3 * (spin_C * 1e-6 * 198.7))))
+                self.wrkup_smax = dnplab.dnpHydration.calculate_smax(spin_C)
                 self.smaxEdit.setText(str(round(self.wrkup_smax, 3)))
             elif self.tetheredCheckbox.isChecked():
                 smax_model = "tethered"
@@ -2293,7 +2285,7 @@ class hydrationGUI(QMainWindow):
                         self.tetheredCheckbox.setChecked(True)
                         self.freeCheckbox.setChecked(False)
                     elif smax_model == "free":
-                        self.wrkup_smax = 1 - (2 / (3 + (3 * (spin_C * 1e-6 * 198.7))))
+                        self.wrkup_smax = dnplab.dnpHydration.calculate_smax(spin_C)
                         self.tetheredCheckbox.setChecked(False)
                         self.freeCheckbox.setChecked(True)
                     else:
@@ -2356,23 +2348,19 @@ class hydrationGUI(QMainWindow):
             self.gui_dict["dnpLab_data"]["T100"] = T100
 
             hydration = {
-                "E": np.array(self.gui_dict["dnpLab_data"]["Ep"]),
-                "E_power": np.array(self.gui_dict["dnpLab_data"]["Epowers"]),
-                "T1": np.array(T1p),
-                "T1_power": np.array(T1powers),
+                "E_array": np.array(self.gui_dict["dnpLab_data"]["Ep"]),
+                "E_powers": np.array(self.gui_dict["dnpLab_data"]["Epowers"]),
+                "T1_array": np.array(T1p),
+                "T1_powers": np.array(T1powers),
+                "T10": T10,
+                "T100": self.gui_dict["dnpLab_data"]["T100"],
+                "spin_C": spin_C,
+                "field": field,
+                "smax_model": smax_model,
+                "interpolate_method": t1_interp_method,
             }
-            hydration.update(
-                {
-                    "T10": T10,
-                    "T100": self.gui_dict["dnpLab_data"]["T100"],
-                    "spin_C": spin_C,
-                    "field": field,
-                    "smax_model": smax_model,
-                    "t1_interp_method": t1_interp_method,
-                }
-            )
-            hyd = dnplab.create_workspace()
-            hyd.add("hydration_inputs", hydration)
+
+            hyd = dnplab.create_workspace("hydration_inputs", hydration)
 
             try:
                 self.gui_dict["hydration_results"] = dnplab.dnpHydration.hydration(hyd)
@@ -2442,23 +2430,19 @@ class hydrationGUI(QMainWindow):
                 self.gui_dict["workup_data"]["T100"] = T100
 
                 whydration = {
-                    "E": np.array(self.gui_dict["workup_data"]["Ep"]),
-                    "E_power": np.array(self.gui_dict["workup_data"]["Epowers"]),
-                    "T1": np.array(wT1p),
-                    "T1_power": np.array(wT1powers),
+                    "E_array": np.array(self.gui_dict["workup_data"]["Ep"]),
+                    "E_powers": np.array(self.gui_dict["workup_data"]["Epowers"]),
+                    "T1_array": np.array(wT1p),
+                    "T1_powers": np.array(wT1powers),
+                    "T10": wT10,
+                    "T100": self.gui_dict["workup_data"]["T100"],
+                    "spin_C": spin_C,
+                    "field": field,
+                    "smax_model": smax_model,
+                    "interpolate_method": t1_interp_method,
                 }
-                whydration.update(
-                    {
-                        "T10": wT10,
-                        "T100": self.gui_dict["workup_data"]["T100"],
-                        "spin_C": spin_C,
-                        "field": field,
-                        "smax_model": smax_model,
-                        "t1_interp_method": t1_interp_method,
-                    }
-                )
-                whyd = dnplab.create_workspace()
-                whyd.add("hydration_inputs", whydration)
+
+                whyd = dnplab.create_workspace("hydration_inputs", whydration)
 
                 try:
                     self.gui_dict[
@@ -2635,10 +2619,10 @@ class hydrationGUI(QMainWindow):
             )
 
         odnpData = {
-            "Epowers": self.addHyd_workspace["hydration_inputs"]["E_power"],
-            "Ep": self.addHyd_workspace["hydration_inputs"]["E"],
-            "T1powers": self.addHyd_workspace["hydration_inputs"]["T1_power"],
-            "T1p": self.addHyd_workspace["hydration_inputs"]["T1"],
+            "Epowers": self.addHyd_workspace["hydration_inputs"]["E_powers"],
+            "Ep": self.addHyd_workspace["hydration_inputs"]["E_array"],
+            "T1powers": self.addHyd_workspace["hydration_inputs"]["T1_powers"],
+            "T1p": self.addHyd_workspace["hydration_inputs"]["T1_array"],
             "T1p_stdd": self.addHyd_workspace["hydration_results"]["T1_stdd"],
             "T10": self.addHyd_workspace["hydration_inputs"]["T10"],
             "T10_stdd": self.addHyd_workspace["hydration_results"]["T10_stdd"],
@@ -2674,8 +2658,8 @@ class hydrationGUI(QMainWindow):
 
         dfE = np.vstack(
             (
-                self.addHyd_workspace["hydration_inputs"]["E_power"],
-                self.addHyd_workspace["hydration_inputs"]["E"],
+                self.addHyd_workspace["hydration_inputs"]["E_powers"],
+                self.addHyd_workspace["hydration_inputs"]["E_array"],
                 self.addHyd_workspace["hydration_results"]["ksigma_array"],
                 self.addHyd_workspace["hydration_results"]["ksigma_fit"],
             )
@@ -2691,10 +2675,10 @@ class hydrationGUI(QMainWindow):
 
         dfT1 = np.vstack(
             (
-                self.addHyd_workspace["hydration_inputs"]["T1_power"],
-                self.addHyd_workspace["hydration_inputs"]["T1"],
+                self.addHyd_workspace["hydration_inputs"]["T1_powers"],
+                self.addHyd_workspace["hydration_inputs"]["T1_array"],
                 self.addHyd_workspace["hydration_results"]["T1_stdd"][
-                    0 : len(self.addHyd_workspace["hydration_inputs"]["T1_power"])
+                    0 : len(self.addHyd_workspace["hydration_inputs"]["T1_powers"])
                 ],
             )
         ).T
@@ -3078,28 +3062,28 @@ class hydrationGUI(QMainWindow):
                     )
 
             self.dataplt.axes.text(
-                max(self.addHyd_workspace["hydration_inputs"]["E_power"]) * 0.75,
+                max(self.addHyd_workspace["hydration_inputs"]["E_powers"]) * 0.75,
                 indx_h - (indexes[0] * indx_h),
                 r"$k_\rho = $"
                 + str(round(self.addHyd_workspace["hydration_results"]["krho"], 2)),
                 fontsize=12,
             )
             self.dataplt.axes.text(
-                max(self.addHyd_workspace["hydration_inputs"]["E_power"]) * 0.75,
+                max(self.addHyd_workspace["hydration_inputs"]["E_powers"]) * 0.75,
                 indx_h - (indexes[1] * indx_h),
                 r"$k_\sigma = $"
                 + str(round(self.addHyd_workspace["hydration_results"]["ksigma"], 2)),
                 fontsize=12,
             )
             self.dataplt.axes.text(
-                max(self.addHyd_workspace["hydration_inputs"]["E_power"]) * 0.75,
+                max(self.addHyd_workspace["hydration_inputs"]["E_powers"]) * 0.75,
                 indx_h - (indexes[2] * indx_h),
                 r"$k_{low} = $"
                 + str(round(self.addHyd_workspace["hydration_results"]["klow"], 2)),
                 fontsize=12,
             )
             self.dataplt.axes.text(
-                max(self.addHyd_workspace["hydration_inputs"]["E_power"]) * 0.75,
+                max(self.addHyd_workspace["hydration_inputs"]["E_powers"]) * 0.75,
                 indx_h - (indexes[3] * indx_h),
                 r"$\xi = $"
                 + str(
@@ -3110,7 +3094,7 @@ class hydrationGUI(QMainWindow):
                 fontsize=12,
             )
             self.dataplt.axes.text(
-                max(self.addHyd_workspace["hydration_inputs"]["E_power"]) * 0.75,
+                max(self.addHyd_workspace["hydration_inputs"]["E_powers"]) * 0.75,
                 indx_h - (indexes[4] * indx_h),
                 r"$t_{corr} = $"
                 + str(round(self.addHyd_workspace["hydration_results"]["tcorr"], 2)),
@@ -3120,7 +3104,7 @@ class hydrationGUI(QMainWindow):
                 self.addHyd_workspace["hydration_results"]["Dlocal"] * 1e10, 2
             )
             self.dataplt.axes.text(
-                max(self.addHyd_workspace["hydration_inputs"]["E_power"]) * 0.75,
+                max(self.addHyd_workspace["hydration_inputs"]["E_powers"]) * 0.75,
                 indx_h - (indexes[5] * indx_h),
                 r"$D_{local} = $" + str(d_local) + r"$e^{-10}$",
                 fontsize=12,

@@ -22,7 +22,7 @@ def calculate_smax(spin_C=False):
         smax (float): maximal saturation factor
     """
 
-    return 1 - (2 / (3 + (3 * (spin_C * 198.7))))
+    return 1 - (2 / (3 + (3 * (spin_C * 1e-6 * 198.7))))
 
 
 def interpolate_T1(
@@ -47,7 +47,7 @@ def interpolate_T1(
         interpolate_method: "second_order" or "linear"
         delta_T1_water: change in T1 of water at max microwave power
         T1_water: T1 of pure water
-        macro_C: concentration of macro molecule
+        macro_C: concentration of macro molecule in uM
         spin_C: unpaired electron spin concentration in uM
         T10: T1 measured with unpaired electrons
         T100: T1 measured without unpaired electrons
@@ -56,16 +56,18 @@ def interpolate_T1(
         interpolated_T1 (np.array): The evaluated values, same shape as E_powers.
     """
 
-    spin_C = spin_C / 1e6
-
     # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
     if interpolate_method == "second_order":
+        spin_C = spin_C / 1e6
+        if macro_C:
+            macro_C = macro_C / 1e6
+        else:
+            macro_C = spin_C
+
         if not delta_T1_water:
             delta_T1_water = T1_array[-1] - T1_array[0]
         if not T1_water:
             T1_water = T100
-        if not macro_C:
-            macro_C = spin_C
 
         kHH = (1.0 / T10 - 1.0 / T1_water) / macro_C
         krp = (
@@ -418,8 +420,6 @@ def odnp(
     if not inputs:
         raise ValueError("Please supply a valid inputs dictionary")
 
-    inputs["spin_C"] /= 1e6
-
     if inputs["smax_model"] == "tethered":
         # Option 1, tether spin label
         s_max = 1  # (section 2.2) maximal saturation factor
@@ -472,7 +472,9 @@ def odnp(
                 "'T1_array' must be equal in length to 'E_array'. Otherwise give 'T1_powers' equal in length to 'T1_array' to interpolate."
             )
 
-    ksigma_array = (1 - inputs["E_array"]) / (inputs["spin_C"] * omega_ratio * T1p)
+    ksigma_array = (1 - inputs["E_array"]) / (
+        inputs["spin_C"] * 1e-6 * omega_ratio * T1p
+    )
     # (Eq. 41) this calculates the array of ksigma*s(p) from the enhancement array,
     # dividing by the T1 array for the "corrected" analysis
 
@@ -481,9 +483,9 @@ def odnp(
     )
     # fit to the right side of Eq. 42 to get (ksigma*smax) and half of the E_power at s_max, called p_12 here
 
-    krho = ((1 / inputs["T10"]) - (1 / inputs["T100"])) / inputs[
-        "spin_C"
-    ]  # "self" relaxivity, unit is s^-1 M^-1
+    krho = ((1 / inputs["T10"]) - (1 / inputs["T100"])) / (
+        inputs["spin_C"] * 1e-6
+    )  # "self" relaxivity, unit is s^-1 M^-1
 
     coupling_factor = ksigma / krho  # coupling factor, unitless
 
