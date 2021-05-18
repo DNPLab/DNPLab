@@ -9,181 +9,369 @@ from scipy import interpolate
 from scipy import optimize
 
 
-class FitError(Exception):
-    """Exception of Failed Fitting"""
+def calculate_smax(spin_C=False):
+    """Returns maximal saturation factor according to: M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
 
-    pass
+    .. math::
+        s_{max} = 1 - (2 / (3 + (3 * (spin_C * 198.7))))
 
+    Args:
+        spin_C: unpaired spin concentration in units of uM
 
-class AttrDict(object):
-    """Class with Dictionary-like Setting and Getting"""
-
-    def __init__(self, *args, **kwargs):
-        self.update(*args, **kwargs)
-
-    def __getitem__(self, key):
-        return self.__dict__[key]
-
-    def __setitem__(self, key, value):
-        self.__dict__[key] = value
-
-    def __delitem__(self, key):
-        del self.__dict__[key]
-
-    def __contains__(self, key):
-        return key in self.__dict__
-
-    def __len__(self):
-        return len(self.__dict__)
-
-    def __repr__(self):
-        return repr(self.__dict__)
-
-    def __eq__(self, other):
-        """This ensure equality between two dictionary"""
-        if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
-        else:
-            return False
-
-    def __ne__(self, other):
-        """Not necessary for Python 3"""
-        return not self.__eq__(other)
-
-    def update(self, init=None, **kwargs):
-        """Update existing parameters
-
-        Args:
-            init: If init is present and has a .keys() method,
-                then does: for k in init: D[k] = E[k].
-                If init is present and lacks a .keys() method,
-                then does: for k, v in init: D[k] = v
-        """
-        if isinstance(init, dict):
-            self.__dict__.update(init)
-        elif isinstance(init, AttrDict):
-            self.__dict__.update(init.__dict__)
-        else:
-            self.__dict__.update(**kwargs)
-
-
-class Parameter(AttrDict):
-    """Parent Parameter Class"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-
-class HydrationParameter(Parameter):
-    """Hydration Parameters
-
-    Franck, JM, et. al.; "Quantitative cw Overhauser effect dynamic nuclear polarization for the analysis of local water dynamics" Prog. Nuc. Mag. Res. Spec. 74 (2013) 33–5.
+    Returns:
+        smax (float): maximal saturation factor
     """
 
-    field = None
-    """float: Static magnetic field in mT, needed to find omega_e and _H"""
-
-    spin_C = None
-    """float: unit is microM, spin label concentration for scaling
-    relaxations to get "relaxivities" """
-
-    __smax_model = "tethered"  # either 'tethered' or 'free'
-    """str: Method used to determine smax"""
-
-    T10 = None
-    """float: T1 with spin label but at 0 mw E_power, unit is sec"""
-
-    T100 = None
-    """float: T1 without spin label and without mw E_power, unit is sec"""
-
-    ksigma_bulk = 95.4
-    """float: unit is s^-1 M^-1"""
-
-    krho_bulk = 353.4
-    """float: unit is s^-1 M^-1"""
-
-    klow_bulk = 366
-    """float: unit is s^-1 M^-1"""
-
-    tcorr_bulk = 54
-    """float: Corrected bulk tcorr, unit is ps"""
-
-    D_H2O = 2.3e-9
-    """float: bulk water diffusivity, unit is d^2/s where d is
-    distance in meters."""
-
-    D_SL = 4.1e-10
-    """float: spin label diffusivity, unit is d^2/s where d is
-    distance in meters."""
-
-    __t1_interp_method = "second_order"
-    """str: Method used to interpolate the T1 array, either linear or 'second_order'"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    @property
-    def t1_interp_method(self):
-        """str: Method used to interpolate the T1 array, either `linear` or `second_order`"""
-        return self.__t1_interp_method
-
-    @t1_interp_method.setter
-    def t1_interp_method(self, value: str):
-        if value in ["second_order", "linear"]:
-            self.__t1_interp_method = value
-        else:
-            raise ValueError(
-                "t1_interp_method should be either `linear` or `second_order`"
-            )
-
-    @property
-    def smax_model(self):
-        """str: Method used to determine smax. Either `tethered` or `free`"""
-        return self.__smax_model
-
-    @smax_model.setter
-    def smax_model(self, value: str):
-        try:
-            f_value = float(value)
-        except ValueError:
-            f_value = False
-
-        if f_value:
-            self.__smax_model = f_value
-        elif value == "tethered" or value == "free":
-            self.__smax_model = value
-        else:
-            raise ValueError(
-                "smax_model must be `tethered`, `free`, or a number between 0 and 1."
-            )
-
-    # These two function enable dictionary-like getting and setting properties.
-    def __getitem__(self, key):
-        if key in ["smax_model"]:
-            return self.smax_model
-        elif key in ["t1_interp_method"]:
-            return self.t1_interp_method
-        return self.__dict__[key]
-
-    def __setitem__(self, key, value):
-        if key in ["smax_model"]:
-            self.smax_model = value
-        elif key in ["t1_interp_method"]:
-            self.t1_interp_method = value
-        else:
-            self.__dict__[key] = value
+    return 1 - (2 / (3 + (3 * (spin_C * 198.7))))
 
 
-class HydrationResults(AttrDict):
-    """Class for handling hydration related quantities
+def interpolate_T1(
+    E_powers=False,
+    T1_powers=False,
+    T1_array=False,
+    interpolate_method="linear",
+    delta_T1_water=False,
+    T1_water=False,
+    macro_C=False,
+    spin_C=1,
+    T10=2.0,
+    T100=2.5,
+):
+    """Returns interpolated T1 data using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
 
-    Attributes:
+    Args:
+        E_powers: The x-coordinates at which to evaluate
+        T1_powers: The x-coordinates of the data points, must be increasing
+            Otherwise, T1_power is internally sorted
+        T1_array: The y-coordinates of the data points, same length as T1_power
+        interpolate_method: "second_order" or "linear"
+        delta_T1_water: change in T1 of water at max microwave power
+        T1_water: T1 of pure water
+        macro_C: concentration of macro molecule
+        spin_C: unpaired electron spin concentration in uM
+        T10: T1 measured with unpaired electrons
+        T100: T1 measured without unpaired electrons
+
+    Returns:
+        interpolated_T1 (np.array): The evaluated values, same shape as E_powers.
+    """
+
+    spin_C = spin_C / 1e6
+
+    # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
+    if interpolate_method == "second_order":
+        if not delta_T1_water:
+            delta_T1_water = T1_array[-1] - T1_array[0]
+        if not T1_water:
+            T1_water = T100
+        if not macro_C:
+            macro_C = spin_C
+
+        kHH = (1.0 / T10 - 1.0 / T1_water) / macro_C
+        krp = (
+            (1.0 / T1_array)
+            - (1.0 / (T1_water + delta_T1_water * T1_powers))
+            - (kHH * (macro_C))
+        ) / (spin_C)
+
+        p = np.polyfit(T1_powers, krp, 2)
+        T1_fit_2order = np.polyval(p, E_powers)
+
+        interpolated_T1 = 1.0 / (
+            ((spin_C) * T1_fit_2order)
+            + (1.0 / (T1_water + delta_T1_water * E_powers))
+            + (kHH * (macro_C))
+        )
+
+    # linear fit, Franck et al. PNMRS (Eq. 39)
+    elif interpolate_method == "linear":
+
+        linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
+
+        p = np.polyfit(T1_powers, linear_t1, 1)
+        T1_fit_linear = np.polyval(p, E_powers)
+
+        interpolated_T1 = T1_fit_linear / (
+            1.0 + (T1_fit_linear / T10) - (T1_fit_linear / T100)
+        )
+
+    else:
+        raise Exception("invalid interp_method")
+
+    return interpolated_T1
+
+
+def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
+    """Function to calcualte ksig array for any given ksigma and p_12
+
+    Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+
+    Args:
+        powers (numpy.array): Array of powers
+        ksigma_smax (float): product of ksigma and smax
+        p_12 (float): power at half max for ksigma fit
+
+    Returns:
+        ksig_fit (numpy.array): calculated ksigma array
+
+    """
+
+    # Right side of Eq. 42. This function should fit to ksig_sp
+    ksig_fit = (ksigma_smax * powers) / (p_12 + powers)
+
+    return ksig_fit
+
+
+def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
+    """Get ksigma and E_power at half max of ksig
+
+    Args:
+        ksig (numpy.array): Array of ksigma.
+        powers (numpy.array): Array of E_power.
+
+    Returns:
+        ksigma (float): calculated ksigma
+        ksigma_stdd (float): standard deviation in calculated ksigma
+        p_12 (float): power at half max for ksigma fit
+
+    Asserts:
+        ksigma (popt[0]) is greater than zero
+
+    """
+
+    # curve fitting
+    # see https://docs.scipy.org/doc/scipy/reference/optimize.html
+    popt, pcov = optimize.curve_fit(
+        calculate_ksigma_array,
+        powers,
+        ksigma_sp,
+        p0=[95.4 / 2, (max(powers) * 0.1)],
+        method="lm",
+    )
+
+    assert popt[0] > 0, "Unexpected ksigma value: %d < 0" % popt[0]
+
+    ksigma_smax = popt[0]
+    p_12 = popt[1]
+    ksigma_std = np.sqrt(np.diag(pcov))
+    ksigma_stdd = ksigma_std[0] / smax
+
+    ksigma_fit = calculate_ksigma_array(powers, ksigma_smax, p_12)
+
+    ksigma = ksigma_smax / smax
+
+    return ksigma, ksigma_stdd, ksigma_fit
+
+
+def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
+    """Returns coupling_factor for any given tcorr
+
+    Args:
+        tcorr (float): translational diffusion correlation time
+        omega_e (float): electron gyromagnetic ratio
+        omega_H (float): proton gyromagnetic ratio
+
+    Returns:
+        xi (float): coupling factor
+
+    """
+
+    # Using Franck et al. PNMRS (2013)
+
+    zdiff = np.sqrt(1j * (omega_e - omega_H) * tcorr)
+    zsum = np.sqrt(1j * (omega_e + omega_H) * tcorr)
+    zH = np.sqrt(1j * omega_H * tcorr)
+
+    # (Eq. 2)
+    Jdiff = (1 + (zdiff / 4)) / (
+        1 + zdiff + ((4 * (zdiff ** 2)) / 9) + ((zdiff ** 3) / 9)
+    )
+
+    Jsum = (1 + (zsum / 4)) / (1 + zsum + ((4 * (zsum ** 2)) / 9) + ((zsum ** 3) / 9))
+
+    JH = (1 + (zH / 4)) / (1 + zH + ((4 * (zH ** 2)) / 9) + ((zH ** 3) / 9))
+
+    # (Eq. 23) calculation of coupling_factor from the spectral density functions
+    xi = ((6 * np.real(Jdiff)) - np.real(Jsum)) / (
+        (6 * np.real(Jdiff)) + (3 * np.real(JH)) + np.real(Jsum)
+    )
+
+    return xi
+
+
+def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
+    """Returns correlation time tcorr in pico second
+
+    Args:
+        coupling_factor (float): coupling factor
+        omega_e (float): electron gyromagnetic ratio
+        omega_H (float): proton gyromagnetic ratio
+
+    Returns:
+        result.root (float): tcorr, translational diffusion correlation time in pico second
+
+    Raises:
+        FitError: If no available root is found.
+
+    """
+
+    # root finding
+    # see https://docs.scipy.org/doc/scipy/reference/optimize.html
+    result = optimize.root_scalar(
+        lambda tcorr: calculate_xi(tcorr, omega_e=omega_e, omega_H=omega_H)
+        - coupling_factor,
+        method="brentq",
+        bracket=[1, 1e5],
+    )
+
+    if not result.converged:
+        raise FitError("Could not find tcorr")
+    return result.root
+
+
+def calculate_uncorrected_Ep(
+    uncorrected_xi=0.33,
+    p_12_unc=0,
+    E_powers=False,
+    T10=2.0,
+    T100=2.5,
+    omega_ratio=658.5792,
+    smax=1,
+):
+    """Function for Ep for any given xi and p_12
+
+    Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+
+    Args:
+        uncorrected_xi (float): uncorrected coupling factor
+        p_12_unc (float): power at half max for uncorrected_xi fit
+        E_array (numpy.array): Array of enhancements.
+        E_powers (numpy.array): Array of E_power.
+        T10 (float): T10
+        T100 (float): T100
+        omega_ratio (float): ratio of electron & proton Larmor frequencies
+        smax (float): maximal saturation factor
+
+    Returns:
+        Ep_fit (array): uncorrected Enhancement curve
+
+    """
+
+    # Right side of Eq. 42. This function should fit to ksig_sp
+    Ep_fit = 1 - (
+        (uncorrected_xi * (1 - (T10 / T100)) * omega_ratio)
+        * ((E_powers * smax) / (p_12_unc + E_powers))
+    )
+
+    return Ep_fit
+
+
+def _residual_Ep(
+    x,
+    E_array: np.array,
+    E_powers: np.array,
+    T10: float,
+    T100: float,
+    omega_ratio: float,
+    smax: float,
+):
+    """Function for Ep for any given xi and p_12
+
+    Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+
+    Args:
+        x (list): (uncorrected coupling factor, power at half max for uncorrected_xi fit)
+        E_array (numpy.array): Array of enhancements.
+        E_powers (numpy.array): Array of E_power.
+        T10 (float): T10
+        T100 (float): T100
+        omega_ratio (float): ratio of electron & proton Larmor frequencies
+        smax (float): maximal saturation factor
+
+    Returns:
+        Ep_fit (array): uncorrected Enhancement curve
+
+    """
+
+    return E_array - calculate_uncorrected_Ep(
+        uncorrected_xi=x[0],
+        p_12_unc=x[1],
+        E_powers=E_powers,
+        T10=T10,
+        T100=T100,
+        omega_ratio=omega_ratio,
+        smax=smax,
+    )
+
+
+def calculate_uncorrected_xi(
+    E_array=False,
+    E_powers=False,
+    T10=2.0,
+    T100=2.5,
+    omega_ratio=658.5792,
+    smax=1,
+):
+    """Get coupling_factor and E_power at half saturation
+
+    Args:
+        E_array (numpy.array): Array of enhancements
+        E_powers (numpy.array): Array of powers
+        T10 (float): T10
+        T100 (float): T100
+        omega_ratio (float): ratio of electron & proton Larmor frequencies
+        smax (float): maximal saturation factor
+
+    Returns:
+        uncorrected_xi (float): uncorrected coupling factor
+        p_12_unc (float): power at half max for uncorrected_xi fit
+
+    Raises:
+        FitError: If least square fitting is not succeed.
+
+    """
+
+    # least-squares fitting.
+    # see https://docs.scipy.org/doc/scipy/reference/optimize.html
+    results = optimize.least_squares(
+        fun=_residual_Ep,
+        x0=[0.27, (max(E_powers) * 0.1)],
+        args=(E_array, E_powers, T10, T100, omega_ratio, smax),
+        jac="2-point",
+        method="lm",
+    )
+    if not results.success:
+        raise FitError("Could not fit Ep")
+    assert results.x[0] > 0, "Unexpected coupling_factor value: %d < 0" % results.x[0]
+
+    uncorrected_xi = results.x[0]
+    p_12_unc = results.x[1]
+
+    return uncorrected_xi, p_12_unc
+
+
+def odnp(
+    inputs={},
+    constants={
+        "ksigma_bulk": 95.4,
+        "krho_bulk": 353.4,
+        "klow_bulk": 366,
+        "tcorr_bulk": 54,
+        "D_H2O": 2.3e-9,
+        "D_SL": 4.1e-10,
+        "delta_T1_water": False,
+        "T1_water": False,
+        "macro_C": False,
+    },
+):
+    """Function for performing ODNP calculations
+
+    Args:
+        inputs (dict): keys and values below
         uncorrected_Ep (numpy.array)    : fit of enhancement array,
         uncorrected_xi (float)          : coupling factor for fit of enhancement array,
         interpolated_T1 (numpy.array)   : T1 values interpolated on enhancement powers,
-        ksigma_array (numpy.array)      :
-            numpy array that is the result of ~(1-E) / [ (constants*T1) ],
-            used in ksigma(E_power) fit,
+        ksigma_array (numpy.array)      : ksigma array
         ksigma_fit (numpy.array)        : fit of ksigma_array,
         ksigma (float)                  : ksigma,
         ksigma_stdd (float)             : standard deviation in ksigma,
@@ -196,512 +384,209 @@ class HydrationResults(AttrDict):
         tcorr (float)                   : tcorr,
         tcorr_bulk_ratio (float)        : ratio tcorr / tcorr_bulk,
         Dlocal (float)                  : Dlocal
+        constants (dict): keys and values below
+        ksigma_bulk (float): bulk ksigma value
+        krho_bulk (float): bulk krho value
+        klow_bulk (float): bulk klow value
+        tcorr_bulk (float): bulk tcorr value
+        D_H2O (float): diffusivity of bulk water
+        D_SL (float): diffusivity of spin probe in bulk water
+        delta_T1_water (float): change in T1 of water of E_powers range
+        T1_water (float): T1 of water protons
+        macro_C (float): concentration of macromolecule
 
+    Returns:
+        results (dict): keys and values below
+        uncorrected_Ep (numpy.array): uncorrected_Ep,
+        uncorrected_xi (float): xi_unc,
+        interpolated_T1 (numpy.array): T1p,
+        ksigma_array (numpy.array): ksigma_array,
+        ksigma_fit (numpy.array): ksigma_fit,
+        ksigma (float): ksigma,
+        ksigma_stdd (float): ksigma_stdd,
+        ksigma_bulk_ratio (float): ksigma / constants["ksigma_bulk"],
+        krho (float): krho,
+        krho_bulk_ratio (float): krho / constants["krho_bulk"],
+        klow (float): klow,
+        klow_bulk_ratio (float): klow / constants["klow_bulk"],
+        coupling_factor (float): coupling_factor,
+        tcorr (float): tcorr,
+        tcorr_bulk_ratio (float): tcorr / constants["tcorr_bulk"],
+        Dlocal (float): Dlocal
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-        self.uncorrected_Ep = None
-        self.uncorrected_xi = None
-        self.interpolated_T1 = None
-        self.ksigma_array = None
-        self.ksigma_fit = None
-        self.ksigma = None
-        self.ksigma_stdd = None
-        self.ksigma_bulk_ratio = None
-        self.krho = None
-        self.krho_bulk_ratio = None
-        self.klow = None
-        self.klow_bulk_ratio = None
-        self.coupling_factor = None
-        self.tcorr = None
-        self.tcorr_bulk_ratio = None
-        self.Dlocal = None
-        self.update(*args, **kwargs)
+    if not inputs:
+        raise ValueError("Please supply a valid inputs dictionary")
 
-    def keys(self):
-        return self.__dict__.keys()
+    inputs["spin_C"] /= 1e6
 
-    def values(self):
-        return self.__dict__.values()
+    if inputs["smax_model"] == "tethered":
+        # Option 1, tether spin label
+        s_max = 1  # (section 2.2) maximal saturation factor
 
+    elif inputs["smax_model"] == "free":
+        # Option 2, free spin probe
+        s_max = calculate_smax(inputs["spin_C"])  # from:
+        # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
+        # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
 
-class HydrationCalculator:
-    """Hydration Results Calculator
+    if isinstance(inputs["smax_model"], int) or isinstance(inputs["smax_model"], float):
+        # Option 3, manual input of smax
+        if not (inputs["smax_model"] <= 1 and inputs["smax_model"] > 0):
+            raise ValueError("smax must be a number between 0 and 1")
+        s_max = inputs["smax_model"]
 
-    Attributes:
-        T1 (numpy.array): T1 array. Unit: second.
-        T1_power (numpy.array): E_power in Watt unit, same length as T1.
-        E (numpy.array): Enhancements.
-        E_power (numpy.array): E_power in Watt unit, same length as E.
-        hp (HydrationParameter): Parameters for calculation, including default
-            values.
-        results (HydrationResults): Hydration results.
+    omega_e = (1.76085963023e-1) * (inputs["field"] / 1000)
+    # gamma_e in 1/ps for the tcorr unit, then correct by field in T.
+    # gamma_e is from NIST. The field cancels in the following omega_ratio but you
+    # need these individually for the spectral density functions later.
 
-    """
+    omega_H = (2.6752218744e-4) * (inputs["field"] / 1000)
+    # gamma_H in 1/ps for the tcorr unit, then correct by field in T.
+    # gamma_H is from NIST. The field cancels in the following omega_ratio but you
+    # need these individually for the spectral density functions later.
 
-    def __init__(
-        self,
-        T1: np.array,
-        T1_power: np.array,
-        E: np.array,
-        E_power: np.array,
-        hp: HydrationParameter,
-    ):
-        """Class Init
+    omega_ratio = (omega_e / (2 * np.pi)) / (omega_H / (2 * np.pi))
+    # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular
+    # frequency units in order to correspond to S_0/I_0, this is also ~= to the
+    # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
 
-        Args:
-            T1 (numpy.array): T1 array. Unit: second.
-            T1_power (numpy.array): E_power in Watt unit, same length as T1.
-            E (numpy.array): Enhancements.
-            E_power (numpy.array): E_power in Watt unit, same length as E.
-            hp (HydrationParameter): Parameters for calculation, including
-                default values.
-        """
-        super().__init__()
-
-        if T1.size != T1_power.size:
-            raise ValueError("T1 and T1_power must have same length")
-        if E.size != E_power.size:
-            raise ValueError("E and E_power must have same length")
-
-        self.T1, self.T1_power, self.E, self.E_power = T1, T1_power, E, E_power
-
-        self.hp = hp
-
-        self.results = HydrationResults()
-
-    def run(self):
-        """Run calculator"""
-        interpolated_T1 = self.interpolate_T1(self.E_power, self.T1_power, self.T1)
-        results = self.__calculateODNP(self.E_power, self.E, interpolated_T1)
-        self.results = results
-
-    def interpolate_T1(self, E_power: np.array, T1_power: np.array, T1: np.array):
-        """Returns interpolated T1 data using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
-
-        Args:
-            E_power: The x-coordinates at which to evaluate.
-            T1_power: The x-coordinates of the data points, must be increasing.
-                Otherwise, T1_power is internally sorted.
-            T1: The y-coordinates of the data points, same length as T1_power.
-
-        Returns:
-            interplatedT1 (np.array): The evaluated values, same shape as E_power.
-
-        """
-        T10, T100 = self.hp.T10, self.hp.T100
-        spin_C = self.hp.spin_C / 1e6
-
-        t1_interp_method = self.hp.t1_interp_method
-
-        # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
-        if t1_interp_method == "second_order":
-
-            delta_T1_water = T1[-1] - T1[0]
-            T1_water = T100
-            macro_C = spin_C
-
-            kHH = (1.0 / T10 - 1.0 / T1_water) / macro_C
-            krp = (
-                (1.0 / T1)
-                - (1.0 / (T1_water + delta_T1_water * T1_power))
-                - (kHH * (macro_C))
-            ) / (spin_C)
-
-            p = np.polyfit(T1_power, krp, 2)
-            T1_fit_2order = np.polyval(p, E_power)
-
-            interp_T1 = 1.0 / (
-                ((spin_C) * T1_fit_2order)
-                + (1.0 / (T1_water + delta_T1_water * E_power))
-                + (kHH * (macro_C))
-            )
-
-        # linear fit, Franck et al. PNMRS (Eq. 39)
-        elif t1_interp_method == "linear":
-
-            linear_t1 = 1.0 / ((1.0 / T1) - (1.0 / T10) + (1.0 / T100))
-
-            p = np.polyfit(T1_power, linear_t1, 1)
-            T1_fit_linear = np.polyval(p, E_power)
-
-            interp_T1 = T1_fit_linear / (
-                1.0 + (T1_fit_linear / T10) - (T1_fit_linear / T100)
-            )
-
-        else:
-            raise Exception("Error in T1 interpolation")
-
-        return interp_T1
-
-    def __calculateODNP(self, power: np.array, Ep: np.array, T1p: np.array):
-        """Returns a HydrationResults object that contains all calculated ODNP values
-
-        Following: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-        equations are labeled (#) for where they appear in the paper, sections are specified in some cases
-
-        Args:
-            power (numpy.array): Sequence of powers in Watts. Will be internally
-                sorted to be ascending.
-            Ep (numpy.array): Array of enhancements. Must be same length as E_power
-            T1p (numpy.array): Array of T1. Must be same length as E_power.
-        """
-        # field and spin label concentration are defined in Hydration Parameter
-        field = self.hp.field
-        spin_C = self.hp.spin_C / 1e6
-
-        T10 = self.hp.T10
-        # this is the T1 with spin label but at 0 mw E_power, unit is sec
-
-        T100 = self.hp.T100
-        # this is the T1 without spin label and without mw E_power, unit is sec
-
-        if self.hp.smax_model == "tethered":
-            # Option 1, tether spin label
-            s_max = 1  # (section 2.2) maximal saturation factor
-
-        elif self.hp.smax_model == "free":
-            # Option 2, free spin probe
-            s_max = 1 - (2 / (3 + (3 * (spin_C * 198.7))))  # from:
-            # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
-            # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
-
-        elif self.hp.smax_model <= 1 and self.hp.smax_model > 0:
-            # Option 3, manual input of smax
-            s_max = self.hp.smax_model
-
+    if "T1_powers" in inputs.keys():
+        T1p = interpolate_T1(
+            E_powers=inputs["E_powers"],
+            T1_powers=inputs["T1_powers"],
+            T1_array=inputs["T1_array"],
+            interpolate_method=inputs["interpolate_method"],
+            delta_T1_water=constants["delta_T1_water"],
+            T1_water=constants["T1_water"],
+            macro_C=constants["macro_C"],
+            spin_C=inputs["spin_C"],
+            T10=inputs["T10"],
+            T100=inputs["T100"],
+        )
+    else:
+        if len(inputs["T1_array"]) == len(inputs["E_array"]):
+            T1p = inputs["T1_array"]
         else:
             raise ValueError(
-                "smax_model must be `tethered`, `free`, or a number between 0 and 1."
+                "'T1_array' must be equal in length to 'E_array'. Otherwise give 'T1_powers' equal in length to 'T1_array' to interpolate."
             )
 
-        omega_e = (1.76085963023e-1) * (field / 1000)
-        # gamma_e in 1/ps for the tcorr unit, then correct by field in T.
-        # gamma_e is from NIST. The field cancels in the following omega_ratio but you
-        # need these individually for the spectral density functions later.
-
-        omega_H = (2.6752218744e-4) * (field / 1000)
-        # gamma_H in 1/ps for the tcorr unit, then correct by field in T.
-        # gamma_H is from NIST. The field cancels in the following omega_ratio but you
-        # need these individually for the spectral density functions later.
-
-        omega_ratio = (omega_e / (2 * np.pi)) / (omega_H / (2 * np.pi))
-        # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular
-        # frequency units in order to correspond to S_0/I_0, this is also ~= to the
-        # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
-
-        ksigma_array = (1 - Ep) / (spin_C * omega_ratio * T1p)
-        # (Eq. 41) this calculates the array of ksigma*s(p) from the enhancement array,
-        # dividing by the T1 array for the "corrected" analysis
-
-        popt, pcov = self.get_ksigma(ksigma_array, power)
-        # fit to the right side of Eq. 42 to get (ksigma*smax) and half of the E_power at s_max, called p_12 here
-        ksigma_smax = popt[0]
-        p_12 = popt[1]
-        ksigma_std = np.sqrt(np.diag(pcov))
-        ksigma_stdd = ksigma_std[0] / s_max
-
-        ksigma_fit = (ksigma_smax * power) / (p_12 + power)
-
-        ksigma = ksigma_smax / s_max
-
-        ksigma_bulk = self.hp.ksigma_bulk  # unit is s^-1 M^-1
-
-        krho = ((1 / T10) - (1 / T100)) / spin_C  # "self" relaxivity, unit is s^-1 M^-1
-
-        krho_bulk = self.hp.krho_bulk  # unit is s^-1 M^-1
-
-        coupling_factor = ksigma / krho  # coupling factor, unitless
-
-        tcorr = self.get_tcorr(coupling_factor, omega_e, omega_H)
-        # (Eq. 21-23) this calls the fit to the spectral density functions. The fit
-        # optimizes the value of tcorr in the calculation of coupling_factor, the correct tcorr
-        # is the one for which the calculation of coupling_factor from the spectral density
-        # functions matches the coupling_factor found experimentally. tcorr unit is ps
-
-        tcorr_bulk = self.hp.tcorr_bulk
-        # (section 2.5), "corrected" bulk tcorr, unit is ps
-
-        D_H2O = self.hp.D_H2O
-        # (Eq. 19-20) bulk water diffusivity, unit is d^2/s where d is distance in
-        # meters. *didnt use m to avoid confusion with mass
-
-        D_SL = self.hp.D_SL
-        # (Eq. 19-20) spin label diffusivity, unit is d^2/s where d is distance in
-        # meters. *didnt use m to avoid confusion with mass
-
-        Dlocal = (tcorr_bulk / tcorr) * (D_H2O + D_SL)
-        # (Eq. 19-20) local diffusivity, i.e. diffusivity of the water near the spin label
-
-        ############################################################################
-        # This is defined in its most compact form in:
-        # Frank, JM and Han, SI;  Chapter Five - Overhauser Dynamic Nuclear Polarization
-        # for the Study of Hydration Dynamics, Explained. Methods in Enzymology, Volume 615, 2019
-        #
-        # But also explained well in:
-        # Franck, JM, et. al.; "Anomalously Rapid Hydration Water Diffusion Dynamics
-        # Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023.
-
-        klow = ((5 * krho) - (7 * ksigma)) / 3
-        # section 6, (Eq. 13). this describes the relatively slowly diffusing water
-        # near the spin label, sometimes called "bound" water
-        ############################################################################
-
-        klow_bulk = self.hp.klow_bulk  # unit is s^-1 M^-1
-
-        results = self.get_uncorrected_xi(Ep, power, T10, T100, omega_ratio, s_max)
-        xi_unc = results.x[0]
-        p_12_unc = results.x[1]
-
-        # placeholder
-        """
-        J = results.jac
-        cov = np.linalg.inv(J.T.dot(J))
-        results_std = np.sqrt(np.diagonal(cov))
-        xi_unc_stdd = results_std[0]
-        """
-
-        uncorrected_Ep = 1 - (
-            (xi_unc * (1 - (T10 / T100)) * omega_ratio)
-            * ((power * s_max) / (p_12_unc + power))
-        )
-
-        return HydrationResults(
-            {
-                "uncorrected_Ep": uncorrected_Ep,
-                "uncorrected_xi": xi_unc,
-                "interpolated_T1": T1p,
-                "ksigma_array": ksigma_array,
-                "ksigma_fit": ksigma_fit,
-                "ksigma": ksigma,
-                "ksigma_stdd": ksigma_stdd,
-                "ksigma_bulk_ratio": ksigma / ksigma_bulk,
-                "krho": krho,
-                "krho_bulk_ratio": krho / krho_bulk,
-                "klow": klow,
-                "klow_bulk_ratio": klow / klow_bulk,
-                "coupling_factor": coupling_factor,
-                "tcorr": tcorr,
-                "tcorr_bulk_ratio": tcorr / tcorr_bulk,
-                "Dlocal": Dlocal,
-            }
-        )
-
-    @staticmethod
-    def get_tcorr(coupling_factor: float, omega_e: float, omega_H: float):
-        """Returns correlation time tcorr in pico second
-
-        Args:
-            coupling_factor (float):
-            omega_e (float):
-            omega_H (float):
-
-        Returns:
-            float: correlation time in pico second
-
-        Raises:
-            FitError: If no available root is found.
-
-        """
-
-        def calc_xi(tcorr: float, omega_e: float, omega_H: float):
-            """Returns coupling_factor for any given tcorr
-
-            Args:
-                tcorr (float):
-                omega_e (float):
-                omega_H (float):
-
-            Returns:
-                coupling_factor (float):
-
-            """
-
-            # Using Franck et al. PNMRS (2013)
-
-            zdiff = np.sqrt(1j * (omega_e - omega_H) * tcorr)
-            zsum = np.sqrt(1j * (omega_e + omega_H) * tcorr)
-            zH = np.sqrt(1j * omega_H * tcorr)
-
-            # (Eq. 2)
-            Jdiff = (1 + (zdiff / 4)) / (
-                1 + zdiff + ((4 * (zdiff ** 2)) / 9) + ((zdiff ** 3) / 9)
-            )
-
-            Jsum = (1 + (zsum / 4)) / (
-                1 + zsum + ((4 * (zsum ** 2)) / 9) + ((zsum ** 3) / 9)
-            )
-
-            JH = (1 + (zH / 4)) / (1 + zH + ((4 * (zH ** 2)) / 9) + ((zH ** 3) / 9))
-
-            # (Eq. 23) calculation of coupling_factor from the spectral density functions
-            xi_tcorr = ((6 * np.real(Jdiff)) - np.real(Jsum)) / (
-                (6 * np.real(Jdiff)) + (3 * np.real(JH)) + np.real(Jsum)
-            )
-
-            return xi_tcorr
-
-        # root finding
-        # see https://docs.scipy.org/doc/scipy/reference/optimize.html
-        result = optimize.root_scalar(
-            lambda tcorr: calc_xi(tcorr, omega_e=omega_e, omega_H=omega_H)
-            - coupling_factor,
-            method="brentq",
-            bracket=[1, 1e5],
-        )
-
-        if not result.converged:
-            raise FitError("Could not find tcorr")
-        return result.root
-
-    @staticmethod
-    def get_ksigma(ksig_sp: np.array, power: np.array):
-        """Get ksigma and E_power at half max of ksig
-
-        Args:
-            ksig (numpy.array): Array of ksigma.
-            power (numpy.array): Array of E_power.
-
-        Returns:
-            popt: fit results
-            pcov: covariance matrix
-
-        Asserts:
-            ksigma (popt[0]) is greater than zero
-
-        """
-
-        def calc_ksigma(power: np.array, ksigma_smax: float, p_12: float):
-            """Function to calcualte ksig array for any given ksigma and p_12
-
-            Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
-            Args:
-                power (numpy.array): Array of E_power.
-
-            Returns:
-                fit to ksig array
-
-            """
-
-            # Right side of Eq. 42. This function should fit to ksig_sp
-            ksig_fit = (ksigma_smax * power) / (p_12 + power)
-
-            return ksig_fit
-
-        # curve fitting
-        # see https://docs.scipy.org/doc/scipy/reference/optimize.html
-        popt, pcov = optimize.curve_fit(
-            calc_ksigma, power, ksig_sp, p0=[95.4 / 2, (max(power) * 0.1)], method="lm"
-        )
-
-        assert popt[0] > 0, "Unexpected ksigma value: %d < 0" % popt[0]
-        return popt, pcov
-
-    @staticmethod
-    def get_uncorrected_xi(
-        Ep: np.array,
-        power: np.array,
-        T10: float,
-        T100: float,
-        wRatio: float,
-        s_max: float,
-    ):
-        """Get coupling_factor and E_power at half saturation
-
-        Args:
-            Ep (numpy.array): Array of enhancements.
-            power (numpy.array): Array of E_power.
-            T10 (float): T10
-            T100 (float): T100
-            wRatio (float): ratio of electron & proton Larmor frequencies
-            s_max (float): maximal saturation factor
-
-        Returns:
-            A tuple of float (coupling_factor, p_12).
-
-        Raises:
-            FitError: If least square fitting is not succeed.
-
-        """
-
-        def residual(
-            x,
-            Ep: np.array,
-            power: np.array,
-            T10: float,
-            T100: float,
-            wRatio: float,
-            s_max: float,
-        ):
-            """Residual function for Ep for any given xi and p_12
-
-            Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
-            Args:
-                x (tuple): length of 2
-                Ep (numpy.array): Array of enhancements.
-                power (numpy.array): Array of E_power.
-                T10 (float): T10
-                T100 (float): T100
-                wRatio (float): ratio of electron & proton Larmor frequencies
-                s_max (float): maximal saturation factor
-
-            Returns:
-                Residuals.
-
-            """
-            xi_unc, p_12_unc = x[0], x[1]
-
-            # Right side of Eq. 42. This function should fit to ksig_sp
-            Ep_fit = 1 - (
-                (xi_unc * (1 - (T10 / T100)) * wRatio)
-                * ((power * s_max) / (p_12_unc + power))
-            )
-
-            return Ep - Ep_fit
-
-        # least-squares fitting.
-        # see https://docs.scipy.org/doc/scipy/reference/optimize.html
-        results = optimize.least_squares(
-            fun=residual,
-            x0=[0.27, (max(power) * 0.1)],
-            args=(Ep, power, T10, T100, wRatio, s_max),
-            jac="2-point",
-            method="lm",
-        )
-        if not results.success:
-            raise FitError("Could not fit Ep")
-        assert results.x[0] > 0, (
-            "Unexpected coupling_factor value: %d < 0" % results.x[0]
-        )
-        return results
+    ksigma_array = (1 - inputs["E_array"]) / (inputs["spin_C"] * omega_ratio * T1p)
+    # (Eq. 41) this calculates the array of ksigma*s(p) from the enhancement array,
+    # dividing by the T1 array for the "corrected" analysis
+
+    ksigma, ksigma_stdd, ksigma_fit = calculate_ksigma(
+        ksigma_array, inputs["E_powers"], s_max
+    )
+    # fit to the right side of Eq. 42 to get (ksigma*smax) and half of the E_power at s_max, called p_12 here
+
+    krho = ((1 / inputs["T10"]) - (1 / inputs["T100"])) / inputs[
+        "spin_C"
+    ]  # "self" relaxivity, unit is s^-1 M^-1
+
+    coupling_factor = ksigma / krho  # coupling factor, unitless
+
+    tcorr = calculate_tcorr(coupling_factor, omega_e, omega_H)
+    # (Eq. 21-23) this calls the fit to the spectral density functions. The fit
+    # optimizes the value of tcorr in the calculation of coupling_factor, the correct tcorr
+    # is the one for which the calculation of coupling_factor from the spectral density
+    # functions matches the coupling_factor found experimentally. tcorr unit is ps
+
+    Dlocal = (constants["tcorr_bulk"] / tcorr) * (
+        constants["D_H2O"] + constants["D_SL"]
+    )
+    # (Eq. 19-20) local diffusivity, i.e. diffusivity of the water near the spin label
+
+    ############################################################################
+    # This is defined in its most compact form in:
+    # Frank, JM and Han, SI;  Chapter Five - Overhauser Dynamic Nuclear Polarization
+    # for the Study of Hydration Dynamics, Explained. Methods in Enzymology, Volume 615, 2019
+    #
+    # But also explained well in:
+    # Franck, JM, et. al.; "Anomalously Rapid Hydration Water Diffusion Dynamics
+    # Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023.
+
+    klow = ((5 * krho) - (7 * ksigma)) / 3
+    # section 6, (Eq. 13). this describes the relatively slowly diffusing water
+    # near the spin label, sometimes called "bound" water
+    ############################################################################
+
+    xi_unc, p_12_unc = calculate_uncorrected_xi(
+        inputs["E_array"],
+        inputs["E_powers"],
+        inputs["T10"],
+        inputs["T100"],
+        omega_ratio,
+        s_max,
+    )
+
+    uncorrected_Ep = calculate_uncorrected_Ep(
+        xi_unc,
+        p_12_unc,
+        inputs["E_powers"],
+        inputs["T10"],
+        inputs["T100"],
+        omega_ratio,
+        s_max,
+    )
+
+    return {
+        "uncorrected_Ep": uncorrected_Ep,
+        "uncorrected_xi": xi_unc,
+        "interpolated_T1": T1p,
+        "ksigma_array": ksigma_array,
+        "ksigma_fit": ksigma_fit,
+        "ksigma": ksigma,
+        "ksigma_stdd": ksigma_stdd,
+        "ksigma_bulk_ratio": ksigma / constants["ksigma_bulk"],
+        "krho": krho,
+        "krho_bulk_ratio": krho / constants["krho_bulk"],
+        "klow": klow,
+        "klow_bulk_ratio": klow / constants["klow_bulk"],
+        "coupling_factor": coupling_factor,
+        "tcorr": tcorr,
+        "tcorr_bulk_ratio": tcorr / constants["tcorr_bulk"],
+        "Dlocal": Dlocal,
+    }
 
 
 def hydration(ws):
-    """Calculating Hydration Results
+    """Function for calculating hydration quantities
 
     Args:
-        ws: Workspace containing hydration_inputs dictionary
+        ws (dnpdata_collection): see function 'odnp' below
 
     Returns:
-        dict: A dictionary of hydration_results
+        results (dict): see function 'odnp' below
     """
 
-    # Hydration required data
-    hyd = ws["hydration_inputs"]
-    T1, T1_power, E, E_power = [hyd[k] for k in ["T1", "T1_power", "E", "E_power"]]
+    if "hydration_inputs" in ws.keys():
 
-    # Create hydration parameter
-    hp = HydrationParameter()
-    hp.T10, hp.T100, hp.spin_C, hp.field, hp.smax_model, hp.t1_interp_method = [
-        hyd[k]
-        for k in ["T10", "T100", "spin_C", "field", "smax_model", "t1_interp_method"]
-    ]
+        odnp_constants = {
+            "ksigma_bulk": 95.4,
+            "krho_bulk": 353.4,
+            "klow_bulk": 366,
+            "tcorr_bulk": 54,
+            "D_H2O": 2.3e-9,
+            "D_SL": 4.1e-10,
+            "delta_T1_water": False,
+            "T1_water": False,
+            "macro_C": False,
+        }
 
-    # compute
-    hc = HydrationCalculator(T1, T1_power, E, E_power, hp)
-    hc.run()
+        if "hydration_constants" in ws.keys():
+            for ky in odnp_constants.keys():
+                if ky in ws["hydration_constants"].keys():
+                    odnp_constants[ky] = ws["hydration_constants"][ky]
 
-    return {key: hc.results[key] for key in hc.results.keys()}
+        odnp_inputs = ws["hydration_inputs"]
+
+        results = odnp(odnp_inputs, odnp_constants)
+
+        ws["hydration_results"] = results
+
+        return results
+
+    else:
+        raise TypeError("the hydration_inputs dictionary is missing!")
