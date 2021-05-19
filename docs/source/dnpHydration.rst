@@ -4,7 +4,15 @@
 dnpHydration
 ============
 
-To use the dnpHydration module first create a dictionary with the necessary inputs and add it to a workspace as 'hydration_inputs'. For example, start by defining the inputs dictionary,
+This module implements the process of calculating parameters that describe hydration dynamics using ODNP data as described in various studies from Songi Han and John Franck. The calculations follow:
+
+J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
+
+J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
+https://doi.org/10.1016/bs.mie.2018.09.024
+
+To use the dnpHydration module first create a dictionary with the necessary inputs and add it to a workspace as **'hydration_inputs'**. For example, start by defining the inputs dictionary,
 
 .. code-block:: python
 

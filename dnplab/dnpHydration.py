@@ -7,7 +7,7 @@ def calculate_smax(spin_C=False):
     """Returns maximal saturation factor according to: M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
 
     .. math::
-        s_{max} = 1 - (2 / (3 + (3 * (spin_C * 198.7))))
+        \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
 
     Args:
         spin_C (float): unpaired spin concentration in units of uM
@@ -101,7 +101,7 @@ def interpolate_T1(
 def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
     """Function to calcualte ksig array for any given ksigma and p_12
 
-    Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
     Args:
         powers (numpy.array): Array of powers
@@ -121,6 +121,8 @@ def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
 
 def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
     """Get ksigma and E_power at half max of ksig
+
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
     Args:
         ksig (numpy.array): Array of ksigmas
@@ -160,6 +162,8 @@ def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
 def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
     """Returns coupling_factor for any given tcorr
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+
     Args:
         tcorr (float): translational diffusion correlation time
         omega_e (float): electron gyromagnetic ratio
@@ -194,7 +198,9 @@ def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
 
 
 def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
-    """Returns correlation time tcorr in pico second
+    """Returns translational correlation time (tcorr) in pico second
+
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
     Args:
         coupling_factor (float): coupling factor
@@ -202,7 +208,7 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
         omega_H (float): proton gyromagnetic ratio
 
     Returns:
-        result.root (float): tcorr, translational diffusion correlation time in pico second
+        t_corr (float): tcorr, translational diffusion correlation time in pico second
 
     """
 
@@ -217,7 +223,9 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
 
     if not result.converged:
         raise FitError("Could not find tcorr")
-    return result.root
+
+    t_corr = result.root
+    return t_corr
 
 
 def calculate_uncorrected_Ep(
@@ -229,18 +237,18 @@ def calculate_uncorrected_Ep(
     omega_ratio=658.5792,
     smax=1,
 ):
-    """Function for Ep for any given xi and p_12
+    """Function for E(p) for any given xi and p_12
 
-    Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
     Args:
         uncorrected_xi (float): uncorrected coupling factor
         p_12_unc (float): power at half max for uncorrected_xi fit
         E_array (numpy.array): Array of enhancements
-        E_powers (numpy.array): Array of E_power
-        T10 (float): T10
-        T100 (float): T100
-        omega_ratio (float): ratio of electron & proton Larmor frequencies
+        E_powers (numpy.array): Array of E_powers
+        T10 (float): T1(0), proton T1 with microwave power=0
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0
+        omega_ratio (float): ratio of electron & proton gyromagnetic ratios
         smax (float): maximal saturation factor
 
     Returns:
@@ -266,21 +274,21 @@ def _residual_Ep(
     omega_ratio: float,
     smax: float,
 ):
-    """Function for Ep for any given xi and p_12
+    """Function for residuals between E(p) for any given xi and p_12 and the experimental E_array
 
-    Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
     Args:
         x (list): [uncorrected coupling factor, power at half max for uncorrected_xi fit]
         E_array (numpy.array): Array of enhancements
         E_powers (numpy.array): Array of E_power
-        T10 (float): T10
-        T100 (float): T100
-        omega_ratio (float): ratio of electron & proton Larmor frequencies
+        T10 (float): T1(0), proton T1 with microwave power=0
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0
+        omega_ratio (float): ratio of electron & proton gyromagnetic ratios
         smax (float): maximal saturation factor
 
     Returns:
-        Ep_fit (numpy.array): uncorrected Enhancement curve
+        Ep_fit (numpy.array): uncorrected enhancement curve
 
     """
 
@@ -304,13 +312,15 @@ def calculate_uncorrected_xi(
     smax=1,
 ):
     """Get coupling_factor and E_power at half saturation
+    
+    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
     Args:
         E_array (numpy.array): Array of enhancements
         E_powers (numpy.array): Array of powers
-        T10 (float): T10
-        T100 (float): T100
-        omega_ratio (float): ratio of electron & proton Larmor frequencies
+        T10 (float): T1(0), proton T1 with microwave power=0
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0
+        omega_ratio (float): ratio of electron & proton gyromagnetic ratios
         smax (float): maximal saturation factor
 
     Returns:
@@ -341,6 +351,12 @@ def calculate_uncorrected_xi(
 def odnp(inputs={}, constants={}):
     """Function for performing ODNP calculations
 
+    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+    http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
+
+    J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
+    https://doi.org/10.1016/bs.mie.2018.09.024
+
     Args:
         inputs (dict)                   : keys and values described in example above
         constants (optional) (dict)     : keys and values described in example above
@@ -364,6 +380,7 @@ def odnp(inputs={}, constants={}):
         "T1_water": False,
         "macro_C": False,
     }
+    # these constants have been compiled from the various ODNP literature
 
     if constants:
         for ky in odnp_constants.keys():
@@ -435,7 +452,7 @@ def odnp(inputs={}, constants={}):
 
     krho = ((1 / inputs["T10"]) - (1 / inputs["T100"])) / (
         inputs["spin_C"] * 1e-6
-    )  # "self" relaxivity, unit is s^-1 M^-1
+    )  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
 
     coupling_factor = ksigma / krho  # coupling factor, unitless
 
@@ -450,19 +467,15 @@ def odnp(inputs={}, constants={}):
     )
     # (Eq. 19-20) local diffusivity, i.e. diffusivity of the water near the spin label
 
-    ############################################################################
+    klow = ((5 * krho) - (7 * ksigma)) / 3
+    # section 6, (Eq. 13). this describes the relatively slowly diffusing water
+    # near the spin label, sometimes called "bound" water.
     # This is defined in its most compact form in:
     # Frank, JM and Han, SI;  Chapter Five - Overhauser Dynamic Nuclear Polarization
     # for the Study of Hydration Dynamics, Explained. Methods in Enzymology, Volume 615, 2019
-    #
     # But also explained well in:
     # Franck, JM, et. al.; "Anomalously Rapid Hydration Water Diffusion Dynamics
     # Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023.
-
-    klow = ((5 * krho) - (7 * ksigma)) / 3
-    # section 6, (Eq. 13). this describes the relatively slowly diffusing water
-    # near the spin label, sometimes called "bound" water
-    ############################################################################
 
     xi_unc, p_12_unc = calculate_uncorrected_xi(
         inputs["E_array"],
@@ -472,6 +485,7 @@ def odnp(inputs={}, constants={}):
         omega_ratio,
         s_max,
     )
+    # (Eqs. 7 and 44) this calculates the coupling factor using the "uncorrected" analysis
 
     uncorrected_Ep = calculate_uncorrected_Ep(
         xi_unc,
@@ -482,6 +496,7 @@ def odnp(inputs={}, constants={}):
         omega_ratio,
         s_max,
     )
+    # (Eqs. 7 and 44) this calculates the "uncorrected" enhnacement array using xi_unc
 
     return {
         "uncorrected_Ep": uncorrected_Ep,
@@ -505,6 +520,12 @@ def odnp(inputs={}, constants={}):
 
 def hydration(workspace):
     """Function for calculating hydration quantities
+
+    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+    http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
+
+    J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
+    https://doi.org/10.1016/bs.mie.2018.09.024
 
     Args:
         workspace (dnpdata_collection): workspace or dictionary with 'hydration_inputs', see above
