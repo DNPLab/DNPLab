@@ -1,9 +1,3 @@
-""" dnpHydration module
-
-This module calculates hydration related quantities using processed ODNP data.
-
-"""
-
 import numpy as np
 from scipy import interpolate
 from scipy import optimize
@@ -16,10 +10,11 @@ def calculate_smax(spin_C=False):
         s_{max} = 1 - (2 / (3 + (3 * (spin_C * 198.7))))
 
     Args:
-        spin_C: unpaired spin concentration in units of uM
+        spin_C (float): unpaired spin concentration in units of uM
 
     Returns:
         smax (float): maximal saturation factor
+
     """
 
     return 1 - (2 / (3 + (3 * (spin_C * 1e-6 * 198.7))))
@@ -40,20 +35,20 @@ def interpolate_T1(
     """Returns interpolated T1 data using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
 
     Args:
-        E_powers: The x-coordinates at which to evaluate
-        T1_powers: The x-coordinates of the data points, must be increasing
-            Otherwise, T1_power is internally sorted
-        T1_array: The y-coordinates of the data points, same length as T1_power
-        interpolate_method: "second_order" or "linear"
-        delta_T1_water: change in T1 of water at max microwave power
-        T1_water: T1 of pure water
-        macro_C: concentration of macro molecule in uM
-        spin_C: unpaired electron spin concentration in uM
-        T10: T1 measured with unpaired electrons
-        T100: T1 measured without unpaired electrons
+        E_powers (numpy.array): The microwave powers at which to evaluate
+        T1_powers (numpy.array): The microwave powers of the T1s to interpolate
+        T1_array (numpy.array): The original T1s
+        interpolate_method (str): "second_order" or "linear"
+        spin_C (float): unpaired electron spin concentration in uM
+        T10 (float): T1 measured with unpaired electrons
+        T100 (float): T1 measured without unpaired electrons
+        delta_T1_water (optional) (float): change in T1 of water at max microwave power
+        T1_water (optional) (float): T1 of pure water
+        macro_C (optional) (float): concentration of macromolecule in uM
 
     Returns:
-        interpolated_T1 (np.array): The evaluated values, same shape as E_powers.
+        interpolated_T1 (numpy.array): Array of T1 values same shape as E_powers and E_array
+
     """
 
     # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
@@ -98,7 +93,7 @@ def interpolate_T1(
         )
 
     else:
-        raise Exception("invalid interp_method")
+        raise Exception("invalid interpolate_method")
 
     return interpolated_T1
 
@@ -128,16 +123,13 @@ def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
     """Get ksigma and E_power at half max of ksig
 
     Args:
-        ksig (numpy.array): Array of ksigma.
-        powers (numpy.array): Array of E_power.
+        ksig (numpy.array): Array of ksigmas
+        powers (numpy.array): Array of E_powers
 
     Returns:
         ksigma (float): calculated ksigma
-        ksigma_stdd (float): standard deviation in calculated ksigma
+        ksigma_stdd (float): standard deviation in ksigma
         p_12 (float): power at half max for ksigma fit
-
-    Asserts:
-        ksigma (popt[0]) is greater than zero
 
     """
 
@@ -212,9 +204,6 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
     Returns:
         result.root (float): tcorr, translational diffusion correlation time in pico second
 
-    Raises:
-        FitError: If no available root is found.
-
     """
 
     # root finding
@@ -247,15 +236,15 @@ def calculate_uncorrected_Ep(
     Args:
         uncorrected_xi (float): uncorrected coupling factor
         p_12_unc (float): power at half max for uncorrected_xi fit
-        E_array (numpy.array): Array of enhancements.
-        E_powers (numpy.array): Array of E_power.
+        E_array (numpy.array): Array of enhancements
+        E_powers (numpy.array): Array of E_power
         T10 (float): T10
         T100 (float): T100
         omega_ratio (float): ratio of electron & proton Larmor frequencies
         smax (float): maximal saturation factor
 
     Returns:
-        Ep_fit (array): uncorrected Enhancement curve
+        Ep_fit (numpy.array): uncorrected Enhancement curve
 
     """
 
@@ -282,16 +271,16 @@ def _residual_Ep(
     Again using: J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
     Args:
-        x (list): (uncorrected coupling factor, power at half max for uncorrected_xi fit)
-        E_array (numpy.array): Array of enhancements.
-        E_powers (numpy.array): Array of E_power.
+        x (list): [uncorrected coupling factor, power at half max for uncorrected_xi fit]
+        E_array (numpy.array): Array of enhancements
+        E_powers (numpy.array): Array of E_power
         T10 (float): T10
         T100 (float): T100
         omega_ratio (float): ratio of electron & proton Larmor frequencies
         smax (float): maximal saturation factor
 
     Returns:
-        Ep_fit (array): uncorrected Enhancement curve
+        Ep_fit (numpy.array): uncorrected Enhancement curve
 
     """
 
@@ -328,9 +317,6 @@ def calculate_uncorrected_xi(
         uncorrected_xi (float): uncorrected coupling factor
         p_12_unc (float): power at half max for uncorrected_xi fit
 
-    Raises:
-        FitError: If least square fitting is not succeed.
-
     """
 
     # least-squares fitting.
@@ -352,9 +338,22 @@ def calculate_uncorrected_xi(
     return uncorrected_xi, p_12_unc
 
 
-def odnp(
-    inputs={},
-    constants={
+def odnp(inputs={}, constants={}):
+    """Function for performing ODNP calculations
+
+    Args:
+        inputs (dict)                   : keys and values described in example above
+        constants (optional) (dict)     : keys and values described in example above
+
+    Returns:
+        hydration_results (dict)        : keys and values described in table above
+
+    """
+
+    if not inputs:
+        raise ValueError("Please supply a valid inputs dictionary")
+
+    odnp_constants = {
         "ksigma_bulk": 95.4,
         "krho_bulk": 353.4,
         "klow_bulk": 366,
@@ -364,61 +363,12 @@ def odnp(
         "delta_T1_water": False,
         "T1_water": False,
         "macro_C": False,
-    },
-):
-    """Function for performing ODNP calculations
+    }
 
-    Args:
-        inputs (dict): keys and values below
-        uncorrected_Ep (numpy.array)    : fit of enhancement array,
-        uncorrected_xi (float)          : coupling factor for fit of enhancement array,
-        interpolated_T1 (numpy.array)   : T1 values interpolated on enhancement powers,
-        ksigma_array (numpy.array)      : ksigma array
-        ksigma_fit (numpy.array)        : fit of ksigma_array,
-        ksigma (float)                  : ksigma,
-        ksigma_stdd (float)             : standard deviation in ksigma,
-        ksigma_bulk_ratio (float)       : ratio ksigma / ksigma_bulk,
-        krho (float)                    : krho,
-        krho_bulk_ratio (float)         : ratio krho / krho_bulk,
-        klow (float)                    : klow,
-        klow_bulk_ratio (float)         : ratio klow / klow_bulk,
-        coupling_factor (float)         : coupling_factor,
-        tcorr (float)                   : tcorr,
-        tcorr_bulk_ratio (float)        : ratio tcorr / tcorr_bulk,
-        Dlocal (float)                  : Dlocal
-        constants (dict): keys and values below
-        ksigma_bulk (float): bulk ksigma value
-        krho_bulk (float): bulk krho value
-        klow_bulk (float): bulk klow value
-        tcorr_bulk (float): bulk tcorr value
-        D_H2O (float): diffusivity of bulk water
-        D_SL (float): diffusivity of spin probe in bulk water
-        delta_T1_water (float): change in T1 of water of E_powers range
-        T1_water (float): T1 of water protons
-        macro_C (float): concentration of macromolecule
-
-    Returns:
-        results (dict): keys and values below
-        uncorrected_Ep (numpy.array): uncorrected_Ep,
-        uncorrected_xi (float): xi_unc,
-        interpolated_T1 (numpy.array): T1p,
-        ksigma_array (numpy.array): ksigma_array,
-        ksigma_fit (numpy.array): ksigma_fit,
-        ksigma (float): ksigma,
-        ksigma_stdd (float): ksigma_stdd,
-        ksigma_bulk_ratio (float): ksigma / constants["ksigma_bulk"],
-        krho (float): krho,
-        krho_bulk_ratio (float): krho / constants["krho_bulk"],
-        klow (float): klow,
-        klow_bulk_ratio (float): klow / constants["klow_bulk"],
-        coupling_factor (float): coupling_factor,
-        tcorr (float): tcorr,
-        tcorr_bulk_ratio (float): tcorr / constants["tcorr_bulk"],
-        Dlocal (float): Dlocal
-    """
-
-    if not inputs:
-        raise ValueError("Please supply a valid inputs dictionary")
+    if constants:
+        for ky in odnp_constants.keys():
+            if ky in constants.keys():
+                odnp_constants[ky] = constants[ky]
 
     if inputs["smax_model"] == "tethered":
         # Option 1, tether spin label
@@ -457,9 +407,9 @@ def odnp(
             T1_powers=inputs["T1_powers"],
             T1_array=inputs["T1_array"],
             interpolate_method=inputs["interpolate_method"],
-            delta_T1_water=constants["delta_T1_water"],
-            T1_water=constants["T1_water"],
-            macro_C=constants["macro_C"],
+            delta_T1_water=odnp_constants["delta_T1_water"],
+            T1_water=odnp_constants["T1_water"],
+            macro_C=odnp_constants["macro_C"],
             spin_C=inputs["spin_C"],
             T10=inputs["T10"],
             T100=inputs["T100"],
@@ -495,8 +445,8 @@ def odnp(
     # is the one for which the calculation of coupling_factor from the spectral density
     # functions matches the coupling_factor found experimentally. tcorr unit is ps
 
-    Dlocal = (constants["tcorr_bulk"] / tcorr) * (
-        constants["D_H2O"] + constants["D_SL"]
+    Dlocal = (odnp_constants["tcorr_bulk"] / tcorr) * (
+        odnp_constants["D_H2O"] + odnp_constants["D_SL"]
     )
     # (Eq. 19-20) local diffusivity, i.e. diffusivity of the water near the spin label
 
@@ -541,29 +491,33 @@ def odnp(
         "ksigma_fit": ksigma_fit,
         "ksigma": ksigma,
         "ksigma_stdd": ksigma_stdd,
-        "ksigma_bulk_ratio": ksigma / constants["ksigma_bulk"],
+        "ksigma_bulk_ratio": ksigma / odnp_constants["ksigma_bulk"],
         "krho": krho,
-        "krho_bulk_ratio": krho / constants["krho_bulk"],
+        "krho_bulk_ratio": krho / odnp_constants["krho_bulk"],
         "klow": klow,
-        "klow_bulk_ratio": klow / constants["klow_bulk"],
+        "klow_bulk_ratio": klow / odnp_constants["klow_bulk"],
         "coupling_factor": coupling_factor,
         "tcorr": tcorr,
-        "tcorr_bulk_ratio": tcorr / constants["tcorr_bulk"],
+        "tcorr_bulk_ratio": tcorr / odnp_constants["tcorr_bulk"],
         "Dlocal": Dlocal,
     }
 
 
-def hydration(ws):
+def hydration(workspace):
     """Function for calculating hydration quantities
 
     Args:
-        ws (dnpdata_collection): see function 'odnp' below
+        workspace (dnpdata_collection): workspace or dictionary with 'hydration_inputs', see above
 
     Returns:
-        results (dict): see function 'odnp' below
+        results (dict)                : 'hydration_results' dictionary, see above
+
+    Raises:
+        TypeError: If 'hydration_inputs' dictionary is missing
+
     """
 
-    if "hydration_inputs" in ws.keys():
+    if "hydration_inputs" in workspace.keys():
 
         odnp_constants = {
             "ksigma_bulk": 95.4,
@@ -577,18 +531,18 @@ def hydration(ws):
             "macro_C": False,
         }
 
-        if "hydration_constants" in ws.keys():
+        if "hydration_constants" in workspace.keys():
             for ky in odnp_constants.keys():
-                if ky in ws["hydration_constants"].keys():
-                    odnp_constants[ky] = ws["hydration_constants"][ky]
+                if ky in workspace["hydration_constants"].keys():
+                    odnp_constants[ky] = workspace["hydration_constants"][ky]
 
-        odnp_inputs = ws["hydration_inputs"]
+        odnp_inputs = workspace["hydration_inputs"]
 
         results = odnp(odnp_inputs, odnp_constants)
 
-        ws["hydration_results"] = results
+        workspace["hydration_results"] = results
 
         return results
 
     else:
-        raise TypeError("the hydration_inputs dictionary is missing!")
+        raise TypeError("the 'hydration_inputs' dictionary is missing!")

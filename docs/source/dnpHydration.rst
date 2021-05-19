@@ -16,17 +16,17 @@ To use the dnpHydration module first create a dictionary with the necessary inpu
     T1_powers = # list of powers in Watts corresponding to T1s
     
     inputs = {
-                 'E_array' : np.array(Enhancements),
-                 'E_powers' : np.array(Enhancement_powers),
-                 'T1_array' : np.array(T1s),
-                 'T1_powers' : np.array(T1_powers),
-                 'T10': 2.0, # T1 measured with power=0
-                 'T100': 2.5, # T1 measured with SL=0 and power=0
-                 'spin_C': 100, # spin concentration in micromolar
-                 'field': 350, # magnetic field in mT
-                 'smax_model': 'tethered', # choice of smax model
-                 't1_interp_method': 'second_order' # choice of interpolation method
-                }
+              'E_array' : np.array(Enhancements),
+              'E_powers' : np.array(Enhancement_powers),
+              'T1_array' : np.array(T1s),
+              'T1_powers' : np.array(T1_powers),
+              'T10': 2.0, # T1 measured with power=0
+              'T100': 2.5, # T1 measured with SL=0 and power=0
+              'spin_C': 100, # spin concentration in micromolar
+              'field': 350, # magnetic field in mT
+              'smax_model': 'tethered', # choice of smax model
+              't1_interp_method': 'second_order' # choice of interpolation method
+              }
     
 
 Now you can either create a workspace and add the dictionary under the key **'hydration_inputs'**,
@@ -54,12 +54,12 @@ In rare cases the bulk water or second order T1 interpolation constants may need
                  'tcorr_bulk': 54, # bulk tcorr value
                  'D_H2O': 2.3e-9, # bulk water diffusivity
                  'D_SL': 4.1e-10, # diffusivity of spin probe in bulk water
-                 'delta_T1_water': 1 # change in water proton T1 with increase in microwave power
+                 'delta_T1_water': 1 # change in water proton T1 due to microwaves
                  'T1_water': 2.5, # T1 of bulk water protons
                  'macro_C': 100, # concentration of macromolecule in uM
-                }
+                 }
 
-    workspace.add('hydration_constants', inputs)
+    workspace.add('hydration_constants', constants)
 
 
 Next, pass the workspace to dnpHydration to perform calculations using,
@@ -76,7 +76,7 @@ Or for in-place operation simply use,
     dnplab.dnpHydration.hydration(workspace)
 
 
-If returned, **hydration_results** is a dictionary that has the elements listed in the table below. If only in-place operation, the workspace will now contain a **'hydration_results'** dictionary. *Note: even if the dictionary is returned the hydration_results key is still added to the workspace*
+If returned, **hydration_results** is a dictionary that has the elements listed in the table below. If only in-place operation, the workspace will now contain a **'hydration_results'** dictionary. *Note: even if the dictionary is returned, the 'hydration_results' dictionary is still added to the workspace*
 
 +-------------------+-------------+------------------------------------------------------------------------------------------+
 | key               | type        | description                                                                              |
@@ -135,3 +135,12 @@ Or,
      etc.
 
 For explanation of 'smax_model' see https://doi.org/10.1039/c0cp02126a. For explanations of 'interpolate_method' options or any of the equations used to calculate the hydration parameters refer to http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 and https://doi.org/10.1016/bs.mie.2018.09.024.
+
+
+Detailed Descriptions of Functions
+==================================
+
+.. automodule:: dnplab.dnpHydration
+   :members:
+   :show-inheritance:
+   :member-order: bysource
