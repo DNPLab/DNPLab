@@ -312,7 +312,7 @@ def calculate_uncorrected_xi(
     smax=1,
 ):
     """Get coupling_factor and E_power at half saturation
-    
+
     J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
 
     Args:
