@@ -83,6 +83,7 @@ Features
    dnpImport
    dnpIO
    dnpSave
+   dnpMath
    dnpTools
    dnpNMR
    dnpFit
