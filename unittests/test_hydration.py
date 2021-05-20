@@ -1,7 +1,6 @@
 import unittest
 import numpy as np
-from dnplab.dnpData import create_workspace
-from dnplab.dnpHydration import HydrationCalculator, HydrationParameter, hydration
+import dnplab as dnp
 
 
 TESTSET = {
@@ -74,227 +73,111 @@ TESTSET = {
         ]
     ),
 }
-TESTSET_PARAM = HydrationParameter()
-TESTSET_PARAM.field = 348.5
-TESTSET_PARAM.spin_C = 125
-TESTSET_PARAM.T100 = 2.0
-TESTSET_PARAM.T10 = 1.5
 
 
 class TestHydration(unittest.TestCase):
     def setUp(self):
-        ws = create_workspace()
-        hydration = {k: TESTSET.get(k) for k in ["T1", "T1_power", "E", "E_power"]}
-        hydration.update(
-            {
-                k: TESTSET_PARAM.__dict__.get(k)
-                for k in ["T10", "T100", "spin_C", "field"]
-            }
+        self.data = {
+            "E_array": TESTSET["E"],
+            "E_powers": TESTSET["E_power"],
+            "T1_array": TESTSET["T1"],
+            "T1_powers": TESTSET["T1_power"],
+            "field": 348.5,
+            "spin_C": 125,
+            "T10": 2.0,
+            "T100": 2.5,
+            "smax_model": "tethered",
+            "interpolate_method": "second_order",
+        }
+
+        self.constants = {
+            "ksigma_bulk": 95.4,
+            "krho_bulk": 353.4,
+            "klow_bulk": 366,
+            "tcorr_bulk": 54,
+            "D_H2O": 2.3e-9,
+            "D_SL": 4.1e-10,
+            "delta_T1_water": False,
+            "T1_water": False,
+            "macro_C": False,
+        }
+
+        self.ws = dnp.create_workspace("hydration_inputs", self.data)
+        self.ws.add("hydration_constants", self.constants)
+
+    def test_hydration_return_dict(self):
+
+        result = dnp.dnpHydration.hydration(self.ws)
+
+        self.assertEqual(len(self.data["E_powers"]), 21)
+        self.assertEqual(len(self.data["E_array"]), 21)
+        self.assertEqual(len(self.data["T1_powers"]), 5)
+        self.assertEqual(len(self.data["T1_array"]), 5)
+        self.assertEqual(len(result["interpolated_T1"]), 21)
+        self.assertAlmostEqual(min(result["interpolated_T1"]), 2.051727288206873)
+        self.assertAlmostEqual(max(result["interpolated_T1"]), 2.5383409868931706)
+        self.assertEqual(len(result["ksigma_array"]), 21)
+        self.assertAlmostEqual(min(result["ksigma_array"]), 2.5002212753387965)
+        self.assertAlmostEqual(max(result["ksigma_array"]), 19.573744921860015)
+        self.assertEqual(len(result["ksigma_fit"]), 21)
+        self.assertAlmostEqual(min(result["ksigma_fit"]), 1.9391281665269349)
+        self.assertAlmostEqual(max(result["ksigma_fit"]), 19.17592802884648)
+        self.assertEqual(len(result["uncorrected_Ep"]), 21)
+        self.assertAlmostEqual(min(result["uncorrected_Ep"]), -2.90847384506599)
+        self.assertAlmostEqual(max(result["uncorrected_Ep"]), 0.7434984782673344)
+
+        self.assertAlmostEqual(result["ksigma"], 20.17803815171555)
+        self.assertAlmostEqual(result["klow"], 1286.2512443126634)
+        self.assertAlmostEqual(result["tcorr"], 485.8952027395348)
+        self.assertAlmostEqual(result["Dlocal"], 3.01176054373284e-10)
+
+        self.assertTrue(
+            [x in self.ws["hydration_results"].keys() for x in result.keys()]
         )
-        hydration.update({"smax_model": "tethered", "t1_interp_method": "second_order"})
-        ws.add("hydration_inputs", hydration)
-        self.ws = ws
 
-    def test_ws(self):
-        """assert working space running well"""
-        res = hydration(self.ws)
-        self.assertAlmostEqual(res["ksigma"], 20.18, places=2)
+    def test_hydration_inplace(self):
 
+        self.ws["hydration_inputs"]["spin_C"] = 100
+        self.ws["hydration_inputs"]["smax_model"] = "free"
+        self.ws["hydration_inputs"]["interpolate_method"] = "linear"
+        self.ws["hydration_constants"]["D_SL"] = 4.1e-9
 
-class TestHydrationCalculator(unittest.TestCase):
-    def setUp(self):
-        self.T1 = TESTSET["T1"]
-        self.T1_power = TESTSET["T1_power"]
-        self.E = TESTSET["E"]
-        self.E_power = TESTSET["E_power"]
+        dnp.dnpHydration.hydration(self.ws)
 
-        self.hp = TESTSET_PARAM
-        self.hc = HydrationCalculator(
-            T1=self.T1,
-            T1_power=self.T1_power,
-            E=self.E,
-            E_power=self.E_power,
-            hp=TESTSET_PARAM,
-        )
-
-    def _run_tethered_2ord(self):
-        self.hc.hp.smax_model = "tethered"
-        self.hc.hp.t1_interp_method = "second_order"
-        self.hc.run()
-
-    def _run_tethered_linear(self):
-        self.hc.hp.smax_model = 1
-        self.hc.hp.t1_interp_method = "linear"
-        self.hc.run()
-
-    def _run_free_2ord(self):
-        self.hc.hp.smax_model = "free"
-        self.hc.hp.t1_interp_method = "second_order"
-        self.hc.run()
-
-    def _run_free_linear(self):
-        self.hc.hp.smax_model = 0.3494903663588943
-        self.hc.hp.t1_interp_method = "linear"
-        self.hc.run()
-
-    def test_interpT1_linear_tethered(self):
-        self._run_tethered_linear()
-        self.assertAlmostEqual(self.hc.results.interpolated_T1[0], 2.0959, places=4)
+        self.assertEqual(len(self.ws["hydration_results"]["interpolated_T1"]), 21)
         self.assertAlmostEqual(
-            self.hc.results.interpolated_T1[len(self.hc.results.interpolated_T1) - 1],
-            2.5802,
-            places=4,
+            min(self.ws["hydration_results"]["interpolated_T1"]), 2.0978389591800344
         )
-
-    def test_interpT1_2ord_tethered(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.interpolated_T1[0], 2.0517, places=4)
         self.assertAlmostEqual(
-            self.hc.results.interpolated_T1[len(self.hc.results.interpolated_T1) - 1],
-            2.5383,
-            places=4,
+            max(self.ws["hydration_results"]["interpolated_T1"]), 2.5855460713039324
         )
-
-    def test_interpT1_linear_free(self):
-        self._run_free_linear()
-        self.assertAlmostEqual(self.hc.results.interpolated_T1[0], 2.0959, places=4)
+        self.assertEqual(len(self.ws["hydration_results"]["ksigma_array"]), 21)
         self.assertAlmostEqual(
-            self.hc.results.interpolated_T1[len(self.hc.results.interpolated_T1) - 1],
-            2.5802,
-            places=4,
+            min(self.ws["hydration_results"]["ksigma_array"]), 3.0565812706454305
         )
-
-    def test_interpT1_2ord_free(self):
-        self._run_free_2ord()
-        self.assertAlmostEqual(self.hc.results.interpolated_T1[0], 2.0517, places=4)
         self.assertAlmostEqual(
-            self.hc.results.interpolated_T1[len(self.hc.results.interpolated_T1) - 1],
-            2.5383,
-            places=4,
+            max(self.ws["hydration_results"]["ksigma_array"]), 24.020476541485717
         )
-
-    # tethered
-    def test_2ord_krho(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.krho, 1333.33, places=2)
-
-    def test_2ord_ksigma(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.ksigma, 20.18, places=2)
-        self.assertAlmostEqual(self.hc.results.ksigma_array[0], 2.50, places=2)
+        self.assertEqual(len(self.ws["hydration_results"]["ksigma_fit"]), 21)
         self.assertAlmostEqual(
-            self.hc.results.ksigma_array[len(self.hc.results.ksigma_array) - 1],
-            19.57,
-            places=2,
+            min(self.ws["hydration_results"]["ksigma_fit"]), 2.3390612006821225
         )
-
-    def test_2ord_xi(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.coupling_factor, 0.0151, places=4)
-
-    def test_2ord_klow(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.klow, 2175.14, places=2)
-
-    def test_2ord_tcorr(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.tcorr, 667.63, places=2)
-
-    def test_2ord_Dlocal(self):
-        self._run_tethered_2ord()
-        self.assertAlmostEqual(self.hc.results.Dlocal, 2.19e-10, places=12)
-
-    def test_linear_krho(self):
-        self._run_tethered_linear()
-        self.assertAlmostEqual(self.hc.results.krho, 1333.33, places=2)
-
-    def test_linear_ksigma(self):
-        self._run_tethered_linear()
-        self.assertAlmostEqual(self.hc.results.ksigma, 20.48, places=2)
-        self.assertAlmostEqual(self.hc.results.ksigma_array[0], 2.45, places=2)
         self.assertAlmostEqual(
-            self.hc.results.ksigma_array[len(self.hc.results.ksigma_array) - 1],
-            19.26,
-            places=2,
+            max(self.ws["hydration_results"]["ksigma_fit"]), 24.280175919600392
         )
-
-    def test_linear_xi(self):
-        self._run_tethered_linear()
-        self.assertAlmostEqual(self.hc.results.coupling_factor, 0.0154, places=4)
-
-    def test_linear_klow(self):
-        self._run_tethered_linear()
-        self.assertAlmostEqual(self.hc.results.klow, 2174.44, places=2)
-
-    def test_linear_tcorr(self):
-        self._run_tethered_linear()
-        self.assertAlmostEqual(self.hc.results.tcorr, 661.67, places=2)
-
-    def test_linear_Dlocal(self):
-        self._run_tethered_linear()
-        self.assertAlmostEqual(self.hc.results.Dlocal, 2.21e-10, places=12)
-
-    # free
-    def test_2ord_krho(self):
-        self._run_free_2ord()
-        self.assertAlmostEqual(self.hc.results.krho, 1333.33, places=2)
-
-    def test_2ord_ksigma(self):
-        self._run_free_2ord()
-        self.assertAlmostEqual(self.hc.results.ksigma, 57.74, places=2)
-        self.assertAlmostEqual(self.hc.results.ksigma_array[0], 2.50, places=2)
+        self.assertEqual(len(self.ws["hydration_results"]["uncorrected_Ep"]), 21)
         self.assertAlmostEqual(
-            self.hc.results.ksigma_array[len(self.hc.results.ksigma_array) - 1],
-            19.57,
-            places=2,
+            min(self.ws["hydration_results"]["uncorrected_Ep"]), -2.9084738857665413
         )
-
-    def test_2ord_xi(self):
-        self._run_free_2ord()
-        self.assertAlmostEqual(self.hc.results.coupling_factor, 0.0433, places=4)
-
-    def test_2ord_klow(self):
-        self._run_free_2ord()
-        self.assertAlmostEqual(self.hc.results.klow, 2087.51, places=2)
-
-    def test_2ord_tcorr(self):
-        self._run_free_2ord()
-        self.assertAlmostEqual(self.hc.results.tcorr, 340.24, places=2)
-
-    def test_2ord_Dlocal(self):
-        self._run_free_2ord()
-        self.assertAlmostEqual(self.hc.results.Dlocal, 4.30e-10, places=12)
-
-    def test_linear_krho(self):
-        self._run_free_linear()
-        self.assertAlmostEqual(self.hc.results.krho, 1333.33, places=2)
-
-    def test_linear_ksigma(self):
-        self._run_free_linear()
-        self.assertAlmostEqual(self.hc.results.ksigma, 58.59, places=2)
-        self.assertAlmostEqual(self.hc.results.ksigma_array[0], 2.45, places=2)
         self.assertAlmostEqual(
-            self.hc.results.ksigma_array[len(self.hc.results.ksigma_array) - 1],
-            19.26,
-            places=2,
+            max(self.ws["hydration_results"]["uncorrected_Ep"]), 0.7434984946695101
         )
 
-    def test_linear_xi(self):
-        self._run_free_linear()
-        self.assertAlmostEqual(self.hc.results.coupling_factor, 0.0439, places=4)
-
-    def test_linear_klow(self):
-        self._run_free_linear()
-        self.assertAlmostEqual(self.hc.results.klow, 2085.51, places=2)
-
-    def test_linear_tcorr(self):
-        self._run_free_linear()
-        self.assertAlmostEqual(self.hc.results.tcorr, 336.81, places=2)
-
-    def test_linear_Dlocal(self):
-        self._run_free_linear()
-        self.assertAlmostEqual(self.hc.results.Dlocal, 4.34e-10, places=12)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        self.assertAlmostEqual(
+            self.ws["hydration_results"]["ksigma"], 73.98621213840886
+        )
+        self.assertAlmostEqual(self.ws["hydration_results"]["klow"], 1494.0321716770457)
+        self.assertAlmostEqual(self.ws["hydration_results"]["tcorr"], 230.5905102559904)
+        self.assertAlmostEqual(
+            self.ws["hydration_results"]["Dlocal"], 1.4987607235715452e-09
+        )
