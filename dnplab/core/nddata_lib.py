@@ -3,8 +3,6 @@ import numpy as np
 
 
 def ones(shape, dtype=None):
-    """"""
-
     values = np.ones(shape, dtype=dtype)
     coords = []
     dims = []
@@ -16,13 +14,10 @@ def ones(shape, dtype=None):
 
 
 def ones_like(a):
-    """"""
     return ones(a.shape, a.dtype)
 
 
 def zeros(shape, dtype=None):
-    """"""
-
     values = np.zeros(shape, dtype=dtype)
     coords = []
     dims = []
@@ -34,7 +29,6 @@ def zeros(shape, dtype=None):
 
 
 def zeros_like(a):
-    """"""
     zeros_ = zeros(a.shape, a.dtype)
     zeros_.dims = a.dims
     zeros_.coords = a.coords
@@ -43,7 +37,6 @@ def zeros_like(a):
 
 
 def randn(shape):
-    """"""
     values = np.random.randn(*shape)
     coords = []
     dims = []
@@ -55,5 +48,4 @@ def randn(shape):
 
 
 def randn_like(a):
-    """"""
     return randn(a.shape)

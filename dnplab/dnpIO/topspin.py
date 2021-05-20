@@ -90,31 +90,33 @@ _dspfvs_table_13 = {
 }
 
 
-def find_group_delay(decim, dspfvs):
+def find_group_delay(attrsDict):
     """
     Determine group delay from tables
 
     Args:
-        decim: Decimation factor of the digital filter (factor by which oversampling rate exeeds sampling rate).
-        dspfvs: Firmware version for Bruker Console.
+        attrsDict (dict): dictionary of topspin acquisition parameters
 
     Returns:
         float: Group delay. Number of points FID is shifted by DSP. The ceiling of this number (group delay rounded up) is the number of points should be removed from the start of the FID.
     """
+
     group_delay = 0
-    if decim == 1:
-        group_delay = 0
+    if attrsDict["DSPFIRM"] != 0 and "GRPDLY" in attrsDict.keys():
+        group_delay = attrsDict["GRPDLY"]
     else:
-        if dspfvs == 10:
-            group_delay = _dspfvs_table_10[int(decim)]
-        elif dspfvs == 11:
-            group_delay = _dspfvs_table_11[int(decim)]
-        elif dspfvs == 12:
-            group_delay = _dspfvs_table_12[int(decim)]
-        elif dspfvs == 13:
-            group_delay = _dspfvs_table_13[int(decim)]
+        if attrsDict["DSPFVS"] == 10:
+            group_delay = _dspfvs_table_10[int(attrsDict["DECIM"])]
+        elif attrsDict["DSPFVS"] == 11:
+            group_delay = _dspfvs_table_11[int(attrsDict["DECIM"])]
+        elif attrsDict["DSPFVS"] == 12:
+            group_delay = _dspfvs_table_12[int(attrsDict["DECIM"])]
+        elif attrsDict["DSPFVS"] == 13:
+            group_delay = _dspfvs_table_13[int(attrsDict["DECIM"])]
         else:
-            print("dspfvs not defined")
+            print(
+                "GRPDLY and DSPFVS parameters not found in acqus file, setting group delay to 0"
+            )
 
     return group_delay
 
@@ -282,7 +284,7 @@ def topspin_fid(path, paramFilename="acqus"):
     raw = _np.fromfile(_os.path.join(path, "fid"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
+    group_delay = find_group_delay(attrsDict)
     group_delay = int(_np.ceil(group_delay))
 
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
@@ -291,8 +293,7 @@ def topspin_fid(path, paramFilename="acqus"):
 
     data = data / attrsDict["RG"]
 
-    importantParamsDict = {}
-    importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
+    importantParamsDict = {"nmr_frequency": attrsDict["SFO1"] * 1e6}
     output = _dnpdata(data, [t], ["t2"], importantParamsDict)
 
     return output
@@ -444,7 +445,7 @@ def import_ser(path, paramFilename="acqus", TD=False):
     raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
+    group_delay = find_group_delay(attrsDict)
     group_delay = int(_np.ceil(group_delay))
 
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
@@ -467,8 +468,7 @@ def import_ser(path, paramFilename="acqus", TD=False):
 
     data = data / attrsDict["RG"]
 
-    importantParamsDict = {}
-    importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
+    importantParamsDict = {"nmr_frequency": attrsDict["SFO1"] * 1e6}
     output = _dnpdata(data, [t, vdList], ["t2", "t1"], importantParamsDict)
 
     return output
@@ -495,7 +495,7 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
     raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
+    group_delay = find_group_delay(attrsDict)
     group_delay = int(_np.ceil(group_delay))
 
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
@@ -510,8 +510,7 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
     data = data[:, 0] + 1j * data[:, 1] - data[:, 2] - 1j * data[:, 3]
     data = data / attrsDict["RG"]
 
-    importantParamsDict = {}
-    importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
+    importantParamsDict = {"nmr_frequency": attrsDict["SFO1"] * 1e6}
 
     output = _dnpdata(data, [t], ["t2"], importantParamsDict)
     return output
