@@ -314,12 +314,12 @@ def baseline_fit(coords, values, type, order):
         values = values.real
         if order == 1:
             x0 = [values[-1], values[0], 1]
-            out, cov = curve_fit(self.monoexp_fit, coords, values, x0, method="lm")
-            base_line = self.monoexp_fit(coords, out[0], out[1], out[2])
+            out, cov = curve_fit(monoexp_fit, coords, values, x0, method="lm")
+            base_line = monoexp_fit(coords, out[0], out[1], out[2])
         elif order == 2:
             x0 = [values[-1], values[0], 1, values[0], 1]
-            out, cov = curve_fit(self.biexp_fit, coords, values, x0, method="lm")
-            base_line = self.biexp_fit(coords, out[0], out[1], out[2], out[3], out[4])
+            out, cov = curve_fit(biexp_fit, coords, values, x0, method="lm")
+            base_line = biexp_fit(coords, out[0], out[1], out[2], out[3], out[4])
         else:
             raise ValueError(
                 "Use order=1 for mono-exponential, order=2 for bi-exponential"
