@@ -114,21 +114,33 @@ class TestHydration(unittest.TestCase):
         self.assertEqual(len(self.data["T1_powers"]), 5)
         self.assertEqual(len(self.data["T1_array"]), 5)
         self.assertEqual(len(result["interpolated_T1"]), 21)
-        self.assertAlmostEqual(min(result["interpolated_T1"]), 2.051727288206873)
-        self.assertAlmostEqual(max(result["interpolated_T1"]), 2.5383409868931706)
+        self.assertAlmostEqual(
+            min(result["interpolated_T1"]), 2.051727288206873, places=4
+        )
+        self.assertAlmostEqual(
+            max(result["interpolated_T1"]), 2.5383409868931706, places=4
+        )
         self.assertEqual(len(result["ksigma_array"]), 21)
-        self.assertAlmostEqual(min(result["ksigma_array"]), 2.5002212753387965)
-        self.assertAlmostEqual(max(result["ksigma_array"]), 19.573744921860015)
+        self.assertAlmostEqual(
+            min(result["ksigma_array"]), 2.5002212753387965, places=4
+        )
+        self.assertAlmostEqual(
+            max(result["ksigma_array"]), 19.573744921860015, places=4
+        )
         self.assertEqual(len(result["ksigma_fit"]), 21)
-        self.assertAlmostEqual(min(result["ksigma_fit"]), 1.9391281665269349)
-        self.assertAlmostEqual(max(result["ksigma_fit"]), 19.17592802884648)
+        self.assertAlmostEqual(min(result["ksigma_fit"]), 1.9391281665269349, places=4)
+        self.assertAlmostEqual(max(result["ksigma_fit"]), 19.17592802884648, places=4)
         self.assertEqual(len(result["uncorrected_Ep"]), 21)
-        self.assertAlmostEqual(min(result["uncorrected_Ep"]), -2.90847384506599)
-        self.assertAlmostEqual(max(result["uncorrected_Ep"]), 0.7434984782673344)
+        self.assertAlmostEqual(
+            min(result["uncorrected_Ep"]), -2.90847384506599, places=4
+        )
+        self.assertAlmostEqual(
+            max(result["uncorrected_Ep"]), 0.7434984782673344, places=4
+        )
 
-        self.assertAlmostEqual(result["ksigma"], 20.17803815171555)
-        self.assertAlmostEqual(result["klow"], 1286.2512443126634)
-        self.assertAlmostEqual(result["tcorr"], 485.8952027395348)
+        self.assertAlmostEqual(result["ksigma"], 20.17803815171555, places=4)
+        self.assertAlmostEqual(result["klow"], 1286.2512443126634, places=4)
+        self.assertAlmostEqual(result["tcorr"], 485.8952027395348, places=4)
         self.assertAlmostEqual(result["Dlocal"], 3.01176054373284e-10)
 
         self.assertTrue(
@@ -146,38 +158,58 @@ class TestHydration(unittest.TestCase):
 
         self.assertEqual(len(self.ws["hydration_results"]["interpolated_T1"]), 21)
         self.assertAlmostEqual(
-            min(self.ws["hydration_results"]["interpolated_T1"]), 2.0978389591800344
+            min(self.ws["hydration_results"]["interpolated_T1"]),
+            2.0978389591800344,
+            places=4,
         )
         self.assertAlmostEqual(
-            max(self.ws["hydration_results"]["interpolated_T1"]), 2.5855460713039324
+            max(self.ws["hydration_results"]["interpolated_T1"]),
+            2.5855460713039324,
+            places=4,
         )
         self.assertEqual(len(self.ws["hydration_results"]["ksigma_array"]), 21)
         self.assertAlmostEqual(
-            min(self.ws["hydration_results"]["ksigma_array"]), 3.0565812706454305
+            min(self.ws["hydration_results"]["ksigma_array"]),
+            3.0565812706454305,
+            places=4,
         )
         self.assertAlmostEqual(
-            max(self.ws["hydration_results"]["ksigma_array"]), 24.020476541485717
+            max(self.ws["hydration_results"]["ksigma_array"]),
+            24.020476541485717,
+            places=4,
         )
         self.assertEqual(len(self.ws["hydration_results"]["ksigma_fit"]), 21)
         self.assertAlmostEqual(
-            min(self.ws["hydration_results"]["ksigma_fit"]), 2.3390612006821225
+            min(self.ws["hydration_results"]["ksigma_fit"]),
+            2.3390612006821225,
+            places=4,
         )
         self.assertAlmostEqual(
-            max(self.ws["hydration_results"]["ksigma_fit"]), 24.280175919600392
+            max(self.ws["hydration_results"]["ksigma_fit"]),
+            24.280175919600392,
+            places=4,
         )
         self.assertEqual(len(self.ws["hydration_results"]["uncorrected_Ep"]), 21)
         self.assertAlmostEqual(
-            min(self.ws["hydration_results"]["uncorrected_Ep"]), -2.9084738857665413
+            min(self.ws["hydration_results"]["uncorrected_Ep"]),
+            -2.9084738857665413,
+            places=4,
         )
         self.assertAlmostEqual(
-            max(self.ws["hydration_results"]["uncorrected_Ep"]), 0.7434984946695101
+            max(self.ws["hydration_results"]["uncorrected_Ep"]),
+            0.7434984946695101,
+            places=4,
         )
 
         self.assertAlmostEqual(
-            self.ws["hydration_results"]["ksigma"], 73.98621213840886
+            self.ws["hydration_results"]["ksigma"], 73.98621213840886, places=4
         )
-        self.assertAlmostEqual(self.ws["hydration_results"]["klow"], 1494.0321716770457)
-        self.assertAlmostEqual(self.ws["hydration_results"]["tcorr"], 230.5905102559904)
+        self.assertAlmostEqual(
+            self.ws["hydration_results"]["klow"], 1494.0321716770457, places=4
+        )
+        self.assertAlmostEqual(
+            self.ws["hydration_results"]["tcorr"], 230.5905102559904, places=4
+        )
         self.assertAlmostEqual(
             self.ws["hydration_results"]["Dlocal"], 1.4987607235715452e-09
         )

@@ -1,6 +1,5 @@
-from . import dnpNMR, dnpdata, dnpdata_collection
+from . import dnpMath, dnpNMR, dnpdata, dnpdata_collection
 import numpy as np
-from scipy.optimize import curve_fit
 import scipy.integrate
 
 from .mrProperties import gmrProperties, radicalProperties
@@ -68,45 +67,6 @@ def return_data(all_data):
     return data, is_workspace
 
 
-def exp_fit_func_1(x_axis, C1, C2, tau):
-    return C1 + C2 * np.exp(-1.0 * x_axis / tau)
-
-
-def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
-    return C1 + C2 * np.exp(-1.0 * x_axis / tau1) + C3 * np.exp(-1.0 * x_axis / tau2)
-
-
-def baseline_fit(temp_coords, temp_data, type, order):
-
-    if type == "polynomial":
-        base_line = np.polyval(np.polyfit(temp_coords, temp_data, order), temp_coords)
-    elif type == "exponential":
-        temp_data = temp_data.real
-        if order == 1:
-            x0 = [temp_data[-1], temp_data[0], 1]
-            out, cov = curve_fit(
-                exp_fit_func_1, temp_coords, temp_data, x0, method="lm"
-            )
-            base_line = exp_fit_func_1(temp_coords, out[0], out[1], out[2])
-        elif order == 2:
-            x0 = [temp_data[-1], temp_data[0], 1, temp_data[0], 1]
-            out, cov = curve_fit(
-                exp_fit_func_2, temp_coords, temp_data, x0, method="lm"
-            )
-            base_line = exp_fit_func_2(
-                temp_coords, out[0], out[1], out[2], out[3], out[4]
-            )
-        else:
-            raise ValueError(
-                "Use order=1 for mono-exponential, order=2 for bi-exponential"
-            )
-
-    else:
-        raise TypeError("type must be either 'polynomial' or 'exponential'")
-
-    return base_line
-
-
 def baseline(
     all_data,
     dim="f2",
@@ -161,20 +121,22 @@ def baseline(
 
     if len(np.shape(data.values)) == 2:
         if reference_slice is not None:
-            bline = baseline_fit(
+            bline = dnpMath.baseline_fit(
                 data.coords[dim], data.values[:, reference_slice], type, order
             )
             for ix in range(len(data.coords[ind_dim])):
                 data.values[:, ix] -= bline
         elif reference_slice is None:
             for ix in range(len(data.coords[ind_dim])):
-                bline = baseline_fit(data.coords[dim], data.values[:, ix], type, order)
+                bline = dnpMath.baseline_fit(
+                    data.coords[dim], data.values[:, ix], type, order
+                )
                 data.values[:, ix] -= bline
         else:
             raise TypeError("invalid reference_slice")
 
     elif len(np.shape(data.values)) == 1:
-        bline = baseline_fit(data.coords[dim], data.values, type, order)
+        bline = dnpMath.baseline_fit(data.coords[dim], data.values, type, order)
         data.values -= bline
 
     else:

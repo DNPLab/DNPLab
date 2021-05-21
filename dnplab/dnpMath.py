@@ -1,6 +1,7 @@
 import numpy as _np
 
 from . import dnpdata, dnpdata_collection
+from scipy.optimize import curve_fit
 
 
 def return_data(all_data):
@@ -292,3 +293,39 @@ def buildup_function(p, E_max, p_half):
     """
 
     return E_max * p / (p_half + p)
+
+
+def baseline_fit(coords, values, type, order):
+    """Fit a polynomial or exponential to a given coords and values pair
+
+    Args:
+        coords (array): coords of dnpdata object
+        values (array): values of dnpdata object
+        type (str): "polynomial" or "exponential"
+        order (int): polynomial order, or for type="exponential" this can be 1 for mono- or 2 for bi-
+
+    Returns:
+        array: calculated polynomial or exponential function
+    """
+
+    if type == "polynomial":
+        base_line = _np.polyval(_np.polyfit(coords, values, order), coords)
+    elif type == "exponential":
+        values = values.real
+        if order == 1:
+            x0 = [values[-1], values[0], 1]
+            out, cov = curve_fit(self.monoexp_fit, coords, values, x0, method="lm")
+            base_line = self.monoexp_fit(coords, out[0], out[1], out[2])
+        elif order == 2:
+            x0 = [values[-1], values[0], 1, values[0], 1]
+            out, cov = curve_fit(self.biexp_fit, coords, values, x0, method="lm")
+            base_line = self.biexp_fit(coords, out[0], out[1], out[2], out[3], out[4])
+        else:
+            raise ValueError(
+                "Use order=1 for mono-exponential, order=2 for bi-exponential"
+            )
+
+    else:
+        raise TypeError("type must be either 'polynomial' or 'exponential'")
+
+    return base_line
