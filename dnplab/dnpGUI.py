@@ -246,11 +246,11 @@ class dnpGUI(QMainWindow):
 
         self.pivotSlider = QSlider(Qt.Horizontal, self)
         # self.pivotSlider.setStyleSheet('background-color : rgb(0, 54, 96)')
-        self.pivotSlider.setGeometry(960, 340, 225, 20)
+        self.pivotSlider.setGeometry(960, 335, 225, 20)
 
         self.alignCheckbox = QCheckBox(self)
         self.alignCheckbox.setStyleSheet("font : bold 14px")
-        self.alignCheckbox.move(920, 370)
+        self.alignCheckbox.move(920, 367)
         self.alignCheckbox.resize(100, 20)
         self.alignCheckbox.setText("Align")
 
@@ -286,58 +286,82 @@ class dnpGUI(QMainWindow):
         self.integrateCheckbox.resize(100, 20)
         self.integrateCheckbox.setText("Integrate")
 
-        self.centerLabel = QLabel(self)
-        self.centerLabel.setStyleSheet(
+        self.centerspinLabel = QLabel(self)
+        self.centerspinLabel.setStyleSheet(
             "font : 14px"
         )  # ; color : rgb(254, 188, 17)') ; background-color : rgb(0, 54, 96)')
-        self.centerLabel.move(935, 475)  # 123, 590
-        self.centerLabel.resize(290, 30)
-        self.centerLabel.setText("center")
+        self.centerspinLabel.move(935, 475)  # 123, 590
+        self.centerspinLabel.resize(290, 30)
+        self.centerspinLabel.setText("center")
 
         self.centerSpinbox = QSpinBox(self)
         # self.gausslwSpinbox.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.centerSpinbox.move(980, 480)  # 123, 590
         self.centerSpinbox.resize(70, 20)
 
-        self.widthLabel = QLabel(self)
-        self.widthLabel.setStyleSheet(
+        self.widthspinLabel = QLabel(self)
+        self.widthspinLabel.setStyleSheet(
             "font : 14px"
         )  # ; color : rgb(254, 188, 17)') ; background-color : rgb(0, 54, 96)')
-        self.widthLabel.move(1070, 475)  # 123, 590
-        self.widthLabel.resize(290, 30)
-        self.widthLabel.setText("width")
+        self.widthspinLabel.move(1070, 475)  # 123, 590
+        self.widthspinLabel.resize(290, 30)
+        self.widthspinLabel.setText("width")
 
         self.widthSpinbox = QSpinBox(self)
         # self.gaussmaxSpinbox.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.widthSpinbox.move(1110, 480)  # 123, 590
         self.widthSpinbox.resize(70, 20)
 
-        self.enhancementCheckbox = QCheckBox(self)
-        self.enhancementCheckbox.setStyleSheet("font : bold 14px")
-        self.enhancementCheckbox.move(920, 520)
-        self.enhancementCheckbox.resize(200, 20)
-        self.enhancementCheckbox.setText("Enhancements")
+        self.centerslideLabel = QLabel(self)
+        self.centerslideLabel.setStyleSheet(
+            "font : 14px"
+        )  # ; color : rgb(254, 188, 17)') ; background-color : rgb(0, 54, 96)')
+        self.centerslideLabel.move(915, 505)  # 123, 590
+        self.centerslideLabel.resize(60, 30)
+        self.centerslideLabel.setText("Center")
 
-        self.s2nCheckbox = QCheckBox(self)
-        self.s2nCheckbox.setStyleSheet("font : bold 14px")
-        self.s2nCheckbox.move(920, 545)
-        self.s2nCheckbox.resize(200, 20)
-        self.s2nCheckbox.setText("Signal-to-Noise")
+        self.centerSlider = QSlider(Qt.Horizontal, self)
+        # self.zerothSlider.setStyleSheet('background-color : rgb(0, 54, 96)')
+        self.centerSlider.setGeometry(960, 510, 225, 20)
+
+        self.widthslideLabel = QLabel(self)
+        self.widthslideLabel.setStyleSheet(
+            "font : 14px"
+        )  # ; color : rgb(254, 188, 17)') ; background-color : rgb(0, 54, 96)')
+        self.widthslideLabel.move(915, 535)  # 123, 590
+        self.widthslideLabel.resize(60, 30)
+        self.widthslideLabel.setText("Width")
+
+        self.widthSlider = QSlider(Qt.Horizontal, self)
+        # self.firstSlider.setStyleSheet('background-color : rgb(0, 54, 96)')
+        self.widthSlider.setGeometry(960, 540, 225, 20)
 
         self.fitLabel = QLabel(self)
         self.fitLabel.setStyleSheet(
             "font : bold 14px"
         )  # ; color : rgb(254, 188, 17)') ; background-color : rgb(0, 54, 96)')
-        self.fitLabel.move(920, 580)  # 123, 590
+        self.fitLabel.move(920, 570)  # 123, 590
         self.fitLabel.resize(490, 30)
         self.fitLabel.setText("Fitting")
 
         self.fitSelect = QComboBox(self)
-        self.fitSelect.move(915, 610)
+        self.fitSelect.move(915, 600)
         self.fitSelect.resize(150, 25)
         self.fitSelect.addItems(
             ["none", "T1 inv recov", "buildup", "T2", "mono-exp", "bi-exp"]
         )
+
+        self.enhancementCheckbox = QCheckBox(self)
+        self.enhancementCheckbox.setStyleSheet("font : bold 14px")
+        self.enhancementCheckbox.move(920, 640)
+        self.enhancementCheckbox.resize(200, 20)
+        self.enhancementCheckbox.setText("Enhancements")
+
+        self.s2nCheckbox = QCheckBox(self)
+        self.s2nCheckbox.setStyleSheet("font : bold 14px")
+        self.s2nCheckbox.move(920, 665)
+        self.s2nCheckbox.resize(200, 20)
+        self.s2nCheckbox.setText("Signal-to-Noise")
 
         self.sliceLabel = QLabel(self)
         self.sliceLabel.setStyleSheet(
@@ -364,14 +388,20 @@ class dnpGUI(QMainWindow):
         self.savebutton.move(1115, 650)
         self.savebutton.resize(75, 40)
 
-        self.gui = {"cur_data": {}}
+        self.gui = {
+            "cur_data": {},
+            "pivot_position": False,
+            "int_x_center": 0,
+            "int_x_lower": -50,
+            "int_x_upper": 50,
+            "int_line": None,
+        }
         self.ws = dnplab.create_workspace()
 
         self.initUI()
 
     def initUI(self):
 
-        self.gui["rm_offset"] = False
         self.show()
 
     def connect_widgets(self):
@@ -447,14 +477,19 @@ class dnpGUI(QMainWindow):
 
         self.process_data()
 
+        self.connect_widgets()
+
     def ws_key_select(self):
 
-        self.gui["cur_data"] = copy.deepcopy(self.ws[self.wskeySelect.currentText()])
+        if self.wskeySelect.currentText() in ["raw", "proc"]:
+            self.gui["cur_data"] = copy.deepcopy(
+                self.ws[self.wskeySelect.currentText()]
+            )
 
-        self.gui["cur_data"].rename(self.gui["cur_data"].dims[0], "x2")
+            self.gui["cur_data"].rename(self.gui["cur_data"].dims[0], "x2")
 
-        if self.gui["cur_data"].ndim == 2:
-            self.gui["cur_data"].rename(self.gui["cur_data"].dims[1], "x1")
+            if self.gui["cur_data"].ndim == 2:
+                self.gui["cur_data"].rename(self.gui["cur_data"].dims[1], "x1")
 
         self.plot_data()
 
@@ -467,7 +502,7 @@ class dnpGUI(QMainWindow):
 
         if self.leftshiftSpinbox.value() != 0:
             dnplab.dnpNMR.left_shift(
-                self.ws,
+                self.ws, shift_points=int(self.leftshiftSpinbox.value())
             )
 
         if self.windowSelect.currentText() == "exponential":
@@ -475,17 +510,31 @@ class dnpGUI(QMainWindow):
                 self.ws, type="exponential", linewidth=self.explwSpinbox.value()
             )
         elif self.windowSelect.currentText() == "gaussian":
-            dnplab.dnpNMR.window(self.ws, type="gaussian")
+            dnplab.dnpNMR.window(
+                self.ws,
+                type="gaussian",
+                linewidth=[self.explwSpinbox.value(), self.gausslwSpinbox.value()],
+                gaussian_max=self.gaussmaxSpinbox.value(),
+            )
         elif self.windowSelect.currentText() == "hamming":
             dnplab.dnpNMR.window(self.ws, type="hamming")
         elif self.windowSelect.currentText() == "hann":
             dnplab.dnpNMR.window(self.ws, type="hann")
         elif self.windowSelect.currentText() == "lorentz_gauss":
-            dnplab.dnpNMR.window(self.ws, type="lorentz_gauss")
+            dnplab.dnpNMR.window(
+                self.ws,
+                type="lorentz_gauss",
+                linewidth=[self.explwSpinbox.value(), self.gausslwSpinbox.value()],
+                gaussian_max=self.gaussmaxSpinbox.value(),
+            )
         elif self.windowSelect.currentText() == "sin2":
             dnplab.dnpNMR.window(self.ws, type="sin2")
         elif self.windowSelect.currentText() == "traf":
-            dnplab.dnpNMR.window(self.ws, type="traf")
+            dnplab.dnpNMR.window(
+                self.ws,
+                type="traf",
+                linewidth=[self.explwSpinbox.value(), self.gausslwSpinbox.value()],
+            )
 
         dnplab.dnpNMR.fourier_transform(
             self.ws, zero_fill_factor=self.zerofillSpinbox.value()
@@ -513,33 +562,97 @@ class dnpGUI(QMainWindow):
 
         self.wskeySelect.setCurrentText("proc")
 
+        self.widthSpinbox.setRange(0, len(self.ws["proc"].coords["f2"]))
+
         self.ws_key_select()
 
     def phase_data(self):
-        dnplab.dnpNMR.autophase(self.ws)
+        dnplab.dnpNMR.autophase(self.ws, method="arctan")
+
+        self.ws_key_select()
+
+    def zeroth_phase_data(self):
+        pass
+
+    def first_phase_data(self):
+        pass
+
+    def pivot_phase_data(self):
+        pass
 
     def align_data(self):
-        dnplab.dnpNMR.align(self.ws)
+
+        if self.ws["proc"].ndim > 1:
+            dnplab.dnpNMR.align(self.ws)
 
     def baseline_correct_data(self):
-        dnplab.dnpTools.baseline(self.ws)
+
+        correction_type = self.baselineSelect.currentText()
+        if correction_type != "none":
+            correction_order = int(self.baselineSpinbox.value())
+            if correction_type == "exponential" and correction_order not in [1, 2]:
+                correction_order = 1
+                self.baselineSpinbox.setValue(1)
+
+            dnplab.dnpTools.baseline(
+                self.ws, type=correction_type, order=correction_order
+            )
+
+        self.plot_data()
 
     def integrate_data(self):
-        dnplab.dnpNMR.integrate(self.ws)
+
+        self.gui["int_x_center"] = self.centerSpinbox.value()
+        self.gui["int_x_lower"] = (
+            self.gui["int_x_center"] - self.widthSpinbox.value() / 2
+        )
+        self.gui["int_x_upper"] = (
+            self.gui["int_x_center"] + self.widthSpinbox.value() / 2
+        )
+        self.gui["int_line"] = np.linspace(
+            self.gui["cur_data"].real.values.min(),
+            self.gui["cur_data"].real.values.max(),
+            100,
+        )
+
+        dnplab.dnpTools.integrate(
+            self.ws,
+            integrate_center=self.gui["int_x_center"],
+            integrate_width=self.widthSpinbox.value(),
+        )
 
         if "integrals" not in [
             self.wskeySelect.itemText(i) for i in range(self.wskeySelect.count())
         ]:
             self.wskeySelect.addItem("integrals")
 
+        self.plot_data()
+
     def calc_enhancement(self):
-        dnplab.dnpNMR.calculate_enhancement(self.ws)
+
+        if self.ws["proc"].ndim > 1:
+            if "integrals" not in [
+                self.wskeySelect.itemText(i) for i in range(self.wskeySelect.count())
+            ]:
+                self.integrate_data()
+
+            dnplab.dnpNMR.calculate_enhancement(self.ws)
 
     def calc_s2n(self):
         dnplab.dnpTools.signal_to_noise(self.ws)
 
     def save_data(self):
-        pass
+
+        pthnm1 = QFileDialog.getSaveFileName(self)
+        if pthnm1[0]:
+            pthnm = pthnm1[0]
+        else:
+            return
+        pthnm = os.path.normpath(pthnm)
+        if pthnm[-3:] != ".h5":
+            pthnm = pthnm + ".h5"
+
+        dnplab.dnpSave.save(self.ws, pthnm)
 
     # --Plot Colors--#
     # dark_green = '#46812B'
@@ -556,26 +669,43 @@ class dnpGUI(QMainWindow):
 
         if self.realCheckbox.isChecked():
             self.dataplt.axes.plot(
-                self.gui["cur_data"].coords["x2"], self.gui["cur_data"].values.real
+                self.gui["cur_data"].coords["x2"],
+                self.gui["cur_data"].values.real,
+                label="Real",
             )
 
         if self.imagCheckbox.isChecked():
             self.dataplt.axes.plot(
-                self.gui["cur_data"].coords["x2"], self.gui["cur_data"].values.imag
+                self.gui["cur_data"].coords["x2"],
+                self.gui["cur_data"].values.imag,
+                label="Imag",
             )
 
-        """
         if self.integrateCheckbox.isChecked():
-            self.dataplt.axes.plot(self.gui["cur_data"].coords[self.int_x_lower], self.int_line)
-            self.dataplt.axes.plot(self.gui["cur_data"].coords[self.int_x_upper], self.int_line)
-            self.dataplt.axes.plot(self.gui["cur_data"].coords[self.int_x_center], self.gui["cur_data"].real[self.int_x_center],marker="o",
-                    linestyle="none")
+            self.dataplt.axes.plot(
+                np.linspace(self.gui["int_x_lower"], self.gui["int_x_lower"], 100),
+                self.gui["int_line"],
+            )
+            self.dataplt.axes.plot(
+                np.linspace(self.gui["int_x_upper"], self.gui["int_x_upper"], 100),
+                self.gui["int_line"],
+            )
+            self.dataplt.axes.plot(
+                self.gui["int_x_center"],
+                self.gui["int_x_center"],
+                marker="o",
+                linestyle="none",
+            )
 
-        if self.pivot_position:
-            self.dataplt.axes.plot(self.gui["cur_data"].coords[self.pivot_position], self.gui["cur_data"].real[self.pivot_position],marker="x",
-                    linestyle="none")
-        """
+        if self.gui["pivot_position"]:
+            self.dataplt.axes.plot(
+                self.gui["cur_data"].coords[self.gui["pivot_position"]],
+                self.gui["cur_data"].real[self.gui["pivot_position"]],
+                marker="x",
+                linestyle="none",
+            )
 
+        self.dataplt.axes.legend()
         self.dataplt.draw()
 
 
