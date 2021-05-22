@@ -88,7 +88,6 @@ class dnpGUI(QMainWindow):
         self.imagCheckbox.move(90, 670)
         self.imagCheckbox.resize(100, 20)
         self.imagCheckbox.setText("Imag")
-        self.imagCheckbox.setChecked(True)
 
         self.wskeySelect = QComboBox(self)
         self.wskeySelect.move(760, 670)
@@ -211,6 +210,7 @@ class dnpGUI(QMainWindow):
         self.optphaseCheckbox.move(970, 250)
         self.optphaseCheckbox.resize(100, 20)
         self.optphaseCheckbox.setText("Optimize")
+        self.optphaseCheckbox.setChecked(True)
 
         self.zerothLabel = QLabel(self)
         self.zerothLabel.setStyleSheet(
@@ -395,12 +395,26 @@ class dnpGUI(QMainWindow):
             "int_x_lower": -50,
             "int_x_upper": 50,
             "int_line": None,
+            "auto_phase": 0,
+            "phase": 0,
+            "phase_factor": 0,
+            "sliders": False,
         }
+
         self.ws = dnplab.create_workspace()
 
         self.initUI()
 
     def initUI(self):
+
+        self.pivotSlider.setMinimum(0)
+        self.sliceSlider.setMinimum(1)
+        self.explwSpinbox.setRange(1, 1000)
+        self.gausslwSpinbox.setRange(1, 1000)
+        self.zerofillSpinbox.setRange(1, 10)
+
+        self.zerothSlider.setMinimum(round(-1000))
+        self.zerothSlider.setMaximum(round(1000))
 
         self.show()
 
@@ -424,7 +438,7 @@ class dnpGUI(QMainWindow):
 
         self.zerofillSpinbox.valueChanged.connect(self.process_data)
 
-        self.optphaseCheckbox.clicked.connect(self.phase_data)
+        self.optphaseCheckbox.clicked.connect(self.process_data)
         self.zerothSlider.valueChanged[int].connect(self.zeroth_phase_data)
         self.firstSlider.valueChanged[int].connect(self.first_phase_data)
         self.pivotSlider.valueChanged[int].connect(self.pivot_phase_data)
@@ -481,6 +495,7 @@ class dnpGUI(QMainWindow):
 
     def ws_key_select(self):
 
+        self.gui["sliders"] = False
         if self.wskeySelect.currentText() in ["raw", "proc"]:
             self.gui["cur_data"] = copy.deepcopy(
                 self.ws[self.wskeySelect.currentText()]
@@ -490,6 +505,14 @@ class dnpGUI(QMainWindow):
 
             if self.gui["cur_data"].ndim == 2:
                 self.gui["cur_data"].rename(self.gui["cur_data"].dims[1], "x1")
+                self.sliceSlider.setMaximum(self.gui["cur_data"].shape[1])
+                self.sliceSpinbox.setRange(1, self.gui["cur_data"].shape[1])
+
+        self.widthSpinbox.setRange(0, len(self.gui["cur_data"].coords["x2"]))
+        self.pivotSlider.setMaximum(len(self.gui["cur_data"].coords["x2"]))
+        self.leftshiftSpinbox.setRange(0, len(self.gui["cur_data"].coords["x2"]))
+        self.gaussmaxSpinbox.setRange(0, len(self.gui["cur_data"].coords["x2"]))
+        self.gui["sliders"] = True
 
         self.plot_data()
 
@@ -541,7 +564,7 @@ class dnpGUI(QMainWindow):
         )
 
         if self.optphaseCheckbox.isChecked():
-            self.phase_data()
+            self.auto_phase_data()
 
         if self.ws["proc"].ndim > 1 and self.alignCheckbox.isChecked():
             self.align_data()
@@ -558,21 +581,45 @@ class dnpGUI(QMainWindow):
         if self.s2nCheckbox.isChecked():
             self.calc_s2n()
 
-        self.ws.copy("proc", "basic_proc")
-
         self.wskeySelect.setCurrentText("proc")
 
-        self.widthSpinbox.setRange(0, len(self.ws["proc"].coords["f2"]))
-
         self.ws_key_select()
 
-    def phase_data(self):
+    def auto_phase_data(self):
+
         dnplab.dnpNMR.autophase(self.ws, method="arctan")
+        self.ws.copy("proc", "phased")
+
+        self.gui["auto_phase"] = self.ws["proc"].attrs["phase0"]
+
+        fac = np.pi / self.gui["auto_phase"]
+
+        self.gui["sliders"] = False
+        self.zerothSlider.setMinimum(round(-1000 * abs(fac)))
+        self.zerothSlider.setMaximum(round(1000 * abs(fac)))
+        self.zerothSlider.setValue(self.gui["auto_phase"])
+        self.gui["sliders"] = True
 
         self.ws_key_select()
 
-    def zeroth_phase_data(self):
-        pass
+    def adjust_sliders(self):
+
+        self.gui["phase"] = self.gui["auto_phase"] + (
+            self.gui["phase_factor"] * self.gui["auto_phase"]
+        )
+
+        self.gui["cur_data"].values = self.ws[
+            self.wskeySelect.currentText()
+        ].values * np.exp(-1j * self.gui["phase"])
+
+        self.plot_data()
+
+    def zeroth_phase_data(self, pvalue):
+
+        if self.gui["sliders"]:
+            self.gui["phase_factor"] = pvalue / 1000
+            self.optphaseCheckbox.setChecked(False)
+            self.adjust_sliders()
 
     def first_phase_data(self):
         pass
@@ -584,6 +631,8 @@ class dnpGUI(QMainWindow):
 
         if self.ws["proc"].ndim > 1:
             dnplab.dnpNMR.align(self.ws)
+
+            self.ws_key_select()
 
     def baseline_correct_data(self):
 
@@ -597,8 +646,11 @@ class dnpGUI(QMainWindow):
             dnplab.dnpTools.baseline(
                 self.ws, type=correction_type, order=correction_order
             )
+        else:
+            self.ws.copy("basic_proc", "proc")
+            self.process_data()
 
-        self.plot_data()
+        self.ws_key_select()
 
     def integrate_data(self):
 
@@ -626,7 +678,7 @@ class dnpGUI(QMainWindow):
         ]:
             self.wskeySelect.addItem("integrals")
 
-        self.plot_data()
+        self.ws_key_select()
 
     def calc_enhancement(self):
 
@@ -637,6 +689,8 @@ class dnpGUI(QMainWindow):
                 self.integrate_data()
 
             dnplab.dnpNMR.calculate_enhancement(self.ws)
+
+            self.ws_key_select()
 
     def calc_s2n(self):
         dnplab.dnpTools.signal_to_noise(self.ws)
