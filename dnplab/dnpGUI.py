@@ -298,6 +298,7 @@ class dnpGUI(QMainWindow):
         # self.gausslwSpinbox.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.centerSpinbox.move(980, 480)  # 123, 590
         self.centerSpinbox.resize(70, 20)
+        self.centerSpinbox.setValue(0)
 
         self.widthspinLabel = QLabel(self)
         self.widthspinLabel.setStyleSheet(
@@ -311,6 +312,7 @@ class dnpGUI(QMainWindow):
         # self.gaussmaxSpinbox.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.widthSpinbox.move(1110, 480)  # 123, 590
         self.widthSpinbox.resize(70, 20)
+        self.widthSpinbox.setValue(100)
 
         self.centerslideLabel = QLabel(self)
         self.centerslideLabel.setStyleSheet(
@@ -323,6 +325,7 @@ class dnpGUI(QMainWindow):
         self.centerSlider = QSlider(Qt.Horizontal, self)
         # self.zerothSlider.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.centerSlider.setGeometry(960, 510, 225, 20)
+        self.centerSlider.setValue(0)
 
         self.widthslideLabel = QLabel(self)
         self.widthslideLabel.setStyleSheet(
@@ -335,6 +338,7 @@ class dnpGUI(QMainWindow):
         self.widthSlider = QSlider(Qt.Horizontal, self)
         # self.firstSlider.setStyleSheet('background-color : rgb(0, 54, 96)')
         self.widthSlider.setGeometry(960, 540, 225, 20)
+        self.widthSlider.setValue(100)
 
         self.fitLabel = QLabel(self)
         self.fitLabel.setStyleSheet(
@@ -449,8 +453,10 @@ class dnpGUI(QMainWindow):
         self.baselineSpinbox.valueChanged.connect(self.baseline_correct_data)
 
         self.integrateCheckbox.clicked.connect(self.integrate_data)
-        self.centerSpinbox.valueChanged.connect(self.integrate_data)
-        self.widthSpinbox.valueChanged.connect(self.integrate_data)
+        self.centerSpinbox.valueChanged.connect(self.slide_integrate_center)
+        self.widthSpinbox.valueChanged.connect(self.slide_integrate_width)
+        self.centerSlider.valueChanged.connect(self.slide_integrate_center)
+        self.widthSlider.valueChanged.connect(self.slide_integrate_width)
 
         self.enhancementCheckbox.clicked.connect(self.calc_enhancement)
         self.s2nCheckbox.clicked.connect(self.calc_s2n)
@@ -471,7 +477,7 @@ class dnpGUI(QMainWindow):
     def import_data_dir(self):
 
         # dirname = QFileDialog.getExistingDirectory(self)
-        dirname = "/Users/thomascasey/dnplab/data/topspin/5"
+        dirname = "/Users/thomascasey/dnplab/data/topspin/23"
         if dirname:
             flname = dirname
         else:
@@ -496,7 +502,7 @@ class dnpGUI(QMainWindow):
     def ws_key_select(self):
 
         self.gui["sliders"] = False
-        if self.wskeySelect.currentText() in ["raw", "proc"]:
+        if self.wskeySelect.currentText() in ["raw", "proc", "integrals"]:
             self.gui["cur_data"] = copy.deepcopy(
                 self.ws[self.wskeySelect.currentText()]
             )
@@ -508,10 +514,31 @@ class dnpGUI(QMainWindow):
                 self.sliceSlider.setMaximum(self.gui["cur_data"].shape[1])
                 self.sliceSpinbox.setRange(1, self.gui["cur_data"].shape[1])
 
-        self.widthSpinbox.setRange(0, len(self.gui["cur_data"].coords["x2"]))
-        self.pivotSlider.setMaximum(len(self.gui["cur_data"].coords["x2"]))
-        self.leftshiftSpinbox.setRange(0, len(self.gui["cur_data"].coords["x2"]))
-        self.gaussmaxSpinbox.setRange(0, len(self.gui["cur_data"].coords["x2"]))
+            self.centerSpinbox.setRange(
+                min(self.gui["cur_data"].coords["x2"]),
+                max(self.gui["cur_data"].coords["x2"]),
+            )
+            self.widthSpinbox.setRange(
+                0,
+                np.floor(
+                    max(self.gui["cur_data"].coords["x2"])
+                    - min(self.gui["cur_data"].coords["x2"])
+                ),
+            )
+            self.centerSlider.setMinimum(min(self.gui["cur_data"].coords["x2"]))
+            self.centerSlider.setMaximum(max(self.gui["cur_data"].coords["x2"]))
+            self.widthSlider.setMinimum(0)
+            self.widthSlider.setMaximum(
+                np.floor(
+                    max(self.gui["cur_data"].coords["x2"])
+                    - min(self.gui["cur_data"].coords["x2"])
+                )
+            )
+            self.widthSlider.setValue(100)
+            self.pivotSlider.setMaximum(len(self.gui["cur_data"].coords["x2"]))
+            self.leftshiftSpinbox.setRange(0, len(self.gui["cur_data"].coords["x2"]))
+            self.gaussmaxSpinbox.setRange(0, len(self.gui["cur_data"].coords["x2"]))
+
         self.gui["sliders"] = True
 
         self.plot_data()
@@ -602,7 +629,7 @@ class dnpGUI(QMainWindow):
 
         self.ws_key_select()
 
-    def adjust_sliders(self):
+    def adjust_phase_sliders(self):
 
         self.gui["phase"] = self.gui["auto_phase"] + (
             self.gui["phase_factor"] * self.gui["auto_phase"]
@@ -619,7 +646,7 @@ class dnpGUI(QMainWindow):
         if self.gui["sliders"]:
             self.gui["phase_factor"] = pvalue / 1000
             self.optphaseCheckbox.setChecked(False)
-            self.adjust_sliders()
+            self.adjust_phase_sliders()
 
     def first_phase_data(self):
         pass
@@ -647,36 +674,59 @@ class dnpGUI(QMainWindow):
                 self.ws, type=correction_type, order=correction_order
             )
         else:
-            self.ws.copy("basic_proc", "proc")
             self.process_data()
 
         self.ws_key_select()
 
+    def slide_integrate_width(self, wvalue):
+
+        self.gui["int_center"] = self.centerSpinbox.value()
+        self.gui["int_x_lower"] = self.gui["int_center"] - (wvalue / 2)
+        self.gui["int_x_upper"] = self.gui["int_center"] + (wvalue / 2)
+        self.widthSpinbox.setValue(wvalue)
+
+        self.plot_data()
+
+    def slide_integrate_center(self, cvalue):
+
+        self.gui["int_center"] = cvalue
+        width = self.widthSpinbox.value()
+        self.gui["int_x_lower"] = self.gui["int_center"] - (width / 2)
+        self.gui["int_x_upper"] = self.gui["int_center"] + (width / 2)
+        self.centerSpinbox.setValue(cvalue)
+
+        self.plot_data()
+
     def integrate_data(self):
 
-        self.gui["int_x_center"] = self.centerSpinbox.value()
-        self.gui["int_x_lower"] = (
-            self.gui["int_x_center"] - self.widthSpinbox.value() / 2
-        )
-        self.gui["int_x_upper"] = (
-            self.gui["int_x_center"] + self.widthSpinbox.value() / 2
-        )
-        self.gui["int_line"] = np.linspace(
-            self.gui["cur_data"].real.values.min(),
-            self.gui["cur_data"].real.values.max(),
-            100,
-        )
+        if self.integrateCheckbox.isChecked():
+            self.gui["int_x_center"] = self.centerSpinbox.value()
+            self.gui["int_x_lower"] = (
+                self.gui["int_x_center"] - self.widthSpinbox.value() / 2
+            )
+            self.gui["int_x_upper"] = (
+                self.gui["int_x_center"] + self.widthSpinbox.value() / 2
+            )
+            self.gui["int_line"] = np.linspace(
+                self.gui["cur_data"].real.values.min(),
+                self.gui["cur_data"].real.values.max(),
+                100,
+            )
 
-        dnplab.dnpTools.integrate(
-            self.ws,
-            integrate_center=self.gui["int_x_center"],
-            integrate_width=self.widthSpinbox.value(),
-        )
+            dnplab.dnpTools.integrate(
+                self.ws,
+                integrate_center=self.gui["int_x_center"],
+                integrate_width=self.widthSpinbox.value(),
+            )
 
-        if "integrals" not in [
-            self.wskeySelect.itemText(i) for i in range(self.wskeySelect.count())
-        ]:
-            self.wskeySelect.addItem("integrals")
+            if "integrals" not in [
+                self.wskeySelect.itemText(i) for i in range(self.wskeySelect.count())
+            ]:
+                self.wskeySelect.addItem("integrals")
+
+            self.wskeySelect.setCurrentText("integrals")
+        else:
+            self.wskeySelect.setCurrentText("proc")
 
         self.ws_key_select()
 
@@ -735,6 +785,7 @@ class dnpGUI(QMainWindow):
                 label="Imag",
             )
 
+        """
         if self.integrateCheckbox.isChecked():
             self.dataplt.axes.plot(
                 np.linspace(self.gui["int_x_lower"], self.gui["int_x_lower"], 100),
@@ -750,6 +801,7 @@ class dnpGUI(QMainWindow):
                 marker="o",
                 linestyle="none",
             )
+        """
 
         if self.gui["pivot_position"]:
             self.dataplt.axes.plot(
@@ -759,7 +811,8 @@ class dnpGUI(QMainWindow):
                 linestyle="none",
             )
 
-        self.dataplt.axes.legend()
+        self.dataplt.axes.set_xlim(self.gui["int_x_lower"], self.gui["int_x_upper"])
+        # self.dataplt.axes.legend()
         self.dataplt.draw()
 
 
