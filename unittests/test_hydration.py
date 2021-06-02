@@ -177,7 +177,7 @@ class TestHydration(unittest.TestCase):
             self.ws["hydration_results"]["ksigma"], 73.98621213840886, places = 6
         )
         self.assertAlmostEqual(self.ws["hydration_results"]["klow"], 1494.0321716770457, places = 6)
-        self.assertAlmostEqual(self.ws["hydration_results"]["tcorr"], 230.5905102559904), places = 6
+        self.assertAlmostEqual(self.ws["hydration_results"]["tcorr"], 230.5905102559904, places = 6)
         self.assertAlmostEqual(
             self.ws["hydration_results"]["Dlocal"], 1.4987607235715452e-09, places = 6
         )
