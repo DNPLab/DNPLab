@@ -284,7 +284,7 @@ def prospa_coords(attrs, data_shape, experiment):
         if attrs["delaySpacing"] == "lin":
             T1 = np.linspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
         elif attrs["delaySpacing"] == "log":
-            T1 = np.logspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
+            T1 = np.logspace(np.log10(T1_min_delay), np.log10(T1_max_delay), T1_steps) / 1000.0
         else:
             raise ValueError(
                 f"Unable to determine delaySpacing {attrs['delaySpacing']}"
@@ -306,7 +306,7 @@ def prospa_coords(attrs, data_shape, experiment):
         if attrs["delaySpacing"] == "lin":
             T1 = np.linspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
         else:
-            T1 = np.logspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
+            T1 = np.logspace(np.log10(T1_min_delay), np.log10(T1_max_delay), T1_steps) / 1000.0
 
         dims.append("t1")
         coords.append(T1)
