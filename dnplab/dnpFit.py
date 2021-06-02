@@ -68,28 +68,18 @@ def exponential_fit(
         attributes: "T1" value and "T1_stdd" standard deviation for type="T1", "T2" value and "T2_stdd" standard deviation for type="T2", "tau" and "tau_stdd" for type="mono", or "tau1", "tau1_stdd", "tau2", and "tau2_stdd" for type="bi"
     """
 
-    data, isDict = return_data(all_data)
+    data, isDict = return_data(
+        all_data,
+    )
 
-    if ws_key in all_data.keys():
+    if isDict:
         x_axis = all_data[ws_key].coords[dim]
-        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
-        input_data = _np.real(all_data[ws_key].values)
-        ind_dim = dim
+        input_data = all_data[ws_key].real.values
     else:
-        if not indirect_dim:
-            if len(data.dims) == 2:
-                ind_dim = list(set(data.dims) - set([dim]))[0]
-            elif len(data.dims) == 1:
-                ind_dim = data.dims[0]
-            else:
-                raise ValueError(
-                    "you must specify the indirect dimension, use argument indirect_dim= "
-                )
-        else:
-            ind_dim = indirect_dim
-        x_axis = data.coords[ind_dim]
-        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
-        input_data = _np.real(data.values)
+        x_axis = data.coords[dim]
+        input_data = data.real.values
+
+    new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
 
     if type == "T1":
 
@@ -106,7 +96,7 @@ def exponential_fit(
         stdd = _np.sqrt(_np.diag(cov))
         fit = dnpMath.t1_function(new_axis, out[0], out[1], out[2])
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["T1"] = out[0]
         fit_data.attrs["T1_stdd"] = stdd[0]
         fit_data.attrs["M_0"] = out[1]
@@ -149,7 +139,7 @@ def exponential_fit(
         stdd = _np.sqrt(_np.diag(cov))
         fit = dnpMath.t2_function(new_axis, out[0], out[1], out[2])
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["T2"] = out[1]
         fit_data.attrs["T2_stdd"] = stdd[1]
         fit_data.attrs["M_0"] = out[0]
@@ -170,7 +160,7 @@ def exponential_fit(
         stdd = _np.sqrt(_np.diag(cov))
         fit = dnpMath.monoexp_fit(new_axis, out[0], out[1], out[2])
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["tau"] = out[2]
         fit_data.attrs["tau_stdd"] = stdd[2]
         fit_data.attrs["C1"] = out[0]
@@ -189,7 +179,7 @@ def exponential_fit(
         stdd = _np.sqrt(_np.diag(cov))
         fit = dnpMath.biexp_fit(new_axis, out[0], out[1], out[2], out[3], out[4])
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["tau1"] = out[2]
         fit_data.attrs["tau1_stdd"] = stdd[2]
         fit_data.attrs["tau2"] = out[4]
