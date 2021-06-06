@@ -114,6 +114,7 @@ class TestHydration(unittest.TestCase):
         self.assertEqual(len(self.data["T1_powers"]), 5)
         self.assertEqual(len(self.data["T1_array"]), 5)
         self.assertEqual(len(result["interpolated_T1"]), 21)
+
         self.assertAlmostEqual(min(result["interpolated_T1"]), 2.051727288206873, places = 6)
         self.assertAlmostEqual(max(result["interpolated_T1"]), 2.5383409868931706)
         self.assertEqual(len(result["ksigma_array"]), 21)
@@ -178,6 +179,7 @@ class TestHydration(unittest.TestCase):
         )
         self.assertAlmostEqual(self.ws["hydration_results"]["klow"], 1494.0321716770457, places = 6)
         self.assertAlmostEqual(self.ws["hydration_results"]["tcorr"], 230.5905102559904, places = 6)
+
         self.assertAlmostEqual(
             self.ws["hydration_results"]["Dlocal"], 1.4987607235715452e-09, places = 6
         )
