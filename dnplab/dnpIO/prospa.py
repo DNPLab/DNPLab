@@ -260,7 +260,7 @@ def prospa_coords(attrs, data_shape, experiment):
         dims.append("t2")
         coords.append(x)
 
-    elif experiment == "B12T_1Pulse":
+    elif experiment == "B12T_1Pulse" or experiment == "B12T_1Pulse_MPS":
         pts = attrs["nrPnts"]
         dwell_time = attrs["dwellTime"]
         x = np.arange(0.0, pts * dwell_time, dwell_time) / 1e6
@@ -295,7 +295,7 @@ def prospa_coords(attrs, data_shape, experiment):
 
         dims.append("t1")
         coords.append(T1)
-    elif experiment == "B12T_T1-IR-FID":
+    elif experiment == "B12T_T1-IR-FID" or experiment == "B12T_T1-IR-FID_MPS":
         pts = attrs["nrPnts"]
         dwell_time = attrs["dwellTime"]
         x = np.arange(0.0, pts * dwell_time, dwell_time) / 1e6
