@@ -49,6 +49,16 @@ def update_parameters(proc_parameters, requiredList, default_parameters):
 
     return updatedProc_parameters
 
+def ndalign(all_data, dim = 'f2', reference = None):
+    '''Alignment of NMR spectra using FFT Cross Correlation
+    '''
+
+    data, isDict = return_data(all_data)
+
+    original_order = data.dims
+
+    data = data.reorder([dim]) # Move dim to first dimension
+
 
 def align(all_data, dim="f2", dim2=None):
     """Alignment of NMR spectra down given dimension or dimensions
