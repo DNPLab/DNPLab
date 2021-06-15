@@ -51,16 +51,65 @@ def update_parameters(proc_parameters, requiredList, default_parameters):
 
 def ndalign(all_data, dim = 'f2', reference = None):
     '''Alignment of NMR spectra using FFT Cross Correlation
+
+    Args:
+        all_data (object) : dnpdata object
+        dim (str) : dimension to align along
+        reference (numpy) : second dimension to align along
+
+    returns:
+        dnpdata: Aligned data in container
     '''
 
     data, isDict = return_data(all_data)
 
+    proc_parameters = {"dim": dim}
+
     original_order = data.dims
 
-    data = data.reorder([dim]) # Move dim to first dimension
+    data.reorder([dim]) # Move dim to first dimension
 
+    original_shape = data.values.shape
 
+    align_dim_length = data.coords[dim].size
 
+    values = data.values
+
+    values = values.reshape(align_dim_length, -1)
+    abs_values = _np.abs(values)
+
+    shape = _np.shape(values)
+
+    dim2 = shape[1]
+
+    if reference is None:
+        reference = _np.abs(values[:,-1])
+    elif isinstance(reference, dnpdata):
+        reference = reference.values
+
+    ref_max_ix = _np.argmax(reference)
+
+    aligned_values = _np.zeros_like(values)
+
+    for ix in range(dim2):
+        cor = _np.correlate(abs_values[:,ix], reference, mode = 'same')
+        max_ix = _np.argmax(cor)
+        delta_max_ix = max_ix - ref_max_ix
+        aligned_values[:, ix] = _np.roll(values[:, ix], -1*delta_max_ix)
+
+    aligned_values = aligned_values.reshape(original_shape)
+
+    data.values = aligned_values
+
+    data.reorder(original_order)
+
+    proc_attr_name = "ndalign"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+    else:
+        return data
 
 def align(all_data, dim="f2", dim2=None):
     """Alignment of NMR spectra down given dimension or dimensions
