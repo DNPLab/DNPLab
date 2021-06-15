@@ -65,22 +65,21 @@ def ndalign(all_data, dim = 'f2', reference = None):
 
     proc_parameters = {"dim": dim}
 
-    original_order = data.dims
+    original_order = data.dims # Original order of dims
 
     data.reorder([dim]) # Move dim to first dimension
 
-    original_shape = data.values.shape
+    values = data.values # Extract Data Values for alignment
 
-    align_dim_length = data.coords[dim].size
+    original_shape = values.shape # Preserve original shape
+    align_dim_length = original_shape[0] # length of dimension to align down
 
-    values = data.values
+    values = values.reshape(align_dim_length, -1) # Reshape to 2d
 
-    values = values.reshape(align_dim_length, -1)
+    new_shape = _np.shape(values)
+    dim2 = new_shape[1]
+
     abs_values = _np.abs(values)
-
-    shape = _np.shape(values)
-
-    dim2 = shape[1]
 
     if reference is None:
         reference = _np.abs(values[:,-1])
@@ -92,16 +91,16 @@ def ndalign(all_data, dim = 'f2', reference = None):
     aligned_values = _np.zeros_like(values)
 
     for ix in range(dim2):
-        cor = _np.correlate(abs_values[:,ix], reference, mode = 'same')
-        max_ix = _np.argmax(cor)
-        delta_max_ix = max_ix - ref_max_ix
-        aligned_values[:, ix] = _np.roll(values[:, ix], -1*delta_max_ix)
+        cor = _np.correlate(abs_values[:,ix], reference, mode = 'same') # calculate cross-correlation
+        max_ix = _np.argmax(cor) # Maximum of cross correlation
+        delta_max_ix = max_ix - ref_max_ix # Calculate how many points to shift
+        aligned_values[:, ix] = _np.roll(values[:, ix], -1*delta_max_ix) # shift values
 
-    aligned_values = aligned_values.reshape(original_shape)
+    aligned_values = aligned_values.reshape(original_shape) # reshape to original values shape
 
-    data.values = aligned_values
+    data.values = aligned_values # Add aligned values back to data object
 
-    data.reorder(original_order)
+    data.reorder(original_order) # Back to original order
 
     proc_attr_name = "ndalign"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
