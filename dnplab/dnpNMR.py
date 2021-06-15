@@ -590,27 +590,40 @@ def calculate_enhancement(
 
 
 def fourier_transform(
-    all_data, dim="t2", zero_fill_factor=2, shift=True, convert_to_ppm=True
+    all_data,
+    dim="t2",
+    zero_fill_factor=2,
+    shift=True,
+    convert_to_ppm=True,
+    output="complex",
 ):
     """Perform Fourier Transform down dim dimension given in proc_parameters
 
     .. Note::
         Assumes dt = t[1] - t[0]
 
+    .. math::
+
+        \mathrm{power spectrum}       &=  data.real^{2} + data.imag^{2} &
+
+        \mathrm{magnitude spectrum}   &=  sqrt(data.real^{2} + data.imag^{2}) &
+
     Args:
         all_data (dnpdata, dict): Data container
 
-    +------------------+------+---------+--------------------------------------------------+
-    | parameter        | type | default | description                                      |
-    +==================+======+=========+==================================================+
-    | dim              | str  | 't2'    | dimension to Fourier transform                   |
-    +------------------+------+---------+--------------------------------------------------+
-    | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
-    +------------------+------+---------+--------------------------------------------------+
-    | shift            | bool | True    | Perform fftshift to set zero frequency to center |
-    +------------------+------+---------+--------------------------------------------------+
-    | convert_to_ppm   | bool | True    | Convert dim from Hz to ppm                       |
-    +------------------+------+---------+--------------------------------------------------+
+    +------------------+------+-----------+--------------------------------------------------+
+    | parameter        | type | default   | description                                      |
+    +==================+======+===========+==================================================+
+    | dim              | str  | 't2'      | dimension to Fourier transform                   |
+    +------------------+------+-----------+--------------------------------------------------+
+    | zero_fill_factor | int  | 2         | factor to increase dim with zeros                |
+    +------------------+------+-----------+--------------------------------------------------+
+    | shift            | bool | True      | Perform fftshift to set zero frequency to center |
+    +------------------+------+-----------+--------------------------------------------------+
+    | convert_to_ppm   | bool | True      | Convert dim from Hz to ppm                       |
+    +------------------+------+-----------+--------------------------------------------------+
+    | output           | str  | 'complex' | output complex, magnitude, or power spectrum     |
+    +------------------+------+-----------+--------------------------------------------------+
 
     Returns:
         dnpdata: data object after FT
@@ -647,6 +660,15 @@ def fourier_transform(
         data.values = _np.fft.fftshift(data.values, axes=index)
     data.coords[dim] = f
 
+    if output == "mag":
+        data.values = _np.sqrt(data.values.real ** 2 + data.values.imag ** 2)
+    elif output == "pow":
+        data.values = data.values.real ** 2 + data.values.imag ** 2
+    elif output == "complex":
+        pass
+    else:
+        raise ValueError("options for output are 'complex' (default), 'mag', or 'pow'")
+
     if re.fullmatch("t[0-9]*", dim) is not None:
         new_dim = dim.replace("t", "f")
         data.rename(dim, new_dim)
@@ -661,27 +683,40 @@ def fourier_transform(
 
 
 def inverse_fourier_transform(
-    all_data, dim="f2", zero_fill_factor=1, shift=True, convert_from_ppm=True
+    all_data,
+    dim="f2",
+    zero_fill_factor=1,
+    shift=True,
+    convert_from_ppm=True,
+    output="complex",
 ):
     """Perform Fourier Transform down dim dimension given in proc_parameters
 
     .. Note::
         Assumes dt = t[1] - t[0]
 
+    .. math::
+
+        \mathrm{power spectrum}       &=  data.real^{2} + data.imag^{2} &
+
+        \mathrm{magnitude spectrum}   &=  sqrt(data.real^{2} + data.imag^{2}) &
+
     Args:
         all_data (dnpdata, dict): Data container
 
-    +------------------+------+---------+--------------------------------------------------+
-    | parameter        | type | default | description                                      |
-    +==================+======+=========+==================================================+
-    | dim              | str  | 'f2'    | dimension to Fourier transform                   |
-    +------------------+------+---------+--------------------------------------------------+
-    | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
-    +------------------+------+---------+--------------------------------------------------+
-    | shift            | bool | True    | Perform fftshift to set zero frequency to center |
-    +------------------+------+---------+--------------------------------------------------+
-    | convert_to_ppm   | bool | True    | Convert dim from Hz to ppm                       |
-    +------------------+------+---------+--------------------------------------------------+
+    +------------------+------+-----------+--------------------------------------------------+
+    | parameter        | type | default   | description                                      |
+    +==================+======+===========+==================================================+
+    | dim              | str  | 't2'      | dimension to Fourier transform                   |
+    +------------------+------+-----------+--------------------------------------------------+
+    | zero_fill_factor | int  | 2         | factor to increase dim with zeros                |
+    +------------------+------+-----------+--------------------------------------------------+
+    | shift            | bool | True      | Perform fftshift to set zero frequency to center |
+    +------------------+------+-----------+--------------------------------------------------+
+    | convert_to_ppm   | bool | True      | Convert dim from Hz to ppm                       |
+    +------------------+------+-----------+--------------------------------------------------+
+    | output           | str  | 'complex' | output complex, magnitude, or power spectrum     |
+    +------------------+------+-----------+--------------------------------------------------+
 
     Returns:
         dnpdata: data object after inverse FT
@@ -716,6 +751,16 @@ def inverse_fourier_transform(
         data.values = _np.fft.fftshift(data.values, axes=index)
 
     data.values = _np.fft.ifft(data.values, n=n_pts, axis=index)
+
+    if output == "mag":
+        data.values = _np.sqrt(data.values.real ** 2 + data.values.imag ** 2)
+    elif output == "pow":
+        data.values = data.values.real ** 2 + data.values.imag ** 2
+    elif output == "complex":
+        pass
+    else:
+        raise ValueError("options for output are 'complex' (default), 'mag', or 'pow'")
+
     data.coords[dim] = t
 
     if re.fullmatch("f[0-9]*", dim) is not None:
