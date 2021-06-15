@@ -49,8 +49,9 @@ def update_parameters(proc_parameters, requiredList, default_parameters):
 
     return updatedProc_parameters
 
-def ndalign(all_data, dim = 'f2', reference = None):
-    '''Alignment of NMR spectra using FFT Cross Correlation
+
+def ndalign(all_data, dim="f2", reference=None):
+    """Alignment of NMR spectra using FFT Cross Correlation
 
     Args:
         all_data (object) : dnpdata object
@@ -59,22 +60,22 @@ def ndalign(all_data, dim = 'f2', reference = None):
 
     returns:
         dnpdata: Aligned data in container
-    '''
+    """
 
     data, isDict = return_data(all_data)
 
     proc_parameters = {"dim": dim}
 
-    original_order = data.dims # Original order of dims
+    original_order = data.dims  # Original order of dims
 
-    data.reorder([dim]) # Move dim to first dimension
+    data.reorder([dim])  # Move dim to first dimension
 
-    values = data.values # Extract Data Values for alignment
+    values = data.values  # Extract Data Values for alignment
 
-    original_shape = values.shape # Preserve original shape
-    align_dim_length = original_shape[0] # length of dimension to align down
+    original_shape = values.shape  # Preserve original shape
+    align_dim_length = original_shape[0]  # length of dimension to align down
 
-    values = values.reshape(align_dim_length, -1) # Reshape to 2d
+    values = values.reshape(align_dim_length, -1)  # Reshape to 2d
 
     new_shape = _np.shape(values)
     dim2 = new_shape[1]
@@ -82,7 +83,7 @@ def ndalign(all_data, dim = 'f2', reference = None):
     abs_values = _np.abs(values)
 
     if reference is None:
-        reference = _np.abs(values[:,-1])
+        reference = _np.abs(values[:, -1])
     elif isinstance(reference, dnpdata):
         reference = reference.values
 
@@ -91,16 +92,22 @@ def ndalign(all_data, dim = 'f2', reference = None):
     aligned_values = _np.zeros_like(values)
 
     for ix in range(dim2):
-        cor = _np.correlate(abs_values[:,ix], reference, mode = 'same') # calculate cross-correlation
-        max_ix = _np.argmax(cor) # Maximum of cross correlation
-        delta_max_ix = max_ix - ref_max_ix # Calculate how many points to shift
-        aligned_values[:, ix] = _np.roll(values[:, ix], -1*delta_max_ix) # shift values
+        cor = _np.correlate(
+            abs_values[:, ix], reference, mode="same"
+        )  # calculate cross-correlation
+        max_ix = _np.argmax(cor)  # Maximum of cross correlation
+        delta_max_ix = max_ix - ref_max_ix  # Calculate how many points to shift
+        aligned_values[:, ix] = _np.roll(
+            values[:, ix], -1 * delta_max_ix
+        )  # shift values
 
-    aligned_values = aligned_values.reshape(original_shape) # reshape to original values shape
+    aligned_values = aligned_values.reshape(
+        original_shape
+    )  # reshape to original values shape
 
-    data.values = aligned_values # Add aligned values back to data object
+    data.values = aligned_values  # Add aligned values back to data object
 
-    data.reorder(original_order) # Back to original order
+    data.reorder(original_order)  # Back to original order
 
     proc_attr_name = "ndalign"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
@@ -109,6 +116,7 @@ def ndalign(all_data, dim = 'f2', reference = None):
         all_data[all_data.processing_buffer] = data
     else:
         return data
+
 
 def align(all_data, dim="f2", dim2=None):
     """Alignment of NMR spectra down given dimension or dimensions
