@@ -50,7 +50,7 @@ def update_parameters(proc_parameters, requiredList, default_parameters):
     return updatedProc_parameters
 
 
-def ndalign(all_data, dim="f2", reference=None):
+def ndalign(all_data, dim="f2", reference=None, debug = True):
     """Alignment of NMR spectra using FFT Cross Correlation
 
     Args:
@@ -90,6 +90,7 @@ def ndalign(all_data, dim="f2", reference=None):
     ref_max_ix = _np.argmax(reference)
 
     aligned_values = _np.zeros_like(values)
+    shift_ix_list = []
 
     for ix in range(dim2):
         cor = _np.correlate(
@@ -100,6 +101,11 @@ def ndalign(all_data, dim="f2", reference=None):
         aligned_values[:, ix] = _np.roll(
             values[:, ix], -1 * delta_max_ix
         )  # shift values
+
+        shift_ix_list.append(delta_max_ix) # Append shift to list
+
+    shift_ix_array = _np.array(shift_ix_list)
+    shift_ix_array.reshape(original_shape[1:])
 
     aligned_values = aligned_values.reshape(
         original_shape
