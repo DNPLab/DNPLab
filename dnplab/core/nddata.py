@@ -239,6 +239,18 @@ class nddata_core(object):
         """
         return deepcopy(self)
 
+    def cumulative_sum(self, dim):
+        """Calculate Cumulative sum of dnpdata object
+
+        Returns:
+            cumulative sum of data object
+        """
+        a = self.copy()
+        index = a.index(dim)
+        a.values = a.values.cumsum(index)
+        #NOTE: Add Error Propagation
+        return a
+
     def merge_attrs(self, b):
         """Merge the given dictionaries
 
