@@ -248,7 +248,7 @@ class nddata_core(object):
         a = self.copy()
         index = a.index(dim)
         a.values = a.values.cumsum(index)
-        #NOTE: Add Error Propagation
+        # NOTE: Add Error Propagation
         return a
 
     def merge_attrs(self, b):
