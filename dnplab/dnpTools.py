@@ -510,7 +510,7 @@ def signal_to_noise(
     +------------------+-------+-----------+------------------------------+
 
     Returns:
-        dnpdata: data object with attr "s_n" added
+        dnpdata: data object with attrs "s_n", "signal", and "noise" added
     """
 
     data, isDict = return_data(all_data)
@@ -572,6 +572,8 @@ def signal_to_noise(
         raise TypeError("only 1D or 2D data currently supported")
 
     data.attrs["s_n"] = s_n
+    data.attrs["signal"] = s_data
+    data.attrs["noise"] = n_data
 
     if isDict:
         all_data[all_data.processing_buffer] = data
