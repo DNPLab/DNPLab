@@ -124,7 +124,7 @@ def waterfall(data, dx, dy, *args, **kwargs):
         )
 
 
-def plot(data, *args, **kwargs):
+def plot(data, dim=None, *args, **kwargs):
     """Plot function for dnpdata object
 
     Args:
@@ -156,8 +156,10 @@ def plot(data, *args, **kwargs):
        dnp.dnpResults.plt.show()
 
     """
-    coord = data.coords[0]
-    dim = data.dims[0]
+    if not dim:
+        dim = data.dims[0]
+
+    coord = data.coords[dim]
 
     plt.plot(coord, data.values.real, *args, **kwargs)
 
