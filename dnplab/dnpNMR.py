@@ -50,7 +50,7 @@ def update_parameters(proc_parameters, requiredList, default_parameters):
     return updatedProc_parameters
 
 
-def ndalign(all_data, dim="f2", reference=None, debug = True):
+def ndalign(all_data, dim="f2", reference=None, debug=False):
     """Alignment of NMR spectra using FFT Cross Correlation
 
     Args:
@@ -102,7 +102,7 @@ def ndalign(all_data, dim="f2", reference=None, debug = True):
             values[:, ix], -1 * delta_max_ix
         )  # shift values
 
-        shift_ix_list.append(delta_max_ix) # Append shift to list
+        shift_ix_list.append(delta_max_ix)  # Append shift to list
 
     shift_ix_array = _np.array(shift_ix_list)
     shift_ix_array.reshape(original_shape[1:])
@@ -117,6 +117,9 @@ def ndalign(all_data, dim="f2", reference=None, debug = True):
 
     proc_attr_name = "ndalign"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if debug == True:
+        data.attrs["align_debug"] = shift_ix_array
 
     if isDict:
         all_data[all_data.processing_buffer] = data
