@@ -5,6 +5,9 @@ from scipy.optimize import curve_fit
 
 from . import dnpdata, dnpdata_collection
 from . import dnpTools, dnpMath
+from . import dnpResults
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, Button, RadioButtons
 
 import re
 import copy
@@ -704,13 +707,25 @@ def fourier_transform(
 
     index = data.dims.index(dim)
 
-    data.values = _np.fft.fft(data.values, axis=index)
+    dt = data.coords[dim][1] - data.coords[dim][0]
+    n_pts = zero_fill_factor * len(data.coords[dim])
+    f = (1.0 / (n_pts * dt)) * _np.r_[0:n_pts]
+    if shift == True:
+        f -= 1.0 / (2 * dt)
+
+    if convert_to_ppm:
+        nmr_frequency = data.attrs["nmr_frequency"]
+        f /= -1 * nmr_frequency / 1.0e6
+
+    data.values = _np.fft.fft(data.values, n=n_pts, axis=index)
 
     if shift:
         data.values = _np.fft.fftshift(data.values, axes=index)
 
-    if convert_to_ppm:
-        data.coords[dim] /= -1 * data.attrs["nmr_frequency"] / 1.0e6
+    data.coords[dim] = f
+
+#    if convert_to_ppm:
+#        data.coords[dim] /= (-1 * data.attrs["nmr_frequency"] / 1.0e6)
 
     if output == "mag":
         data.values = _np.sqrt(data.values.real ** 2 + data.values.imag ** 2)
