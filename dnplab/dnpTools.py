@@ -510,7 +510,7 @@ def signal_to_noise(
     +------------------+-------+-----------+------------------------------+
 
     Returns:
-        dnpdata: data object with attr "s_n" added
+        dnpdata: data object with attrs "s_n", "signal", and "noise" added
     """
 
     data, isDict = return_data(all_data)
@@ -572,6 +572,91 @@ def signal_to_noise(
         raise TypeError("only 1D or 2D data currently supported")
 
     data.attrs["s_n"] = s_n
+    data.attrs["signal"] = s_data
+    data.attrs["noise"] = n_data
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+    else:
+        return data
+
+
+def zero_fill(
+    all_data,
+    dim="t2",
+    zero_fill_factor=2,
+    shift=True,
+    inverse=False,
+    convert_from_ppm=True,
+):
+
+    """Perform zero filling down dim dimension
+
+    .. Note::
+        Assumes dt = t[1] - t[0]
+
+    Args:
+        all_data (dnpdata, dict): Data container
+
+    +------------------+------+-----------+--------------------------------------------------+
+    | parameter        | type | default   | description                                      |
+    +==================+======+===========+==================================================+
+    | dim              | str  | 't2'      | dimension to Fourier transform                   |
+    +------------------+------+-----------+--------------------------------------------------+
+    | zero_fill_factor | int  | 2         | factor to increase dim with zeros                |
+    +------------------+------+-----------+--------------------------------------------------+
+    | shift            | bool | True      | Perform fftshift to set zero frequency to center |
+    +------------------+------+-----------+--------------------------------------------------+
+    | inverse          | bool | False     | True means zero-fill in frequency domain         |
+    +------------------+------+-----------+--------------------------------------------------+
+    | convert_from_ppm | bool | True      | True if frequency axis is in ppm                 |
+    +------------------+------+-----------+--------------------------------------------------+
+
+    Returns:
+        dnpdata: data object after zero fill
+    """
+
+    data, isDict = return_data(all_data)
+
+    # handle zero_fill_factor
+    if not isinstance(zero_fill_factor, int) or zero_fill_factor <= 0:
+        raise ValueError("zero_fill_factor must be type int greater than 0")
+
+    proc_parameters = {
+        "dim": dim,
+        "zero_fill_factor": zero_fill_factor,
+        "shift": shift,
+        "inverse": inverse,
+    }
+
+    if inverse:
+        df = data.coords[dim][1] - data.coords[dim][0]
+        if convert_from_ppm:
+            df /= -1 / (data.attrs["nmr_frequency"] / 1.0e6)
+
+        n_pts = zero_fill_factor * len(data.coords[dim])
+        data.coords[dim] = (1.0 / (n_pts * df)) * _np.r_[0:n_pts]
+
+        proc_parameters["convert_from_ppm"] = convert_from_ppm
+
+    else:
+        dt = data.coords[dim][1] - data.coords[dim][0]
+        n_pts = zero_fill_factor * len(data.coords[dim])
+        data.coords[dim] = (1.0 / (n_pts * dt)) * np.r_[0:n_pts]
+        if shift == True:
+            data.coords[dim] -= 1.0 / (2 * dt)
+
+    if len(data.shape) == 2:
+        temp = np.zeros((n_pts, data.shape[1]), dtype=np.complex)
+        temp[: data.shape[0], : data.shape[1]] = data.values
+    elif len(data.shape) == 1:
+        temp = np.zeros(n_pts, dtype=np.complex)
+        temp[: data.shape[0]] = data.values
+
+    data.values = temp
+
+    proc_attr_name = "zero_fill"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if isDict:
         all_data[all_data.processing_buffer] = data
