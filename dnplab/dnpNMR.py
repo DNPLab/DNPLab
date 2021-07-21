@@ -689,12 +689,12 @@ def fourier_transform(
     Returns:
         dnpdata: data object after FT
     """
-    if isinstance(zero_fill_factor, int) and zero_fill_factor >= 1:
-        dnpTools.zero_fill(
-            all_data, dim=dim, zero_fill_factor=zero_fill_factor, shift=shift
-        )
-    else:
-        raise ValueError("zero_fill_factor must be type int greater than 0")
+#    if isinstance(zero_fill_factor, int) and zero_fill_factor >= 1:
+#        dnpTools.zero_fill(
+#            all_data, dim=dim, zero_fill_factor=zero_fill_factor, shift=shift
+#        )
+#    else:
+#        raise ValueError("zero_fill_factor must be type int greater than 0")
 
     # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
