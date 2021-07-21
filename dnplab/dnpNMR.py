@@ -410,6 +410,7 @@ def manualphase(all_data):
     proc_attr_name = "manualphase"
     proc_parameters = {'phase' : manual_phase}
     data.add_proc_attrs(proc_attr_name, proc_parameters)
+    data.attrs['phase0'] = manual_phase
 
     if isDict:
         all_data[all_data.processing_buffer] = data
