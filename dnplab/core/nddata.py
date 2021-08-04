@@ -6,7 +6,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from . import nddata_coord
 
-_numerical_types = (np.ndarray, int, float, complex)
+_numerical_types = (np.ndarray, int, float, complex, np.complex64)
 
 _nddata_core_version = "1.0"
 
