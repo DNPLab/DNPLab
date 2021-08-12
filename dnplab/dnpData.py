@@ -91,6 +91,27 @@ class dnpdata(nddata.nddata_core):
 
         return string
 
+    def proc_info(self):
+        """
+        Print processing steps and parameters currently in proc_attrs list
+        """
+
+        print("-----------------")
+        print("proccessing steps")
+        print("-----------------")
+        if not self.proc_attrs:
+            print("none.")
+        else:
+            for x in self.proc_attrs:
+                print(
+                    x[0]
+                    + ": "
+                    + str([y + "=" + str(x[1][y]) for y in x[1].keys()])
+                    .replace("[", "")
+                    .replace("]", "")
+                    .replace("'", "")
+                )
+
     def add_proc_attrs(self, proc_attr_name, proc_dict):
         """
         Stamp processing step to dnpdata object
@@ -264,6 +285,16 @@ class dnpdata_collection(MutableMapping):
                 "Processing buffer must be type str, not %s"
                 % str(type(new_processing_buffer))
             )
+
+    def proc_info(self):
+        """
+        Print processing steps and parameters currently in proc_attrs list
+        """
+
+        if not "proc" in self.__data_dict:
+            print("This workspace does not contain processed data.")
+        else:
+            self.__data_dict["proc"].proc_info()
 
     def copy(self, key, new_key=None):
         """

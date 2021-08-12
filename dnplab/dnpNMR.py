@@ -22,7 +22,9 @@ def return_data(all_data):
         if all_data.processing_buffer in all_data.keys():
             data = all_data[all_data.processing_buffer]
         else:
-            raise ValueError("No data in processing buffer")
+            raise ValueError(
+                "No data in processing buffer. Use something like: workspace.copy('raw','proc') first."
+            )
     else:
         raise ValueError("Data type not supported")
 
