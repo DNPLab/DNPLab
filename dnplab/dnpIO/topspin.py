@@ -4,6 +4,7 @@ import re as _re
 from .. import dnpdata as _dnpdata
 
 import os as _os
+import warnings
 
 _dspfvs_table_10 = {
     2: 44.7500,
@@ -104,6 +105,8 @@ def find_group_delay(attrsDict):
     group_delay = 0
     if attrsDict["DSPFIRM"] != 0 and "GRPDLY" in attrsDict.keys():
         group_delay = attrsDict["GRPDLY"]
+    elif attrsDict["DECIM"] == 1.0:
+        pass
     else:
         if attrsDict["DSPFVS"] == 10:
             group_delay = _dspfvs_table_10[int(attrsDict["DECIM"])]
@@ -238,7 +241,7 @@ def dir_data_type(path):
         return ""
 
 
-def import_topspin(path, paramFilename="acqus", TD=False):
+def import_topspin(path, paramFilename="acqus"):
     """
     Import topspin data and return dnpdata object
 
@@ -254,7 +257,7 @@ def import_topspin(path, paramFilename="acqus", TD=False):
     if dirType == "fid":
         data = topspin_fid(path, paramFilename)
     elif dirType == "ser":
-        data = import_ser(path, paramFilename, TD=TD)
+        data = import_ser(path, paramFilename)
     elif dirType == "serPhaseCycle":
         data = topspin_ser_phase_cycle(path, paramFilename)
     else:
@@ -424,7 +427,7 @@ def topspin_vdlist(path):
     return vdList
 
 
-def import_ser(path, paramFilename="acqus", TD=False):
+def import_ser(path, paramFilename="acqus"):
     """
     Import topspin ser file
 
@@ -452,17 +455,17 @@ def import_ser(path, paramFilename="acqus", TD=False):
 
     vdList_in = topspin_vdlist(path)
 
-    if TD and isinstance(TD, int) and TD > 1:
-        vdList = vdList_in[:TD]
+    vdlst_modu = len(vdList_in) % attrsDict["NS"]
+
+    if vdlst_modu != 0:
+        warnings.warn(
+            "NS is not an even multiple of the length of your VDLIST. Your VDLIST is being truncated."
+        )
+        vdList = vdList_in[: int(len(vdList_in) - vdlst_modu)]
     else:
         vdList = vdList_in
 
-    try:
-        data = data.reshape(len(vdList), -1).T
-    except ValueError:
-        raise ValueError(
-            "TD in second dimension may not match len(VDLIST), try TD=<insert your TD> argument"
-        )
+    data = data.reshape(len(vdList), -1).T
 
     data = data[group_delay : int(attrsDict["TD"] / 2), :]
 
