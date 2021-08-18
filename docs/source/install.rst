@@ -64,3 +64,11 @@ The output will look similar to this (not the actual version and path to locatio
     Requires: numpy, scipy, matplotlib, h5py
     Required-by: 
 
+Upgrading DNPLab
+================
+
+To upgrade your currently installed version of DNPLab type the following command:
+
+.. code-block:: bash
+
+    $ pip insatll dnplab --upgrade
