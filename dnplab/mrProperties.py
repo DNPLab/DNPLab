@@ -10,6 +10,7 @@
 
 gmrProperties = {}
 # gmrProperties['label'] = ['spin', 'GMR 10^7r/Ts', 'Qmom fm^2', '%NatAbun', 'relH', 'moment', 'Qlw']
+gmrProperties["e"] = [0.5, 17608.59794, 0, 0, 0, 1838.28200037, 0]
 gmrProperties["0e"] = [0.5, 17608.59794, 0, 0, 0, 1838.28200037, 0]
 gmrProperties["1H"] = [0.5, 26.7522128, 0, 99.9885, 1, 4.83735357, 0]
 gmrProperties["2H"] = [1, 4.10662791, 0.286, 0.0115, 1.11e-06, 1.21260077, 0.41]
