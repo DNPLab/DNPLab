@@ -79,6 +79,7 @@ Features
    install
    quick-start
    auto_examples/index
+   utilities
    dnpData
    dnpImport
    dnpIO
