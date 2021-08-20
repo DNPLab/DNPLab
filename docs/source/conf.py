@@ -119,6 +119,7 @@ sphinx_gallery_conf = {
     "remove_config_comments": True,
     "within_subsection_order": FileNameSortKey,
     "run_stale_examples": True,
+    "filename_pattern": "/plot_",
 }
 
 
