@@ -260,7 +260,7 @@ def prospa_coords(attrs, data_shape, experiment):
         dims.append("t2")
         coords.append(x)
 
-    elif experiment == "B12T_1Pulse":
+    elif experiment == "B12T_1Pulse" or experiment == "B12T_1Pulse_MPS":
         pts = attrs["nrPnts"]
         dwell_time = attrs["dwellTime"]
         x = np.arange(0.0, pts * dwell_time, dwell_time) / 1e6
@@ -284,7 +284,10 @@ def prospa_coords(attrs, data_shape, experiment):
         if attrs["delaySpacing"] == "lin":
             T1 = np.linspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
         elif attrs["delaySpacing"] == "log":
-            T1 = np.logspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
+            T1 = (
+                np.logspace(np.log10(T1_min_delay), np.log10(T1_max_delay), T1_steps)
+                / 1000.0
+            )
         else:
             raise ValueError(
                 f"Unable to determine delaySpacing {attrs['delaySpacing']}"
@@ -292,7 +295,7 @@ def prospa_coords(attrs, data_shape, experiment):
 
         dims.append("t1")
         coords.append(T1)
-    elif experiment == "B12T_T1-IR-FID":
+    elif experiment == "B12T_T1-IR-FID" or experiment == "B12T_T1-IR-FID_MPS":
         pts = attrs["nrPnts"]
         dwell_time = attrs["dwellTime"]
         x = np.arange(0.0, pts * dwell_time, dwell_time) / 1e6
@@ -306,7 +309,10 @@ def prospa_coords(attrs, data_shape, experiment):
         if attrs["delaySpacing"] == "lin":
             T1 = np.linspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
         else:
-            T1 = np.logspace(T1_min_delay, T1_max_delay, T1_steps) / 1000.0
+            T1 = (
+                np.logspace(np.log10(T1_min_delay), np.log10(T1_max_delay), T1_steps)
+                / 1000.0
+            )
 
         dims.append("t1")
         coords.append(T1)

@@ -1,6 +1,5 @@
-from . import dnpNMR, dnpdata, dnpdata_collection
+from . import dnpMath, dnpNMR, dnpdata, dnpdata_collection
 import numpy as np
-from scipy.optimize import curve_fit
 import scipy.integrate
 
 from .mrProperties import gmrProperties, radicalProperties
@@ -68,45 +67,6 @@ def return_data(all_data):
     return data, is_workspace
 
 
-def exp_fit_func_1(x_axis, C1, C2, tau):
-    return C1 + C2 * np.exp(-1.0 * x_axis / tau)
-
-
-def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
-    return C1 + C2 * np.exp(-1.0 * x_axis / tau1) + C3 * np.exp(-1.0 * x_axis / tau2)
-
-
-def baseline_fit(temp_coords, temp_data, type, order):
-
-    if type == "polynomial":
-        base_line = np.polyval(np.polyfit(temp_coords, temp_data, order), temp_coords)
-    elif type == "exponential":
-        temp_data = temp_data.real
-        if order == 1:
-            x0 = [temp_data[-1], temp_data[0], 1]
-            out, cov = curve_fit(
-                exp_fit_func_1, temp_coords, temp_data, x0, method="lm"
-            )
-            base_line = exp_fit_func_1(temp_coords, out[0], out[1], out[2])
-        elif order == 2:
-            x0 = [temp_data[-1], temp_data[0], 1, temp_data[0], 1]
-            out, cov = curve_fit(
-                exp_fit_func_2, temp_coords, temp_data, x0, method="lm"
-            )
-            base_line = exp_fit_func_2(
-                temp_coords, out[0], out[1], out[2], out[3], out[4]
-            )
-        else:
-            raise ValueError(
-                "Use order=1 for mono-exponential, order=2 for bi-exponential"
-            )
-
-    else:
-        raise TypeError("type must be either 'polynomial' or 'exponential'")
-
-    return base_line
-
-
 def baseline(
     all_data,
     dim="f2",
@@ -161,20 +121,22 @@ def baseline(
 
     if len(np.shape(data.values)) == 2:
         if reference_slice is not None:
-            bline = baseline_fit(
+            bline = dnpMath.baseline_fit(
                 data.coords[dim], data.values[:, reference_slice], type, order
             )
             for ix in range(len(data.coords[ind_dim])):
                 data.values[:, ix] -= bline
         elif reference_slice is None:
             for ix in range(len(data.coords[ind_dim])):
-                bline = baseline_fit(data.coords[dim], data.values[:, ix], type, order)
+                bline = dnpMath.baseline_fit(
+                    data.coords[dim], data.values[:, ix], type, order
+                )
                 data.values[:, ix] -= bline
         else:
             raise TypeError("invalid reference_slice")
 
     elif len(np.shape(data.values)) == 1:
-        bline = baseline_fit(data.coords[dim], data.values, type, order)
+        bline = dnpMath.baseline_fit(data.coords[dim], data.values, type, order)
         data.values -= bline
 
     else:
@@ -548,7 +510,7 @@ def signal_to_noise(
     +------------------+-------+-----------+------------------------------+
 
     Returns:
-        dnpdata: data object with attr "s_n" added
+        dnpdata: data object with attrs "s_n", "signal", and "noise" added
     """
 
     data, isDict = return_data(all_data)
@@ -610,6 +572,91 @@ def signal_to_noise(
         raise TypeError("only 1D or 2D data currently supported")
 
     data.attrs["s_n"] = s_n
+    data.attrs["signal"] = s_data
+    data.attrs["noise"] = n_data
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+    else:
+        return data
+
+
+def zero_fill(
+    all_data,
+    dim="t2",
+    zero_fill_factor=2,
+    shift=True,
+    inverse=False,
+    convert_from_ppm=True,
+):
+
+    """Perform zero filling down dim dimension
+
+    .. Note::
+        Assumes dt = t[1] - t[0]
+
+    Args:
+        all_data (dnpdata, dict): Data container
+
+    +------------------+------+-----------+--------------------------------------------------+
+    | parameter        | type | default   | description                                      |
+    +==================+======+===========+==================================================+
+    | dim              | str  | 't2'      | dimension to Fourier transform                   |
+    +------------------+------+-----------+--------------------------------------------------+
+    | zero_fill_factor | int  | 2         | factor to increase dim with zeros                |
+    +------------------+------+-----------+--------------------------------------------------+
+    | shift            | bool | True      | Perform fftshift to set zero frequency to center |
+    +------------------+------+-----------+--------------------------------------------------+
+    | inverse          | bool | False     | True means zero-fill in frequency domain         |
+    +------------------+------+-----------+--------------------------------------------------+
+    | convert_from_ppm | bool | True      | True if frequency axis is in ppm                 |
+    +------------------+------+-----------+--------------------------------------------------+
+
+    Returns:
+        dnpdata: data object after zero fill
+    """
+
+    data, isDict = return_data(all_data)
+
+    # handle zero_fill_factor
+    if not isinstance(zero_fill_factor, int) or zero_fill_factor <= 0:
+        raise ValueError("zero_fill_factor must be type int greater than 0")
+
+    proc_parameters = {
+        "dim": dim,
+        "zero_fill_factor": zero_fill_factor,
+        "shift": shift,
+        "inverse": inverse,
+    }
+
+    if inverse:
+        df = data.coords[dim][1] - data.coords[dim][0]
+        if convert_from_ppm:
+            df /= -1 / (data.attrs["nmr_frequency"] / 1.0e6)
+
+        n_pts = zero_fill_factor * len(data.coords[dim])
+        data.coords[dim] = (1.0 / (n_pts * df)) * _np.r_[0:n_pts]
+
+        proc_parameters["convert_from_ppm"] = convert_from_ppm
+
+    else:
+        dt = data.coords[dim][1] - data.coords[dim][0]
+        n_pts = zero_fill_factor * len(data.coords[dim])
+        data.coords[dim] = (1.0 / (n_pts * dt)) * np.r_[0:n_pts]
+        if shift == True:
+            data.coords[dim] -= 1.0 / (2 * dt)
+
+    if len(data.shape) == 2:
+        temp = np.zeros((n_pts, data.shape[1]), dtype=np.complex)
+        temp[: data.shape[0], : data.shape[1]] = data.values
+    elif len(data.shape) == 1:
+        temp = np.zeros(n_pts, dtype=np.complex)
+        temp[: data.shape[0]] = data.values
+
+    data.values = temp
+
+    proc_attr_name = "zero_fill"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if isDict:
         all_data[all_data.processing_buffer] = data

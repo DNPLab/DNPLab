@@ -1,4 +1,5 @@
 from . import dnpdata as dnpdata, dnpdata_collection
+from . import dnpMath
 import numpy as _np
 from scipy.optimize import curve_fit
 
@@ -22,30 +23,11 @@ def return_data(all_data):
     return data, is_workspace
 
 
-def t1_function(t_axis, T1, M_0, M_inf):
-    return M_0 - M_inf * _np.exp(-1.0 * t_axis / T1)
-
-
-def t2_function_stretch(x_axis, M_0, T2, p):
-    return M_0 * _np.exp(-2.0 * (x_axis / T2) ** p)
-
-
-def t2_function_nostretch(x_axis, M_0, T2):
-    return M_0 * _np.exp(-2.0 * (x_axis / T2) ** 1.0)
-
-
-def exp_fit_func_1(x_axis, C1, C2, tau):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau)
-
-
-def exp_fit_func_2(x_axis, C1, C2, tau1, C3, tau2):
-    return C1 + C2 * _np.exp(-1.0 * x_axis / tau1) + C3 * _np.exp(-1.0 * x_axis / tau2)
-
-
 def exponential_fit(
     all_data,
     type="mono",
     stretched=False,
+    bounds=False,
     dim="t1",
     indirect_dim=None,
     ws_key="integrals",
@@ -54,13 +36,13 @@ def exponential_fit(
 
     .. math::
 
-        f(t) &= M_0 - M_{\infty} e^{-t/T_1} \\
+        f(t) &= M_{0} - M_{\infty} e^{-t/T_{1}} \\
         
-             &= M_0 e^{(-2(t/T_2)^p} \\
+             &= M_{0} e^{(-2(t/T_{2})^{p}} \\
         
-             &= C1 + C2 e^{-x/tau} \\
+             &= C1 + C2 e^{-t/tau} \\
         
-             &= C1 + C2 e^{-x/tau1} + C3 e^{-x/tau2}
+             &= C1 + C2 e^{-t/tau1} + C3 e^{-t/tau2}
 
 
     Args:
@@ -86,37 +68,35 @@ def exponential_fit(
         attributes: "T1" value and "T1_stdd" standard deviation for type="T1", "T2" value and "T2_stdd" standard deviation for type="T2", "tau" and "tau_stdd" for type="mono", or "tau1", "tau1_stdd", "tau2", and "tau2_stdd" for type="bi"
     """
 
-    data, isDict = return_data(all_data)
+    data, isDict = return_data(
+        all_data,
+    )
 
-    if ws_key in all_data.keys():
+    if isDict:
         x_axis = all_data[ws_key].coords[dim]
-        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
-        input_data = _np.real(all_data[ws_key].values)
-        ind_dim = dim
+        input_data = all_data[ws_key].real.values
     else:
-        if not indirect_dim:
-            if len(data.dims) == 2:
-                ind_dim = list(set(data.dims) - set([dim]))[0]
-            elif len(data.dims) == 1:
-                ind_dim = data.dims[0]
-            else:
-                raise ValueError(
-                    "you must specify the indirect dimension, use argument indirect_dim= "
-                )
-        else:
-            ind_dim = indirect_dim
-        x_axis = data.coords[ind_dim]
-        new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
-        input_data = _np.real(data.values)
+        x_axis = data.coords[dim]
+        input_data = data.real.values
+
+    new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
 
     if type == "T1":
 
         x0 = [1.0, input_data[-1], input_data[-1]]
-        out, cov = curve_fit(t1_function, x_axis, input_data, x0, method="lm")
-        stdd = _np.sqrt(_np.diag(cov))
-        fit = t1_function(new_axis, out[0], out[1], out[2])
+        if bounds:
+            out, cov = curve_fit(
+                dnpMath.t1_function, x_axis, input_data, x0, bounds=bounds, method="trf"
+            )
+        else:
+            out, cov = curve_fit(
+                dnpMath.t1_function, x_axis, input_data, x0, method="lm"
+            )
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        stdd = _np.sqrt(_np.diag(cov))
+        fit = dnpMath.t1_function(new_axis, out[0], out[1], out[2])
+
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["T1"] = out[0]
         fit_data.attrs["T1_stdd"] = stdd[0]
         fit_data.attrs["M_0"] = out[1]
@@ -124,36 +104,63 @@ def exponential_fit(
 
     elif type == "T2":
 
+        x0 = [input_data[0], 1.0, 1.0]
         if stretched:
-            x0 = [input_data[0], 1.0, 1.0]
-            out, cov = curve_fit(
-                t2_function_stretch, x_axis, input_data, x0, method="lm"
-            )
-            stdd = _np.sqrt(_np.diag(cov))
-            fit = t2_function_stretch(new_axis, out[0], out[1], out[2])
+            if bounds:
+                out, cov = curve_fit(
+                    dnpMath.t2_function,
+                    x_axis,
+                    input_data,
+                    x0,
+                    bounds=bounds,
+                    method="trf",
+                )
+            else:
+                out, cov = curve_fit(
+                    dnpMath.t2_function, x_axis, input_data, x0, method="lm"
+                )
         else:
-            x0 = [input_data[0], 1.0]
-            out, cov = curve_fit(
-                t2_function_nostretch, x_axis, input_data, x0, method="lm"
-            )
-            stdd = _np.sqrt(_np.diag(cov))
-            fit = t2_function_nostretch(new_axis, out[0], out[1])
+            if not bounds:
+                bounds = (
+                    [float("-inf"), float("-inf"), 0.99999],
+                    [float("inf"), float("inf"), 1.00001],
+                )
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+            out, cov = curve_fit(
+                dnpMath.t2_function,
+                x_axis,
+                input_data,
+                x0,
+                bounds=bounds,
+                method="trf",
+            )
+            out[2] = 1.0
+
+        stdd = _np.sqrt(_np.diag(cov))
+        fit = dnpMath.t2_function(new_axis, out[0], out[1], out[2])
+
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["T2"] = out[1]
         fit_data.attrs["T2_stdd"] = stdd[1]
         fit_data.attrs["M_0"] = out[0]
-        if stretched:
-            fit_data.attrs["p"] = out[2]
+        fit_data.attrs["p"] = out[2]
 
     elif type == "mono":
 
         x0 = [input_data[-1], 1.0, 100]
-        out, cov = curve_fit(exp_fit_func_1, x_axis, input_data, x0, method="lm")
-        stdd = _np.sqrt(_np.diag(cov))
-        fit = exp_fit_func_1(new_axis, out[0], out[1], out[2])
+        if bounds:
+            out, cov = curve_fit(
+                dnpMath.monoexp_fit, x_axis, input_data, x0, bounds=bounds, method="trf"
+            )
+        else:
+            out, cov = curve_fit(
+                dnpMath.monoexp_fit, x_axis, input_data, x0, method="lm"
+            )
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        stdd = _np.sqrt(_np.diag(cov))
+        fit = dnpMath.monoexp_fit(new_axis, out[0], out[1], out[2])
+
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["tau"] = out[2]
         fit_data.attrs["tau_stdd"] = stdd[2]
         fit_data.attrs["C1"] = out[0]
@@ -162,11 +169,17 @@ def exponential_fit(
     elif type == "bi":
 
         x0 = [input_data[-1], 1.0, 100, 1.0, 100]
-        out, cov = curve_fit(exp_fit_func_2, x_axis, input_data, x0, method="lm")
-        stdd = _np.sqrt(_np.diag(cov))
-        fit = exp_fit_func_2(new_axis, out[0], out[1], out[2], out[3], out[4])
+        if bounds:
+            out, cov = curve_fit(
+                dnpMath.biexp_fit, x_axis, input_data, x0, bounds=bounds, method="trf"
+            )
+        else:
+            out, cov = curve_fit(dnpMath.biexp_fit, x_axis, input_data, x0, method="lm")
 
-        fit_data = dnpdata(fit, [new_axis], [ind_dim])
+        stdd = _np.sqrt(_np.diag(cov))
+        fit = dnpMath.biexp_fit(new_axis, out[0], out[1], out[2], out[3], out[4])
+
+        fit_data = dnpdata(fit, [new_axis], [dim])
         fit_data.attrs["tau1"] = out[2]
         fit_data.attrs["tau1_stdd"] = stdd[2]
         fit_data.attrs["tau2"] = out[4]
@@ -182,10 +195,6 @@ def exponential_fit(
         all_data["fit"] = fit_data
     else:
         return fit_data
-
-
-def enhancement_function(power_array, E_max, power_half):
-    return E_max * power_array / (power_half + power_array)
 
 
 def enhancement_fit(dataDict):
@@ -231,11 +240,22 @@ def enhancement_fit(dataDict):
     input_data = _np.real(all_data["enhancements"].values)
 
     x0 = [input_data[-1], 0.1]
+    if bounds:
+        out, cov = curve_fit(
+            dnpMath.buildup_function,
+            power_axes,
+            input_data,
+            x0,
+            bounds=bounds,
+            method="trf",
+        )
+    else:
+        out, cov = curve_fit(
+            dnpMath.buildup_function, power_axes, input_data, x0, method="lm"
+        )
 
-    out, cov = curve_fit(enhancement_function, power_axes, input_data, x0, method="lm")
     stdd = _np.sqrt(_np.diag(cov))
-
-    fit = enhancement_function(power_axes, out[0], out[1])
+    fit = dnpMath.buildup_function(power_axes, out[0], out[1])
 
     fit_data = dnpdata(fit, [power_axes], ["power"])
     fit_data.attrs["E_max"] = out[0]
@@ -247,71 +267,3 @@ def enhancement_fit(dataDict):
         dataDict["fit"] = fit_data
     else:
         return fit_data
-
-
-def interpolate_T1(
-    E_powers=False,
-    T1_powers=False,
-    T1_array=False,
-    interp_method="linear",
-    spin_C=100,
-    T10=2.0,
-    T100=2.5,
-):
-    """Returns interpolated T1 data using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
-
-    Args:
-        E_powers: The x-coordinates at which to evaluate.
-        T1_powers: The x-coordinates of the data points, must be increasing.
-            Otherwise, T1_power is internally sorted.
-        T1_array: The y-coordinates of the data points, same length as T1_power.
-        interp_method: "second_order" or "linear".
-        spin_C: unpaired electron spin concentration in uM.
-        T10: T1 measured with unpaired electrons.
-        T100: T1 measured without unpaired electrons.
-
-    Returns:
-        interp_T1 (np.array): The evaluated values, same shape as E_powers.
-    """
-
-    spin_C = spin_C / 1e6
-
-    # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
-    if interp_method == "second_order":
-
-        delta_T1_water = T1_array[-1] - T1_array[0]
-        T1_water = T100
-        macro_C = spin_C
-
-        kHH = (1.0 / T10 - 1.0 / T1_water) / macro_C
-        krp = (
-            (1.0 / T1_array)
-            - (1.0 / (T1_water + delta_T1_water * T1_powers))
-            - (kHH * (macro_C))
-        ) / (spin_C)
-
-        p = _np.polyfit(T1_powers, krp, 2)
-        T1_fit_2order = _np.polyval(p, E_powers)
-
-        interp_T1 = 1.0 / (
-            ((spin_C) * T1_fit_2order)
-            + (1.0 / (T1_water + delta_T1_water * E_powers))
-            + (kHH * (macro_C))
-        )
-
-    # linear fit, Franck et al. PNMRS (Eq. 39)
-    elif interp_method == "linear":
-
-        linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
-
-        p = _np.polyfit(T1_powers, linear_t1, 1)
-        T1_fit_linear = _np.polyval(p, E_powers)
-
-        interp_T1 = T1_fit_linear / (
-            1.0 + (T1_fit_linear / T10) - (T1_fit_linear / T100)
-        )
-
-    else:
-        raise Exception("invalid interp_method")
-
-    return interp_T1
