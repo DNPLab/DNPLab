@@ -194,6 +194,7 @@ def align(all_data, dim="f2", dim2=None):
     else:
         return data
 
+
 def autophase(
     all_data,
     method="search",
@@ -358,6 +359,7 @@ def autophase(
         all_data[all_data.processing_buffer] = data
     else:
         return data
+
 
 def calculate_enhancement(
     all_data,
@@ -631,12 +633,12 @@ def fourier_transform(
     Returns:
         dnpdata: data object after FT
     """
-#    if isinstance(zero_fill_factor, int) and zero_fill_factor >= 1:
-#        dnpTools.zero_fill(
-#            all_data, dim=dim, zero_fill_factor=zero_fill_factor, shift=shift
-#        )
-#    else:
-#        raise ValueError("zero_fill_factor must be type int greater than 0")
+    #    if isinstance(zero_fill_factor, int) and zero_fill_factor >= 1:
+    #        dnpTools.zero_fill(
+    #            all_data, dim=dim, zero_fill_factor=zero_fill_factor, shift=shift
+    #        )
+    #    else:
+    #        raise ValueError("zero_fill_factor must be type int greater than 0")
 
     # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
@@ -667,8 +669,8 @@ def fourier_transform(
 
     data.coords[dim] = f
 
-#    if convert_to_ppm:
-#        data.coords[dim] /= (-1 * data.attrs["nmr_frequency"] / 1.0e6)
+    #    if convert_to_ppm:
+    #        data.coords[dim] /= (-1 * data.attrs["nmr_frequency"] / 1.0e6)
 
     if output == "mag":
         data.values = _np.sqrt(data.values.real ** 2 + data.values.imag ** 2)
