@@ -4,7 +4,10 @@ import numpy as _np
 from scipy.optimize import curve_fit
 
 from . import dnpdata, dnpdata_collection
-from . import dnpTools
+from . import dnpTools, dnpMath
+from . import dnpResults
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, Button, RadioButtons
 
 import re
 import copy
@@ -22,7 +25,9 @@ def return_data(all_data):
         if all_data.processing_buffer in all_data.keys():
             data = all_data[all_data.processing_buffer]
         else:
-            raise ValueError("No data in processing buffer")
+            raise ValueError(
+                "No data in processing buffer. Use something like: workspace.copy('raw','proc') first."
+            )
     else:
         raise ValueError("Data type not supported")
 
@@ -48,6 +53,74 @@ def update_parameters(proc_parameters, requiredList, default_parameters):
             ]
 
     return updatedProc_parameters
+
+
+def ndalign(all_data, dim="f2", reference=None):
+    """Alignment of NMR spectra using FFT Cross Correlation
+
+    Args:
+        all_data (object) : dnpdata object
+        dim (str) : dimension to align along
+        reference (numpy) : second dimension to align along
+
+    returns:
+        dnpdata: Aligned data in container
+    """
+
+    data, isDict = return_data(all_data)
+
+    proc_parameters = {"dim": dim}
+
+    original_order = data.dims  # Original order of dims
+
+    data.reorder([dim])  # Move dim to first dimension
+
+    values = data.values  # Extract Data Values for alignment
+
+    original_shape = values.shape  # Preserve original shape
+    align_dim_length = original_shape[0]  # length of dimension to align down
+
+    values = values.reshape(align_dim_length, -1)  # Reshape to 2d
+
+    new_shape = _np.shape(values)
+    dim2 = new_shape[1]
+
+    abs_values = _np.abs(values)
+
+    if reference is None:
+        reference = _np.abs(values[:, -1])
+    elif isinstance(reference, dnpdata):
+        reference = reference.values
+
+    ref_max_ix = _np.argmax(reference)
+
+    aligned_values = _np.zeros_like(values)
+
+    for ix in range(dim2):
+        cor = _np.correlate(
+            abs_values[:, ix], reference, mode="same"
+        )  # calculate cross-correlation
+        max_ix = _np.argmax(cor)  # Maximum of cross correlation
+        delta_max_ix = max_ix - ref_max_ix  # Calculate how many points to shift
+        aligned_values[:, ix] = _np.roll(
+            values[:, ix], -1 * delta_max_ix
+        )  # shift values
+
+    aligned_values = aligned_values.reshape(
+        original_shape
+    )  # reshape to original values shape
+
+    data.values = aligned_values  # Add aligned values back to data object
+
+    data.reorder(original_order)  # Back to original order
+
+    proc_attr_name = "ndalign"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+    else:
+        return data
 
 
 def align(all_data, dim="f2", dim2=None):
@@ -522,39 +595,53 @@ def calculate_enhancement(
 
 
 def fourier_transform(
-    all_data, dim="t2", zero_fill_factor=2, shift=True, convert_to_ppm=True
+    all_data,
+    dim="t2",
+    zero_fill_factor=2,
+    shift=True,
+    convert_to_ppm=True,
+    output="complex",
 ):
     """Perform Fourier Transform down dim dimension given in proc_parameters
 
     .. Note::
         Assumes dt = t[1] - t[0]
 
+    .. math::
+
+        \mathrm{power spectrum}       &=  data.real^{2} + data.imag^{2} &
+
+        \mathrm{magnitude spectrum}   &=  sqrt(data.real^{2} + data.imag^{2}) &
+
     Args:
         all_data (dnpdata, dict): Data container
 
-    +------------------+------+---------+--------------------------------------------------+
-    | parameter        | type | default | description                                      |
-    +==================+======+=========+==================================================+
-    | dim              | str  | 't2'    | dimension to Fourier transform                   |
-    +------------------+------+---------+--------------------------------------------------+
-    | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
-    +------------------+------+---------+--------------------------------------------------+
-    | shift            | bool | True    | Perform fftshift to set zero frequency to center |
-    +------------------+------+---------+--------------------------------------------------+
-    | convert_to_ppm   | bool | True    | Convert dim from Hz to ppm                       |
-    +------------------+------+---------+--------------------------------------------------+
+    +------------------+------+-----------+--------------------------------------------------+
+    | parameter        | type | default   | description                                      |
+    +==================+======+===========+==================================================+
+    | dim              | str  | 't2'      | dimension to Fourier transform                   |
+    +------------------+------+-----------+--------------------------------------------------+
+    | zero_fill_factor | int  | 2         | factor to increase dim with zeros                |
+    +------------------+------+-----------+--------------------------------------------------+
+    | shift            | bool | True      | Perform fftshift to set zero frequency to center |
+    +------------------+------+-----------+--------------------------------------------------+
+    | convert_to_ppm   | bool | True      | Convert dim from Hz to ppm                       |
+    +------------------+------+-----------+--------------------------------------------------+
+    | output           | str  | 'complex' | output complex, magnitude, or power spectrum     |
+    +------------------+------+-----------+--------------------------------------------------+
 
     Returns:
         dnpdata: data object after FT
     """
+    #    if isinstance(zero_fill_factor, int) and zero_fill_factor >= 1:
+    #        dnpTools.zero_fill(
+    #            all_data, dim=dim, zero_fill_factor=zero_fill_factor, shift=shift
+    #        )
+    #    else:
+    #        raise ValueError("zero_fill_factor must be type int greater than 0")
 
     # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
-
-    # handle zero_fill_factor
-    zero_fill_factor = int(zero_fill_factor)
-    if zero_fill_factor <= 0:
-        zero_fill_factor = 1
 
     proc_parameters = {
         "dim": dim,
@@ -564,6 +651,7 @@ def fourier_transform(
     }
 
     index = data.dims.index(dim)
+
     dt = data.coords[dim][1] - data.coords[dim][0]
     n_pts = zero_fill_factor * len(data.coords[dim])
     f = (1.0 / (n_pts * dt)) * _np.r_[0:n_pts]
@@ -575,9 +663,23 @@ def fourier_transform(
         f /= -1 * nmr_frequency / 1.0e6
 
     data.values = _np.fft.fft(data.values, n=n_pts, axis=index)
+
     if shift:
         data.values = _np.fft.fftshift(data.values, axes=index)
+
     data.coords[dim] = f
+
+    #    if convert_to_ppm:
+    #        data.coords[dim] /= (-1 * data.attrs["nmr_frequency"] / 1.0e6)
+
+    if output == "mag":
+        data.values = _np.sqrt(data.values.real ** 2 + data.values.imag ** 2)
+    elif output == "pow":
+        data.values = data.values.real ** 2 + data.values.imag ** 2
+    elif output == "complex":
+        pass
+    else:
+        raise ValueError("options for output are 'complex' (default), 'mag', or 'pow'")
 
     if re.fullmatch("t[0-9]*", dim) is not None:
         new_dim = dim.replace("t", "f")
@@ -593,39 +695,58 @@ def fourier_transform(
 
 
 def inverse_fourier_transform(
-    all_data, dim="f2", zero_fill_factor=1, shift=True, convert_from_ppm=True
+    all_data,
+    dim="f2",
+    zero_fill_factor=1,
+    shift=True,
+    convert_from_ppm=True,
+    output="complex",
 ):
     """Perform Fourier Transform down dim dimension given in proc_parameters
 
     .. Note::
         Assumes dt = t[1] - t[0]
 
+    .. math::
+
+        \mathrm{power spectrum}       &=  data.real^{2} + data.imag^{2} &
+
+        \mathrm{magnitude spectrum}   &=  sqrt(data.real^{2} + data.imag^{2}) &
+
     Args:
         all_data (dnpdata, dict): Data container
 
-    +------------------+------+---------+--------------------------------------------------+
-    | parameter        | type | default | description                                      |
-    +==================+======+=========+==================================================+
-    | dim              | str  | 'f2'    | dimension to Fourier transform                   |
-    +------------------+------+---------+--------------------------------------------------+
-    | zero_fill_factor | int  | 2       | factor to increase dim with zeros                |
-    +------------------+------+---------+--------------------------------------------------+
-    | shift            | bool | True    | Perform fftshift to set zero frequency to center |
-    +------------------+------+---------+--------------------------------------------------+
-    | convert_to_ppm   | bool | True    | Convert dim from Hz to ppm                       |
-    +------------------+------+---------+--------------------------------------------------+
+    +------------------+------+-----------+--------------------------------------------------+
+    | parameter        | type | default   | description                                      |
+    +==================+======+===========+==================================================+
+    | dim              | str  | 't2'      | dimension to Fourier transform                   |
+    +------------------+------+-----------+--------------------------------------------------+
+    | zero_fill_factor | int  | 2         | factor to increase dim with zeros                |
+    +------------------+------+-----------+--------------------------------------------------+
+    | shift            | bool | True      | Perform fftshift to set zero frequency to center |
+    +------------------+------+-----------+--------------------------------------------------+
+    | convert_to_ppm   | bool | True      | Convert dim from Hz to ppm                       |
+    +------------------+------+-----------+--------------------------------------------------+
+    | output           | str  | 'complex' | output complex, magnitude, or power spectrum     |
+    +------------------+------+-----------+--------------------------------------------------+
 
     Returns:
         dnpdata: data object after inverse FT
     """
+    if isinstance(zero_fill_factor, int) and zero_fill_factor >= 1:
+        dnpTools.zero_fill(
+            all_data,
+            dim=dim,
+            zero_fill_factor=zero_fill_factor,
+            shift=shift,
+            inverse=True,
+            convert_from_ppm=convert_from_ppm,
+        )
+    else:
+        raise ValueError("zero_fill_factor must be type int greater than 0")
 
     # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
-
-    # handle zero_fill_factor
-    zero_fill_factor = int(zero_fill_factor)
-    if zero_fill_factor <= 0:
-        zero_fill_factor = 1
 
     proc_parameters = {
         "dim": dim,
@@ -635,20 +756,20 @@ def inverse_fourier_transform(
     }
 
     index = data.dims.index(dim)
-    df = data.coords[dim][1] - data.coords[dim][0]
-
-    if convert_from_ppm:
-        nmr_frequency = data.attrs["nmr_frequency"]
-        df /= -1 / (nmr_frequency / 1.0e6)
-
-    n_pts = zero_fill_factor * len(data.coords[dim])
-    t = (1.0 / (n_pts * df)) * _np.r_[0:n_pts]
 
     if shift:
         data.values = _np.fft.fftshift(data.values, axes=index)
 
-    data.values = _np.fft.ifft(data.values, n=n_pts, axis=index)
-    data.coords[dim] = t
+    data.values = _np.fft.ifft(data.values, axis=index)
+
+    if output == "mag":
+        data.values = _np.sqrt(data.values.real ** 2 + data.values.imag ** 2)
+    elif output == "pow":
+        data.values = data.values.real ** 2 + data.values.imag ** 2
+    elif output == "complex":
+        pass
+    else:
+        raise ValueError("options for output are 'complex' (default), 'mag', or 'pow'")
 
     if re.fullmatch("f[0-9]*", dim) is not None:
         new_dim = dim.replace("f", "t")
@@ -742,151 +863,6 @@ def remove_offset(all_data, dim="t2", offset_points=10):
         return data
 
 
-def exponential_window(all_data, dim, lw):
-    """Calculate exponential window function
-
-    .. math::
-        \mathrm{exponential}  &=  \exp(-2t * \mathrm{linewidth}) &
-
-    Args:
-        all_data (dnpdata, dict): data container
-        dim (str): dimension to window
-        lw (int or float): linewidth
-
-    Returns:
-        array: exponential window function
-    """
-    data, _ = return_data(all_data)
-    return _np.exp(-2 * data.coords[dim] * lw)
-
-
-def gaussian_window(all_data, dim, lw):
-    """Calculate gaussian window function
-
-    .. math::
-        \mathrm{gaussian}  &=  \exp((\mathrm{linewidth[0]} * t) - (\mathrm{linewidth[1]} * t^{2})) &
-
-    Args:
-        all_data (dnpdata, dict): data container
-        dim (str): dimension to window
-
-    Returns:
-        array: gaussian window function
-    """
-    if (
-        not isinstance(lw, list)
-        or len(lw) != 2
-        or any([isinstance(x, list) for x in lw])
-    ):
-        raise ValueError("lw must a list with len=2 for the gaussian window")
-    else:
-        data, _ = return_data(all_data)
-        return _np.exp((lw[0] * data.coords[dim]) - (lw[1] * data.coords[dim] ** 2))
-
-
-def hamming_window(dim_size):
-    """Calculate hamming window function
-
-    .. math::
-        \mathrm{hamming}  &=  0.53836 + 0.46164\cos(\pi * n/(N-1)) &
-
-    Args:
-        dim_size(int): length of array to window
-
-    Returns:
-        array: hamming window function
-    """
-    return 0.53836 + 0.46164 * _np.cos(
-        1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
-    )
-
-
-def hann_window(dim_size):
-    """Calculate hann window function
-
-    .. math::
-        \mathrm{han}  &=  0.5 + 0.5\cos(\pi * n/(N-1)) &
-
-    Args:
-        dim_size(int): length of array to window
-
-    Returns:
-        array: hann window function
-    """
-    return 0.5 + 0.5 * _np.cos(1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1))
-
-
-def lorentz_gauss_window(all_data, dim, exp_lw, gauss_lw, gaussian_max=0):
-    """Calculate lorentz-gauss window function
-
-    .. math::
-        \mathrm{lorentz\_gauss} &=  \exp(L -  G^{2}) &
-
-           L(t)    &=  \pi * \mathrm{linewidth[0]} * t &
-
-           G(t)    &=  0.6\pi * \mathrm{linewidth[1]} * (\mathrm{gaussian\_max} * (N - 1) - t) &
-
-
-    Args:
-        all_data (dnpdata, dict): data container
-        dim (str): dimension to window
-        exp_lw (int or float): exponential linewidth
-        gauss_lw (int or float): gaussian linewidth
-        gaussian_max (int): location of maximum in gaussian window
-
-    Returns:
-        array: gauss_lorentz window function
-    """
-    data, _ = return_data(all_data)
-    dim_size = data.coords[dim].size
-    expo = _np.pi * data.coords[dim] * exp_lw
-    gaus = 0.6 * _np.pi * gauss_lw * (gaussian_max * (dim_size - 1) - data.coords[dim])
-    return _np.exp(expo - gaus ** 2).reshape(dim_size)
-
-
-def sin2_window(dim_size):
-    """Calculate sin-squared window function
-
-    .. math::
-        \mathrm{sin2}  &=  \cos((-0.5\pi * n/(N - 1)) + \pi)^{2} &
-
-    Args:
-        dim_size(int): length of array to window
-
-    Returns:
-        array: sin-squared window function
-    """
-    return (
-        _np.cos((-0.5 * _np.pi * _np.arange(dim_size) / (dim_size - 1)) + _np.pi) ** 2
-    )
-
-
-def traf_window(all_data, dim, exp_lw, gauss_lw):
-    """Calculate traf window function
-
-    .. math::
-        \mathrm{traf}           &=  (f1 * (f1 + f2)) / (f1^{2} + f2^{2}) &
-
-               f1(t)   &=  \exp(-t * \pi * \mathrm{linewidth[0]}) &
-
-               f2(t)   &=  \exp((t - T) * \pi * \mathrm{linewidth[1]}) &
-
-
-    Args:
-        all_data (dnpdata, dict): data container
-        dim (str): dimension to window
-        exp_lw (int or float): exponential linewidth
-        gauss_lw (int or float): gaussian linewidth
-
-    Returns:
-        array: traf window function
-    """
-    data, _ = return_data(all_data)
-    E_t = _np.exp(-1 * data.coords[dim] * _np.pi * exp_lw)
-    e_t = _np.exp((data.coords[dim] - max(data.coords[dim])) * _np.pi * gauss_lw)
-    return (E_t * (E_t + e_t)) / ((E_t ** 2) + (e_t ** 2))
-
-
 def window(
     all_data,
     dim="t2",
@@ -959,21 +935,21 @@ def window(
         raise ValueError("linewidth must be int/float, or list/ndarray with len==2")
 
     if type == "exponential":
-        apwin = exponential_window(all_data, dim, linewidth)
+        apwin = dnpMath.exponential_window(all_data, dim, linewidth)
     elif type == "gaussian":
-        apwin = gaussian_window(all_data, dim, [exp_lw, gauss_lw])
+        apwin = dnpMath.gaussian_window(all_data, dim, [exp_lw, gauss_lw])
     elif type == "hamming":
-        apwin = hamming_window(dim_size)
+        apwin = dnpMath.hamming_window(dim_size)
     elif type == "hann":
-        apwin = hann_window(dim_size)
+        apwin = dnpMath.hann_window(dim_size)
     elif type == "lorentz_gauss":
-        apwin = lorentz_gauss_window(
+        apwin = dnpMath.lorentz_gauss_window(
             all_data, dim, exp_lw, gauss_lw, gaussian_max=gaussian_max
         )
     elif type == "sin2":
-        apwin = sin2_window(dim_size)
+        apwin = dnpMath.sin2_window(dim_size)
     elif type == "traf":
-        apwin = traf_window(all_data, dim, exp_lw, gauss_lw)
+        apwin = dnpMath.traf_window(all_data, dim, exp_lw, gauss_lw)
     else:
         raise ValueError("Invalid window type")
 

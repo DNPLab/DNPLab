@@ -14,7 +14,6 @@ Depending on how you record a set of DNP-NMR experiments, you will either end up
 # Load NMR Spectra
 # ----------------
 # For this example a set of 1D NMR spectra is imported. Each spectrum is recorded using a different microwave power. The import function of DNPLab can handle a list of spectra and will automatically create the dnpdata object. To load multiple spectra first create a list of paths to the individual spectra (alternatively, you can loop over the folder index, however, for educational purposes we keep this simple for now). 
-
 import dnplab as dnp
 import numpy as np
 
@@ -62,15 +61,16 @@ filenames = [
     "../data/prospa/toluene_10mM_Tempone/41/data.1d",
 ]
 
+# %%
+# Create an array with the power levels. The length of this array should match the number of spectra. The Python list "filenames" and the array of power levels will become input arguments to the load function. Here, the dimension is called "Power" and the values stored in "powers" serves as the "coord" input argument. When importing the spectra DNPLab will automatically create a 2D object with a new dimension namend "Power" and the data is concatenated into a single 2D dnpdata object.
 powers = np.array([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40])   # Power in dBm
 
+# %%
+# Now load the data and assign the power array to coord,
 data = dnp.dnpImport.load(filenames, dim = "Power", coord = powers)
 
 # %%
-# In the next step create an array with the power levels. The length of this array should match the number of spectra. The Python list "filenames" and the array of power levels will become input arguments to the load function. Here, the dimension is called "Power" and the values stored in "powers" serves as the "coord" input argument. When importing the spectra DNPLab will automatically create a 2D object with a new dimension namend "Power" and the data is concatenated into a single 2D dnpdata object.
-#
 # Finally, we can create the workspace, add the data to the "raw" object, and copy the "raw" data to the processing buffer.
-
 ws = dnp.create_workspace()
 ws.add("raw", data)
 ws.copy("raw", "proc")

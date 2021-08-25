@@ -32,7 +32,6 @@ setup(
         "scipy>=1.5",
         "matplotlib>=3.3",
         "h5py>=2.10",
-        "PyQt5<=5.14",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
