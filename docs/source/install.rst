@@ -64,3 +64,32 @@ The output will look similar to this (not the actual version and path to locatio
     Requires: numpy, scipy, matplotlib, h5py
     Required-by: 
 
+Upgrading DNPLab
+================
+
+To upgrade your currently installed version of DNPLab type the following command:
+
+.. code-block:: bash
+
+    $ pip install dnplab --upgrade
+
+
+Upgrading DNPLab
+================
+    
+The safest method to uninstall DNPLab is to use pip. Type the following command in a terminal window:
+    
+.. code-block:: bash
+    
+    $ python -m pip uninstall dnplab
+
+
+Use Preliminary Release
+=======================
+
+If you wish to use a pre-release version of DNPLab (downloaded from the GitHub repository) we recommend first uninstalling the current DNPLab version. Clone (or download or fork ...) the desired branch from the GitHub website. In a terminal window navigate into the directory that contains the setup.py file and type the following command into the terminal window:
+
+.. code-block:: bash
+    
+    $ python setup.py develop
+

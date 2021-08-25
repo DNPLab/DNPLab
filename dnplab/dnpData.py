@@ -91,6 +91,27 @@ class dnpdata(nddata.nddata_core):
 
         return string
 
+    def proc_info(self):
+        """
+        Print processing steps and parameters currently in proc_attrs list
+        """
+
+        print("-----------------")
+        print("proccessing steps")
+        print("-----------------")
+        if not self.proc_attrs:
+            print("none.")
+        else:
+            for x in self.proc_attrs:
+                print(
+                    x[0]
+                    + ": "
+                    + str([y + "=" + str(x[1][y]) for y in x[1].keys()])
+                    .replace("[", "")
+                    .replace("]", "")
+                    .replace("'", "")
+                )
+
     def add_proc_attrs(self, proc_attr_name, proc_dict):
         """
         Stamp processing step to dnpdata object
@@ -124,7 +145,7 @@ class dnpdata(nddata.nddata_core):
             Axes information is lost
 
         Example:
-        data.squeeze()
+            data.squeeze()
         """
         remove_axes = []
         for axes_ix, axes_value in enumerate(self.coords):
@@ -187,8 +208,8 @@ class dnpdata_collection(MutableMapping):
         """
 
         Args:
-            *args:
-            **kwargs:
+            *args: args
+            **kwargs: kwargs
 
         Examples:
             >>> raw = dnpdata()
@@ -257,7 +278,6 @@ class dnpdata_collection(MutableMapping):
 
     @processing_buffer.setter
     def processing_buffer(self, new_processing_buffer):
-        """"""
         if isinstance(new_processing_buffer, str):
             self._processing_buffer = new_processing_buffer
         else:
@@ -265,6 +285,16 @@ class dnpdata_collection(MutableMapping):
                 "Processing buffer must be type str, not %s"
                 % str(type(new_processing_buffer))
             )
+
+    def proc_info(self):
+        """
+        Print processing steps and parameters currently in proc_attrs list
+        """
+
+        if not "proc" in self.__data_dict:
+            print("This workspace does not contain processed data.")
+        else:
+            self.__data_dict["proc"].proc_info()
 
     def copy(self, key, new_key=None):
         """
@@ -357,11 +387,12 @@ class dnpdata_collection(MutableMapping):
         """
 
         Args:
-            processing_buffer:
-            inplace:
-            **kwargs:
+            processing_buffer: processing_buffer
+            inplace: inplace
+            **kwargs: kwargs
 
         Returns:
+            window: window
 
         Examples:
             >>> ws_original = dnpdata_collection(

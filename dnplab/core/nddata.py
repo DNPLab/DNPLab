@@ -6,7 +6,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from . import nddata_coord
 
-_numerical_types = (np.ndarray, int, float, complex)
+_numerical_types = (np.ndarray, int, float, complex, np.complex64)
 
 _nddata_core_version = "1.0"
 
@@ -231,6 +231,80 @@ class nddata_core(object):
 
         return a
 
+    def __setitem__(self, args, new_values):
+        """Method for setting values by index nddata_core
+
+        Args:
+            args (tuple): Tuple containing alternative dims and indexing values for each dimension to be indexed. (e.g. data['x', 1:10, 'y', :, 'z', (3.5, 7.5)])
+            new_values (numpy.ndarray): New values at given index
+
+        Example::
+
+            data['x', 1] = 1 # return data indexing down "x" dim with index 1
+
+        """
+        a = self.copy()
+
+        if isinstance(new_values, nddata_core):
+            new_values = new_values.values
+
+        if len(args) % 2 == 1:
+            raise ValueError("Cannot index with odd number of arguments")
+
+        index_dims = args[0::2]
+        for dim in index_dims:
+            if dim not in a.dims:
+                raise ValueError("dim not in dims")
+
+        index_slice = args[1::2]
+
+        # check slices
+        for slice_ in index_slice:
+
+            # type must be slice or tuple
+            if not isinstance(slice_, (slice, tuple, float, int)):
+                raise ValueError("Invalid slice type")
+
+            # if tuple, length must be two: (start, stop)
+            if isinstance(slice_, tuple) and not len(slice_) in (1, 2):
+                raise ValueError("tuple index must have one or two values")
+
+        # convert tuple to slice
+        updated_index_slice = []
+        for dim, slice_ in zip(index_dims, index_slice):
+            if isinstance(slice_, tuple):
+                index = a.index(dim)
+                if len(slice_) == 1:
+                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
+                    updated_index_slice.append(slice(start, start + 1))
+                else:
+                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
+                    stop = np.argmin(np.abs(slice_[1] - a.get_coord(dim)))
+                    if start == stop:
+                        stop = start + 1
+                    if stop < start:
+                        start, stop = stop, start
+                    updated_index_slice.append(slice(start, stop))
+            elif isinstance(slice_, int):
+                start = slice_
+                if slice_ != -1:
+                    updated_index_slice.append(slice(start, start + 1))
+                else:
+                    updated_index_slice.append(slice(slice_, None))
+            elif isinstance(slice_, float):
+                start = np.argmin(np.abs(slice_ - a.get_coord(dim)))
+                updated_index_slice.append(slice(start, start + 1))
+            else:
+                updated_index_slice.append(slice_)
+
+        index_slice_dict = dict(zip(index_dims, updated_index_slice))
+        new_slices = [
+            slice(None) if dim not in index_dims else index_slice_dict[dim]
+            for dim in a.dims
+        ]
+
+        self.values[tuple(new_slices)] = new_values
+
     def copy(self):
         """Return deepcopy of dnpdata object
 
@@ -238,6 +312,18 @@ class nddata_core(object):
             deep copy of data object
         """
         return deepcopy(self)
+
+    def cumulative_sum(self, dim):
+        """Calculate Cumulative sum of dnpdata object
+
+        Returns:
+            cumulative sum of data object
+        """
+        a = self.copy()
+        index = a.index(dim)
+        a.values = a.values.cumsum(index)
+        # NOTE: Add Error Propagation
+        return a
 
     def merge_attrs(self, b):
         """Merge the given dictionaries
@@ -732,7 +818,6 @@ class nddata_core(object):
         return a
 
     def concatenate(self, b, dim):
-        """"""
 
         if not dim in b.dims:
             raise ValueError("dim does not exist")
@@ -753,7 +838,6 @@ class nddata_core(object):
         )
 
     def new_dim(self, dim, coord):
-        """"""
         self.coords.append(dim, np.r_[coord])
         self.values = np.expand_dims(self.values, -1)
 

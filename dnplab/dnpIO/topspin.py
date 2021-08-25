@@ -4,6 +4,7 @@ import re as _re
 from .. import dnpdata as _dnpdata
 
 import os as _os
+import warnings
 
 _dspfvs_table_10 = {
     2: 44.7500,
@@ -90,31 +91,35 @@ _dspfvs_table_13 = {
 }
 
 
-def find_group_delay(decim, dspfvs):
+def find_group_delay(attrsDict):
     """
     Determine group delay from tables
 
     Args:
-        decim: Decimation factor of the digital filter (factor by which oversampling rate exeeds sampling rate).
-        dspfvs: Firmware version for Bruker Console.
+        attrsDict (dict): dictionary of topspin acquisition parameters
 
     Returns:
         float: Group delay. Number of points FID is shifted by DSP. The ceiling of this number (group delay rounded up) is the number of points should be removed from the start of the FID.
     """
+
     group_delay = 0
-    if decim == 1:
-        group_delay = 0
+    if attrsDict["DSPFIRM"] != 0 and "GRPDLY" in attrsDict.keys():
+        group_delay = attrsDict["GRPDLY"]
+    elif attrsDict["DECIM"] == 1.0:
+        pass
     else:
-        if dspfvs == 10:
-            group_delay = _dspfvs_table_10[int(decim)]
-        elif dspfvs == 11:
-            group_delay = _dspfvs_table_11[int(decim)]
-        elif dspfvs == 12:
-            group_delay = _dspfvs_table_12[int(decim)]
-        elif dspfvs == 13:
-            group_delay = _dspfvs_table_13[int(decim)]
+        if attrsDict["DSPFVS"] == 10:
+            group_delay = _dspfvs_table_10[int(attrsDict["DECIM"])]
+        elif attrsDict["DSPFVS"] == 11:
+            group_delay = _dspfvs_table_11[int(attrsDict["DECIM"])]
+        elif attrsDict["DSPFVS"] == 12:
+            group_delay = _dspfvs_table_12[int(attrsDict["DECIM"])]
+        elif attrsDict["DSPFVS"] == 13:
+            group_delay = _dspfvs_table_13[int(attrsDict["DECIM"])]
         else:
-            print("dspfvs not defined")
+            print(
+                "GRPDLY and DSPFVS parameters not found in acqus file, setting group delay to 0"
+            )
 
     return group_delay
 
@@ -236,7 +241,7 @@ def dir_data_type(path):
         return ""
 
 
-def import_topspin(path, paramFilename="acqus", TD=False):
+def import_topspin(path, paramFilename="acqus"):
     """
     Import topspin data and return dnpdata object
 
@@ -252,7 +257,7 @@ def import_topspin(path, paramFilename="acqus", TD=False):
     if dirType == "fid":
         data = topspin_fid(path, paramFilename)
     elif dirType == "ser":
-        data = import_ser(path, paramFilename, TD=TD)
+        data = import_ser(path, paramFilename)
     elif dirType == "serPhaseCycle":
         data = topspin_ser_phase_cycle(path, paramFilename)
     else:
@@ -282,7 +287,7 @@ def topspin_fid(path, paramFilename="acqus"):
     raw = _np.fromfile(_os.path.join(path, "fid"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
+    group_delay = find_group_delay(attrsDict)
     group_delay = int(_np.ceil(group_delay))
 
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
@@ -291,8 +296,7 @@ def topspin_fid(path, paramFilename="acqus"):
 
     data = data / attrsDict["RG"]
 
-    importantParamsDict = {}
-    importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
+    importantParamsDict = {"nmr_frequency": attrsDict["SFO1"] * 1e6}
     output = _dnpdata(data, [t], ["t2"], importantParamsDict)
 
     return output
@@ -423,7 +427,7 @@ def topspin_vdlist(path):
     return vdList
 
 
-def import_ser(path, paramFilename="acqus", TD=False):
+def import_ser(path, paramFilename="acqus"):
     """
     Import topspin ser file
 
@@ -444,31 +448,30 @@ def import_ser(path, paramFilename="acqus", TD=False):
     raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
+    group_delay = find_group_delay(attrsDict)
     group_delay = int(_np.ceil(group_delay))
 
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
 
     vdList_in = topspin_vdlist(path)
 
-    if TD and isinstance(TD, int) and TD > 1:
-        vdList = vdList_in[:TD]
+    vdlst_modu = len(vdList_in) % attrsDict["NS"]
+
+    if vdlst_modu != 0:
+        warnings.warn(
+            "NS is not an even multiple of the length of your VDLIST. Your VDLIST is being truncated."
+        )
+        vdList = vdList_in[: int(len(vdList_in) - vdlst_modu)]
     else:
         vdList = vdList_in
 
-    try:
-        data = data.reshape(len(vdList), -1).T
-    except ValueError:
-        raise ValueError(
-            "TD in second dimension may not match len(VDLIST), try TD=<insert your TD> argument"
-        )
+    data = data.reshape(len(vdList), -1).T
 
     data = data[group_delay : int(attrsDict["TD"] / 2), :]
 
     data = data / attrsDict["RG"]
 
-    importantParamsDict = {}
-    importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
+    importantParamsDict = {"nmr_frequency": attrsDict["SFO1"] * 1e6}
     output = _dnpdata(data, [t, vdList], ["t2", "t1"], importantParamsDict)
 
     return output
@@ -495,7 +498,7 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
     raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(attrsDict["DECIM"], attrsDict["DSPFVS"])
+    group_delay = find_group_delay(attrsDict)
     group_delay = int(_np.ceil(group_delay))
 
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
@@ -510,8 +513,7 @@ def topspin_ser_phase_cycle(path, paramFilename="acqus"):
     data = data[:, 0] + 1j * data[:, 1] - data[:, 2] - 1j * data[:, 3]
     data = data / attrsDict["RG"]
 
-    importantParamsDict = {}
-    importantParamsDict["nmr_frequency"] = attrsDict["SFO1"] * 1e6
+    importantParamsDict = {"nmr_frequency": attrsDict["SFO1"] * 1e6}
 
     output = _dnpdata(data, [t], ["t2"], importantParamsDict)
     return output

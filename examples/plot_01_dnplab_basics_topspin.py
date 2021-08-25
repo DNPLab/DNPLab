@@ -18,7 +18,6 @@ import numpy as np
 # %%
 # Load and Process the NMR Spectrum
 # ---------------------------------
-
 # First use some sample 1D TopSpin data. Example data is located in the data folder. All data enters into the same object structure so this example applies to any NMR format.
 
 data = dnp.dnpImport.load("../data/topspin/5")
@@ -41,7 +40,7 @@ ws.copy("raw", "proc")
 # %%
 # Raw data are now in both ws["proc"] and ws["raw"]. The following processing steps will only modify ws["proc"] but leaves ws["raw"] untouched. That way, you can always return to the original data. Furthermore, when you save the workspace (ws), you will always safe a copy of the raw data.
 #
-# Next, it's time to perform some basic processing. Simply pass the entire workspace, 'ws', to the functions and ws["proc"] will be manipulated. For example:
+# Next, perform some basic processing. Simply pass the entire workspace, 'ws', to the functions and ws["proc"] will be manipulated. For example:
 
 dnp.dnpNMR.remove_offset(ws)
 dnp.dnpNMR.window(ws, linewidth = 20)
@@ -68,7 +67,7 @@ x_axis = ws["proc"].coords["f2"]        # ppm axis
 spectrum = ws["proc"].values            # spectrum
 
 # %%
-# DNPLab automatically takes care of the name of the coordinates. By default, the dimensions are named "t2" for the direct dimensions and "t1" for the indirect dimension before performing a Fourier Transformation. After the Fourier Transformation these dimensions will be called "t2" and "t1". However, you can rename dimensions at anytime. For example like this:
+# DNPLab automatically takes care of the name of the coordinates. By default, the dimensions are named "t2" for the direct dimensions and "t1" for the indirect dimension before performing a Fourier Transformation. After the Fourier Transformation these dimensions will be called "f2" and "f1". However, you can rename dimensions at anytime. For example, like this:
 
 ws["proc"].rename("f2", "ppm")
 
@@ -78,7 +77,7 @@ ws["proc"].rename("f2", "ppm")
 nmr_frequency = ws["proc"].attrs["nmr_frequency"]
 
 # %%
-# The following commands will generate a plot of the complex NRM spectrum, and will show the imaginary and real part in the same figure.
+# The following will generate a plot of the NMR spectrum, and will show the imaginary and real part in the same figure.
 
 dnp.dnpResults.figure()
 dnp.dnpResults.plot(ws["proc"].imag, label="Imaginary")
