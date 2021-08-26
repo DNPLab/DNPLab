@@ -31,6 +31,7 @@ def exponential_fit(
     dim="t1",
     indirect_dim=None,
     ws_key="integrals",
+    initial_guess = None
 ):
     """Fits various forms of exponential functions
 
@@ -83,7 +84,10 @@ def exponential_fit(
 
     if type == "T1":
 
-        x0 = [1.0, input_data[-1], input_data[-1]]
+        if initial_guess is not None:
+            x0 = initial_guess
+        else:
+            x0 = [1.0, input_data[-1], input_data[-1]]
         if bounds:
             out, cov = curve_fit(
                 dnpMath.t1_function, x_axis, input_data, x0, bounds=bounds, method="trf"
@@ -104,7 +108,10 @@ def exponential_fit(
 
     elif type == "T2":
 
-        x0 = [input_data[0], 1.0, 1.0]
+        if initial_guess is not None:
+            x0 = initial_guess
+        else:
+            x0 = [input_data[0], 1.0, 1.0]
         if stretched:
             if bounds:
                 out, cov = curve_fit(
@@ -147,7 +154,10 @@ def exponential_fit(
 
     elif type == "mono":
 
-        x0 = [input_data[-1], 1.0, 100]
+        if initial_guess is not None:
+            x0 = initial_guess
+        else:
+            x0 = [input_data[-1], 1.0, 100]
         if bounds:
             out, cov = curve_fit(
                 dnpMath.monoexp_fit, x_axis, input_data, x0, bounds=bounds, method="trf"
@@ -168,7 +178,10 @@ def exponential_fit(
 
     elif type == "bi":
 
-        x0 = [input_data[-1], 1.0, 100, 1.0, 100]
+        if initial_guess is not None:
+            x0 = initial_guess
+        else:
+            x0 = [input_data[-1], 1.0, 100, 1.0, 100]
         if bounds:
             out, cov = curve_fit(
                 dnpMath.biexp_fit, x_axis, input_data, x0, bounds=bounds, method="trf"
