@@ -183,6 +183,8 @@ def load_acqu_proc(path="1", paramFilename="acqus", procNum=1):
                 attrsDict[lineSplit[0]] = float(lineSplit[1])
             except:
                 attrsDict[lineSplit[0]] = lineSplit[1]
+            # if lineSplit[0] in ["TD", "NS"]:
+            # print(lineSplit[0] + ": " + str(attrsDict[lineSplit[0]]))
 
     if paramFilename == "acqu" or paramFilename == "acqus":
         if not all(
