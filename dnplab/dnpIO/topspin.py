@@ -262,9 +262,10 @@ def load_fid_ser(path, type="fid"):
     if type == "fid":
         output = _dnpdata(data, [t], ["t2"], importantParamsDict)
     elif type == "ser":
-        vdList = topspin_vdlist(path)
-        if len(vdList) == int(attrsDict["TD_2"]):
-            output = _dnpdata(data, [t, vdList], ["t2", "t1"], importantParamsDict)
+        vdlist = topspin_vdlist(path)
+        importantParamsDict["vdlist"] = vdlist
+        if len(vdlist) == int(attrsDict["TD_2"]):
+            output = _dnpdata(data, [t, vdlist], ["t2", "t1"], importantParamsDict)
         else:
             output = _dnpdata(
                 data,
@@ -301,17 +302,17 @@ def topspin_vdlist(path):
         "m": 1.0e-3,
         "k": 1.0e3,
     }
-    vdList = []
+    vdlist = []
     for line in lines:
         if line[-1] in unitDict:
             value = float(line[0:-1]) * unitDict[line[-1]]
-            vdList.append(value)
+            vdlist.append(value)
         else:
             value = float(line)
-            vdList.append(value)
+            vdlist.append(value)
 
-    vdList = _np.array(vdList)
-    return vdList
+    vdlist = _np.array(vdlist)
+    return vdlist
 
 
 def load_title(
