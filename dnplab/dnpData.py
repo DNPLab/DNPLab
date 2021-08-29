@@ -41,6 +41,10 @@ class dnpdata(nddata.nddata_core):
             dims (list): list of strings which are names of axes
             attrs (dict): dictionary of parameters
         """
+
+        if isinstance(dims[0], list):
+            dims = dims[0]
+
         super().__init__(values, dims, coords, attrs)
         self.version = version
         self.proc_attrs = []
