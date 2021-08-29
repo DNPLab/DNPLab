@@ -256,15 +256,13 @@ def autophase(
         method = "manual"
 
     if method == "manual":
-        if order == "zero" and (isinstance(phase, float) or isinstance(phase, int)):
+        if order == "zero" and isinstance(phase, (int, float)):
             data.attrs["phase0"] = phase
-        elif order == "zero" and not (
-            isinstance(phase, float) or isinstance(phase, int)
-        ):
+        elif order == "zero" and not isinstance(phase, (int, float)):
             raise ValueError(
                 "for a zero order phase correction you must supply a single phase"
             )
-        elif order == "first" and (isinstance(phase, float) or isinstance(phase, int)):
+        elif order == "first" and isinstance(phase, (int, float)):
             data.attrs["phase0"] = phase
             order = "zero"
             warnings.warn(
@@ -418,12 +416,8 @@ def calculate_enhancement(
 
     else:
 
-        if (
-            isinstance(off_spectrum, dnpdata)
-            or isinstance(off_spectrum, dnpdata_collection)
-        ) and (
-            isinstance(on_spectra, dnpdata)
-            or isinstance(on_spectra, dnpdata_collection)
+        if isinstance(off_spectrum, (dnpdata, dnpdata_collection)) and isinstance(
+            on_spectra, (dnpdata, dnpdata_collection)
         ):
 
             data_off, is_ws_off = return_data(off_spectrum)
@@ -444,9 +438,9 @@ def calculate_enhancement(
                 int_width_off = "full"
                 int_width_on = "full"
             elif (
-                isinstance(integrate_width, list)
-                or isinstance(integrate_width, _np.ndarray)
-            ) and len(integrate_width) == 2:
+                isinstance(integrate_width, (list, _np.ndarray))
+                and len(integrate_width) == 2
+            ):
                 int_width_off = integrate_width[0]
                 int_width_on = integrate_width[1]
             elif isinstance(integrate_width, int):
@@ -460,9 +454,9 @@ def calculate_enhancement(
             if integrate_center == "max":
                 pass
             elif (
-                isinstance(integrate_center, list)
-                or isinstance(integrate_center, _np.ndarray)
-            ) and len(integrate_center) == 2:
+                isinstance(integrate_center, (list, _np.ndarray))
+                and len(integrate_center) == 2
+            ):
                 int_center_off = integrate_center[0]
                 int_center_on = integrate_center[1]
             elif isinstance(integrate_center, int):
@@ -535,9 +529,9 @@ def calculate_enhancement(
                 raise ValueError("data is 1D, enhancement will be equal to 1 !!")
 
             if (
-                isinstance(integrate_width, list)
-                or isinstance(integrate_width, _np.ndarray)
-            ) and len(integrate_width) > 1:
+                isinstance(integrate_width, (list, _np.ndarray))
+                and len(integrate_width) > 1
+            ):
                 raise ValueError(
                     "supply a single value for integrate_width, or use 'full'"
                 )
@@ -545,9 +539,9 @@ def calculate_enhancement(
                 raise ValueError("the only allowed integrate_width string is 'full'")
 
             if (
-                isinstance(integrate_center, list)
-                or isinstance(integrate_center, _np.ndarray)
-            ) and len(integrate_center) > 1:
+                isinstance(integrate_center, (list, _np.ndarray))
+                and len(integrate_center) > 1
+            ):
                 raise ValueError(
                     "supply a single value for integrate_center, or use 'max'"
                 )
@@ -928,7 +922,7 @@ def window(
     ) == 2:
         exp_lw = linewidth[0]
         gauss_lw = linewidth[1]
-    elif isinstance(linewidth, int) or isinstance(linewidth, float):
+    elif isinstance(linewidth, (int, float)):
         exp_lw = linewidth
         gauss_lw = linewidth
     else:
