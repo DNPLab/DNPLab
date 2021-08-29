@@ -4,7 +4,6 @@ import re as _re
 from .. import dnpdata as _dnpdata
 
 import os as _os
-import warnings
 
 _dspfvs_table_10 = {
     2: 44.7500,
@@ -130,7 +129,6 @@ def import_topspin(path):
 
     Args:
         path (str): Directory of data
-        paramFilename (str): Parameters filename
 
     Returns:
         dnpdata: topspin data
@@ -152,11 +150,12 @@ def import_topspin(path):
 
 def load_acqu_proc(path="1", paramFilename="acqus", procNum=1):
     """
-    Import topspin acqus file
+    Import topspin acqu or proc files
 
     Args:
-        path (str): directory of acqusition file
-        paramFilename (str): Acqusition parameters filename
+        path (str): directory of acqu or proc file
+        paramFilename (str): parameters filename
+        procNum (int): number of the folder inside the pdata folder
 
     Returns:
         dict: Dictionary of acqusition parameters
@@ -210,11 +209,11 @@ def load_acqu_proc(path="1", paramFilename="acqus", procNum=1):
 
 def load_fid_ser(path, type="fid"):
     """
-    Import topspin ser file
+    Import topspin fid or ser file
 
     Args:
         path (str): Directory of data
-        paramFilename (str): Filename of parameters file
+        type (str): "fid" for 1D, "ser" or "serPhaseCycle" for 2D
 
     Returns:
         dnpdata: Topspin data
