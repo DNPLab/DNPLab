@@ -198,6 +198,7 @@ def align(all_data, dim="f2", dim2=None):
 def autophase(
     all_data,
     method="search",
+    points_limit=None,
     order="zero",
     pivot=0,
     delta=0,
@@ -226,6 +227,8 @@ def autophase(
     | parameter       | type         | default       | description                                       |
     +=================+==============+===============+===================================================+
     | method          | str          | 'search'      | method of searching for the best phase            |
+    +-----------------+--------------+---------------+---------------------------------------------------+
+    | points_limit    | int or None  | None          | specify the max points used in phase search       |
     +-----------------+--------------+---------------+---------------------------------------------------+
     | order           | str          | 'zero'        | order of phase correction                         |
     +-----------------+--------------+---------------+---------------------------------------------------+
@@ -300,6 +303,24 @@ def autophase(
                 / _np.sum(_np.real(temp_data.reshape(-1, 1)))
             )
         elif method == "search":
+            if points_limit is not None:
+                if len(data.coords[0]) > points_limit:
+                    phasing_x = _np.linspace(
+                        min(data.coords[0]), max(data.coords[0]), int(points_limit)
+                    ).reshape(-1)
+                    if len(data.dims) > 1:
+                        temp_data = _np.array(
+                            [
+                                _np.interp(
+                                    phasing_x, data.coords[0], data.values[:, x]
+                                ).reshape(-1)
+                                for x in range(data.shape[1])
+                            ]
+                        )
+                    elif len(data.dims) == 1:
+                        temp_data = _np.interp(
+                            phasing_x, data.coords[0], data.values
+                        ).reshape(-1)
             phases_0 = _np.linspace(-_np.pi / 2, _np.pi / 2, 180).reshape(-1)
             rotated_data = (temp_data.reshape(-1, 1)) * _np.exp(-1j * phases_0)
             real_imag_ratio = (_np.real(rotated_data) ** 2).sum(axis=0) / (
