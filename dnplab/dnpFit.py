@@ -31,7 +31,7 @@ def exponential_fit(
     dim="t1",
     indirect_dim=None,
     ws_key="integrals",
-    initial_guess = None
+    initial_guess=None,
 ):
     """Fits various forms of exponential functions
 
