@@ -91,8 +91,12 @@ def exponential_fit(
     if type == "T1":
         if p0 is None:
             x0 = [1.0, input_data[-1], input_data[-1]]
-        else:
+        elif isinstance(p0, (list, tuple)) and len(p0) == 3:
             x0 = p0
+        else:
+            raise TypeError(
+                "p0 must be a list or tuple of length=3, see the T1 function"
+            )
 
         if bounds:
             out, cov = curve_fit(
@@ -115,8 +119,12 @@ def exponential_fit(
     elif type == "T2":
         if p0 is None:
             x0 = [input_data[0], 1.0, 1.0]
-        else:
+        elif isinstance(p0, (list, tuple)) and len(p0) == 3:
             x0 = p0
+        else:
+            raise TypeError(
+                "p0 must be a list or tuple of length=3, see the T2 function"
+            )
 
         if stretched:
             if bounds:
@@ -161,8 +169,12 @@ def exponential_fit(
     elif type == "mono":
         if p0 is None:
             x0 = [input_data[-1], 1.0, 100]
-        else:
+        elif isinstance(p0, (list, tuple)) and len(p0) == 3:
             x0 = p0
+        else:
+            raise TypeError(
+                "p0 must be a list or tuple of length=3, see the mono-exponential function"
+            )
 
         if bounds:
             out, cov = curve_fit(
@@ -185,8 +197,12 @@ def exponential_fit(
     elif type == "bi":
         if p0 is None:
             x0 = [input_data[-1], 1.0, 100, 1.0, 100]
-        else:
+        elif isinstance(p0, (list, tuple)) and len(p0) == 5:
             x0 = p0
+        else:
+            raise TypeError(
+                "p0 must be a list or tuple of length=5, see the bi-exponential function"
+            )
 
         if bounds:
             out, cov = curve_fit(
@@ -260,8 +276,10 @@ def enhancement_fit(all_data, bounds=None, p0=None):
 
     if p0 is None:
         x0 = [input_data[-1], 0.1]
-    else:
+    elif isinstance(p0, (list, tuple)) and len(p0) == 2:
         x0 = p0
+    else:
+        raise TypeError("p0 must be a list or tuple of length=2, see the emax function")
 
     if bounds:
         out, cov = curve_fit(
