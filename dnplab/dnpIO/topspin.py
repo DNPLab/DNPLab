@@ -204,6 +204,14 @@ def load_acqu_proc(path="1", paramFilename="acqus", procNum=1):
         else:
             attrsDict = {x + "_2": attrsDict[x] for x in attrsDict.keys()}
 
+    elif paramFilename == "acqu3" or paramFilename == "acqu3s":
+        if not all(map(attrsDict.keys().__contains__, ["SW_h", "TD", "SFO1"])):
+            raise KeyError(
+                "Unable to find all needed fields in the " + paramFilename + " file"
+            )
+        else:
+            attrsDict = {x + "_3": attrsDict[x] for x in attrsDict.keys()}
+
     return attrsDict
 
 
