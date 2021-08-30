@@ -30,7 +30,6 @@ def exponential_fit(
     bounds=None,
     p0=None,
     dim="t1",
-    indirect_dim=None,
     ws_key="integrals",
 ):
     """Fits various forms of exponential functions
@@ -52,8 +51,6 @@ def exponential_fit(
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | parameter     | type  | default     | description                                                                       |
     +===============+=======+=============+===================================================================================+
-    | dim           | str   | "f2"        | dimension to fit down                                                             |
-    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | type          | str   | "mono"      | "T1" for inversion recovery fit, "T2" for stretched exponential, "mono", or "bi"  |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | stretch       | bool  | False       | if False "p" is set to 1, if True "p" is a fit parameter                          |
@@ -63,8 +60,6 @@ def exponential_fit(
     | p0            | list  | None        | initial guesses for fit parameters                                                |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | dim           | str   | "t1"        | direct dimension                                                                  |
-    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
-    | indirect_dim  | str   | None        | indirect dimension                                                                |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | ws_key        | str   | "integrals" | if False "p" is set to 1, if True "p" is a fit parameter                          |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
@@ -232,7 +227,7 @@ def exponential_fit(
         return fit_data
 
 
-def enhancement_fit(all_data, bounds=None, p0=None):
+def enhancement_fit(all_data, dim="power", bounds=None, p0=None):
     """Fits enhancement curves to return Emax and power and one half maximum saturation
 
     .. math::
@@ -241,12 +236,13 @@ def enhancement_fit(all_data, bounds=None, p0=None):
 
     Args:
         all_data (dnpdata, dict): data container
+        dim (str): name of power dimension
         bounds (tuple): bounds on fit parameters
         p0 (list): initial guesses for fit parameters
 
     Returns:
-        all_data (dnpdata, dict): Processed data in container, updated with fit data
-        attributes: Emax, Emax standard deviation, p_one_half, and p_one_half standard deviation
+        fit_data (dnpdata): Processed data in container, updated with fit data
+        attrs (dict): Emax, Emax standard deviation, p_one_half, and p_one_half standard deviation
 
     Example::
 
@@ -270,7 +266,7 @@ def enhancement_fit(all_data, bounds=None, p0=None):
     if "enhancements" not in all_data.keys():
         raise TypeError("please use dnpNMR.calculate_enhancement() first")
 
-    power_axes = all_data["enhancements"].coords["power"]
+    power_axes = all_data["enhancements"].coords[dim]
 
     input_data = _np.real(all_data["enhancements"].values)
 
@@ -298,7 +294,7 @@ def enhancement_fit(all_data, bounds=None, p0=None):
     stdd = _np.sqrt(_np.diag(cov))
     fit = dnpMath.buildup_function(power_axes, out[0], out[1])
 
-    fit_data = dnpdata(fit, [power_axes], ["power"])
+    fit_data = dnpdata(fit, [power_axes], [dim])
     fit_data.attrs["E_max"] = out[0]
     fit_data.attrs["E_max_stdd"] = stdd[0]
     fit_data.attrs["power_half"] = out[1]
