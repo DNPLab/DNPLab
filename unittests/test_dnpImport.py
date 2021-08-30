@@ -11,20 +11,6 @@ class import_topspin_tester(unittest.TestCase):
     def setUp(self):
         self.testdata = os.path.join(".", "data", "topspin")
 
-    def test_dir_data_type(self):
-        self.assertEqual(
-            "fid", topspin.dir_data_type(os.path.join(self.testdata, str(1)))
-        )
-        self.assertEqual(
-            "serPhaseCycle", topspin.dir_data_type(os.path.join(self.testdata, str(5)))
-        )
-        self.assertEqual(
-            "ser", topspin.dir_data_type(os.path.join(self.testdata, str(28)))
-        )
-        self.assertEqual(
-            "", topspin.dir_data_type(os.path.join(self.testdata, str(33)))
-        )
-
     def test_import_topspin_exp1_is_fid(self):
         data = wrapper.load(os.path.join(self.testdata, str(1)), data_type="topspin")
         self.assertEqual(data.dims[0], "t2")

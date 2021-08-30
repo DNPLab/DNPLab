@@ -201,19 +201,18 @@ def integrate(
 
     if integrate_width == "full":
         pass
-    elif (isinstance(integrate_width, int) or isinstance(integrate_width, float)) and (
-        isinstance(integrate_center, int) or isinstance(integrate_center, float)
+    elif isinstance(integrate_width, (int, float)) and isinstance(
+        integrate_center, (int, float)
     ):
         integrateMin = integrate_center - np.abs(integrate_width) / 2.0
         integrateMax = integrate_center + np.abs(integrate_width) / 2.0
         data = data[dim, (integrateMin, integrateMax)]
 
     elif (
-        (isinstance(integrate_width, list) and isinstance(integrate_center, list))
-        and (all((isinstance(x, int) or isinstance(x, float)) for x in integrate_width))
-        and (
-            all((isinstance(x, int) or isinstance(x, float)) for x in integrate_center)
-        )
+        isinstance(integrate_width, list)
+        and isinstance(integrate_center, list)
+        and all((isinstance(x, (int, float)) for x in integrate_width))
+        and all((isinstance(x, (int, float)) for x in integrate_center))
     ):
         if len(integrate_width) != len(integrate_center):
             raise TypeError(
@@ -229,9 +228,10 @@ def integrate(
         for mx, mn in enumerate(integrateMin):
             data_new.append(data[dim, (mn, integrateMax[mx])])
     elif (
-        (isinstance(integrate_width, int) or isinstance(integrate_width, float))
+        isinstance(integrate_width, (int, float))
         and isinstance(integrate_center, list)
-    ) and (all((isinstance(x, int) or isinstance(x, float)) for x in integrate_center)):
+        and all((isinstance(x, (int, float)) for x in integrate_center))
+    ):
         integrateMin = []
         integrateMax = []
         for cent in integrate_center:
@@ -515,12 +515,10 @@ def signal_to_noise(
 
     data, isDict = return_data(all_data)
 
-    if signal_width == "full" and (
-        isinstance(signal_center, int) or isinstance(signal_center, float)
-    ):
+    if signal_width == "full" and isinstance(signal_center, (int, float)):
         s_data = data.real
-    elif (isinstance(signal_width, int) or isinstance(signal_width, float)) and (
-        isinstance(signal_center, int) or isinstance(signal_center, float)
+    elif isinstance(signal_width, (int, float)) and isinstance(
+        signal_center, (int, float)
     ):
         signalMin = signal_center - np.abs(signal_width) / 2.0
         signalMax = signal_center + np.abs(signal_width) / 2.0
@@ -533,18 +531,14 @@ def signal_to_noise(
     if noise_center == "default" and noise_width == "default":
         noise_width = 0.05 * (max(data.coords[dim]) - min(data.coords[dim]))
         noise_center = max(data.coords[dim]) - (np.abs(noise_width) / 2.0)
-    elif (
-        isinstance(noise_center, int) or isinstance(noise_center, float)
-    ) and noise_width == "default":
+    elif isinstance(noise_center, (int, float)) and noise_width == "default":
         noise_width = 0.05 * (max(data.coords[dim]) - min(data.coords[dim]))
         if noise_center + (np.abs(noise_width) / 2.0) > max(data.coords[dim]):
             noise_width = 2 * (max(data.coords[dim]) - noise_center)
-    elif (
-        isinstance(noise_width, int) or isinstance(noise_width, float)
-    ) and noise_center == "default":
+    elif isinstance(noise_width, (int, float)) and noise_center == "default":
         noise_center = max(data.coords[dim]) - (np.abs(noise_width) / 2.0)
-    elif (isinstance(noise_width, int) or isinstance(noise_width, float)) and (
-        isinstance(noise_center, int) or isinstance(noise_center, float)
+    elif isinstance(noise_width, (int, float)) and isinstance(
+        noise_center, (int, float)
     ):
         pass
     else:
