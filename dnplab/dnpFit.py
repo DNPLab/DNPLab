@@ -58,9 +58,9 @@ def exponential_fit(
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | stretch       | bool  | False       | if False "p" is set to 1, if True "p" is a fit parameter                          |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
-    | bounds        | tuple | None        | bounds on parameters for fitting                                                  |
+    | bounds        | tuple | None        | bounds on fit parameters                                                          |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
-    | p0            | list  | None        | initial guesses for parameters for fitting                                        |
+    | p0            | list  | None        | initial guesses for fit parameters                                                |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | dim           | str   | "t1"        | direct dimension                                                                  |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
@@ -225,8 +225,8 @@ def enhancement_fit(all_data, bounds=None, p0=None):
 
     Args:
         all_data (dnpdata, dict): data container
-        bounds (tuple): bounds on parameters for fit
-        p0 (list): initial guesses for fit
+        bounds (tuple): bounds on fit parameters
+        p0 (list): initial guesses for fit parameters
 
     Returns:
         all_data (dnpdata, dict): Processed data in container, updated with fit data
@@ -262,7 +262,7 @@ def enhancement_fit(all_data, bounds=None, p0=None):
         x0 = [input_data[-1], 0.1]
     else:
         x0 = p0
-        
+
     if bounds:
         out, cov = curve_fit(
             dnpMath.buildup_function,
