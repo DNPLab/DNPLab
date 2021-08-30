@@ -159,7 +159,12 @@ def baseline(
 
 
 def integrate(
-    all_data, dim="f2", type="single", integrate_center=0, integrate_width="full"
+    all_data,
+    dim="f2",
+    indirect_dim=None,
+    type="single",
+    integrate_center=0,
+    integrate_width="full",
 ):
     """Integrate data down given dimension
 
@@ -170,6 +175,8 @@ def integrate(
     | parameter        | type          | default  | description                   |
     +==================+===============+==========+===============================+
     | dim              | str           | 'f2'     | dimension to integrate        |
+    +------------------+---------------+----------+-------------------------------+
+    | indirect_dim     | str           | None     | indirect dimension for > 2D   |
     +------------------+---------------+----------+-------------------------------+
     | type             | str           | 'single' | 'single' or 'double' integral |
     +------------------+---------------+----------+-------------------------------+
@@ -185,12 +192,17 @@ def integrate(
     data, isDict = return_data(all_data)
     index = data.index(dim)
 
-    if len(data.dims) == 2:
-        ind_dim = list(set(data.dims) - set([dim]))[0]
-        indirect_coords = data.coords[ind_dim]
-    elif len(data.dims) == 1:
-        ind_dim = "index"
-        indirect_coords = [0]
+    if not indirect_dim:
+        if len(data.dims) == 2:
+            ind_dim = list(set(data.dims) - set([dim]))[0]
+        elif len(data.dims) == 1:
+            ind_dim = data.dims[0]
+        else:
+            raise ValueError(
+                "you must specify the indirect dimension, use argument indirect_dim= "
+            )
+    else:
+        ind_dim = indirect_dim
 
     data_new = None
     if type == "double":
@@ -252,15 +264,15 @@ def integrate(
             data_integrals.append(np.trapz(x.values, x=x.coords[dim], axis=index))
 
         data.values = np.array(data_integrals)
-        int_coords = [integrate_center, indirect_coords]
-        indirect_dim = ["center", ind_dim]
+        int_coords = [integrate_center, data.coords[ind_dim]]
+        ind_dim = ["center", ind_dim]
 
     else:
         data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
-        int_coords = [indirect_coords]
-        indirect_dim = [ind_dim]
+        int_coords = [data.coords[ind_dim]]
+        ind_dim = [ind_dim]
 
-    integrate_data = dnpdata(data.values, int_coords, indirect_dim)
+    integrate_data = dnpdata(data.values, int_coords, ind_dim)
     if type == "double":
         integrate_data.attrs["first_integral"] = first_int
 
