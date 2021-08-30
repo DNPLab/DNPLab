@@ -95,13 +95,10 @@ def exponential_fit(
         else:
             x0 = p0
 
-<<<<<<< HEAD
         if initial_guess is not None:
             x0 = initial_guess
         else:
             x0 = [1.0, input_data[-1], input_data[-1]]
-=======
->>>>>>> develop
         if bounds:
             out, cov = curve_fit(
                 dnpMath.t1_function, x_axis, input_data, x0, bounds=bounds, method="trf"
@@ -126,13 +123,10 @@ def exponential_fit(
         else:
             x0 = p0
 
-<<<<<<< HEAD
         if initial_guess is not None:
             x0 = initial_guess
         else:
             x0 = [input_data[0], 1.0, 1.0]
-=======
->>>>>>> develop
         if stretched:
             if bounds:
                 out, cov = curve_fit(
@@ -179,13 +173,10 @@ def exponential_fit(
         else:
             x0 = p0
 
-<<<<<<< HEAD
         if initial_guess is not None:
             x0 = initial_guess
         else:
             x0 = [input_data[-1], 1.0, 100]
-=======
->>>>>>> develop
         if bounds:
             out, cov = curve_fit(
                 dnpMath.monoexp_fit, x_axis, input_data, x0, bounds=bounds, method="trf"
@@ -210,13 +201,10 @@ def exponential_fit(
         else:
             x0 = p0
 
-<<<<<<< HEAD
         if initial_guess is not None:
             x0 = initial_guess
         else:
             x0 = [input_data[-1], 1.0, 100, 1.0, 100]
-=======
->>>>>>> develop
         if bounds:
             out, cov = curve_fit(
                 dnpMath.biexp_fit, x_axis, input_data, x0, bounds=bounds, method="trf"
