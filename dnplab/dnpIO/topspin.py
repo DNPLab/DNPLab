@@ -248,6 +248,19 @@ def load_fid_ser(path, type="fid"):
     for a in attrsDict_list:
         attrsDict.update(a)
 
+    importantParamsDict = {
+        "nmr_frequency": attrsDict["SFO1"] * 1e6,
+        "SW_h": attrsDict["SW_h"],
+        "TD": attrsDict["TD"],
+    }
+
+    higher_dim_pars = {
+        x: attrsDict[x]
+        for x in ["SW_h_2", "TD_2", "SFO1_2", "SW_h_3", "TD_3", "SFO1_3"]
+        if x in attrsDict.keys()
+    }
+    importantParamsDict.update(higher_dim_pars)
+
     if attrsDict["BYTORDA"] == 0:
         endian = "<"
     else:
@@ -279,13 +292,11 @@ def load_fid_ser(path, type="fid"):
 
     data = data / attrsDict["RG"]
 
-    importantParamsDict = {"nmr_frequency": attrsDict["SFO1"] * 1e6}
-
     if type == "fid":
         output = _dnpdata(data, [t], ["t2"], importantParamsDict)
     elif type == "ser":
         vdlist = topspin_vdlist(path)
-        importantParamsDict["vdlist"] = vdlist
+        importantParamsDict["VDLIST"] = vdlist
         if len(vdlist) == int(attrsDict["TD_2"]):
             output = _dnpdata(data, [t, vdlist], ["t2", "t1"], importantParamsDict)
         else:
