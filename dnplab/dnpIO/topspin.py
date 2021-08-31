@@ -162,7 +162,7 @@ def load_acqu_proc(path="1", paramFilename="acqus", procNum=1):
     """
 
     if "proc" in paramFilename:
-        pathFilename = _os.path.joing(path, "pdata", str(procNum), paramFilename)
+        pathFilename = _os.path.join(path, "pdata", str(procNum), paramFilename)
     else:
         pathFilename = _os.path.join(path, paramFilename)
 
@@ -185,32 +185,45 @@ def load_acqu_proc(path="1", paramFilename="acqus", procNum=1):
             # if lineSplit[0] in ["TD", "NS"]:
             # print(lineSplit[0] + ": " + str(attrsDict[lineSplit[0]]))
 
-    if paramFilename == "acqu" or paramFilename == "acqus":
+    needed_params = [
+        "SW_h",
+        "RG",
+        "DECIM",
+        "DSPFIRM",
+        "DSPFVS",
+        "BYTORDA",
+        "TD",
+        "SFO1",
+    ]
+    needed_params_2 = ["SW_h", "TD", "SFO1"]
+    if paramFilename in ["acqu", "acqus"]:
         if not all(
             map(
                 attrsDict.keys().__contains__,
-                ["SW_h", "RG", "DECIM", "DSPFVS", "BYTORDA", "TD", "SFO1"],
+                needed_params,
             )
         ):
             raise KeyError(
                 "Unable to find all needed fields in the " + paramFilename + " file"
             )
+        else:
+            attrsDict = {x: attrsDict[x] for x in needed_params}
 
-    elif paramFilename == "acqu2" or paramFilename == "acqu2s":
-        if not all(map(attrsDict.keys().__contains__, ["SW_h", "TD", "SFO1"])):
+    elif paramFilename in ["acqu2", "acqu2s"]:
+        if not all(map(attrsDict.keys().__contains__, needed_params_2)):
             raise KeyError(
                 "Unable to find all needed fields in the " + paramFilename + " file"
             )
         else:
-            attrsDict = {x + "_2": attrsDict[x] for x in attrsDict.keys()}
+            attrsDict = {x + "_2": attrsDict[x] for x in needed_params_2}
 
-    elif paramFilename == "acqu3" or paramFilename == "acqu3s":
-        if not all(map(attrsDict.keys().__contains__, ["SW_h", "TD", "SFO1"])):
+    elif paramFilename in ["acqu3", "acqu3s"]:
+        if not all(map(attrsDict.keys().__contains__, needed_params_2)):
             raise KeyError(
                 "Unable to find all needed fields in the " + paramFilename + " file"
             )
         else:
-            attrsDict = {x + "_3": attrsDict[x] for x in attrsDict.keys()}
+            attrsDict = {x + "_3": attrsDict[x] for x in needed_params_2}
 
     return attrsDict
 
@@ -226,12 +239,14 @@ def load_fid_ser(path, type="fid"):
     Returns:
         dnpdata: Topspin data
     """
-    acqusDict = load_acqu_proc(path, "acqus")
-    if type == "fid":
-        attrsDict = acqusDict
-    else:
-        acqu2sDict = load_acqu_proc(path, "acqu2s")
-        attrsDict = {**acqusDict, **acqu2sDict}
+    attrsDict_list = [
+        load_acqu_proc(path, x)
+        for x in ["acqus", "acqu2s", "acqu3s"]
+        if _os.path.exists(_os.path.join(path, x))
+    ]
+    attrsDict = {}
+    for a in attrsDict_list:
+        attrsDict.update(a)
 
     if attrsDict["BYTORDA"] == 0:
         endian = "<"
