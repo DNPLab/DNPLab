@@ -504,3 +504,74 @@ def create_workspace(*args):
         dnpdata_collection: workspace object
     """
     return dnpdata_collection(*args)
+
+
+def return_data(all_data, key="proc"):
+    """
+    Return data and bool indicating dnpdata or dnpdata_collection.
+
+    Args:
+        all_data (dnpdata or dnpdata_collection): dnpdata object or workspace
+        key (str): workspace key to look for if dnpdata_collection
+
+    Returns:
+        data (dnpdata): dnpdata object
+        is_workspace (bool): True if dnpdata_collection
+    """
+
+    is_workspace = False
+    if isinstance(all_data, dnpdata):
+        data = all_data.copy()
+    elif isinstance(all_data, dnpdata_collection):
+        is_workspace = True
+        if key in all_data.keys():
+            data = all_data[key]
+        else:
+            raise ValueError("No data in " + key)
+    else:
+        raise ValueError("Data type not supported")
+
+    return data, is_workspace
+
+
+def concat(data_list, dim, coord=None):
+    """Concatenates list of data objects down another dimension
+
+    args:
+        data_list (list): List of dnpdata objects to concatentate
+        dim (str): new dimension name
+        coord: coords for new dimension
+
+    Returns:
+        data (dnpdata): concatenated data object
+
+    """
+
+    shape = data_list[0].shape
+    values_list = [data.values for data in data_list]
+
+    for values in values_list:
+        this_shape = values.shape
+        if this_shape != shape:
+            raise IndexError(
+                "Cannot concatenate data objects. Array shapes do not match.",
+                this_shape,
+                shape,
+            )
+
+    dims = data_list[0].dims
+    coords = data_list[0].coords.coords
+    attrs = data_list[0].attrs
+
+    values = np.stack(values_list, axis=-1)
+
+    dims.append(dim)
+
+    if coord is None:
+        coords.append(values_list)
+    else:
+        coords.append(coord)
+
+    data = dnpdata(values, coords, dims, attrs)
+
+    return data

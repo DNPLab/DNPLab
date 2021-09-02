@@ -1,76 +1,13 @@
-from . import dnpMath, dnpNMR, dnpdata, dnpdata_collection
+from . import dnpMath, dnpNMR, return_data, dnpdata, dnpdata_collection
 import numpy as np
 import scipy.integrate
 
 from .mrProperties import gmrProperties, radicalProperties
 
 
-def concat(data_list, dim, coord=None):
-    """Concatenates list of data objects down another dimension
-
-    args:
-        data_list (list): List of dnpdata objects to concatentate
-        dim (str): new dimension name
-        coord: coords for new dimension
-
-    Returns:
-        data (dnpdata): concatenated data object
-
-    """
-
-    shape = data_list[0].shape
-    values_list = [data.values for data in data_list]
-
-    for values in values_list:
-        this_shape = values.shape
-        if this_shape != shape:
-            raise IndexError(
-                "Cannot concatenate data objects. Array shapes do not match.",
-                this_shape,
-                shape,
-            )
-
-    dims = data_list[0].dims
-    coords = data_list[0].coords.coords
-    attrs = data_list[0].attrs
-
-    values = np.stack(values_list, axis=-1)
-
-    dims.append(dim)
-
-    if coord is None:
-        coords.append(values_list)
-    else:
-        coords.append(coord)
-
-    data = dnpdata(values, coords, dims, attrs)
-
-    return data
-
-
-def return_data(all_data):
-
-    is_workspace = False
-    if isinstance(all_data, dnpdata):
-        data = all_data.copy()
-    elif isinstance(all_data, dict):
-        raise ValueError("Type dict is not supported")
-    elif isinstance(all_data, dnpdata_collection):
-        is_workspace = True
-        if all_data.processing_buffer in all_data.keys():
-            data = all_data[all_data.processing_buffer]
-        else:
-            raise ValueError("No data in processing buffer")
-    else:
-        raise ValueError("Data type not supported")
-
-    return data, is_workspace
-
-
 def baseline(
     all_data,
     dim="f2",
-    indirect_dim=None,
     type="polynomial",
     order=1,
     reference_slice=None,
@@ -85,8 +22,6 @@ def baseline(
     +=================+======+===============+===================================================+
     | dim             | str  | 'f2'          | Dimension to apply baseline correction            |
     +-----------------+------+---------------+---------------------------------------------------+
-    | indirect_dim    | str  | None          | indirect dimension                                |
-    +-----------------+------+---------------+---------------------------------------------------+
     | type            | str  | 'polynomial'  | type of baseline fit                              |
     +-----------------+------+---------------+---------------------------------------------------+
     | order           | int  | 1             | polynomial order, or 1=mono 2=bi exponential      |
@@ -100,18 +35,6 @@ def baseline(
 
     data, isDict = return_data(all_data)
 
-    if not indirect_dim:
-        if len(data.dims) == 2:
-            ind_dim = list(set(data.dims) - set([dim]))[0]
-        elif len(data.dims) == 1:
-            ind_dim = data.dims[0]
-        else:
-            raise ValueError(
-                "you must specify the indirect dimension, use argument indirect_dim= "
-            )
-    else:
-        ind_dim = indirect_dim
-
     if reference_slice is not None:
         if len(np.shape(data.values)) == 1:
             reference_slice = None
@@ -119,28 +42,24 @@ def baseline(
         else:
             reference_slice -= 1
 
-    if len(np.shape(data.values)) == 2:
+    if len(data.dims) == 1:
+        bline = dnpMath.baseline_fit(data.coords[dim], data.values, type, order)
+        data.values -= bline
+    else:
         if reference_slice is not None:
             bline = dnpMath.baseline_fit(
                 data.coords[dim], data.values[:, reference_slice], type, order
             )
-            for ix in range(len(data.coords[ind_dim])):
+            for ix in range(data.values.shape[1]):
                 data.values[:, ix] -= bline
         elif reference_slice is None:
-            for ix in range(len(data.coords[ind_dim])):
+            for ix in range(data.values.shape[1]):
                 bline = dnpMath.baseline_fit(
                     data.coords[dim], data.values[:, ix], type, order
                 )
                 data.values[:, ix] -= bline
         else:
             raise TypeError("invalid reference_slice")
-
-    elif len(np.shape(data.values)) == 1:
-        bline = dnpMath.baseline_fit(data.coords[dim], data.values, type, order)
-        data.values -= bline
-
-    else:
-        raise ValueError("1D or 2D only")
 
     proc_parameters = {
         "dim": dim,
@@ -161,7 +80,6 @@ def baseline(
 def integrate(
     all_data,
     dim="f2",
-    indirect_dim=None,
     type="single",
     integrate_center=0,
     integrate_width="full",
@@ -176,8 +94,6 @@ def integrate(
     +==================+===============+==========+===============================+
     | dim              | str           | 'f2'     | dimension to integrate        |
     +------------------+---------------+----------+-------------------------------+
-    | indirect_dim     | str           | None     | indirect dimension for > 2D   |
-    +------------------+---------------+----------+-------------------------------+
     | type             | str           | 'single' | 'single' or 'double' integral |
     +------------------+---------------+----------+-------------------------------+
     | integrate_center | float or list | 0        | center of integration window  |
@@ -191,18 +107,6 @@ def integrate(
 
     data, isDict = return_data(all_data)
     index = data.index(dim)
-
-    if not indirect_dim:
-        if len(data.dims) == 2:
-            ind_dim = list(set(data.dims) - set([dim]))[0]
-        elif len(data.dims) == 1:
-            ind_dim = data.dims[0]
-        else:
-            raise ValueError(
-                "you must specify the indirect dimension, use argument indirect_dim= "
-            )
-    else:
-        ind_dim = indirect_dim
 
     data_new = None
     if type == "double":
@@ -264,15 +168,18 @@ def integrate(
             data_integrals.append(np.trapz(x.values, x=x.coords[dim], axis=index))
 
         data.values = np.array(data_integrals)
-        int_coords = [integrate_center, data.coords[ind_dim]]
-        ind_dim = ["center", ind_dim]
 
     else:
         data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
-        int_coords = [data.coords[ind_dim]]
-        ind_dim = [ind_dim]
 
-    integrate_data = dnpdata(data.values, int_coords, ind_dim)
+    remaining_dims = [x for x in data.dims if x != dim]
+    if len(remaining_dims) == 0:
+        remaining_dims = ["index"]
+        remaining_coords = [np.array([0])]
+    else:
+        remaining_coords = [data.coords[x] for x in data.dims if x != dim]
+
+    integrate_data = dnpdata(data.values, remaining_coords, remaining_dims)
     if type == "double":
         integrate_data.attrs["first_integral"] = first_int
 
@@ -562,20 +469,14 @@ def signal_to_noise(
     noiseMax = noise_center + np.abs(noise_width) / 2.0
     n_data = data[dim, (noiseMin, noiseMax)].real
 
-    if data.ndim == 2:
-        sig = []
-        noi = []
-        for ix in range(data.shape[1]):
-            sig.append(s_data.values[np.argmax(s_data.values[:, ix], axis=0), ix])
-            noi.append(np.std(n_data.values[:, ix], axis=0))
-
-        s_n = np.array(sig) / np.array(noi)
-    elif data.ndim == 1:
-        s_n = s_data.values[np.argmax(s_data.values, axis=0)] / np.std(
-            n_data.values, axis=0
-        )
+    if len(data.dims) == 1:
+        s_n = s_data.values[np.argmax(s_data.values)] / np.std(n_data.values)
     else:
-        raise TypeError("only 1D or 2D data currently supported")
+        s_n = [
+            s_data.values[np.argmax(s_data.values[:, ix], axis=0), ix]
+            / np.std(n_data.values[:, ix], axis=0)
+            for ix in range(s_data.values.shape[1])
+        ]
 
     data.attrs["s_n"] = s_n
     data.attrs["signal"] = s_data

@@ -181,22 +181,13 @@ class dnpNMR_tester(unittest.TestCase):
         nmr.window(self.ws, linewidth=15)
         nmr.fourier_transform(self.ws, zero_fill_factor=2)
         nmr.autophase(self.ws, method="arctan")
-
         ws = copy.deepcopy(self.ws)
-
-        nmr.calculate_enhancement(
-            self.ws,
-            off_spectrum=1,
-            on_spectra="all",
-            integrate_center=0,
-            integrate_width="full",
-            method="integrate",
-            dim="f2",
-        )
+        dnp.dnpTools.integrate(self.ws, integrate_center=0, integrate_width="full")
+        nmr.calculate_enhancement(self.ws)
 
         self.assertAlmostEqual(self.ws["enhancements"].values[0], 1.0, places=6)
         self.assertAlmostEqual(
-            self.ws["enhancements"].values[-1], -1.3615844024369856, places=6
+            self.ws["enhancements"].values[-1], -1.3474199443567987, places=6
         )
 
         nmr.remove_offset(self.ws_off)
@@ -207,7 +198,7 @@ class dnpNMR_tester(unittest.TestCase):
         nmr.calculate_enhancement(
             self.ws_off,
             off_spectrum=self.ws_off["proc"],
-            on_spectra=self.ws["proc"],
+            on_spectra=ws["proc"],
             integrate_center="max",
             integrate_width="full",
             method="amplitude",
@@ -219,14 +210,6 @@ class dnpNMR_tester(unittest.TestCase):
         )
         self.assertAlmostEqual(
             self.ws_off["enhancements"].values[-1], 0.004154668257187268, places=6
-        )
-
-        dnp.dnpTools.integrate(ws, integrate_center=0, integrate_width="full")
-        nmr.calculate_enhancement(ws, off_spectrum=1)
-
-        self.assertAlmostEqual(ws["enhancements"].values[0], 1.0, places=6)
-        self.assertAlmostEqual(
-            ws["enhancements"].values[-1], -1.3615844024369856, places=6
         )
 
 

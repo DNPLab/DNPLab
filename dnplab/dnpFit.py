@@ -1,26 +1,8 @@
 from . import dnpdata as dnpdata, dnpdata_collection
+from . import return_data
 from . import dnpMath
 import numpy as _np
 from scipy.optimize import curve_fit
-
-
-def return_data(all_data):
-
-    is_workspace = False
-    if isinstance(all_data, dnpdata):
-        data = all_data.copy()
-    elif isinstance(all_data, dict):
-        raise ValueError("Type dict is not supported")
-    elif isinstance(all_data, dnpdata_collection):
-        is_workspace = True
-        if all_data.processing_buffer in all_data.keys():
-            data = all_data[all_data.processing_buffer]
-        else:
-            raise ValueError("No data in processing buffer")
-    else:
-        raise ValueError("Data type not supported")
-
-    return data, is_workspace
 
 
 def exponential_fit(
@@ -263,12 +245,15 @@ def enhancement_fit(all_data, dim="power", bounds=None, p0=None):
 
     data, isDict = return_data(all_data)
 
-    if "enhancements" not in all_data.keys():
-        raise TypeError("please use dnpNMR.calculate_enhancement() first")
-
-    power_axes = all_data["enhancements"].coords[dim]
-
-    input_data = _np.real(all_data["enhancements"].values)
+    if isDict:
+        if "enhancements" not in all_data.keys():
+            raise TypeError("please use dnpNMR.calculate_enhancement() first")
+        else:
+            power_axes = all_data["enhancements"].coords[dim]
+            input_data = _np.real(all_data["enhancements"].values)
+    else:
+        power_axes = data.coords[dim]
+        input_data = _np.real(data.values)
 
     if p0 is None:
         x0 = [input_data[-1], 0.1]
