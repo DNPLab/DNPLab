@@ -42,7 +42,7 @@ class dnpdata(nddata.nddata_core):
             attrs (dict): dictionary of parameters
         """
 
-        if isinstance(dims[0], list):
+        if len(dims) > 0 and isinstance(dims[0], list):
             dims = dims[0]
 
         super().__init__(values, dims, coords, attrs)

@@ -178,8 +178,8 @@ def integrate(
 
     remaining_dims = [x for x in data.dims if x != dim]
     if len(remaining_dims) == 0:
-        remaining_dims = ["index"]
-        remaining_coords = [np.array([0])]
+        remaining_dims = []
+        remaining_coords = []
     else:
         remaining_coords = [data.coords[x] for x in remaining_dims]
 
@@ -211,7 +211,7 @@ def integrate(
     else:
         data_values = np.trapz(data_new.values, x=data_new.coords[dim], axis=index)
 
-    integrate_data = dnpdata(data_values, remaining_coords, remaining_dims)
+    integrate_data = dnpdata(np.array(data_values), remaining_coords, remaining_dims)
 
     integrate_data.attrs["integrate_center"] = integrate_center
     integrate_data.attrs["integrate_width"] = integrate_width
