@@ -380,12 +380,14 @@ def calculate_enhancement(
     _, isDict = return_data(all_data)
 
     if isDict and "integrals" in all_data.keys():
-        enh = (
+        enh = _np.array(
             all_data["integrals"].values.real
             / all_data["integrals"].values.real[off_spectrum - 1]
         )
         enhancement_data = dnpdata(
-            enh, [all_data["integrals"].coords], [all_data["integrals"].dims]
+            enh,
+            [all_data["integrals"].coords[x] for x in all_data["integrals"].dims],
+            all_data["integrals"].dims,
         )
 
     elif isinstance(off_spectrum, dnpdata) and isinstance(on_spectra, dnpdata):
@@ -445,8 +447,10 @@ def calculate_enhancement(
                 integrate_width=int_width_on,
             )
 
-            enh = on_data.values.real / off_data.values.real
-            enhancement_data = dnpdata(enh, [data_on.coords[dim]], [data_on.dims])
+            enh = _np.array(on_data.values.real / off_data.values.real)
+            enhancement_data = dnpdata(
+                enh, [on_data.coords[x] for x in on_data.dims], on_data.dims
+            )
 
         elif method == "amplitude":
             if integrate_center == "max":

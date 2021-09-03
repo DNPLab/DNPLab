@@ -206,10 +206,10 @@ class dnpNMR_tester(unittest.TestCase):
         )
 
         self.assertAlmostEqual(
-            self.ws_off["enhancements"].values[0], -0.005967949713665632, places=6
+            self.ws_off["enhancements"].values[0], -0.8783961394424274, places=6
         )
         self.assertAlmostEqual(
-            self.ws_off["enhancements"].values[-1], 0.004154668257187268, places=6
+            self.ws_off["enhancements"].values[-1], 0.9658179866930302, places=6
         )
 
 

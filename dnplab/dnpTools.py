@@ -108,12 +108,13 @@ def integrate(
     data, isDict = return_data(all_data)
     index = data.index(dim)
 
-    data_new = None
     if type == "double":
         first_int = scipy.integrate.cumtrapz(
             data.values, x=data.coords[dim], axis=index, initial=0
         )
-        data.values = first_int
+        data_new = dnpdata(first_int, data.coords, data.dims)
+    else:
+        data_new = data.copy()
 
     if integrate_width == "full":
         pass
@@ -122,7 +123,7 @@ def integrate(
     ):
         integrateMin = integrate_center - np.abs(integrate_width) / 2.0
         integrateMax = integrate_center + np.abs(integrate_width) / 2.0
-        data = data[dim, (integrateMin, integrateMax)]
+        data_new = data_new[dim, (integrateMin, integrateMax)]
 
     elif (
         isinstance(integrate_width, list)
@@ -135,51 +136,84 @@ def integrate(
                 "If integrate_center and integrate_width are both lists, they must be the same length"
             )
 
-        integrateMin = []
-        integrateMax = []
-        for x, cent in enumerate(integrate_center):
-            integrateMin.append((cent - np.abs(integrate_width[x]) / 2.0))
-            integrateMax.append((cent + np.abs(integrate_width[x]) / 2.0))
-        data_new = []
-        for mx, mn in enumerate(integrateMin):
-            data_new.append(data[dim, (mn, integrateMax[mx])])
+        integrateMinMax = [
+            [
+                (cent - np.abs(integrate_width[x]) / 2.0),
+                (cent + np.abs(integrate_width[x]) / 2.0),
+            ]
+            for x, cent in enumerate(integrate_center)
+        ]
+        data_new = [data_new[dim, (mx[0], mx[1])] for mx in integrateMinMax]
     elif (
         isinstance(integrate_width, (int, float))
         and isinstance(integrate_center, list)
         and all((isinstance(x, (int, float)) for x in integrate_center))
     ):
-        integrateMin = []
-        integrateMax = []
-        for cent in integrate_center:
-            integrateMin.append((cent - np.abs(integrate_width) / 2.0))
-            integrateMax.append((cent + np.abs(integrate_width) / 2.0))
-        data_new = []
-        for mx, mn in enumerate(integrateMin):
-            data_new.append(data[dim, (mn, integrateMax[mx])])
+        integrateMinMax = [
+            [
+                (cent - np.abs(integrate_width) / 2.0),
+                (cent + np.abs(integrate_width) / 2.0),
+            ]
+            for cent in integrate_center
+        ]
+        data_new = [data_new[dim, (mx[0], mx[1])] for mx in integrateMinMax]
+
+    elif (
+        isinstance(integrate_center, (int, float))
+        and isinstance(integrate_width, list)
+        and all((isinstance(x, (int, float)) for x in integrate_width))
+    ):
+        integrateMinMax = [
+            [
+                (integrate_center - np.abs(wid) / 2.0),
+                (integrate_center + np.abs(wid) / 2.0),
+            ]
+            for wid in integrate_width
+        ]
+        data_new = [data_new[dim, (mx[0], mx[1])] for mx in integrateMinMax]
 
     else:
         raise ValueError(
             "integrate_width must be 'full', int, float, or list of int or float; integrate_center must be int, float, or list of ints or floats"
         )
 
-    if data_new and isinstance(data_new, list):
-        data_integrals = []
-        for x in data_new:
-            data_integrals.append(np.trapz(x.values, x=x.coords[dim], axis=index))
-
-        data.values = np.array(data_integrals)
-
-    else:
-        data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
-
     remaining_dims = [x for x in data.dims if x != dim]
     if len(remaining_dims) == 0:
         remaining_dims = ["index"]
         remaining_coords = [np.array([0])]
     else:
-        remaining_coords = [data.coords[x] for x in data.dims if x != dim]
+        remaining_coords = [data.coords[x] for x in remaining_dims]
 
-    integrate_data = dnpdata(data.values, remaining_coords, remaining_dims)
+    if isinstance(data_new, list):
+        data_integrals = [
+            np.trapz(x.values, x=x.coords[dim], axis=index) for x in data_new
+        ]
+        if not all([isinstance(x, list) for x in [integrate_center, integrate_width]]):
+            if isinstance(integrate_center, list) and not isinstance(
+                integrate_width, list
+            ):
+                remaining_coords = [np.array(integrate_center)] + remaining_coords
+                remaining_dims = ["center"] + remaining_dims
+            elif isinstance(integrate_width, list) and not isinstance(
+                integrate_center, list
+            ):
+                remaining_coords = [np.array(integrate_width)] + remaining_coords
+                remaining_dims = ["width"] + remaining_dims
+            data_values = np.array(data_integrals)
+        elif isinstance(integrate_center, list) and isinstance(integrate_width, list):
+            remaining_coords = [
+                np.array(integrate_center),
+                np.array(integrate_width),
+            ] + remaining_coords
+            remaining_dims = ["center", "width"] + remaining_dims
+            data_values = np.array(
+                tuple([data_integrals for _ in range(len(data_integrals))])
+            ).reshape(len(data_integrals), len(data_integrals), data_new[0].shape[1])
+    else:
+        data_values = np.trapz(data_new.values, x=data_new.coords[dim], axis=index)
+
+    integrate_data = dnpdata(data_values, remaining_coords, remaining_dims)
+
     if type == "double":
         integrate_data.attrs["first_integral"] = first_int
 

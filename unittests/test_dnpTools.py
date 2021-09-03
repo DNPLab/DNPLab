@@ -118,10 +118,10 @@ class dnpTools_tester(unittest.TestCase):
         )
         self.assertEqual((3, 8), np.shape(ws2["integrals"].values))
         self.assertAlmostEqual(
-            max(ws3["integrals"].values.real[1]), 6170.447249940133, places=4
+            max(ws3["integrals"].values.real[1][1]), 6170.447249940133, places=4
         )
         self.assertAlmostEqual(
-            min(ws3["integrals"].values.real[1]), -7188.897892203664, places=4
+            min(ws3["integrals"].values.real[1][1]), -7188.897892203664, places=4
         )
 
     def test_mr_properties(self):
