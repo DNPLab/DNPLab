@@ -41,6 +41,10 @@ class dnpdata(nddata.nddata_core):
             dims (list): list of strings which are names of axes
             attrs (dict): dictionary of parameters
         """
+
+        if isinstance(dims[0], list):
+            dims = dims[0]
+
         super().__init__(values, dims, coords, attrs)
         self.version = version
         self.proc_attrs = []
@@ -157,6 +161,63 @@ class dnpdata(nddata.nddata_core):
             self.coords.pop(index_value)
             self.dims.pop(index_value)
             self.values = np.squeeze(self.values)
+
+    def select(self, selection):
+        """
+        Select subset of 2D data object
+
+        Args:
+            selection (int, range, list, tuple): list or tuple of slices to keep
+
+        Returns:
+            dnpdata object: subset of dnpdata object
+
+        Example:
+            data.select((1, range(5,10), 15)) # keeps slices: 1, 5, 6, 7, 8, 9, and 15
+
+        """
+        if len(self.dims) == 1:
+            raise TypeError("select method is not applicable to 1D data")
+        if isinstance(selection, int):
+            self.values = self.values[:, selection]
+            self.coords[self.dims[1]] = self.coords[self.dims[1]][selection]
+            self.dims = self.dims[0]
+        elif isinstance(selection, range):
+            self.values = self.values[:, selection.start : selection.stop]
+            self.coords[self.dims[1]] = self.coords[self.dims[1]][
+                selection.start : selection.stop
+            ]
+        elif isinstance(selection, (list, tuple)) and all(
+            [isinstance(x, (int, range)) for x in selection]
+        ):
+            new_values = np.empty(shape=(self.shape[0],))
+            new_coords = []
+            for x in selection:
+                if isinstance(x, int):
+                    new_values = np.vstack((new_values, self.values[:, x]))
+                    new_coords = new_coords + [self.coords[self.dims[1]][x]]
+                elif isinstance(x, range):
+                    new_values = np.vstack(
+                        (new_values, self.values[:, x.start : x.stop].T)
+                    )
+                    new_coords = new_coords + [
+                        self.coords[self.dims[1]][y] for y in range(x.start, x.stop)
+                    ]
+
+            self.values = new_values.T[:, 1:]
+            self.coords[self.dims[1]] = np.array(new_coords)
+        else:
+            raise TypeError(
+                "Select using integer, range, or list/tuple of integers or ranges"
+            )
+
+        return self._constructor(
+            values=self.values,
+            coords=self.coords._coords,
+            dims=self.dims,
+            attrs=self.attrs,
+            procList=self.proc_attrs,
+        )
 
     def window(self, dim="t2", linewidth=10, inplace=False) -> "dnpdata":
         """Apply Apodization to data down given dimension

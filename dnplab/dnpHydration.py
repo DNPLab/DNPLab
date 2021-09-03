@@ -397,7 +397,7 @@ def odnp(inputs={}, constants={}):
         # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
         # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
 
-    if isinstance(inputs["smax_model"], int) or isinstance(inputs["smax_model"], float):
+    if isinstance(inputs["smax_model"], (int, float)):
         # Option 3, manual input of smax
         if not (inputs["smax_model"] <= 1 and inputs["smax_model"] > 0):
             raise ValueError("smax must be a number between 0 and 1")

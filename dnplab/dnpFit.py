@@ -27,7 +27,8 @@ def exponential_fit(
     all_data,
     type="mono",
     stretched=False,
-    bounds=False,
+    bounds=None,
+    p0=None,
     dim="t1",
     indirect_dim=None,
     ws_key="integrals",
@@ -48,19 +49,25 @@ def exponential_fit(
     Args:
         all_data (dnpdata, dict): data container, after integration with dnpTools.integrate
         
-    +---------------+------+-------------+-----------------------------------------------------------------------------------+
-    | parameter     | type | default     | description                                                                       |
-    +===============+======+=============+===================================================================================+
-    | dim           | str  | "f2"        | dimension to fit down                                                             |
-    +---------------+------+-------------+-----------------------------------------------------------------------------------+
-    | type          | str  | "mono"      | "T1" for inversion recovery fit, "T2" for stretched exponential, "mono", or "bi"  |
-    +---------------+------+-------------+-----------------------------------------------------------------------------------+
-    | stretch       | bool | False       | if False "p" is set to 1, if True "p" is a fit parameter                          |
-    +---------------+------+-------------+-----------------------------------------------------------------------------------+
-    | indirect_dim  | str  | None        | indirect dimension                                                                |
-    +---------------+------+-------------+-----------------------------------------------------------------------------------+
-    | ws_key        | str  | "integrals" | if False "p" is set to 1, if True "p" is a fit parameter                          |
-    +---------------+------+-------------+-----------------------------------------------------------------------------------+
+    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
+    | parameter     | type  | default     | description                                                                       |
+    +===============+=======+=============+===================================================================================+
+    | dim           | str   | "f2"        | dimension to fit down                                                             |
+    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
+    | type          | str   | "mono"      | "T1" for inversion recovery fit, "T2" for stretched exponential, "mono", or "bi"  |
+    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
+    | stretch       | bool  | False       | if False "p" is set to 1, if True "p" is a fit parameter                          |
+    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
+    | bounds        | tuple | None        | bounds on fit parameters                                                          |
+    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
+    | p0            | list  | None        | initial guesses for fit parameters                                                |
+    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
+    | dim           | str   | "t1"        | direct dimension                                                                  |
+    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
+    | indirect_dim  | str   | None        | indirect dimension                                                                |
+    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
+    | ws_key        | str   | "integrals" | if False "p" is set to 1, if True "p" is a fit parameter                          |
+    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
 
 
     Returns:
@@ -82,8 +89,15 @@ def exponential_fit(
     new_axis = _np.r_[_np.min(x_axis) : _np.max(x_axis) : 100j]
 
     if type == "T1":
+        if p0 is None:
+            x0 = [1.0, input_data[-1], input_data[-1]]
+        elif isinstance(p0, (list, tuple)) and len(p0) == 3:
+            x0 = p0
+        else:
+            raise TypeError(
+                "p0 must be a list or tuple of length=3, see the T1 function"
+            )
 
-        x0 = [1.0, input_data[-1], input_data[-1]]
         if bounds:
             out, cov = curve_fit(
                 dnpMath.t1_function, x_axis, input_data, x0, bounds=bounds, method="trf"
@@ -103,8 +117,15 @@ def exponential_fit(
         fit_data.attrs["M_inf"] = out[2]
 
     elif type == "T2":
+        if p0 is None:
+            x0 = [input_data[0], 1.0, 1.0]
+        elif isinstance(p0, (list, tuple)) and len(p0) == 3:
+            x0 = p0
+        else:
+            raise TypeError(
+                "p0 must be a list or tuple of length=3, see the T2 function"
+            )
 
-        x0 = [input_data[0], 1.0, 1.0]
         if stretched:
             if bounds:
                 out, cov = curve_fit(
@@ -120,7 +141,7 @@ def exponential_fit(
                     dnpMath.t2_function, x_axis, input_data, x0, method="lm"
                 )
         else:
-            if not bounds:
+            if bounds is None:
                 bounds = (
                     [float("-inf"), float("-inf"), 0.99999],
                     [float("inf"), float("inf"), 1.00001],
@@ -146,8 +167,15 @@ def exponential_fit(
         fit_data.attrs["p"] = out[2]
 
     elif type == "mono":
+        if p0 is None:
+            x0 = [input_data[-1], 1.0, 100]
+        elif isinstance(p0, (list, tuple)) and len(p0) == 3:
+            x0 = p0
+        else:
+            raise TypeError(
+                "p0 must be a list or tuple of length=3, see the mono-exponential function"
+            )
 
-        x0 = [input_data[-1], 1.0, 100]
         if bounds:
             out, cov = curve_fit(
                 dnpMath.monoexp_fit, x_axis, input_data, x0, bounds=bounds, method="trf"
@@ -167,8 +195,15 @@ def exponential_fit(
         fit_data.attrs["C2"] = out[1]
 
     elif type == "bi":
+        if p0 is None:
+            x0 = [input_data[-1], 1.0, 100, 1.0, 100]
+        elif isinstance(p0, (list, tuple)) and len(p0) == 5:
+            x0 = p0
+        else:
+            raise TypeError(
+                "p0 must be a list or tuple of length=5, see the bi-exponential function"
+            )
 
-        x0 = [input_data[-1], 1.0, 100, 1.0, 100]
         if bounds:
             out, cov = curve_fit(
                 dnpMath.biexp_fit, x_axis, input_data, x0, bounds=bounds, method="trf"
@@ -197,7 +232,7 @@ def exponential_fit(
         return fit_data
 
 
-def enhancement_fit(dataDict):
+def enhancement_fit(all_data, bounds=None, p0=None):
     """Fits enhancement curves to return Emax and power and one half maximum saturation
 
     .. math::
@@ -206,17 +241,17 @@ def enhancement_fit(dataDict):
 
     Args:
         all_data (dnpdata, dict): data container
+        bounds (tuple): bounds on fit parameters
+        p0 (list): initial guesses for fit parameters
 
     Returns:
         all_data (dnpdata, dict): Processed data in container, updated with fit data
-        attributes: Emax value and Emax standard deviation
-
-                    p_one_half value and p_one_half standard deviation
+        attributes: Emax, Emax standard deviation, p_one_half, and p_one_half standard deviation
 
     Example::
 
         ### INSERT importing and processing ###
-        dnplab.dnpNMR.integrate(workspace, {})
+        dnplab.dnpNMR.integrate(workspace)
 
         workspace.new_dim('power', power_list)
 
@@ -239,7 +274,13 @@ def enhancement_fit(dataDict):
 
     input_data = _np.real(all_data["enhancements"].values)
 
-    x0 = [input_data[-1], 0.1]
+    if p0 is None:
+        x0 = [input_data[-1], 0.1]
+    elif isinstance(p0, (list, tuple)) and len(p0) == 2:
+        x0 = p0
+    else:
+        raise TypeError("p0 must be a list or tuple of length=2, see the emax function")
+
     if bounds:
         out, cov = curve_fit(
             dnpMath.buildup_function,

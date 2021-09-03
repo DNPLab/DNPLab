@@ -73,10 +73,10 @@ def load_file(path, data_type=None, *args, **kwargs):
     elif data_type == "specman":
         return dnpIO.specman.import_specman(path, *args, **kwargs)
 
-    elif data_type == "xepr" or data_type == "xenon":
+    elif data_type in ["xepr", "xenon"]:
         return dnpIO.bes3t.import_bes3t(path, *args, **kwargs)
 
-    elif data_type == "winepr" or data_type == "esp":
+    elif data_type in ["winepr", "esp"]:
         return dnpIO.winepr.import_winepr(path, *args, **kwargs)
 
     elif data_type == "h5":
@@ -103,9 +103,9 @@ def autodetect(test_path):
     path_exten = os.path.splitext(test_path)[1]
     if path_exten == ".DSC" or path_exten == ".DTA" or path_exten == ".YGF":
         type = "xepr"
-    elif path_exten == ".par" or path_exten == ".spc":
+    elif path_exten in [".par", ".spc"]:
         type = "winepr"
-    elif path_exten == ".d01" or path_exten == ".exp":
+    elif path_exten in [".d01", ".exp"]:
         type = "specman"
     elif path_exten == ".jdf":
         type = "delta"
