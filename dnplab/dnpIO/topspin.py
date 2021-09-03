@@ -133,15 +133,12 @@ def import_topspin(path):
     Returns:
         dnpdata: topspin data
     """
-    dirList = _os.listdir(path)
+    dir_list = _os.listdir(path)
 
-    if "fid" in dirList:
+    if "fid" in dir_list and "ser" not in dir_list:
         data = load_fid_ser(path, type="fid")
-    elif "ser" in dirList:
-        if "vdlist" in dirList:
-            data = load_fid_ser(path, type="ser")
-        else:
-            data = load_fid_ser(path, type="serPhaseCycle")
+    elif "ser" in dir_list:
+        data = load_fid_ser(path, type="ser")
     else:
         raise ValueError("Could Not Identify Data Type in File")
 
@@ -183,7 +180,7 @@ def load_acqu_proc(path="1", paramFilename="acqus", procNum=1):
             except:
                 attrsDict[lineSplit[0]] = lineSplit[1]
             # if lineSplit[0] in ["TD", "NS"]:
-            # print(lineSplit[0] + ": " + str(attrsDict[lineSplit[0]]))
+            #   print(lineSplit[0] + ": " + str(attrsDict[lineSplit[0]]))
 
     needed_params = [
         "SW_h",
@@ -239,10 +236,10 @@ def load_fid_ser(path, type="fid"):
     Returns:
         dnpdata: Topspin data
     """
+    dir_list = _os.listdir(path)
+
     attrsDict_list = [
-        load_acqu_proc(path, x)
-        for x in ["acqus", "acqu2s", "acqu3s"]
-        if _os.path.exists(_os.path.join(path, x))
+        load_acqu_proc(path, x) for x in ["acqus", "acqu2s", "acqu3s"] if x in dir_list
     ]
     attrsDict = {}
     for a in attrsDict_list:
@@ -260,6 +257,9 @@ def load_fid_ser(path, type="fid"):
         if x in attrsDict.keys()
     }
     importantParamsDict.update(higher_dim_pars)
+
+    if "vdlist" in dir_list:
+        importantParamsDict.update({"VDLIST": topspin_vdlist(path)})
 
     if attrsDict["BYTORDA"] == 0:
         endian = "<"
@@ -279,35 +279,46 @@ def load_fid_ser(path, type="fid"):
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
 
     if type == "fid":
-        data = data[group_delay : int(attrsDict["TD"] / 2)]
-    elif type == "ser":
-        data = data.reshape(int(attrsDict["TD_2"]), -1).T
-        data = data[group_delay : int(attrsDict["TD"] / 2), :]
-    elif type == "serPhaseCycle":
-        length1d = int((_np.ceil(attrsDict["TD"] / 256.0) * 256) / 2)
-        data = data.reshape(-1, int(length1d)).T
-        data = data[group_delay : int(attrsDict["TD"] / 2), :]
-        # Assume phase cycle is 0, 90, 180, 270
-        data = data[:, 0] + 1j * data[:, 1] - data[:, 2] - 1j * data[:, 3]
-
-    data = data / attrsDict["RG"]
-
-    if type == "fid":
+        data = data[group_delay : int(attrsDict["TD"] / 2)] / attrsDict["RG"]
         output = _dnpdata(data, [t], ["t2"], importantParamsDict)
-    elif type == "ser":
-        vdlist = topspin_vdlist(path)
-        importantParamsDict["VDLIST"] = vdlist
-        if len(vdlist) == int(attrsDict["TD_2"]):
-            output = _dnpdata(data, [t, vdlist], ["t2", "t1"], importantParamsDict)
-        else:
+    elif type == "ser" and "VDLIST" in importantParamsDict.keys():
+        if "acqu2s" in dir_list and "acqu3s" not in dir_list:
+            data = data.reshape(int(attrsDict["TD_2"]), -1).T
+            data = data[group_delay : int(attrsDict["TD"] / 2), :] / attrsDict["RG"]
+            if len(importantParamsDict["VDLIST"]) == int(attrsDict["TD_2"]):
+                output = _dnpdata(
+                    data,
+                    [t, importantParamsDict["VDLIST"]],
+                    ["t2", "t1"],
+                    importantParamsDict,
+                )
+            else:
+                output = _dnpdata(
+                    data,
+                    [t, range(int(attrsDict["TD_2"]))],
+                    ["t2", "t1"],
+                    importantParamsDict,
+                )
+        elif "acqu2s" in dir_list and "acqu3s" in dir_list:
+            pass
+
+    elif type == "ser" and "VDLIST" not in importantParamsDict.keys():
+        if "acqu2s" in dir_list and "acqu3s" not in dir_list:
+            length1d = int((_np.ceil(attrsDict["TD"] / 256.0) * 256) / 2)
+            data = data.reshape(-1, int(length1d)).T
+            data = data[group_delay : int(attrsDict["TD"] / 2), :]
+            # Assume phase cycle is 0, 90, 180, 270
+            data = (
+                data[:, 0] + 1j * data[:, 1] - data[:, 2] - 1j * data[:, 3]
+            ) / attrsDict["RG"]
             output = _dnpdata(
                 data,
-                [t, range(int(attrsDict["TD_2"]))],
-                ["t2", "t1"],
+                [t],
+                ["t2"],
                 importantParamsDict,
             )
-    elif type == "serPhaseCycle":
-        output = _dnpdata(data, [t], ["t2"], importantParamsDict)
+        elif "acqu2s" in dir_list and "acqu3s" in dir_list:
+            pass
 
     return output
 
