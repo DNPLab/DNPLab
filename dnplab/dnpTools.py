@@ -80,7 +80,7 @@ def baseline(
 def integrate(
     all_data,
     dim="f2",
-    type="single",
+    type="trapz",
     integrate_center=0,
     integrate_width="full",
 ):
@@ -108,13 +108,12 @@ def integrate(
     data, isDict = return_data(all_data)
     index = data.index(dim)
 
+    data_new = data.copy()
     if type == "double":
         first_int = scipy.integrate.cumtrapz(
             data.values, x=data.coords[dim], axis=index, initial=0
         )
-        data_new = dnpdata(first_int, data.coords, data.dims)
-    else:
-        data_new = data.copy()
+        data_new.values = first_int
 
     if integrate_width == "full":
         pass
@@ -214,8 +213,12 @@ def integrate(
 
     integrate_data = dnpdata(data_values, remaining_coords, remaining_dims)
 
+    integrate_data.attrs["integrate_center"] = integrate_center
+    integrate_data.attrs["integrate_width"] = integrate_width
+
     if type == "double":
         integrate_data.attrs["first_integral"] = first_int
+        integrate_data.attrs["dim_coords"] = data.coords[dim]
 
     if isDict:
         all_data["integrals"] = integrate_data
