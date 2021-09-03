@@ -120,10 +120,10 @@ class dnpNMR_tester(unittest.TestCase):
             force_positive=False,
         )
         self.assertAlmostEqual(
-            max(self.ws["proc"].values[:, 3].real), 242.36299886442168, places=4
+            max(self.ws["proc"].values[:, 3].real), 227.24572247945258, places=4
         )
         self.assertAlmostEqual(
-            min(self.ws["proc"].values[:, 3].real), -65.59778997862813, places=4
+            min(self.ws["proc"].values[:, 3].real), -157.25762551416526, places=4
         )
         phs0 = self.ws["proc"].attrs["phase0"]
         phs1 = self.ws["proc"].attrs["phase1"]
@@ -139,10 +139,10 @@ class dnpNMR_tester(unittest.TestCase):
             force_positive=True,
         )
         self.assertAlmostEqual(
-            max(self.ws["proc"].values[:, 7].real), 398.66277628048533, places=4
+            max(self.ws["proc"].values[:, 7].real), 411.71339056159314, places=4
         )
         self.assertAlmostEqual(
-            min(self.ws["proc"].values[:, 7].real), -47.32339420356964, places=4
+            min(self.ws["proc"].values[:, 7].real), 0.13285193948862864, places=4
         )
         self.ws.copy("temp", "proc")
 
@@ -155,10 +155,10 @@ class dnpNMR_tester(unittest.TestCase):
             phase=phs1 * (45 * np.pi / 180),
         )
         self.assertAlmostEqual(
-            max(self.ws["proc"].values[:, 3].real), 239.3422920589204, places=4
+            max(self.ws["proc"].values[:, 3].real), 227.24572247945258, places=4
         )
         self.assertAlmostEqual(
-            min(self.ws["proc"].values[:, 3].real), -64.37971134351001, places=4
+            min(self.ws["proc"].values[:, 3].real), -157.25762551416526, places=4
         )
         self.ws.copy("temp", "proc")
 

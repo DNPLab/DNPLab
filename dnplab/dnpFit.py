@@ -1,5 +1,4 @@
-from . import dnpdata as dnpdata, dnpdata_collection
-from . import return_data
+from . import return_data, dnpdata, dnpdata_collection
 from . import dnpMath
 import numpy as _np
 from scipy.optimize import curve_fit

@@ -300,26 +300,13 @@ def autophase(
                 data.attrs["phase0"] + delta * (1 - pivot_ratio),
                 len(data.values),
             )
-        if len(shape_data) == 2:
-            for ix in range(shape_data[1]):
-                data.values[:, ix] *= _np.exp(-1j * data.attrs["phase1"])
-        else:
-            data.values *= _np.exp(-1j * data.attrs["phase1"])
+        data.values.T.dot(_np.exp(-1j * data.attrs["phase1"]))
+
     else:
         raise TypeError("Invalid order or order & phase pair")
 
     if force_positive:
-        if len(shape_data) == 2:
-            for ix in range(shape_data[1]):
-                if _np.sum(_np.real(data.values[:, ix])) < 0:
-                    data.values[:, ix] *= -1.0
-                else:
-                    pass
-        elif len(_np.shape(data.values)) == 1:
-            if _np.sum(_np.real(data.values)) < 0:
-                data.values *= -1.0
-        else:
-            raise ValueError("only 1D or 2D data are currently supported")
+        data.values = _np.absolute(data.values)
 
     proc_parameters = {
         "method": method,
