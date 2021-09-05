@@ -123,12 +123,13 @@ def find_group_delay(attrsDict):
     return group_delay
 
 
-def import_topspin(path):
+def import_topspin(path, phase_list=[0, 90, 180, 270]):
     """
     Import topspin data and return dnpdata object
 
     Args:
         path (str): Directory of data
+        phase_list (list): list of phases used for phase cycling (deg, multiples of 90)
 
     Returns:
         dnpdata: topspin data
@@ -136,9 +137,9 @@ def import_topspin(path):
     dir_list = _os.listdir(path)
 
     if "fid" in dir_list and "ser" not in dir_list:
-        data = load_fid_ser(path, type="fid")
+        data = load_fid_ser(path, type="fid", phase_list=phase_list)
     elif "ser" in dir_list:
-        data = load_fid_ser(path, type="ser")
+        data = load_fid_ser(path, type="ser", phase_list=phase_list)
     else:
         raise ValueError("Could Not Identify Data Type in File")
 
@@ -180,7 +181,7 @@ def load_acqu_proc(path="1", paramFilename="acqus", procNum=1):
             except:
                 attrsDict[lineSplit[0]] = lineSplit[1]
             # if lineSplit[0] in ["TD", "NS"]:
-            #   print(lineSplit[0] + ": " + str(attrsDict[lineSplit[0]]))
+            # print(lineSplit[0] + ": " + str(attrsDict[lineSplit[0]]))
 
     needed_params = [
         "SW_h",
@@ -225,17 +226,28 @@ def load_acqu_proc(path="1", paramFilename="acqus", procNum=1):
     return attrsDict
 
 
-def load_fid_ser(path, type="fid"):
+def load_fid_ser(path, type="fid", phase_list=[]):
     """
     Import topspin fid or ser file
 
     Args:
         path (str): Directory of data
         type (str): "fid" for 1D, "ser" or "serPhaseCycle" for 2D
+        phase_list (list): list of phases used for phase cycling (deg, multiples of 90)
 
     Returns:
         dnpdata: Topspin data
     """
+    for indx, x in enumerate(phase_list):
+        if x in [0, 360, 720, 1080]:
+            phase_list[indx] = 1
+        elif x in [90, 450, 810, 1170]:
+            phase_list[indx] = 1j
+        elif x in [180, 540, 900, 1260]:
+            phase_list[indx] = -1
+        elif x in [270, 630, 990, 1350]:
+            phase_list[indx] = -1j
+
     dir_list = _os.listdir(path)
 
     attrsDict_list = [
@@ -258,9 +270,6 @@ def load_fid_ser(path, type="fid"):
     }
     importantParamsDict.update(higher_dim_pars)
 
-    if "vdlist" in dir_list:
-        importantParamsDict.update({"VDLIST": topspin_vdlist(path)})
-
     if attrsDict["BYTORDA"] == 0:
         endian = "<"
     else:
@@ -278,49 +287,67 @@ def load_fid_ser(path, type="fid"):
 
     t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
 
+    if "vdlist" in dir_list:
+        importantParamsDict.update({"VDLIST": topspin_vdlist(path)})
+
     if type == "fid":
         data = data[group_delay : int(attrsDict["TD"] / 2)] / attrsDict["RG"]
-        output = _dnpdata(data, [t], ["t2"], importantParamsDict)
-    elif type == "ser" and "VDLIST" in importantParamsDict.keys():
+        coords = [t]
+        dims = ["t2"]
+    elif type == "ser":
+        ser_data = data.reshape(int(attrsDict["TD_2"]), -1).T
+        ser_data = ser_data[group_delay : int(attrsDict["TD"] / 2), :] / attrsDict["RG"]
         if "acqu2s" in dir_list and "acqu3s" not in dir_list:
-            data = data.reshape(int(attrsDict["TD_2"]), -1).T
-            data = data[group_delay : int(attrsDict["TD"] / 2), :] / attrsDict["RG"]
-            if len(importantParamsDict["VDLIST"]) == int(attrsDict["TD_2"]):
-                output = _dnpdata(
-                    data,
-                    [t, importantParamsDict["VDLIST"]],
-                    ["t2", "t1"],
-                    importantParamsDict,
-                )
+            if "VDLIST" in importantParamsDict.keys():
+                if len(importantParamsDict["VDLIST"]) == int(attrsDict["TD_2"]):
+                    coords = [t, importantParamsDict["VDLIST"]]
+                else:
+                    coords = [t, range(int(attrsDict["TD_2"]))]
+                dims = ["t2", "t1"]
             else:
-                output = _dnpdata(
-                    data,
-                    [t, range(int(attrsDict["TD_2"]))],
-                    ["t2", "t1"],
-                    importantParamsDict,
+                length1d = int((_np.ceil(attrsDict["TD"] / 256.0) * 256) / 2)
+                ser_data = data.reshape(-1, int(length1d)).T
+                ser_data = ser_data[group_delay : int(attrsDict["TD"] / 2), :]
+                phs_facs = _np.tile(
+                    _np.array(phase_list), int(attrsDict["TD_2"]) / len(phase_list)
                 )
-        elif "acqu2s" in dir_list and "acqu3s" in dir_list:
-            pass
+                for indx in range(int(attrsDict["TD_2"])):
+                    ser_data[:, indx] = phs_facs[indx] * ser_data[:, indx]
+                ser_data = ser_data.sum(axis=1) / attrsDict["RG"]
+                coords = [t]
+                dims = ["t2"]
 
-    elif type == "ser" and "VDLIST" not in importantParamsDict.keys():
-        if "acqu2s" in dir_list and "acqu3s" not in dir_list:
-            length1d = int((_np.ceil(attrsDict["TD"] / 256.0) * 256) / 2)
-            data = data.reshape(-1, int(length1d)).T
-            data = data[group_delay : int(attrsDict["TD"] / 2), :]
-            # Assume phase cycle is 0, 90, 180, 270
-            data = (
-                data[:, 0] + 1j * data[:, 1] - data[:, 2] - 1j * data[:, 3]
-            ) / attrsDict["RG"]
-            output = _dnpdata(
-                data,
-                [t],
-                ["t2"],
-                importantParamsDict,
+        elif "acqu2s" in dir_list and "acqu3s" in dir_list:
+            t = (
+                1.0
+                / attrsDict["SW_h"]
+                * _np.arange(
+                    0, int(attrsDict["TD"] / 2 / int(attrsDict["TD_3"])) - group_delay
+                )
             )
-        elif "acqu2s" in dir_list and "acqu3s" in dir_list:
-            pass
+            if "VDLIST" in importantParamsDict.keys() and len(
+                importantParamsDict["VDLIST"]
+            ) == int(attrsDict["TD_2"]):
+                coords = [
+                    t,
+                    importantParamsDict["VDLIST"],
+                    range(int(attrsDict["TD_3"])),
+                ]
+            else:
+                coords = [
+                    t,
+                    range(int(attrsDict["TD_2"])),
+                    range(int(attrsDict["TD_3"])),
+                ]
+            dims = ["t2", "t1", "t0"]
+            ser_data = ser_data.reshape(
+                int(attrsDict["TD"] / 2 / int(attrsDict["TD_3"])),
+                int(attrsDict["TD_2"]),
+                int(attrsDict["TD_3"]),
+            )
+        data = ser_data
 
-    return output
+    return _dnpdata(data, coords, dims, importantParamsDict)
 
 
 def topspin_vdlist(path):
