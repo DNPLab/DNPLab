@@ -155,8 +155,10 @@ def align(all_data, dim="f2", dim2=None):
 
 def autophase(
     all_data,
+    dim="f2",
     method="search",
-    points_limit=None,
+    reference_range=None,
+    pts_lim=None,
     order="zero",
     pivot=0,
     delta=0,
@@ -181,25 +183,27 @@ def autophase(
     Args:
         all_data (dnpdata_collection, dnpdata): Data object to autophase
 
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | parameter       | type         | default       | description                                       |
-    +=================+==============+===============+===================================================+
-    | method          | str          | 'search'      | method of searching for the best phase            |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | points_limit    | int or None  | None          | specify the max points used in phase search       |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | order           | str          | 'zero'        | order of phase correction                         |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | pivot           | int          | 0             | pivot point for first order correction            |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | delta           | float or int | 0             | total change in phase magnitude for first order   |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | phase           | float or int | 0             | manual phase correction in radians                |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | reference_slice | int, or None | None          | slice of 2D data used to define the phase         |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | force_positive  | boolean      | False         | force the entire spectrum to positive magnitude   |
-    +-----------------+--------------+---------------+---------------------------------------------------+
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | parameter       | type          | default       | description                                       |
+    +=================+===============+===============+===================================================+
+    | method          | str           | 'search'      | method of searching for the best phase            |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | pts_lim         | int or None   | None          | specify the max points used in phase search       |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | reference_range | list or tuple | None          | data window to use for phase calculation          |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | order           | str           | 'zero'        | order of phase correction                         |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | pivot           | int           | 0             | pivot point for first order correction            |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | delta           | float or int  | 0             | total change in phase magnitude for first order   |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | phase           | float or int  | 0             | manual phase correction in radians                |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | reference_slice | int, or None  | None          | slice of 2D data used to define the phase         |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | force_positive  | boolean       | False         | force the entire spectrum to positive magnitude   |
+    +-----------------+---------------+---------------+---------------------------------------------------+
 
     Returns:
         dnpdata: Autophased data, including attrs "phase0" for order="zero", and "phase1" if order="first"
@@ -245,15 +249,22 @@ def autophase(
             )
     else:
 
+        if isinstance(reference_range, (list, tuple)) and len(reference_range) == 2:
+            check_data = data[dim, (reference_range[0], reference_range[1])]
+        else:
+            check_data = data.copy()
+            if reference_range is not None:
+                warnings.warn("reference_range must be None or list/tuple length=2")
+
         if reference_slice is not None:
             if len(shape_data) == 1:
                 reference_slice = None
-                temp_data = data.values
+                temp_data = check_data.values
                 warnings.warn("ignoring reference_slice, this is 1D data")
             else:
-                temp_data = data.values[:, reference_slice - 1]
+                temp_data = check_data.values[:, reference_slice - 1]
         else:
-            temp_data = data.values
+            temp_data = check_data.values
 
         if method == "arctan":
             data.attrs["phase0"] = _np.arctan(
@@ -261,23 +272,27 @@ def autophase(
                 / _np.sum(_np.real(temp_data.reshape(-1, 1)))
             )
         elif method == "search":
-            if points_limit is not None:
-                if len(data.coords[0]) > points_limit:
+            if pts_lim is not None:
+                if len(check_data.coords[0]) > pts_lim:
                     phasing_x = _np.linspace(
-                        min(data.coords[0]), max(data.coords[0]), int(points_limit)
+                        min(check_data.coords[0]),
+                        max(check_data.coords[0]),
+                        int(pts_lim),
                     ).reshape(-1)
-                    if len(data.dims) > 1:
+                    if len(check_data.dims) > 1:
                         temp_data = _np.array(
                             [
                                 _np.interp(
-                                    phasing_x, data.coords[0], data.values[:, x]
+                                    phasing_x,
+                                    check_data.coords[0],
+                                    check_data.values[:, x],
                                 ).reshape(-1)
-                                for x in range(data.shape[1])
+                                for x in range(check_data.shape[1])
                             ]
                         )
-                    elif len(data.dims) == 1:
+                    elif len(check_data.dims) == 1:
                         temp_data = _np.interp(
-                            phasing_x, data.coords[0], data.values
+                            phasing_x, check_data.coords[0], check_data.values
                         ).reshape(-1)
             phases_0 = _np.linspace(-_np.pi / 2, _np.pi / 2, 180).reshape(-1)
             rotated_data = (temp_data.reshape(-1, 1)) * _np.exp(-1j * phases_0)
