@@ -1,13 +1,9 @@
 import warnings
 
 import numpy as _np
-from scipy.optimize import curve_fit
 
 from . import return_data, dnpdata, dnpdata_collection
 from . import dnpTools, dnpMath
-from . import dnpResults
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button, RadioButtons
 
 import re
 import copy
@@ -325,6 +321,7 @@ def autophase(
 
     proc_parameters = {
         "method": method,
+        "reference_range": reference_range,
         "reference_slice": reference_slice,
         "force_positive": force_positive,
         "order": order,
