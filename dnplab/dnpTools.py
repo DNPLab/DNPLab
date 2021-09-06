@@ -179,8 +179,8 @@ def integrate(
 
     remaining_dims = [x for x in data.dims if x != dim]
     if len(remaining_dims) == 0:
-        remaining_dims = []
-        remaining_coords = []
+        remaining_dims = ["index"]
+        remaining_coords = [np.array([0])]
     else:
         remaining_coords = [data.coords[x] for x in remaining_dims]
 
@@ -211,6 +211,9 @@ def integrate(
             ).reshape(len(data_integrals), len(data_integrals), data_new[0].shape[1])
     else:
         data_values = np.trapz(data_new.values, x=data_new.coords[dim], axis=index)
+
+    if not isinstance(data_values, (list, np.ndarray)):
+        data_values = [data_values]
 
     integrate_data = dnpdata(np.array(data_values), remaining_coords, remaining_dims)
 
