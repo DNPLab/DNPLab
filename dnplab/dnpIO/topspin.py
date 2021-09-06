@@ -123,13 +123,13 @@ def find_group_delay(attrsDict):
     return group_delay
 
 
-def import_topspin(path, phase_list=[0, 90, 180, 270]):
+def import_topspin(path, phase_cycle=[0, 90, 180, 270]):
     """
     Import topspin data and return dnpdata object
 
     Args:
         path (str): Directory of data
-        phase_list (list): list of phases used for phase cycling (deg, multiples of 90)
+        phase_cycle (list): list of phases used for phase cycling (deg, multiples of 90)
 
     Returns:
         dnpdata: topspin data
@@ -137,9 +137,9 @@ def import_topspin(path, phase_list=[0, 90, 180, 270]):
     dir_list = _os.listdir(path)
 
     if "fid" in dir_list and "ser" not in dir_list:
-        data = load_fid_ser(path, type="fid", phase_list=phase_list)
+        data = load_fid_ser(path, type="fid", phase_cycle=phase_cycle)
     elif "ser" in dir_list:
-        data = load_fid_ser(path, type="ser", phase_list=phase_list)
+        data = load_fid_ser(path, type="ser", phase_cycle=phase_cycle)
     else:
         raise ValueError("Could Not Identify Data Type in File")
 
@@ -226,27 +226,28 @@ def load_acqu_proc(path="1", paramFilename="acqus", procNum=1):
     return attrsDict
 
 
-def load_fid_ser(path, type="fid", phase_list=[]):
+def load_fid_ser(path, type="fid", phase_cycle=None):
     """
     Import topspin fid or ser file
 
     Args:
         path (str): Directory of data
         type (str): "fid" for 1D, "ser" or "serPhaseCycle" for 2D
-        phase_list (list): list of phases used for phase cycling (deg, multiples of 90)
+        phase_cycle (list): list of phases used for phase cycling (deg, multiples of 90)
 
     Returns:
         dnpdata: Topspin data
     """
-    for indx, x in enumerate(phase_list):
-        if x in [0, 360, 720, 1080]:
-            phase_list[indx] = 1
-        elif x in [90, 450, 810, 1170]:
-            phase_list[indx] = 1j
-        elif x in [180, 540, 900, 1260]:
-            phase_list[indx] = -1
-        elif x in [270, 630, 990, 1350]:
-            phase_list[indx] = -1j
+    if isinstance(phase_cycle, list):
+        for indx, x in enumerate(phase_cycle):
+            if x in [0, 360, 720, 1080]:
+                phase_cycle[indx] = 1
+            elif x in [90, 450, 810, 1170]:
+                phase_cycle[indx] = 1j
+            elif x in [180, 540, 900, 1260]:
+                phase_cycle[indx] = -1
+            elif x in [270, 630, 990, 1350]:
+                phase_cycle[indx] = -1j
 
     dir_list = _os.listdir(path)
 
@@ -297,25 +298,26 @@ def load_fid_ser(path, type="fid", phase_list=[]):
     elif type == "ser":
         ser_data = data.reshape(int(attrsDict["TD_2"]), -1).T
         ser_data = ser_data[group_delay : int(attrsDict["TD"] / 2), :] / attrsDict["RG"]
+        coords = [t, range(int(attrsDict["TD_2"]))]
+        dims = ["t2", "t1"]
         if "acqu2s" in dir_list and "acqu3s" not in dir_list:
             if "VDLIST" in importantParamsDict.keys():
                 if len(importantParamsDict["VDLIST"]) == int(attrsDict["TD_2"]):
                     coords = [t, importantParamsDict["VDLIST"]]
-                else:
-                    coords = [t, range(int(attrsDict["TD_2"]))]
-                dims = ["t2", "t1"]
             else:
-                length1d = int((_np.ceil(attrsDict["TD"] / 256.0) * 256) / 2)
-                ser_data = data.reshape(-1, int(length1d)).T
-                ser_data = ser_data[group_delay : int(attrsDict["TD"] / 2), :]
-                phs_facs = _np.tile(
-                    _np.array(phase_list), int(attrsDict["TD_2"]) / len(phase_list)
-                )
-                for indx in range(int(attrsDict["TD_2"])):
-                    ser_data[:, indx] = phs_facs[indx] * ser_data[:, indx]
-                ser_data = ser_data.sum(axis=1) / attrsDict["RG"]
-                coords = [t]
-                dims = ["t2"]
+                if isinstance(phase_cycle, list):
+                    length1d = int((_np.ceil(attrsDict["TD"] / 256.0) * 256) / 2)
+                    ser_data = data.reshape(-1, int(length1d)).T
+                    ser_data = ser_data[group_delay : int(attrsDict["TD"] / 2), :]
+                    phs_facs = _np.tile(
+                        _np.array(phase_cycle),
+                        int(attrsDict["TD_2"]) / len(phase_cycle),
+                    )
+                    for indx in range(int(attrsDict["TD_2"])):
+                        ser_data[:, indx] = phs_facs[indx] * ser_data[:, indx]
+                    ser_data = ser_data.sum(axis=1) / attrsDict["RG"]
+                    coords = [t]
+                    dims = ["t2"]
 
         elif "acqu2s" in dir_list and "acqu3s" in dir_list:
             t = (
