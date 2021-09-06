@@ -1,4 +1,4 @@
-import warnings
+from warnings import warn
 
 import numpy as _np
 
@@ -226,7 +226,7 @@ def autophase(
         elif order == "first" and isinstance(phase, (int, float)):
             data.attrs["phase0"] = phase
             order = "zero"
-            warnings.warn(
+            warn(
                 "method=manual and order=first but only a single phase was given, switching to order=zero"
             )
         elif (
@@ -250,13 +250,13 @@ def autophase(
         else:
             check_data = data.copy()
             if reference_range is not None:
-                warnings.warn("reference_range must be None or list/tuple length=2")
+                warn("reference_range must be None or list/tuple length=2")
 
         if reference_slice is not None:
             if len(shape_data) == 1:
                 reference_slice = None
                 temp_data = check_data.values
-                warnings.warn("ignoring reference_slice, this is 1D data")
+                warn("ignoring reference_slice, this is 1D data")
             else:
                 temp_data = check_data.values[:, reference_slice - 1]
         else:
@@ -559,8 +559,13 @@ def fourier_transform(
         f -= 1.0 / (2 * dt)
 
     if convert_to_ppm:
-        nmr_frequency = data.attrs["nmr_frequency"]
-        f /= -1 * nmr_frequency / 1.0e6
+        if "nmr_frequency" not in data.attrs.keys():
+            warn(
+                "NMR frequency not found in the attrs dictionary, coversion to ppm requires the NMR frequency. See docs."
+            )
+        else:
+            nmr_frequency = data.attrs["nmr_frequency"]
+            f /= -1 * nmr_frequency / 1.0e6
 
     data.values = _np.fft.fft(data.values, n=n_pts, axis=index)
 
@@ -568,9 +573,6 @@ def fourier_transform(
         data.values = _np.fft.fftshift(data.values, axes=index)
 
     data.coords[dim] = f
-
-    #    if convert_to_ppm:
-    #        data.coords[dim] /= (-1 * data.attrs["nmr_frequency"] / 1.0e6)
 
     if output == "mag":
         data.values = _np.sqrt(data.values.real ** 2 + data.values.imag ** 2)

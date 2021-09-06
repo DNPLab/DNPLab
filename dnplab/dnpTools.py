@@ -1,3 +1,5 @@
+from warnings import warn
+
 from . import return_data, dnpdata, dnpdata_collection
 from . import dnpMath, dnpNMR
 import numpy as np
@@ -39,7 +41,7 @@ def baseline(
     if reference_slice is not None:
         if len(np.shape(data.values)) == 1:
             reference_slice = None
-            warnings.warn("ignoring reference_slice, this is 1D data")
+            warn("ignoring reference_slice, this is 1D data")
         else:
             reference_slice -= 1
 
@@ -579,8 +581,13 @@ def zero_fill(
 
     if inverse:
         df = data.coords[dim][1] - data.coords[dim][0]
-        if convert_from_ppm:
-            df /= -1 / (data.attrs["nmr_frequency"] / 1.0e6)
+        if "nmr_frequency" not in data.attrs.keys():
+            warn(
+                "NMR frequency not found in the attrs dictionary, coversion to ppm requires the NMR frequency. See docs."
+            )
+        else:
+            if convert_from_ppm:
+                df /= -1 / (data.attrs["nmr_frequency"] / 1.0e6)
 
         n_pts = zero_fill_factor * len(data.coords[dim])
         data.coords[dim] = (1.0 / (n_pts * df)) * _np.r_[0:n_pts]
