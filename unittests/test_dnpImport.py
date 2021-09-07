@@ -109,12 +109,12 @@ class specman_import_tester(unittest.TestCase):
 
     def test_import_specman_2D(self):
         data = wrapper.load(self.test_data_2D, data_type="specman")
-        self.assertEqual(data.dims, ["t", "x"])
+        self.assertEqual(data.dims, ["t2", "t1"])
         self.assertEqual(data.values.shape, (1500, 80))
 
     def test_import_specman_4D(self):
         data = wrapper.load(self.test_data_4D, data_type="specman")
-        self.assertEqual(data.dims, ["t", "x", "y", "z"])
+        self.assertEqual(data.dims, ["t2", "t1", "t0", "t"])
         self.assertEqual(data.values.shape, (1500, 40, 5, 3))
 
 
