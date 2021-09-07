@@ -212,6 +212,7 @@ def autophase(
 
     data, isDict = return_data(all_data)
     shape_data = _np.shape(data.values)
+    index = data.dims.index(dim)
 
     if phase is not None:
         method = "manual"
@@ -231,12 +232,8 @@ def autophase(
             )
         elif (
             order == "first"
-            and isinstance(phase, _np.ndarray)
-            and len(phase) == shape_data[0]
-        ):
-            data.attrs["phase1"] = phase
-        elif (
-            order == "first" and isinstance(phase, list) and len(phase) == shape_data[0]
+            and isinstance(phase, (list, _np.ndarray))
+            and len(phase) == shape_data[index]
         ):
             data.attrs["phase1"] = _np.array(phase)
         else:
@@ -269,27 +266,30 @@ def autophase(
             )
         elif method == "search":
             if pts_lim is not None:
-                if len(check_data.coords[0]) > pts_lim:
+                if len(check_data.coords[dim]) > pts_lim:
                     phasing_x = _np.linspace(
-                        min(check_data.coords[0]),
-                        max(check_data.coords[0]),
+                        min(check_data.coords[dim]),
+                        max(check_data.coords[dim]),
                         int(pts_lim),
                     ).reshape(-1)
-                    if len(check_data.dims) > 1:
-                        temp_data = _np.array(
-                            [
-                                _np.interp(
-                                    phasing_x,
-                                    check_data.coords[0],
-                                    check_data.values[:, x],
-                                ).reshape(-1)
-                                for x in range(check_data.shape[1])
-                            ]
-                        )
-                    elif len(check_data.dims) == 1:
-                        temp_data = _np.interp(
-                            phasing_x, check_data.coords[0], check_data.values
-                        ).reshape(-1)
+                if len(check_data.dims) == 1:
+                    temp_data = _np.interp(
+                        phasing_x, check_data.coords[dim], check_data.values
+                    ).reshape(-1)
+                else:
+                    indxer = _np.argmax(check_data.values, axis=index)
+                    temp_data = _np.array(
+                        [
+                            _np.interp(
+                                phasing_x,
+                                check_data.coords[dim],
+                                check_data[dim, 0 : check_data.shape[index]].values[
+                                    :, indx
+                                ],
+                            ).reshape(-1)
+                            for indx, _ in enumerate(indxer)
+                        ]
+                    ).reshape(pts_lim, len(indxer))
             phases_0 = _np.linspace(-_np.pi / 2, _np.pi / 2, 180).reshape(-1)
             rotated_data = (temp_data.reshape(-1, 1)) * _np.exp(-1j * phases_0)
             real_imag_ratio = (_np.real(rotated_data) ** 2).sum(axis=0) / (
@@ -393,6 +393,7 @@ def calculate_enhancement(
 
         data_off, _ = return_data(off_spectrum)
         data_on, _ = return_data(on_spectra)
+        index_on = data_on.dims.index(dim)
 
         if integrate_width == "full":
             int_width_off = max(data_off.coords[dim]) - min(data_off.coords[dim])
@@ -412,11 +413,9 @@ def calculate_enhancement(
             )
 
         if integrate_center == "max":
-            int_center_off = data_off.coords[dim][_np.argmax(data_off.values)]
-            int_center_on = [
-                data_on.coords[dim][_np.argmax(data_on.values[:, indx])]
-                for indx in range(data_on.values.shape[1])
-            ]
+            on_maxs = _np.argmax(data_on.values.real, axis=index_on)
+            int_center_off = data_off.coords[dim][_np.argmax(data_off.values.real)]
+            int_center_on = [data_on.coords[dim][x] for x in on_maxs]
         elif (
             isinstance(integrate_center, (list, _np.ndarray))
             and len(integrate_center) == 2
@@ -452,26 +451,18 @@ def calculate_enhancement(
             )
 
         elif method == "amplitude":
+            on_maxs = _np.argmax(abs(data_on.values.real), axis=index_on)
             if integrate_center == "max":
                 off_data = data_off.values.real[_np.argmax(abs(data_off.values.real))]
-                if len(data_on.dims) == 1:
-                    on_data = data_on.values.real[_np.argmax(abs(data_on.values.real))]
-                else:
-                    on_data = [
-                        data_on.values.real[
-                            _np.argmax(abs(data_on.values.real[:, indx])), indx
-                        ]
-                        for indx in range(data_on.values.shape[1])
-                    ]
+                on_data = [
+                    data_on.values.real[x, indx] for indx, x in enumerate(on_maxs)
+                ]
             else:
                 off_data = data_off.values.real[int_center_off]
-                if len(data_on.dims) == 1:
-                    on_data = data_on.values.real[int_center_on]
-                else:
-                    on_data = [
-                        data_on.values.real[int_center_on, indx]
-                        for indx in range(data_on.values.shape[1])
-                    ]
+                on_data = [
+                    data_on.values.real[int_center_on, indx]
+                    for indx, _ in enumerate(on_maxs)
+                ]
 
             enh = _np.array(on_data / off_data)
             remaining_dims = [x for x in data_on.dims if x != dim]
