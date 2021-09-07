@@ -533,15 +533,12 @@ def fourier_transform(
     Returns:
         dnpdata: data object after FT
     """
-    #    if isinstance(zero_fill_factor, int) and zero_fill_factor >= 1:
-    #        dnpTools.zero_fill(
-    #            all_data, dim=dim, zero_fill_factor=zero_fill_factor, shift=shift
-    #        )
-    #    else:
-    #        raise ValueError("zero_fill_factor must be type int greater than 0")
-
-    # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
+
+    # handle zero_fill_factor
+    zero_fill_factor = int(zero_fill_factor)
+    if zero_fill_factor <= 0:
+        zero_fill_factor = 1
 
     proc_parameters = {
         "dim": dim,
@@ -635,20 +632,12 @@ def inverse_fourier_transform(
     Returns:
         dnpdata: data object after inverse FT
     """
-    if isinstance(zero_fill_factor, int) and zero_fill_factor >= 1:
-        dnpTools.zero_fill(
-            all_data,
-            dim=dim,
-            zero_fill_factor=zero_fill_factor,
-            shift=shift,
-            inverse=True,
-            convert_from_ppm=convert_from_ppm,
-        )
-    else:
-        raise ValueError("zero_fill_factor must be type int greater than 0")
-
-    # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
+
+    # handle zero_fill_factor
+    zero_fill_factor = int(zero_fill_factor)
+    if zero_fill_factor <= 0:
+        zero_fill_factor = 1
 
     proc_parameters = {
         "dim": dim,
@@ -659,10 +648,24 @@ def inverse_fourier_transform(
 
     index = data.dims.index(dim)
 
+    df = data.coords[dim][1] - data.coords[dim][0]
+    if convert_from_ppm:
+        if "nmr_frequency" not in data.attrs.keys():
+            warn(
+                "NMR frequency not found in the attrs dictionary, coversion from ppm requires the NMR frequency. See docs."
+            )
+        else:
+            nmr_frequency = data.attrs["nmr_frequency"]
+            df /= -1 / (nmr_frequency / 1.0e6)
+
+    n_pts = zero_fill_factor * len(data.coords[dim])
+    t = (1.0 / (n_pts * df)) * _np.r_[0:n_pts]
+
     if shift:
         data.values = _np.fft.fftshift(data.values, axes=index)
 
-    data.values = _np.fft.ifft(data.values, axis=index)
+    data.values = _np.fft.ifft(data.values, n=n_pts, axis=index)
+    data.coords[dim] = t
 
     if output == "mag":
         data.values = _np.sqrt(data.values.real ** 2 + data.values.imag ** 2)
