@@ -537,21 +537,21 @@ def zero_fill(
     factor=2,
 ):
     """
-    Perform zero filling down dim dimension
+    Perform zero-filling (append) down given dimension
 
     Args:
-        all_data (dnpdata, dict): Data container
+        all_data (dnpdata): data object
 
     +------------------+------+-----------+--------------------------------------------------+
     | parameter        | type | default   | description                                      |
     +==================+======+===========+==================================================+
-    | dim              | str  | 't2'      | dimension to Fourier transform                   |
+    | dim              | str  | 't2'      | dimension to zero-fill                           |
     +------------------+------+-----------+--------------------------------------------------+
     | factor           | int  | 2         | factor to increase dim with zeros                |
     +------------------+------+-----------+--------------------------------------------------+
 
     Returns:
-        dnpdata: data object after zero fill
+        dnpdata: data object after zero-fill
     """
 
     data, isDict = return_data(all_data)
