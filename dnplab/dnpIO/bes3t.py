@@ -148,17 +148,7 @@ def load_dsc(path):
                     params["x_type"] = "linear"
 
             elif "XFMT" in par:
-                dfmt = par.replace("XFMT", "").strip()
-                if dfmt == "D":
-                    params["x_format"] = "float64"
-                elif dfmt == "F":
-                    params["x_format"] = "float32"
-                elif dfmt == "C":
-                    params["x_format"] = "int8"
-                elif dfmt == "S":
-                    params["x_format"] = "int16"
-                elif dfmt == "I":
-                    params["x_format"] = "int32"
+                params["x_format"] = _return_data_type(par, "XFMT")
 
             elif "YNAM" in par:
                 y_domain = par.replace("YNAM", "").replace("'", "").strip()
@@ -169,7 +159,7 @@ def load_dsc(path):
             elif "YMIN" in par:
                 params["y_min"] = float(par.replace("YMIN", "").strip())
             elif "YWID" in par:
-                params["y_max"] = float(par.replace("YWID", "").strip())
+                params["y_width"] = float(par.replace("YWID", "").strip())
             elif "YTYP" in par:
                 ytyp = par.replace("YTYP", "").strip()
                 if ytyp == "IGD":
@@ -178,17 +168,7 @@ def load_dsc(path):
                     params["y_type"] = "linear"
 
             elif "YFMT" in par:
-                dfmt = par.replace("YFMT", "").strip()
-                if dfmt == "D":
-                    params["y_format"] = "float64"
-                elif dfmt == "F":
-                    params["y_format"] = "float32"
-                elif dfmt == "C":
-                    params["y_format"] = "int8"
-                elif dfmt == "S":
-                    params["y_format"] = "int16"
-                elif dfmt == "I":
-                    params["y_format"] = "int32"
+                params["y_format"] = _return_data_type(par, "YFMT")
 
             elif "ZNAM" in par:
                 z_domain = par.replace("ZNAM", "").replace("'", "").strip()
@@ -199,7 +179,7 @@ def load_dsc(path):
             elif "ZMIN" in par:
                 params["z_min"] = float(par.replace("ZMIN", "").strip())
             elif "ZWID" in par:
-                params["z_max"] = float(par.replace("ZWID", "").strip())
+                params["z_width"] = float(par.replace("ZWID", "").strip())
             elif "ZTYP" in par:
                 ztyp = par.replace("ZTYP", "").strip()
                 if ztyp == "IGD":
@@ -208,43 +188,13 @@ def load_dsc(path):
                     params["z_type"] = "linear"
 
             elif "ZFMT" in par:
-                dfmt = par.replace("ZFMT", "").strip()
-                if dfmt == "D":
-                    params["z_format"] = "float64"
-                elif dfmt == "F":
-                    params["z_format"] = "float32"
-                elif dfmt == "C":
-                    params["z_format"] = "int8"
-                elif dfmt == "S":
-                    params["z_format"] = "int16"
-                elif dfmt == "I":
-                    params["z_format"] = "int32"
+                params["z_format"] = _return_data_type(par, "ZFMT")
 
             elif "IRFMT" in par:
-                dfmt = par.replace("IRFMT", "").strip()
-                if dfmt == "D":
-                    params["real_format"] = "float64"
-                elif dfmt == "F":
-                    params["real_format"] = "float32"
-                elif dfmt == "C":
-                    params["real_format"] = "int8"
-                elif dfmt == "S":
-                    params["real_format"] = "int16"
-                elif dfmt == "I":
-                    params["real_format"] = "int32"
+                params["real_format"] = _return_data_type(par, "IRFMT")
 
             elif "IIFMT" in par:
-                ifmt = par.replace("IIFMT", "").strip()
-                if ifmt == "D":
-                    params["imag_format"] = "float64"
-                elif ifmt == "F":
-                    params["imag_format"] = "float32"
-                elif ifmt == "C":
-                    params["imag_format"] = "int8"
-                elif ifmt == "S":
-                    params["imag_format"] = "int16"
-                elif ifmt == "I":
-                    params["imag_format"] = "int32"
+                params["imag_format"] = _return_data_type(par, "IIFMT")
 
             elif "IKKF" in par:
                 params["data_type"] = par.replace("IKKF", "").strip()
@@ -312,7 +262,7 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
                 axis_format=params["x_format"],
                 axis_points=params["x_points"],
                 axis_min=params["x_min"],
-                axis_max=params["x_max"],
+                axis_width=params["x_width"],
                 endian=params["endian"],
             )
         ]
@@ -325,23 +275,12 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
             )
         ]
 
-    if "x_unit" not in params.keys() or params["x_unit"] in [
-        "s",
-        "ms",
-        "ns",
-        "ps",
-        "Time",
-        "time",
-    ]:
-        dims = ["t2"]
-    elif params["x_unit"] in ["G", "mT", "T", "Field", "field"]:
+    if "x_unit" in params.keys() and params["x_unit"] in ["G", "T"]:
         if params["x_unit"] == "G":
             abscissa = [x / 10 for x in abscissa]
         elif params["x_unit"] == "T":
             abscissa = [x * 1000 for x in abscissa]
-        dims = ["B0"]
-    else:
-        dims = ["t2"]
+    dims = ["t2"]
 
     if params["data_type"] == "CPLX":
         spec = spec.astype(dtype=params["imag_format"]).view(dtype=np.dtype("complex"))
@@ -354,10 +293,7 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
     ) and ("y_points" in params.keys() and params["y_points"] != 1):
         spec = np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
 
-        if "y_unit" in params.keys():
-            dims.append(params["y_unit"])
-        else:
-            dims.append("t1")
+        dims.append("t1")
 
         abscissa.append(
             load_gf_files(
@@ -366,7 +302,7 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
                 axis_format=params["y_format"],
                 axis_points=params["y_points"],
                 axis_min=params["y_min"],
-                axis_max=params["y_max"],
+                axis_width=params["y_width"],
                 endian=params["endian"],
             )
         )
@@ -379,16 +315,6 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
             order="F",
         )
 
-        if "y_unit" in params.keys():
-            dims.append(params["y_unit"])
-        else:
-            dims.append("t1")
-
-        if "z_unit" in params.keys():
-            dims.append(params["z_unit"])
-        else:
-            dims.append("t0")
-
         abscissa.append(
             load_gf_files(
                 path_ygf,
@@ -396,10 +322,12 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
                 axis_format=params["y_format"],
                 axis_points=params["y_points"],
                 axis_min=params["y_min"],
-                axis_max=params["y_max"],
+                axis_width=params["y_width"],
                 endian=params["endian"],
             )
         )
+        dims.append("t1")
+
         abscissa.append(
             load_gf_files(
                 path_zgf,
@@ -407,24 +335,50 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
                 axis_format=params["z_format"],
                 axis_points=params["z_points"],
                 axis_min=params["z_min"],
-                axis_max=params["z_max"],
+                axis_width=params["z_width"],
                 endian=params["endian"],
             )
         )
+        dims.append("t0")
 
-    params.pop("endian", None)
-    params.pop("x_format", None)
-    params.pop("y_format", None)
-    params.pop("z_format", None)
-    params.pop("real_format", None)
-    params.pop("imag_format", None)
-    params.pop("data_type", None)
+    params = {
+        x: params[x]
+        for x in params.keys()
+        if x
+        not in [
+            "endian",
+            "x_format",
+            "x_type",
+            "x_points",
+            "x_min",
+            "x_width",
+            "y_format",
+            "y_type",
+            "y_points",
+            "y_min",
+            "y_width",
+            "z_format",
+            "z_type",
+            "z_points",
+            "z_min",
+            "z_width",
+            "real_format",
+            "imag_format",
+            "data_type",
+        ]
+    }
 
     return spec, abscissa, dims, params
 
 
 def load_gf_files(
-    path, axis_type="", axis_format="", axis_points=1, axis_min=1, axis_max=1, endian=""
+    path,
+    axis_type="",
+    axis_format="",
+    axis_points=1,
+    axis_min=1,
+    axis_width=1,
+    endian="",
 ):
     """
     Import data from .XGF, .YGF, or .ZGF files
@@ -435,7 +389,7 @@ def load_gf_files(
         axis_format (str) : format of file data
         axis_points (int) : number of points in axis
         axis_min (float) : minimum value of axis
-        axis_max (float) : maximum value of axis
+        axis_width (float) : total width of axis
         endian (float) : endian of data
 
     Returns:
@@ -455,9 +409,23 @@ def load_gf_files(
             warnings.warn(
                 "axis is nonlinear, confirm that file is not needed and the axis is correct"
             )
-        abscissa = np.linspace(axis_min, axis_max, axis_points)
+        abscissa = np.linspace(axis_min, axis_min + axis_width, axis_points)
     else:
         warnings.warn("axis format not supported, axis is only indexed")
-        abscissa = [range(axis_points)]
+        abscissa = np.array([range(axis_points)])
 
     return abscissa
+
+
+def _return_data_type(par, key):
+    fmt = par.replace(key, "").strip()
+    if fmt == "D":
+        return "float64"
+    elif fmt == "F":
+        return "float32"
+    elif fmt == "C":
+        return "int8"
+    elif fmt == "S":
+        return "int16"
+    elif fmt == "I":
+        return "int32"
