@@ -390,6 +390,8 @@ def calculate_enhancement(
     elif isinstance(off_spectrum, dnpdata) and isinstance(on_spectra, dnpdata):
 
         data_off, _ = return_data(off_spectrum)
+        if len(data_off.shape) != 1:
+            raise TypeError("off_spectrum should be 1D")
         data_on, _ = return_data(on_spectra)
         index_on = data_on.dims.index(dim)
 
@@ -413,7 +415,10 @@ def calculate_enhancement(
         if integrate_center == "max":
             on_maxs = _np.argmax(data_on.values.real, axis=index_on)
             int_center_off = data_off.coords[dim][_np.argmax(data_off.values.real)]
-            int_center_on = [data_on.coords[dim][x] for x in on_maxs]
+            if on_maxs.size == 1:
+                int_center_on = data_on.coords[dim][on_maxs]
+            else:
+                int_center_on = [data_on.coords[dim][x] for x in on_maxs]
         elif (
             isinstance(integrate_center, (list, _np.ndarray))
             and len(integrate_center) == 2
@@ -452,21 +457,33 @@ def calculate_enhancement(
             on_maxs = _np.argmax(abs(data_on.values.real), axis=index_on)
             if integrate_center == "max":
                 off_data = data_off.values.real[_np.argmax(abs(data_off.values.real))]
-                on_data = [
-                    data_on.values.real[x, indx] for indx, x in enumerate(on_maxs)
-                ]
+                if on_maxs.size == 1:
+                    on_data = data_on.values.real[on_maxs]
+                else:
+                    on_data = [
+                        data_on.values.real[x, indx] for indx, x in enumerate(on_maxs)
+                    ]
             else:
                 off_data = data_off.values.real[int_center_off]
-                on_data = [
-                    data_on.values.real[int_center_on, indx]
-                    for indx, _ in enumerate(on_maxs)
-                ]
+                if on_maxs.size == 1:
+                    on_data = data_on.values.real[int_center_on]
+                else:
+                    on_data = [
+                        data_on.values.real[int_center_on, indx]
+                        for indx, _ in enumerate(on_maxs)
+                    ]
 
-            enh = _np.array(on_data / off_data)
+            if (isinstance(on_data, list) and len(on_data) == 1) or (
+                isinstance(on_data, float) and on_data.size == 1
+            ):
+                enh = _np.array([on_data / off_data])
+            else:
+                enh = _np.array(on_data / off_data)
+
             remaining_dims = [x for x in data_on.dims if x != dim]
             if len(remaining_dims) == 0:
                 remaining_dims = ["index"]
-                remaining_coords = [np.array([0])]
+                remaining_coords = [_np.array([0])]
             else:
                 remaining_coords = [data_on.coords[x] for x in data_on.dims if x != dim]
 
@@ -474,7 +491,7 @@ def calculate_enhancement(
 
     else:
         raise TypeError(
-            "the given combination of data, off_spectrum, and on_spectra is not valid"
+            "Either use the integrate function first and define the index of the off spectrum, or pass dnpata objects for off_spectrum and on_spectra"
         )
 
     if isDict:
