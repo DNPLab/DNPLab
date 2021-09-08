@@ -13,6 +13,7 @@ def baseline(
     dim="f2",
     type="polynomial",
     order=1,
+    mode="subtract",
     reference_slice=None,
 ):
     """Baseline correction of NMR spectra down given dimension
@@ -29,6 +30,8 @@ def baseline(
     +-----------------+------+---------------+---------------------------------------------------+
     | order           | int  | 1             | polynomial order, or 1=mono 2=bi exponential      |
     +-----------------+------+---------------+---------------------------------------------------+
+    | mode            | str  | 'subtract'    | either 'subtract' or 'divide' by baseline         |
+    +-----------------+------+---------------+---------------------------------------------------+
     | reference_slice | int  | None          | slice of 2D data used to define the baseline      |
     +-----------------+------+---------------+---------------------------------------------------+
 
@@ -37,6 +40,7 @@ def baseline(
     """
 
     data, isDict = return_data(all_data)
+    index = data.dims.index(dim)
 
     if reference_slice is not None:
         if len(np.shape(data.values)) == 1:
@@ -47,22 +51,32 @@ def baseline(
 
     if len(data.dims) == 1:
         bline = dnpMath.baseline_fit(data.coords[dim], data.values, type, order)
-        data.values -= bline
+        if mode == "subtract":
+            data.values -= bline
+        elif mode == "divide":
+            data.values /= bline
     else:
+        indxer = np.argmax(data.values, axis=index)
+        bline_array = np.zeros(shape=(data.shape[index], indxer.size))
         if reference_slice is not None:
             bline = dnpMath.baseline_fit(
-                data.coords[dim], data.values[:, reference_slice], type, order
+                data.coords[dim], data[dim, :].values[:, reference_slice], type, order
             )
-            for ix in range(data.values.shape[1]):
-                data.values[:, ix] -= bline
+            for ix in range(indxer.size):
+                bline_array[:, ix] = bline.real
         elif reference_slice is None:
-            for ix in range(data.values.shape[1]):
+            for ix in range(indxer.size):
                 bline = dnpMath.baseline_fit(
-                    data.coords[dim], data.values[:, ix], type, order
+                    data.coords[dim], data[dim, :].values[:, ix], type, order
                 )
-                data.values[:, ix] -= bline
+                bline_array[:, ix] = bline.real
         else:
             raise TypeError("invalid reference_slice")
+
+        if mode == "subtract":
+            data.values -= bline_array
+        elif mode == "divide":
+            data.values /= bline_array
 
     proc_parameters = {
         "dim": dim,
@@ -109,7 +123,7 @@ def integrate(
     """
 
     data, isDict = return_data(all_data)
-    index = data.index(dim)
+    index = data.dims.index(dim)
 
     data_new = data.copy()
     if type == "double":
@@ -180,7 +194,11 @@ def integrate(
         )
 
     remaining_dims = [x for x in data.dims if x != dim]
-    if len(remaining_dims) == 0:
+    if (
+        len(remaining_dims) == 0
+        and isinstance(integrate_center, (int, float))
+        and isinstance(integrate_width, (int, float))
+    ):
         remaining_dims = ["index"]
         remaining_coords = [np.array([0])]
     else:
@@ -203,6 +221,7 @@ def integrate(
                 remaining_dims = ["width"] + remaining_dims
             data_values = np.array(data_integrals)
         elif isinstance(integrate_center, list) and isinstance(integrate_width, list):
+            indxer = np.argmax(data_new[0].values, axis=index)
             remaining_coords = [
                 np.array(integrate_center),
                 np.array(integrate_width),
@@ -210,7 +229,7 @@ def integrate(
             remaining_dims = ["center", "width"] + remaining_dims
             data_values = np.array(
                 tuple([data_integrals for _ in range(len(data_integrals))])
-            ).reshape(len(data_integrals), len(data_integrals), data_new[0].shape[1])
+            ).reshape(len(data_integrals), len(data_integrals), indxer.size)
     else:
         data_values = np.trapz(data_new.values, x=data_new.coords[dim], axis=index)
 
@@ -476,9 +495,10 @@ def signal_to_noise(
     """
 
     data, isDict = return_data(all_data)
+    index = data.dims.index(dim)
 
     if signal_width == "full" and isinstance(signal_center, (int, float)):
-        s_data = data.real
+        s_data = data[dim, :].real
     elif isinstance(signal_width, (int, float)) and isinstance(
         signal_center, (int, float)
     ):
@@ -515,10 +535,10 @@ def signal_to_noise(
     if len(data.dims) == 1:
         s_n = s_data.values[np.argmax(s_data.values)] / np.std(n_data.values)
     else:
+        sn_maxs = np.argmax(s_data.values, axis=index)
         s_n = [
-            s_data.values[np.argmax(s_data.values[:, ix], axis=0), ix]
-            / np.std(n_data.values[:, ix], axis=0)
-            for ix in range(s_data.values.shape[1])
+            s_data.values[x, ix] / np.std(n_data.values[:, ix], axis=index)
+            for ix, x in enumerate(sn_maxs)
         ]
 
     data.attrs["s_n"] = s_n
