@@ -376,7 +376,7 @@ def calculate_enhancement(
 
     _, isDict = return_data(all_data)
 
-    if isDict and "integrals" in all_data.keys():
+    if isDict and "integrals" in all_data.keys() and isinstance(off_spectrum, int):
         enh = _np.array(
             all_data["integrals"].values.real
             / all_data["integrals"].values.real[off_spectrum - 1]
