@@ -184,9 +184,9 @@ def autophase(
     +=================+===============+===============+===================================================+
     | method          | str           | 'search'      | method of searching for the best phase            |
     +-----------------+---------------+---------------+---------------------------------------------------+
-    | pts_lim         | int or None   | None          | specify the max points used in phase search       |
-    +-----------------+---------------+---------------+---------------------------------------------------+
     | reference_range | list or tuple | None          | data window to use for phase calculation          |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | pts_lim         | int or None   | None          | specify the max points used in phase search       |
     +-----------------+---------------+---------------+---------------------------------------------------+
     | order           | str           | 'zero'        | order of phase correction                         |
     +-----------------+---------------+---------------+---------------------------------------------------+
@@ -613,7 +613,7 @@ def inverse_fourier_transform(
     +------------------+------+-----------+--------------------------------------------------+
     | shift            | bool | True      | Perform fftshift to set zero frequency to center |
     +------------------+------+-----------+--------------------------------------------------+
-    | convert_to_ppm   | bool | True      | Convert dim from Hz to ppm                       |
+    | convert_from_ppm | bool | True      | Convert dim from Hz to ppm                       |
     +------------------+------+-----------+--------------------------------------------------+
     | output           | str  | 'complex' | output complex, magnitude, or power spectrum     |
     +------------------+------+-----------+--------------------------------------------------+
