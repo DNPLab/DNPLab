@@ -13,6 +13,7 @@ def baseline(
     dim="f2",
     type="polynomial",
     order=1,
+    initial_guess=None,
     mode="subtract",
     reference_slice=None,
 ):
@@ -50,7 +51,9 @@ def baseline(
             reference_slice -= 1
 
     if len(data.dims) == 1:
-        bline = dnpMath.baseline_fit(data.coords[dim], data.values, type, order)
+        bline = dnpMath.baseline_fit(
+            data.coords[dim], data.values, type, order, p0=initial_guess
+        )
         if mode == "subtract":
             data.values -= bline
         elif mode == "divide":
@@ -60,14 +63,22 @@ def baseline(
         bline_array = np.zeros(shape=(data.shape[index], indxer.size))
         if reference_slice is not None:
             bline = dnpMath.baseline_fit(
-                data.coords[dim], data[dim, :].values[:, reference_slice], type, order
+                data.coords[dim],
+                data[dim, :].values[:, reference_slice],
+                type,
+                order,
+                p0=initial_guess,
             )
             for ix in range(indxer.size):
                 bline_array[:, ix] = bline.real
         elif reference_slice is None:
             for ix in range(indxer.size):
                 bline = dnpMath.baseline_fit(
-                    data.coords[dim], data[dim, :].values[:, ix], type, order
+                    data.coords[dim],
+                    data[dim, :].values[:, ix],
+                    type,
+                    order,
+                    p0=initial_guess,
                 )
                 bline_array[:, ix] = bline.real
         else:
