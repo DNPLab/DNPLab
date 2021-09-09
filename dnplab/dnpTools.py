@@ -13,7 +13,7 @@ def baseline(
     dim="f2",
     type="polynomial",
     order=1,
-    initial_guess=None,
+    p0=None,
     mode="subtract",
     reference_slice=None,
 ):
@@ -30,6 +30,8 @@ def baseline(
     | type            | str  | 'polynomial'  | type of baseline fit                              |
     +-----------------+------+---------------+---------------------------------------------------+
     | order           | int  | 1             | polynomial order, or 1=mono 2=bi exponential      |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | p0              | list | None          | initial guess for exponential baseline fit        |
     +-----------------+------+---------------+---------------------------------------------------+
     | mode            | str  | 'subtract'    | either 'subtract' or 'divide' by baseline         |
     +-----------------+------+---------------+---------------------------------------------------+
@@ -51,9 +53,7 @@ def baseline(
             reference_slice -= 1
 
     if len(data.dims) == 1:
-        bline = dnpMath.baseline_fit(
-            data.coords[dim], data.values, type, order, p0=initial_guess
-        )
+        bline = dnpMath.baseline_fit(data.coords[dim], data.values, type, order, p0=p0)
         if mode == "subtract":
             data.values -= bline
         elif mode == "divide":
@@ -67,7 +67,7 @@ def baseline(
                 data[dim, :].values[:, reference_slice],
                 type,
                 order,
-                p0=initial_guess,
+                p0=p0,
             )
             for ix in range(indxer.size):
                 bline_array[:, ix] = bline.real
@@ -78,7 +78,7 @@ def baseline(
                     data[dim, :].values[:, ix],
                     type,
                     order,
-                    p0=initial_guess,
+                    p0=p0,
                 )
                 bline_array[:, ix] = bline.real
         else:
