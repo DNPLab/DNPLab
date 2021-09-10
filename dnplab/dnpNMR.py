@@ -1,58 +1,12 @@
-import warnings
+from warnings import warn
 
 import numpy as _np
-from scipy.optimize import curve_fit
 
-from . import dnpdata, dnpdata_collection
+from . import return_data, dnpdata, dnpdata_collection
 from . import dnpTools, dnpMath
-from . import dnpResults
-import matplotlib.pyplot as plt
-from matplotlib.widgets import Slider, Button, RadioButtons
 
 import re
 import copy
-
-
-def return_data(all_data):
-
-    is_workspace = False
-    if isinstance(all_data, dnpdata):
-        data = all_data.copy()
-    elif isinstance(all_data, dict):
-        raise ValueError("Type dict is not supported")
-    elif isinstance(all_data, dnpdata_collection):
-        is_workspace = True
-        if all_data.processing_buffer in all_data.keys():
-            data = all_data[all_data.processing_buffer]
-        else:
-            raise ValueError(
-                "No data in processing buffer. Use something like: workspace.copy('raw','proc') first."
-            )
-    else:
-        raise ValueError("Data type not supported")
-
-    return data, is_workspace
-
-
-def update_parameters(proc_parameters, requiredList, default_parameters):
-    """Add default parameter to processing parameters if a processing parameter is missing
-
-    Args:
-        proc_parameters (dict): Dictionary of initial processing parameters
-        requiredList (list): List of requrired processing parameters
-        default_parameters (dict): Dictionary of default processing parameters
-
-    Returns:
-        dict: Updated processing parameters dictionary
-    """
-    updatedProc_parameters = proc_parameters
-    for requiredParameter in requiredList:
-        if not requiredParameter in updatedProc_parameters:
-            updatedProc_parameters[requiredParameter] = default_parameters[
-                requiredParameter
-            ]
-
-    return updatedProc_parameters
 
 
 def ndalign(all_data, dim="f2", reference=None):
@@ -197,8 +151,10 @@ def align(all_data, dim="f2", dim2=None):
 
 def autophase(
     all_data,
+    dim="f2",
     method="search",
-    points_limit=None,
+    reference_range=None,
+    pts_lim=None,
     order="zero",
     pivot=0,
     delta=0,
@@ -223,25 +179,27 @@ def autophase(
     Args:
         all_data (dnpdata_collection, dnpdata): Data object to autophase
 
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | parameter       | type         | default       | description                                       |
-    +=================+==============+===============+===================================================+
-    | method          | str          | 'search'      | method of searching for the best phase            |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | points_limit    | int or None  | None          | specify the max points used in phase search       |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | order           | str          | 'zero'        | order of phase correction                         |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | pivot           | int          | 0             | pivot point for first order correction            |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | delta           | float or int | 0             | total change in phase magnitude for first order   |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | phase           | float or int | 0             | manual phase correction in radians                |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | reference_slice | int, or None | None          | slice of 2D data used to define the phase         |
-    +-----------------+--------------+---------------+---------------------------------------------------+
-    | force_positive  | boolean      | False         | force the entire spectrum to positive magnitude   |
-    +-----------------+--------------+---------------+---------------------------------------------------+
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | parameter       | type          | default       | description                                       |
+    +=================+===============+===============+===================================================+
+    | method          | str           | 'search'      | method of searching for the best phase            |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | reference_range | list or tuple | None          | data window to use for phase calculation          |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | pts_lim         | int or None   | None          | specify the max points used in phase search       |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | order           | str           | 'zero'        | order of phase correction                         |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | pivot           | int           | 0             | pivot point for first order correction            |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | delta           | float or int  | 0             | total change in phase magnitude for first order   |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | phase           | float or int  | 0             | manual phase correction in radians                |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | reference_slice | int, or None  | None          | slice of 2D data used to define the phase         |
+    +-----------------+---------------+---------------+---------------------------------------------------+
+    | force_positive  | boolean       | False         | force the entire spectrum to positive magnitude   |
+    +-----------------+---------------+---------------+---------------------------------------------------+
 
     Returns:
         dnpdata: Autophased data, including attrs "phase0" for order="zero", and "phase1" if order="first"
@@ -254,6 +212,7 @@ def autophase(
 
     data, isDict = return_data(all_data)
     shape_data = _np.shape(data.values)
+    index = data.dims.index(dim)
 
     if phase is not None:
         method = "manual"
@@ -268,17 +227,13 @@ def autophase(
         elif order == "first" and isinstance(phase, (int, float)):
             data.attrs["phase0"] = phase
             order = "zero"
-            warnings.warn(
+            warn(
                 "method=manual and order=first but only a single phase was given, switching to order=zero"
             )
         elif (
             order == "first"
-            and isinstance(phase, _np.ndarray)
-            and len(phase) == shape_data[0]
-        ):
-            data.attrs["phase1"] = phase
-        elif (
-            order == "first" and isinstance(phase, list) and len(phase) == shape_data[0]
+            and isinstance(phase, (list, _np.ndarray))
+            and len(phase) == shape_data[index]
         ):
             data.attrs["phase1"] = _np.array(phase)
         else:
@@ -287,15 +242,22 @@ def autophase(
             )
     else:
 
+        if isinstance(reference_range, (list, tuple)) and len(reference_range) == 2:
+            check_data = data[dim, (reference_range[0], reference_range[1])]
+        else:
+            check_data = data.copy()
+            if reference_range is not None:
+                warn("reference_range must be None or list/tuple length=2")
+
         if reference_slice is not None:
             if len(shape_data) == 1:
                 reference_slice = None
-                temp_data = data.values
-                warnings.warn("ignoring reference_slice, this is 1D data")
+                temp_data = check_data.values
+                warn("ignoring reference_slice, this is 1D data")
             else:
-                temp_data = data.values[:, reference_slice - 1]
+                temp_data = check_data.values[:, reference_slice - 1]
         else:
-            temp_data = data.values
+            temp_data = check_data.values
 
         if method == "arctan":
             data.attrs["phase0"] = _np.arctan(
@@ -303,24 +265,30 @@ def autophase(
                 / _np.sum(_np.real(temp_data.reshape(-1, 1)))
             )
         elif method == "search":
-            if points_limit is not None:
-                if len(data.coords[0]) > points_limit:
+            if pts_lim is not None:
+                if len(check_data.coords[dim]) > pts_lim:
                     phasing_x = _np.linspace(
-                        min(data.coords[0]), max(data.coords[0]), int(points_limit)
+                        min(check_data.coords[dim]),
+                        max(check_data.coords[dim]),
+                        int(pts_lim),
                     ).reshape(-1)
-                    if len(data.dims) > 1:
+                    if len(check_data.dims) == 1:
+                        temp_data = _np.interp(
+                            phasing_x, check_data.coords[dim], check_data.values
+                        ).reshape(-1)
+                    else:
+                        ind_dim = list(set(data.dims) - set([dim]))[0]
+                        ind_shape = data.shape[data.index(ind_dim)]
                         temp_data = _np.array(
                             [
                                 _np.interp(
-                                    phasing_x, data.coords[0], data.values[:, x]
+                                    phasing_x,
+                                    check_data.coords[dim],
+                                    check_data[dim, :].values[:, indx],
                                 ).reshape(-1)
-                                for x in range(data.shape[1])
+                                for indx in range(ind_shape)
                             ]
-                        )
-                    elif len(data.dims) == 1:
-                        temp_data = _np.interp(
-                            phasing_x, data.coords[0], data.values
-                        ).reshape(-1)
+                        ).reshape(pts_lim, ind_shape)
             phases_0 = _np.linspace(-_np.pi / 2, _np.pi / 2, 180).reshape(-1)
             rotated_data = (temp_data.reshape(-1, 1)) * _np.exp(-1j * phases_0)
             real_imag_ratio = (_np.real(rotated_data) ** 2).sum(axis=0) / (
@@ -342,29 +310,17 @@ def autophase(
                 data.attrs["phase0"] + delta * (1 - pivot_ratio),
                 len(data.values),
             )
-        if len(shape_data) == 2:
-            for ix in range(shape_data[1]):
-                data.values[:, ix] *= _np.exp(-1j * data.attrs["phase1"])
-        else:
-            data.values *= _np.exp(-1j * data.attrs["phase1"])
+        data.values.T.dot(_np.exp(-1j * data.attrs["phase1"]))
+
     else:
         raise TypeError("Invalid order or order & phase pair")
 
     if force_positive:
-        if len(shape_data) == 2:
-            for ix in range(shape_data[1]):
-                if _np.sum(_np.real(data.values[:, ix])) < 0:
-                    data.values[:, ix] *= -1.0
-                else:
-                    pass
-        elif len(_np.shape(data.values)) == 1:
-            if _np.sum(_np.real(data.values)) < 0:
-                data.values *= -1.0
-        else:
-            raise ValueError("only 1D or 2D data are currently supported")
+        data.values = _np.absolute(data.values)
 
     proc_parameters = {
         "method": method,
+        "reference_range": reference_range,
         "reference_slice": reference_slice,
         "force_positive": force_positive,
         "order": order,
@@ -388,8 +344,6 @@ def calculate_enhancement(
     integrate_width="full",
     method="integrate",
     dim="f2",
-    indirect_dim=None,
-    ws_key="integrals",
 ):
     """Calculate enhancement from DNP data
 
@@ -411,10 +365,6 @@ def calculate_enhancement(
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
     | dim              | str                        | "f2"        | dimension to integrate down or search down for max                   |
     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    | indirect_dim     | str                        | None        | indirect dimension                                                   |
-    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    | ws_key           | str                        | "integrals" | object to use as values for calculating enhancement                  |
-    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
 
     Returns:
         dnpdata: data object with "enhancements" key added
@@ -425,183 +375,125 @@ def calculate_enhancement(
             "please use indices from 1 to number of slices, i.e. use 1 instead of 0"
         )
 
-    orig_data, isDict = return_data(all_data)
+    _, isDict = return_data(all_data)
 
-    if ws_key in all_data.keys():
-        enh = _np.real(
-            all_data[ws_key].values / all_data[ws_key].values[off_spectrum - 1]
+    if isDict and "integrals" in all_data.keys() and isinstance(off_spectrum, int):
+        enh = _np.array(
+            all_data["integrals"].values.real
+            / all_data["integrals"].values.real[off_spectrum - 1]
         )
         enhancement_data = dnpdata(
-            enh, [all_data[ws_key].coords], [all_data[ws_key].dims]
+            enh,
+            [all_data["integrals"].coords[x] for x in all_data["integrals"].dims],
+            all_data["integrals"].dims,
         )
 
-    else:
+    elif isinstance(off_spectrum, dnpdata) and isinstance(on_spectra, dnpdata):
 
-        if isinstance(off_spectrum, (dnpdata, dnpdata_collection)) and isinstance(
-            on_spectra, (dnpdata, dnpdata_collection)
+        data_off, _ = return_data(off_spectrum)
+        if len(data_off.shape) != 1:
+            raise TypeError("off_spectrum should be 1D")
+        data_on, _ = return_data(on_spectra)
+        index_on = data_on.dims.index(dim)
+
+        if integrate_width == "full":
+            int_width_off = max(data_off.coords[dim]) - min(data_off.coords[dim])
+            int_width_on = max(data_on.coords[dim]) - min(data_on.coords[dim])
+        elif (
+            isinstance(integrate_width, (list, _np.ndarray))
+            and len(integrate_width) == 2
         ):
-
-            data_off, is_ws_off = return_data(off_spectrum)
-            data_on, is_ws_on = return_data(on_spectra)
-            if not indirect_dim:
-                if len(data_on.dims) == 2:
-                    ind_dim = list(set(data_on.dims) - set([dim]))[0]
-                elif len(data_on.dims) == 1:
-                    ind_dim = data_on.dims[0]
-                else:
-                    raise ValueError(
-                        "you must specify the indirect dimension, use argument indirect_dim= "
-                    )
-            else:
-                ind_dim = indirect_dim
-
-            if integrate_width == "full":
-                int_width_off = "full"
-                int_width_on = "full"
-            elif (
-                isinstance(integrate_width, (list, _np.ndarray))
-                and len(integrate_width) == 2
-            ):
-                int_width_off = integrate_width[0]
-                int_width_on = integrate_width[1]
-            elif isinstance(integrate_width, int):
-                int_width_off = integrate_width
-                int_width_on = integrate_width
-            else:
-                raise ValueError(
-                    "integrate_width must be an integer, a list/array with len = 2, or 'full'"
-                )
-
-            if integrate_center == "max":
-                pass
-            elif (
-                isinstance(integrate_center, (list, _np.ndarray))
-                and len(integrate_center) == 2
-            ):
-                int_center_off = integrate_center[0]
-                int_center_on = integrate_center[1]
-            elif isinstance(integrate_center, int):
-                int_center_off = integrate_center
-                int_center_on = integrate_center
-            else:
-                raise ValueError(
-                    "integrate_center must be an integer, a list/array with len = 2, or 'max'"
-                )
-
-            if method == "integrate":
-                off_data1 = dnpTools.integrate(
-                    data_off,
-                    dim=dim,
-                    integrate_center=int_center_off,
-                    integrate_width=int_width_off,
-                )
-                off_data = off_data1.values
-
-                on_data1 = dnpTools.integrate(
-                    data_on,
-                    dim=dim,
-                    integrate_center=int_center_on,
-                    integrate_width=int_width_on,
-                )
-                on_data = on_data1.values
-
-            elif method == "amplitude":
-                on_data = []
-                if integrate_center == "max":
-                    off_data = data_off.values[_np.argmax(abs(data_off.values))]
-                    if len(data_on.shape) == 1:
-                        on_data.append(data_on.values[_np.argmax(abs(data_on.values))])
-                    else:
-                        for indx in range(data_on.shape[-1]):
-                            on_data.append(
-                                data_on.values[
-                                    _np.argmax(abs(data_on.values[indx])), indx
-                                ]
-                            )
-                else:
-                    off_data = data_off.values[int_center_off]
-                    if len(data_on.shape) == 1:
-                        on_data.append(data_on.values[int_center_on])
-                    else:
-                        for indx in range(data_on.shape[-1]):
-                            on_data.append(data_on.values[int_center_on, indx])
-
-            if data_on.ndim == 2:
-                enh_coords_on = data_on.coords[ind_dim]
-            else:
-                enh_coords_on = _np.array(range(on_data.shape[-1]))
-
-        elif isinstance(off_spectrum, int) and on_spectra == "all":
-
-            if not indirect_dim:
-                if len(orig_data.dims) == 2:
-                    ind_dim = list(set(orig_data.dims) - set([dim]))[0]
-                elif len(orig_data.dims) == 1:
-                    ind_dim = orig_data.dims[0]
-                else:
-                    raise ValueError(
-                        "you must specify the indirect dimension, use argument indirect_dim= "
-                    )
-            else:
-                ind_dim = indirect_dim
-
-            enh_data = copy.deepcopy(all_data)
-            if orig_data.ndim == 1:
-                raise ValueError("data is 1D, enhancement will be equal to 1 !!")
-
-            if (
-                isinstance(integrate_width, (list, _np.ndarray))
-                and len(integrate_width) > 1
-            ):
-                raise ValueError(
-                    "supply a single value for integrate_width, or use 'full'"
-                )
-            elif isinstance(integrate_width, str) and integrate_width != "full":
-                raise ValueError("the only allowed integrate_width string is 'full'")
-
-            if (
-                isinstance(integrate_center, (list, _np.ndarray))
-                and len(integrate_center) > 1
-            ):
-                raise ValueError(
-                    "supply a single value for integrate_center, or use 'max'"
-                )
-            elif isinstance(integrate_center, str) and integrate_center != "max":
-                raise ValueError("the only allowed integrate_center string is 'max'")
-
-            if method == "integrate":
-
-                dnpTools.integrate(
-                    enh_data,
-                    dim=dim,
-                    integrate_center=integrate_center,
-                    integrate_width=integrate_width,
-                )
-                on_data = enh_data["integrals"].values
-
-            elif method == "amplitude":
-                on_data = []
-                if integrate_center == "max":
-                    for indx in range(orig_data.shape[-1]):
-                        on_data.append(
-                            orig_data.values[
-                                _np.argmax(abs(orig_data.values[indx])), indx
-                            ]
-                        )
-                else:
-                    for indx in range(orig_data.shape[-1]):
-                        on_data.append(orig_data.values[integrate_center, indx])
-
-            off_data = on_data[off_spectrum - 1]
-            enh_coords_on = orig_data.coords[ind_dim]
-
+            int_width_off = integrate_width[0]
+            int_width_on = integrate_width[1]
+        elif isinstance(integrate_width, int):
+            int_width_off = integrate_width
+            int_width_on = integrate_width
         else:
-            raise TypeError(
-                "the given combination of data, off_spectrum, and on_spectra is not valid"
+            raise ValueError(
+                "integrate_width must be an integer, a list/array with len = 2, or 'full'"
             )
 
-        enh = _np.real(_np.array(on_data) / _np.array(off_data))
-        enhancement_data = dnpdata(enh, [enh_coords_on], [ind_dim])
+        if integrate_center == "max":
+            on_maxs = _np.argmax(data_on.values.real, axis=index_on)
+            int_center_off = data_off.coords[dim][_np.argmax(data_off.values.real)]
+            if on_maxs.size == 1:
+                int_center_on = data_on.coords[dim][on_maxs]
+            else:
+                int_center_on = [data_on.coords[dim][x] for x in on_maxs]
+        elif (
+            isinstance(integrate_center, (list, _np.ndarray))
+            and len(integrate_center) == 2
+        ):
+            int_center_off = integrate_center[0]
+            int_center_on = integrate_center[1]
+        elif isinstance(integrate_center, int):
+            int_center_off = integrate_center
+            int_center_on = integrate_center
+        else:
+            raise ValueError(
+                "integrate_center must be an integer, a list/array with len = 2, or 'max'"
+            )
+
+        if method == "integrate":
+            off_data = dnpTools.integrate(
+                data_off,
+                dim=dim,
+                integrate_center=int_center_off,
+                integrate_width=int_width_off,
+            )
+
+            on_data = dnpTools.integrate(
+                data_on,
+                dim=dim,
+                integrate_center=int_center_on,
+                integrate_width=int_width_on,
+            )
+
+            enh = _np.array(on_data.values.real / off_data.values.real)
+            enhancement_data = dnpdata(
+                enh, [on_data.coords[x] for x in on_data.dims], on_data.dims
+            )
+
+        elif method == "amplitude":
+            on_maxs = _np.argmax(abs(data_on.values.real), axis=index_on)
+            if integrate_center == "max":
+                off_data = data_off.values.real[_np.argmax(abs(data_off.values.real))]
+                if on_maxs.size == 1:
+                    on_data = data_on.values.real[on_maxs]
+                else:
+                    on_data = [
+                        data_on.values.real[x, indx] for indx, x in enumerate(on_maxs)
+                    ]
+            else:
+                off_data = data_off.values.real[int_center_off]
+                if on_maxs.size == 1:
+                    on_data = data_on.values.real[int_center_on]
+                else:
+                    on_data = [
+                        data_on.values.real[int_center_on, indx]
+                        for indx, _ in enumerate(on_maxs)
+                    ]
+
+            if (isinstance(on_data, list) and len(on_data) == 1) or (
+                isinstance(on_data, float) and on_data.size == 1
+            ):
+                enh = _np.array([on_data / off_data])
+            else:
+                enh = _np.array(on_data / off_data)
+
+            remaining_dims = [x for x in data_on.dims if x != dim]
+            if len(remaining_dims) == 0:
+                remaining_dims = ["index"]
+                remaining_coords = [_np.array([0])]
+            else:
+                remaining_coords = [data_on.coords[x] for x in data_on.dims if x != dim]
+
+            enhancement_data = dnpdata(enh, remaining_coords, remaining_dims)
+
+    else:
+        raise TypeError(
+            "Either use the integrate function first and define the index of the off spectrum, or pass dnpata objects for off_spectrum and on_spectra"
+        )
 
     if isDict:
         all_data["enhancements"] = enhancement_data
@@ -648,15 +540,12 @@ def fourier_transform(
     Returns:
         dnpdata: data object after FT
     """
-    #    if isinstance(zero_fill_factor, int) and zero_fill_factor >= 1:
-    #        dnpTools.zero_fill(
-    #            all_data, dim=dim, zero_fill_factor=zero_fill_factor, shift=shift
-    #        )
-    #    else:
-    #        raise ValueError("zero_fill_factor must be type int greater than 0")
-
-    # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
+
+    # handle zero_fill_factor
+    zero_fill_factor = int(zero_fill_factor)
+    if zero_fill_factor <= 0:
+        zero_fill_factor = 1
 
     proc_parameters = {
         "dim": dim,
@@ -674,8 +563,13 @@ def fourier_transform(
         f -= 1.0 / (2 * dt)
 
     if convert_to_ppm:
-        nmr_frequency = data.attrs["nmr_frequency"]
-        f /= -1 * nmr_frequency / 1.0e6
+        if "nmr_frequency" not in data.attrs.keys():
+            warn(
+                "NMR frequency not found in the attrs dictionary, coversion to ppm requires the NMR frequency. See docs."
+            )
+        else:
+            nmr_frequency = data.attrs["nmr_frequency"]
+            f /= -1 * nmr_frequency / 1.0e6
 
     data.values = _np.fft.fft(data.values, n=n_pts, axis=index)
 
@@ -683,9 +577,6 @@ def fourier_transform(
         data.values = _np.fft.fftshift(data.values, axes=index)
 
     data.coords[dim] = f
-
-    #    if convert_to_ppm:
-    #        data.coords[dim] /= (-1 * data.attrs["nmr_frequency"] / 1.0e6)
 
     if output == "mag":
         data.values = _np.sqrt(data.values.real ** 2 + data.values.imag ** 2)
@@ -740,7 +631,7 @@ def inverse_fourier_transform(
     +------------------+------+-----------+--------------------------------------------------+
     | shift            | bool | True      | Perform fftshift to set zero frequency to center |
     +------------------+------+-----------+--------------------------------------------------+
-    | convert_to_ppm   | bool | True      | Convert dim from Hz to ppm                       |
+    | convert_from_ppm | bool | True      | Convert dim from Hz to ppm                       |
     +------------------+------+-----------+--------------------------------------------------+
     | output           | str  | 'complex' | output complex, magnitude, or power spectrum     |
     +------------------+------+-----------+--------------------------------------------------+
@@ -748,20 +639,12 @@ def inverse_fourier_transform(
     Returns:
         dnpdata: data object after inverse FT
     """
-    if isinstance(zero_fill_factor, int) and zero_fill_factor >= 1:
-        dnpTools.zero_fill(
-            all_data,
-            dim=dim,
-            zero_fill_factor=zero_fill_factor,
-            shift=shift,
-            inverse=True,
-            convert_from_ppm=convert_from_ppm,
-        )
-    else:
-        raise ValueError("zero_fill_factor must be type int greater than 0")
-
-    # Determine if data is dictionary or dnpdata object
     data, isDict = return_data(all_data)
+
+    # handle zero_fill_factor
+    zero_fill_factor = int(zero_fill_factor)
+    if zero_fill_factor <= 0:
+        zero_fill_factor = 1
 
     proc_parameters = {
         "dim": dim,
@@ -772,10 +655,24 @@ def inverse_fourier_transform(
 
     index = data.dims.index(dim)
 
+    df = data.coords[dim][1] - data.coords[dim][0]
+    if convert_from_ppm:
+        if "nmr_frequency" not in data.attrs.keys():
+            warn(
+                "NMR frequency not found in the attrs dictionary, coversion from ppm requires the NMR frequency. See docs."
+            )
+        else:
+            nmr_frequency = data.attrs["nmr_frequency"]
+            df /= -1 / (nmr_frequency / 1.0e6)
+
+    n_pts = zero_fill_factor * len(data.coords[dim])
+    t = (1.0 / (n_pts * df)) * _np.r_[0:n_pts]
+
     if shift:
         data.values = _np.fft.fftshift(data.values, axes=index)
 
-    data.values = _np.fft.ifft(data.values, axis=index)
+    data.values = _np.fft.ifft(data.values, n=n_pts, axis=index)
+    data.coords[dim] = t
 
     if output == "mag":
         data.values = _np.sqrt(data.values.real ** 2 + data.values.imag ** 2)

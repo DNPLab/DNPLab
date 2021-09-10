@@ -90,31 +90,31 @@ _dspfvs_table_13 = {
 }
 
 
-def find_group_delay(attrsDict):
+def find_group_delay(attrs_dict):
     """
     Determine group delay from tables
 
     Args:
-        attrsDict (dict): dictionary of topspin acquisition parameters
+        attrs_dict (dict): dictionary of topspin acquisition parameters
 
     Returns:
         float: Group delay. Number of points FID is shifted by DSP. The ceiling of this number (group delay rounded up) is the number of points should be removed from the start of the FID.
     """
 
     group_delay = 0
-    if attrsDict["DSPFIRM"] != 0 and "GRPDLY" in attrsDict.keys():
-        group_delay = attrsDict["GRPDLY"]
-    elif attrsDict["DECIM"] == 1.0:
+    if attrs_dict["DSPFIRM"] != 0 and "GRPDLY" in attrs_dict.keys():
+        group_delay = attrs_dict["GRPDLY"]
+    elif attrs_dict["DECIM"] == 1.0:
         pass
     else:
-        if attrsDict["DSPFVS"] == 10:
-            group_delay = _dspfvs_table_10[int(attrsDict["DECIM"])]
-        elif attrsDict["DSPFVS"] == 11:
-            group_delay = _dspfvs_table_11[int(attrsDict["DECIM"])]
-        elif attrsDict["DSPFVS"] == 12:
-            group_delay = _dspfvs_table_12[int(attrsDict["DECIM"])]
-        elif attrsDict["DSPFVS"] == 13:
-            group_delay = _dspfvs_table_13[int(attrsDict["DECIM"])]
+        if attrs_dict["DSPFVS"] == 10:
+            group_delay = _dspfvs_table_10[int(attrs_dict["DECIM"])]
+        elif attrs_dict["DSPFVS"] == 11:
+            group_delay = _dspfvs_table_11[int(attrs_dict["DECIM"])]
+        elif attrs_dict["DSPFVS"] == 12:
+            group_delay = _dspfvs_table_12[int(attrs_dict["DECIM"])]
+        elif attrs_dict["DSPFVS"] == 13:
+            group_delay = _dspfvs_table_13[int(attrs_dict["DECIM"])]
         else:
             print(
                 "GRPDLY and DSPFVS parameters not found in acqus file, setting group delay to 0"
@@ -123,109 +123,155 @@ def find_group_delay(attrsDict):
     return group_delay
 
 
-def import_topspin(path):
+def import_topspin(path, phase_cycle=[0, 90, 180, 270]):
     """
     Import topspin data and return dnpdata object
 
     Args:
         path (str): Directory of data
+        phase_cycle (list): list of phases used for phase cycling (deg, multiples of 90)
 
     Returns:
         dnpdata: topspin data
     """
-    dirList = _os.listdir(path)
+    dir_list = _os.listdir(path)
 
-    if "fid" in dirList:
-        data = load_fid_ser(path, type="fid")
-    elif "ser" in dirList:
-        if "vdlist" in dirList:
-            data = load_fid_ser(path, type="ser")
-        else:
-            data = load_fid_ser(path, type="serPhaseCycle")
+    if "fid" in dir_list and "ser" not in dir_list:
+        data = load_fid_ser(path, type="fid", phase_cycle=phase_cycle)
+    elif "ser" in dir_list:
+        data = load_fid_ser(path, type="ser", phase_cycle=phase_cycle)
     else:
         raise ValueError("Could Not Identify Data Type in File")
 
     return data
 
 
-def load_acqu_proc(path="1", paramFilename="acqus", procNum=1):
+def load_acqu_proc(path="1", param_filename="acqus", proc_num=1):
     """
     Import topspin acqu or proc files
 
     Args:
         path (str): directory of acqu or proc file
-        paramFilename (str): parameters filename
-        procNum (int): number of the folder inside the pdata folder
+        param_filename (str): parameters filename
+        proc_num (int): number of the folder inside the pdata folder
 
     Returns:
         dict: Dictionary of acqusition parameters
     """
 
-    if "proc" in paramFilename:
-        pathFilename = _os.path.joing(path, "pdata", str(procNum), paramFilename)
+    if "proc" in param_filename:
+        path_filename = _os.path.join(path, "pdata", str(procNum), param_filename)
     else:
-        pathFilename = _os.path.join(path, paramFilename)
+        path_filename = _os.path.join(path, param_filename)
 
     # Import parameters
-    with open(pathFilename, "r") as f:
-        rawParams = f.read()
+    with open(path_filename, "r") as f:
+        raw_params = f.read()
 
     # Split parameters by line
-    lines = rawParams.strip("\n").split("\n")
-    attrsDict = {}
+    lines = raw_params.strip("\n").split("\n")
+    attrs_dict = {}
 
     # Parse Parameters
     for line in lines:
         if line[0:3] == "##$":
-            lineSplit = line[3:].split("= ")
+            line_split = line[3:].split("= ")
             try:
-                attrsDict[lineSplit[0]] = float(lineSplit[1])
+                attrs_dict[line_split[0]] = float(line_split[1])
             except:
-                attrsDict[lineSplit[0]] = lineSplit[1]
-            # if lineSplit[0] in ["TD", "NS"]:
-            # print(lineSplit[0] + ": " + str(attrsDict[lineSplit[0]]))
+                attrs_dict[line_split[0]] = line_split[1]
+            # if line_split[0] in ["TD", "NS"]:
+            # print(line_split[0] + ": " + str(attrs_dict[line_split[0]]))
 
-    if paramFilename == "acqu" or paramFilename == "acqus":
+    needed_params = [
+        "SW_h",
+        "RG",
+        "DECIM",
+        "DSPFIRM",
+        "DSPFVS",
+        "BYTORDA",
+        "TD",
+        "SFO1",
+    ]
+    needed_params_2 = ["SW_h", "TD", "SFO1"]
+    if param_filename in ["acqu", "acqus"]:
         if not all(
             map(
-                attrsDict.keys().__contains__,
-                ["SW_h", "RG", "DECIM", "DSPFVS", "BYTORDA", "TD", "SFO1"],
+                attrs_dict.keys().__contains__,
+                needed_params,
             )
         ):
             raise KeyError(
-                "Unable to find all needed fields in the " + paramFilename + " file"
-            )
-
-    elif paramFilename == "acqu2" or paramFilename == "acqu2s":
-        if not all(map(attrsDict.keys().__contains__, ["SW_h", "TD", "SFO1"])):
-            raise KeyError(
-                "Unable to find all needed fields in the " + paramFilename + " file"
+                "Unable to find all needed fields in the " + param_filename + " file"
             )
         else:
-            attrsDict = {x + "_2": attrsDict[x] for x in attrsDict.keys()}
+            attrs_dict = {x: attrs_dict[x] for x in needed_params}
 
-    return attrsDict
+    elif param_filename in ["acqu2", "acqu2s"]:
+        if not all(map(attrs_dict.keys().__contains__, needed_params_2)):
+            raise KeyError(
+                "Unable to find all needed fields in the " + param_filename + " file"
+            )
+        else:
+            attrs_dict = {x + "_2": attrs_dict[x] for x in needed_params_2}
+
+    elif param_filename in ["acqu3", "acqu3s"]:
+        if not all(map(attrs_dict.keys().__contains__, needed_params_2)):
+            raise KeyError(
+                "Unable to find all needed fields in the " + param_filename + " file"
+            )
+        else:
+            attrs_dict = {x + "_3": attrs_dict[x] for x in needed_params_2}
+
+    return attrs_dict
 
 
-def load_fid_ser(path, type="fid"):
+def load_fid_ser(path, type="fid", phase_cycle=None):
     """
     Import topspin fid or ser file
 
     Args:
         path (str): Directory of data
         type (str): "fid" for 1D, "ser" or "serPhaseCycle" for 2D
+        phase_cycle (list): list of phases used for phase cycling (deg, multiples of 90)
 
     Returns:
         dnpdata: Topspin data
     """
-    acqusDict = load_acqu_proc(path, "acqus")
-    if type == "fid":
-        attrsDict = acqusDict
-    else:
-        acqu2sDict = load_acqu_proc(path, "acqu2s")
-        attrsDict = {**acqusDict, **acqu2sDict}
+    if isinstance(phase_cycle, list):
+        for indx, x in enumerate(phase_cycle):
+            if x in [0, 360, 720, 1080]:
+                phase_cycle[indx] = 1
+            elif x in [90, 450, 810, 1170]:
+                phase_cycle[indx] = 1j
+            elif x in [180, 540, 900, 1260]:
+                phase_cycle[indx] = -1
+            elif x in [270, 630, 990, 1350]:
+                phase_cycle[indx] = -1j
 
-    if attrsDict["BYTORDA"] == 0:
+    dir_list = _os.listdir(path)
+
+    attrs_dict_list = [
+        load_acqu_proc(path, x) for x in ["acqus", "acqu2s", "acqu3s"] if x in dir_list
+    ]
+    attrs_dict = {}
+    for a in attrs_dict_list:
+        attrs_dict.update(a)
+
+    important_params_dict = {
+        "nmr_frequency": attrs_dict["SFO1"] * 1e6,
+        "SW_h": attrs_dict["SW_h"],
+        "TD": attrs_dict["TD"],
+    }
+
+    higher_dim_pars = {
+        x: attrs_dict[x]
+        for x in ["SW_h_2", "TD_2", "SFO1_2", "SW_h_3", "TD_3", "SFO1_3"]
+        if x in attrs_dict.keys()
+    }
+    important_params_dict.update(higher_dim_pars)
+
+    if attrs_dict["BYTORDA"] == 0:
         endian = "<"
     else:
         endian = ">"
@@ -237,45 +283,79 @@ def load_fid_ser(path, type="fid"):
 
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(attrsDict)
+    group_delay = find_group_delay(attrs_dict)
     group_delay = int(_np.ceil(group_delay))
 
-    t = 1.0 / attrsDict["SW_h"] * _np.arange(0, int(attrsDict["TD"] / 2) - group_delay)
+    t = (
+        1.0
+        / attrs_dict["SW_h"]
+        * _np.arange(0, int(attrs_dict["TD"] / 2) - group_delay)
+    )
+
+    if "vdlist" in dir_list:
+        important_params_dict.update({"VDLIST": topspin_vdlist(path)})
 
     if type == "fid":
-        data = data[group_delay : int(attrsDict["TD"] / 2)]
+        data = data[group_delay : int(attrs_dict["TD"] / 2)] / attrs_dict["RG"]
+        coords = [t]
+        dims = ["t2"]
     elif type == "ser":
-        data = data.reshape(int(attrsDict["TD_2"]), -1).T
-        data = data[group_delay : int(attrsDict["TD"] / 2), :]
-    elif type == "serPhaseCycle":
-        length1d = int((_np.ceil(attrsDict["TD"] / 256.0) * 256) / 2)
-        data = data.reshape(-1, int(length1d)).T
-        data = data[group_delay : int(attrsDict["TD"] / 2), :]
-        # Assume phase cycle is 0, 90, 180, 270
-        data = data[:, 0] + 1j * data[:, 1] - data[:, 2] - 1j * data[:, 3]
+        ser_data = data.reshape(int(attrs_dict["TD_2"]), -1).T
+        ser_data = (
+            ser_data[group_delay : int(attrs_dict["TD"] / 2), :] / attrs_dict["RG"]
+        )
+        coords = [t, range(int(attrs_dict["TD_2"]))]
+        dims = ["t2", "t1"]
+        if "acqu2s" in dir_list and "acqu3s" not in dir_list:
+            if "VDLIST" in important_params_dict.keys():
+                if len(important_params_dict["VDLIST"]) == int(attrs_dict["TD_2"]):
+                    coords = [t, important_params_dict["VDLIST"]]
+            else:
+                if isinstance(phase_cycle, list):
+                    length1d = int((_np.ceil(attrs_dict["TD"] / 256.0) * 256) / 2)
+                    ser_data = data.reshape(-1, int(length1d)).T
+                    ser_data = ser_data[group_delay : int(attrs_dict["TD"] / 2), :]
+                    phs_facs = _np.tile(
+                        _np.array(phase_cycle),
+                        int(attrs_dict["TD_2"]) / len(phase_cycle),
+                    )
+                    for indx in range(int(attrs_dict["TD_2"])):
+                        ser_data[:, indx] = phs_facs[indx] * ser_data[:, indx]
+                    ser_data = ser_data.sum(axis=1) / attrs_dict["RG"]
+                    coords = [t]
+                    dims = ["t2"]
 
-    data = data / attrsDict["RG"]
-
-    importantParamsDict = {"nmr_frequency": attrsDict["SFO1"] * 1e6}
-
-    if type == "fid":
-        output = _dnpdata(data, [t], ["t2"], importantParamsDict)
-    elif type == "ser":
-        vdlist = topspin_vdlist(path)
-        importantParamsDict["vdlist"] = vdlist
-        if len(vdlist) == int(attrsDict["TD_2"]):
-            output = _dnpdata(data, [t, vdlist], ["t2", "t1"], importantParamsDict)
-        else:
-            output = _dnpdata(
-                data,
-                [t, range(int(attrsDict["TD_2"]))],
-                ["t2", "t1"],
-                importantParamsDict,
+        elif "acqu2s" in dir_list and "acqu3s" in dir_list:
+            t = (
+                1.0
+                / attrs_dict["SW_h"]
+                * _np.arange(
+                    0, int(attrs_dict["TD"] / 2 / int(attrs_dict["TD_3"])) - group_delay
+                )
             )
-    elif type == "serPhaseCycle":
-        output = _dnpdata(data, [t], ["t2"], importantParamsDict)
+            if "VDLIST" in important_params_dict.keys() and len(
+                important_params_dict["VDLIST"]
+            ) == int(attrs_dict["TD_2"]):
+                coords = [
+                    t,
+                    important_params_dict["VDLIST"],
+                    range(int(attrs_dict["TD_3"])),
+                ]
+            else:
+                coords = [
+                    t,
+                    range(int(attrs_dict["TD_2"])),
+                    range(int(attrs_dict["TD_3"])),
+                ]
+            dims = ["t2", "t1", "t0"]
+            ser_data = ser_data.reshape(
+                int(attrs_dict["TD"] / 2 / int(attrs_dict["TD_3"])),
+                int(attrs_dict["TD_2"]),
+                int(attrs_dict["TD_3"]),
+            )
+        data = ser_data
 
-    return output
+    return _dnpdata(data, coords, dims, important_params_dict)
 
 
 def topspin_vdlist(path):
@@ -283,7 +363,7 @@ def topspin_vdlist(path):
     Return topspin vdlist
 
     Args:
-        Path (str): Directory of data
+        path (str): Directory of data
 
     Returns:
         numpy.ndarray: vdlist as numpy array
@@ -315,23 +395,23 @@ def topspin_vdlist(path):
 
 
 def load_title(
-    path="1" + _os.sep, titlePath=_os.path.join("pdata", "1"), titleFilename="title"
+    path="1", title_path=_os.path.join("pdata", "1"), title_filename="title"
 ):
     """
     Import Topspin Experiment Title File
 
     Args:
         path (str): Directory of title
-        titlePath (str): Path within experiment of title
-        titleFilename (str): filename of title
+        title_path (str): Path within experiment of title
+        title_filename (str): filename of title
 
     Returns:
         str: Contents of experiment title file
     """
 
-    pathFilename = _os.path.join(path, titlePath, titleFilename)
+    path_filename = _os.path.join(path, title_path, title_filename)
 
-    with open(pathFilename, "r") as f:
+    with open(path_filename, "r") as f:
         rawTitle = f.read()
     title = rawTitle.rstrip()
 

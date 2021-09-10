@@ -109,12 +109,12 @@ class specman_import_tester(unittest.TestCase):
 
     def test_import_specman_2D(self):
         data = wrapper.load(self.test_data_2D, data_type="specman")
-        self.assertEqual(data.dims, ["t", "x"])
+        self.assertEqual(data.dims, ["t2", "t1"])
         self.assertEqual(data.values.shape, (1500, 80))
 
     def test_import_specman_4D(self):
         data = wrapper.load(self.test_data_4D, data_type="specman")
-        self.assertEqual(data.dims, ["t", "x", "y", "z"])
+        self.assertEqual(data.dims, ["t2", "t1", "t0", "t"])
         self.assertEqual(data.values.shape, (1500, 40, 5, 3))
 
 
@@ -128,10 +128,10 @@ class bes3t_import_tester(unittest.TestCase):
 
     def test_import_bes3t_HYSCORE(self):
         data = wrapper.load(self.test_data_HYSCORE, data_type="xepr")
-        self.assertEqual(data.dims, ["t2", "ns"])
+        self.assertEqual(data.dims, ["t2", "t1"])
         self.assertEqual(data.values.shape, (175, 175))
         self.assertEqual(max(data.coords["t2"]), 3520.0)
-        self.assertEqual(max(data.coords["ns"]), 3480.0)
+        self.assertEqual(max(data.coords["t1"]), 3520.0)
 
     def test_import_bes3t_DEER(self):
         data = wrapper.load(self.test_data_DEER, data_type="xepr")
@@ -141,19 +141,19 @@ class bes3t_import_tester(unittest.TestCase):
 
     def test_import_bes3t_ESE(self):
         data = wrapper.load(self.test_data_ESE, data_type="xepr")
-        self.assertEqual(data.dims, ["t2", "index"])
+        self.assertEqual(data.dims, ["t2", "t1"])
         self.assertEqual(data.values.shape, (512, 50))
         self.assertEqual(data.attrs["frequency"], 9.296)
 
     def test_import_bes3t_1D(self):
         data = wrapper.load(self.test_data_1D, data_type="xenon")
-        self.assertEqual(data.dims, ["B0"])
+        self.assertEqual(data.dims, ["t2"])
         self.assertEqual(data.values.shape, (2250,))
         self.assertEqual(data.attrs["frequency"], 9.804448)
 
     def test_import_bes3t_2D(self):
         data = wrapper.load(self.test_data_2D, data_type="xenon")
-        self.assertEqual(data.dims, ["B0", "s"])
+        self.assertEqual(data.dims, ["t2", "t1"])
         self.assertEqual(data.values.shape, (1600, 100))
         self.assertEqual(data.attrs["frequency"], 9.627213)
 
@@ -172,13 +172,13 @@ class winepr_import_tester(unittest.TestCase):
 
     def test_import_winepr_1D(self):
         data = wrapper.load(self.test_data_1D, data_type="winepr")
-        self.assertEqual(data.dims, ["B0"])
+        self.assertEqual(data.dims, ["t2"])
         self.assertEqual(data.values.shape, (512,))
         self.assertEqual(data.attrs["temperature"], 294.2)
 
     def test_import_winepr_2D(self):
         data = wrapper.load(self.test_data_2D, data_type="winepr")
-        self.assertEqual(data.dims, ["B0", "dB"])
+        self.assertEqual(data.dims, ["t2", "t1"])
         self.assertEqual(data.values.shape, (1024, 15))
         self.assertEqual(data.attrs["frequency"], 9.79)
 

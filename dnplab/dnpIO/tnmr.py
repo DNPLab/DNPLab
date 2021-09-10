@@ -1,4 +1,4 @@
-from dnplab import dnpdata
+from .. import dnpdata
 import numpy as np
 import struct
 import re

@@ -1,4 +1,4 @@
-from .dnpData import dnpdata, dnpdata_collection, create_workspace
+from .dnpData import dnpdata, dnpdata_collection, create_workspace, return_data
 from .dnpImport import load
 from .dnpSave import save
 from .dnpNMR import *

@@ -1,7 +1,7 @@
 import os
 from . import dnpIO
 
-from .dnpTools import concat
+from .dnpData import concat
 
 
 def load(path, data_type=None, dim=None, coord=None, *args, **kwargs):
