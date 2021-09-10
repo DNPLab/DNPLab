@@ -59,8 +59,9 @@ def baseline(
         elif mode == "divide":
             data.values /= bline
     else:
-        indxer = np.argmax(data.values, axis=index)
-        bline_array = np.zeros(shape=(data.shape[index], indxer.size))
+        ind_dim = list(set(data.dims) - set([dim]))[0]
+        ind_shape = data.shape[data.index(ind_dim)]
+        bline_array = np.zeros(shape=(data.shape[index], ind_shape))
         if reference_slice is not None:
             bline = dnpMath.baseline_fit(
                 data.coords[dim],
@@ -69,10 +70,10 @@ def baseline(
                 order,
                 p0=p0,
             )
-            for ix in range(indxer.size):
+            for ix in range(ind_shape):
                 bline_array[:, ix] = bline.real
         elif reference_slice is None:
-            for ix in range(indxer.size):
+            for ix in range(ind_shape):
                 bline = dnpMath.baseline_fit(
                     data.coords[dim],
                     data[dim, :].values[:, ix],
@@ -83,7 +84,6 @@ def baseline(
                 bline_array[:, ix] = bline.real
         else:
             raise TypeError("invalid reference_slice")
-
         if mode == "subtract":
             data.values -= bline_array
         elif mode == "divide":
@@ -232,7 +232,8 @@ def integrate(
                 remaining_dims = ["width"] + remaining_dims
             data_values = np.array(data_integrals)
         elif isinstance(integrate_center, list) and isinstance(integrate_width, list):
-            indxer = np.argmax(data_new[0].values, axis=index)
+            ind_dim = list(set(data.dims) - set([dim]))[0]
+            ind_shape = data.shape[data.index(ind_dim)]
             remaining_coords = [
                 np.array(integrate_center),
                 np.array(integrate_width),
@@ -240,7 +241,7 @@ def integrate(
             remaining_dims = ["center", "width"] + remaining_dims
             data_values = np.array(
                 tuple([data_integrals for _ in range(len(data_integrals))])
-            ).reshape(len(data_integrals), len(data_integrals), indxer.size)
+            ).reshape(len(data_integrals), len(data_integrals), ind_shape)
     else:
         data_values = np.trapz(data_new.values, x=data_new.coords[dim], axis=index)
 

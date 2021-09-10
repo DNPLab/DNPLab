@@ -277,7 +277,8 @@ def autophase(
                             phasing_x, check_data.coords[dim], check_data.values
                         ).reshape(-1)
                     else:
-                        indxer = _np.argmax(check_data.values, axis=index)
+                        ind_dim = list(set(data.dims) - set([dim]))[0]
+                        ind_shape = data.shape[data.index(ind_dim)]
                         temp_data = _np.array(
                             [
                                 _np.interp(
@@ -285,9 +286,9 @@ def autophase(
                                     check_data.coords[dim],
                                     check_data[dim, :].values[:, indx],
                                 ).reshape(-1)
-                                for indx in range(indxer.size)
+                                for indx in range(ind_shape)
                             ]
-                        ).reshape(pts_lim, indxer.size)
+                        ).reshape(pts_lim, ind_shape)
             phases_0 = _np.linspace(-_np.pi / 2, _np.pi / 2, 180).reshape(-1)
             rotated_data = (temp_data.reshape(-1, 1)) * _np.exp(-1j * phases_0)
             real_imag_ratio = (_np.real(rotated_data) ** 2).sum(axis=0) / (
