@@ -534,6 +534,26 @@ def return_data(all_data, key="proc"):
     return data, is_workspace
 
 
+def squeeze_nD(data, first_dim="t2"):
+
+    dim_index = data.dims.index(first_dim)
+    orig_order = data.dims
+    orig_shape = data.shape
+
+    data.reorder([first_dim])
+    data.values.reshape((orig_shape[dim_index], -1))
+
+    return data, dim_index, orig_order, orig_shape
+
+
+def shuffle_nD(data, shape, order):
+
+    data.values.reshape(shape)
+    data.reorder(order)
+
+    return data
+
+
 def concat(data_list, dim, coord=None):
     """Concatenates list of data objects down another dimension
 
