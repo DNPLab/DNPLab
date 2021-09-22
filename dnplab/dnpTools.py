@@ -616,15 +616,20 @@ def zero_fill(
     else:
         return data
 
-def voigtian(all_data, amp, center, gamma, sigma):
-    x = all_data.coords['f2']
-    amp = np.r_[amp]
-    center = np.r_[center]
-    gamma = np.r_[gamma]
-    sigma = np.r_[sigma]
-    z = ((center[:,None]-x)+1j*gamma[:,None]) / (sigma[:,None]*np.sqrt(2.))
-    fit = amp[:,None]*np.real(wofz(z))
+def voigtian(x, amp, x0, sigma, gamma):
+    """
+    Voigt is a combintaion of Gaussian and Lorentzian lineshapes
+    """
+    z = ((x0-x)+1j*gamma)/(sigma*np.sqrt(2.))
+    fit = amp*np.real(wofz(z))
     return fit
+
+def gaussian(x, amp, x0, sigma):
+    return amp*np.exp(-(x-x0)**2/(2*sigma**2))
+
+def lorentzian(x, amp, x0, gamma):
+    return amp*gamma**2/((x-x0)**2+gamma**2)
+
 
 
 
