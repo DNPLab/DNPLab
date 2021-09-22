@@ -4,6 +4,7 @@ from . import return_data, dnpdata, dnpdata_collection
 from . import dnpMath, dnpNMR
 import numpy as np
 import scipy.integrate
+from scipy.special import wofz
 
 from .mrProperties import gmrProperties, radicalProperties
 
@@ -614,3 +615,20 @@ def zero_fill(
         all_data[all_data.processing_buffer] = data
     else:
         return data
+
+def voigtian(all_data, amp, center, gamma, sigma):
+    x = all_data.coords['f2']
+    amp = np.r_[amp]
+    center = np.r_[center]
+    gamma = np.r_[gamma]
+    sigma = np.r_[sigma]
+    z = ((center[:,None]-x)+1j*gamma[:,None]) / (sigma[:,None]*np.sqrt(2.))
+    fit = amp[:,None]*np.real(wofz(z))
+    return fit
+
+
+
+
+    
+
+
