@@ -614,3 +614,52 @@ def zero_fill(
         all_data[all_data.processing_buffer] = data
     else:
         return data
+
+def polyfit(all_data, dim = 't2', deg = 1):
+
+    data, isDict = return_data(all_data)
+
+    proc_parameters = {"dim": dim, "deg": deg}
+
+    original_order = data.dims
+
+    data.reorder([dim])
+
+    x = data.coords[0]
+
+    values = data.values
+
+    original_shape = values.shape
+
+    align_dim_length = original_shape[0]
+
+    values = values.reshape(align_dim_length, -1) 
+
+    new_shape = np.shape(values)
+    dim2 = new_shape[1]
+
+#    poly_coef = np.polyfit(x, values, deg = deg)
+
+#    fit = np.zeros_like(values)
+
+    for ix in range(dim2):
+        p = np.polyfit(x, values[:,ix], deg = deg)
+        fit = np.polyval(p, x)
+#        print(p)
+#        fit[p_ix,:] = np.polyval(p, x)
+        values[:,ix] -= fit
+
+
+    values = values.reshape(original_shape)
+
+    data.values = values
+
+    data.reorder(original_order)
+
+    proc_attr_name = "ndalign"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+    else:
+        return data
