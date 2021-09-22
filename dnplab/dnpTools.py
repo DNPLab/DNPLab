@@ -1,6 +1,6 @@
 from warnings import warn
 
-from . import return_data, dnpdata
+from . import return_data, dnpdata, dnpdata_collection
 from . import dnpMath, dnpNMR
 import numpy as np
 import scipy.integrate

@@ -1,6 +1,6 @@
 import numpy as _np
 
-from . import return_data, dnpdata
+from . import return_data, dnpdata, dnpdata_collection
 from scipy.optimize import curve_fit
 
 

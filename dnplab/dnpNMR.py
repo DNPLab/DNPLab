@@ -2,7 +2,7 @@ from warnings import warn
 
 import numpy as _np
 
-from . import return_data, squeeze_nD, shuffle_nD, dnpdata
+from . import return_data, dnpdata, dnpdata_collection
 from . import dnpTools, dnpMath
 
 import re
@@ -211,7 +211,8 @@ def autophase(
         )
 
     data, isDict = return_data(all_data)
-    data, dim_index, orig_order, orig_shape = squeeze_nD(data, first_dim=dim)
+    shape_data = _np.shape(data.values)
+    index = data.dims.index(dim)
 
     if phase is not None:
         method = "manual"
@@ -232,7 +233,7 @@ def autophase(
         elif (
             order == "first"
             and isinstance(phase, (list, _np.ndarray))
-            and len(phase) == data.shape[dim_index]
+            and len(phase) == shape_data[index]
         ):
             data.attrs["phase1"] = _np.array(phase)
         else:
@@ -249,7 +250,7 @@ def autophase(
                 warn("reference_range must be None or list/tuple length=2")
 
         if reference_slice is not None:
-            if len(check_data.shape) == 1:
+            if len(shape_data) == 1:
                 reference_slice = None
                 temp_data = check_data.values
                 warn("ignoring reference_slice, this is 1D data")
@@ -276,16 +277,18 @@ def autophase(
                             phasing_x, check_data.coords[dim], check_data.values
                         ).reshape(-1)
                     else:
+                        ind_dim = list(set(data.dims) - set([dim]))[0]
+                        ind_shape = data.shape[data.index(ind_dim)]
                         temp_data = _np.array(
                             [
                                 _np.interp(
                                     phasing_x,
                                     check_data.coords[dim],
-                                    check_data.values[:, indx],
+                                    check_data[dim, :].values[:, indx],
                                 ).reshape(-1)
-                                for indx in range(data.shape[1])
+                                for indx in range(ind_shape)
                             ]
-                        ).reshape(pts_lim, data.shape[1])
+                        ).reshape(pts_lim, ind_shape)
             phases_0 = _np.linspace(-_np.pi / 2, _np.pi / 2, 180).reshape(-1)
             rotated_data = (temp_data.reshape(-1, 1)) * _np.exp(-1j * phases_0)
             real_imag_ratio = (_np.real(rotated_data) ** 2).sum(axis=0) / (
@@ -305,7 +308,7 @@ def autophase(
             data.attrs["phase1"] = _np.linspace(
                 data.attrs["phase0"] - delta * pivot_ratio,
                 data.attrs["phase0"] + delta * (1 - pivot_ratio),
-                data.shape[0],
+                len(data.values),
             )
         data.values.T.dot(_np.exp(-1j * data.attrs["phase1"]))
 
@@ -314,8 +317,6 @@ def autophase(
 
     if force_positive:
         data.values = _np.absolute(data.values)
-
-    data = shuffle_nD(data, orig_shape, orig_order)
 
     proc_parameters = {
         "method": method,
@@ -398,7 +399,10 @@ def calculate_enhancement(
         if integrate_width == "full":
             int_width_off = max(data_off.coords[dim]) - min(data_off.coords[dim])
             int_width_on = max(data_on.coords[dim]) - min(data_on.coords[dim])
-        elif isinstance(integrate_width, (list, tuple)) and len(integrate_width) == 2:
+        elif (
+            isinstance(integrate_width, (list, _np.ndarray))
+            and len(integrate_width) == 2
+        ):
             int_width_off = integrate_width[0]
             int_width_on = integrate_width[1]
         elif isinstance(integrate_width, int):
@@ -416,7 +420,10 @@ def calculate_enhancement(
                 int_center_on = data_on.coords[dim][on_maxs]
             else:
                 int_center_on = [data_on.coords[dim][x] for x in on_maxs]
-        elif isinstance(integrate_center, (list, tuple)) and len(integrate_center) == 2:
+        elif (
+            isinstance(integrate_center, (list, _np.ndarray))
+            and len(integrate_center) == 2
+        ):
             int_center_off = integrate_center[0]
             int_center_on = integrate_center[1]
         elif isinstance(integrate_center, int):
