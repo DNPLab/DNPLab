@@ -627,7 +627,7 @@ def voigtian(x, x0, sigma, gamma):
 
 
 def gaussian(x, x0, sigma):
-    return amp * np.exp(-((x - x0) ** 2) / (2 * sigma ** 2))
+    return np.exp(-((x - x0) ** 2) / (2 * sigma ** 2))
 
 
 def lorentzian(x, amp, x0, gamma):
