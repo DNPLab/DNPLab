@@ -617,7 +617,7 @@ def zero_fill(
         return data
 
 
-def voigtian(x, amp, x0, sigma, gamma):
+def voigtian(x, x0, sigma, gamma):
     """
     Voigt is a combintaion of Gaussian and Lorentzian lineshapes
     """
