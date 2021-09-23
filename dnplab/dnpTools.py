@@ -626,7 +626,7 @@ def voigtian(x, x0, sigma, gamma):
     return fit
 
 
-def gaussian(x, amp, x0, sigma):
+def gaussian(x, x0, sigma):
     return amp * np.exp(-((x - x0) ** 2) / (2 * sigma ** 2))
 
 
