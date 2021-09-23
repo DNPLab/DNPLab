@@ -631,4 +631,4 @@ def gaussian(x, x0, sigma):
 
 
 def lorentzian(x, x0, gamma):
-    return gamma ** 2 / ((x - x0) ** 2 + gamma ** 2)
+    return (1./(np.pi*gamma))*gamma ** 2 / ((x - x0) ** 2 + gamma ** 2)
