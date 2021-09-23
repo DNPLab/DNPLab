@@ -143,6 +143,20 @@ class dnpTools_tester(unittest.TestCase):
     
     def test_voigtian(self):
         x = np.r_[-1000:1000:10000j]
+        
+        voigt = dnp.dnpTools.voigtian(x, 0, 1, 1)
+
+        self.assertAlmostEqual(np.trapz(voigt, x), 0.999, places = 3)
+    
+    def test_gaussian(self):
+        x = np.r_[-1000:1000:10000j]
+
+        gauss = dnp.dnpTools.gaussian(x, 0, 1)
+
+        self.assertAlmostEqual(np.trapz(gauss, x), 1.0, places = 3)
+
+    def test_lorentian(self):
+        x = np.r_[-1000:1000:10000j]
 
         lorentz = dnp.dnpTools.lorentzian(x, 0, 1)
 
