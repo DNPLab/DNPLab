@@ -140,3 +140,8 @@ class dnpTools_tester(unittest.TestCase):
 
         info_6Li = dnp.dnpTools.mr_properties("6Li", "relSensitivity")
         self.assertEqual(info_6Li, 0.000645)
+    
+    def test_voigtian(self):
+        self.assertAlmostEqual(
+            max(ws["integrals"].values.real), 6170.447249940133, places=4
+        )
