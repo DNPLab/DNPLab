@@ -616,24 +616,19 @@ def zero_fill(
     else:
         return data
 
+
 def voigtian(x, amp, x0, sigma, gamma):
     """
     Voigt is a combintaion of Gaussian and Lorentzian lineshapes
     """
-    z = ((x0-x)+1j*gamma)/(sigma*np.sqrt(2.))
-    fit = amp*np.real(wofz(z))
+    z = ((x0 - x) + 1j * gamma) / (sigma * np.sqrt(2.0))
+    fit = amp * np.real(wofz(z))
     return fit
 
+
 def gaussian(x, amp, x0, sigma):
-    return amp*np.exp(-(x-x0)**2/(2*sigma**2))
+    return amp * np.exp(-((x - x0) ** 2) / (2 * sigma ** 2))
+
 
 def lorentzian(x, amp, x0, gamma):
-    return amp*gamma**2/((x-x0)**2+gamma**2)
-
-
-
-
-
-    
-
-
+    return amp * gamma ** 2 / ((x - x0) ** 2 + gamma ** 2)
