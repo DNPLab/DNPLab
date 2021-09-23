@@ -142,6 +142,9 @@ class dnpTools_tester(unittest.TestCase):
         self.assertEqual(info_6Li, 0.000645)
     
     def test_voigtian(self):
-        self.assertAlmostEqual(
-            max(ws["integrals"].values.real), 6170.447249940133, places=4
-        )
+        x = np.r_[-1000:1000:10000j]
+
+        lorentz = dnp.dnpTools.lorentzian(x, 0, 1)
+
+        self.assertAlmostEqual(np.trapz(lorentz, x), 0.999, places = 3)
+
