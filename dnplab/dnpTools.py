@@ -630,5 +630,5 @@ def gaussian(x, x0, sigma):
     return np.exp(-((x - x0) ** 2) / (2 * sigma ** 2))
 
 
-def lorentzian(x, amp, x0, gamma):
-    return amp * gamma ** 2 / ((x - x0) ** 2 + gamma ** 2)
+def lorentzian(x, x0, gamma):
+    return gamma ** 2 / ((x - x0) ** 2 + gamma ** 2)
