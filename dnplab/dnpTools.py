@@ -622,7 +622,7 @@ def voigtian(x, x0, sigma, gamma):
     Voigt is a combintaion of Gaussian and Lorentzian lineshapes
     """
     z = ((x0 - x) + 1j * gamma) / (sigma * np.sqrt(2.0))
-    fit = amp * np.real(wofz(z))
+    fit = np.real(wofz(z))
     return fit
 
 
