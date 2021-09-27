@@ -140,3 +140,25 @@ class dnpTools_tester(unittest.TestCase):
 
         info_6Li = dnp.dnpTools.mr_properties("6Li", "relSensitivity")
         self.assertEqual(info_6Li, 0.000645)
+    
+    def test_voigtian(self):
+        x = np.r_[-1000:1000:10000j]
+        
+        voigt = dnp.dnpTools.voigtian(x, 0, 1, 1)
+
+        self.assertAlmostEqual(np.trapz(voigt, x), 0.999, places = 3)
+    
+    def test_gaussian(self):
+        x = np.r_[-1000:1000:10000j]
+
+        gauss = dnp.dnpTools.gaussian(x, 0, 1)
+
+        self.assertAlmostEqual(np.trapz(gauss, x), 1.0, places = 3)
+
+    def test_lorentian(self):
+        x = np.r_[-1000:1000:10000j]
+
+        lorentz = dnp.dnpTools.lorentzian(x, 0, 1)
+
+        self.assertAlmostEqual(np.trapz(lorentz, x), 0.999, places = 3)
+
