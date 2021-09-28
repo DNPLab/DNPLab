@@ -20,6 +20,9 @@ jobs:
         docs-folder: "docs/"
         pre-build-command: "pip install sphinx-gallery && pip install sphinx_rtd_theme && pip install matplotlib && pip install numpy"
         build-command: "make html"
+      artifacts:
+        paths:
+          - build/html/
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
