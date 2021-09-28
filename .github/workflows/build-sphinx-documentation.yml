@@ -4,8 +4,10 @@ name: Build Sphinx Documentation and Publish to AWS
 
 on:
   push:
-  #   branches:
-  #     - '*'
+    branches:
+      - master
+      - release
+      - develop
   workflow_dispatch:
 
 jobs:
