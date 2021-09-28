@@ -20,9 +20,6 @@ jobs:
         docs-folder: "docs/"
         pre-build-command: "pip install sphinx-gallery && pip install sphinx_rtd_theme && pip install matplotlib && pip install numpy"
         build-command: "make html"
-      artifacts:
-        paths:
-          - build/html/
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -31,4 +28,4 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    - run: aws s3 sync --delete --acl public-read ./build/html/ s3://dnplab-docu-staging
+    - run: aws s3 sync --delete --acl public-read build/html/ s3://dnplab-docu-staging
