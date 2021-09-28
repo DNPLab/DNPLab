@@ -3,7 +3,7 @@
 name: Build Sphinx Documentation and Publish to AWS
 
 on:
-  # push:
+  push:
   #   branches:
   #     - '*'
   workflow_dispatch:
@@ -18,7 +18,7 @@ jobs:
       with:
         submodules: true
         fetch-depth: 0
-        
+
     - uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "docs/"
@@ -32,4 +32,6 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    - run: aws s3 sync --delete --acl public-read ./docs/build/html/ s3://dnplab-docu-staging
+    - name: Upload to staging website
+      if: github.ref == 'refs/heads/develop'
+      run: aws s3 sync --delete --acl public-read ./docs/build/html/ s3://dnplab-docu-staging
