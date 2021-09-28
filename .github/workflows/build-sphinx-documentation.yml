@@ -1,6 +1,6 @@
-# This GitHub Action will build the sphinx documentation and publsih it to AWS S3
+# This GitHub Action will build the sphinx documentation and publish it to AWS S3
 
-name: Build Sphinx Documentation
+name: Build Sphinx Documentation and Publish to AWS
 
 on:
   # push:
@@ -14,9 +14,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - uses: actions/checkout@v1
-    - uses: ammaraskar/sphinx-action@master
+    - name: Build Sphinx Documentation
+      uses: actions/checkout@v1
+      uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "docs/"
         pre-build-command: "pip install sphinx-gallery && pip install sphinx_rtd_theme && pip install matplotlib && pip install numpy"
         # build-command: "make html"
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2
