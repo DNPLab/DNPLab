@@ -15,8 +15,8 @@ jobs:
     steps:
 
     - name: Build Sphinx Documentation
-      uses: actions/checkout@v1
-      uses: ammaraskar/sphinx-action@master
+    - uses: actions/checkout@v1
+    - uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "docs/"
         pre-build-command: "pip install sphinx-gallery && pip install sphinx_rtd_theme && pip install matplotlib && pip install numpy"
