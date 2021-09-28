@@ -139,9 +139,9 @@ def align(all_data, dim="f2", dim2=None, start=None, stop=None):
 
         for ix1 in range(len(data.coords[-1])):
             if start != None and stop != None:
-                refData = data["f2", (start, stop)].values[:, 0, ix1]
+                refData = data["f2", (start, stop)].values[:, 0, 0]
             elif start == None and stop == None:
-                refData = data.values[:, 0, ix1]
+                refData = data.values[:, 0, 0]
             else:
                 raise ValueError("selected range is not accpetale")
                 
