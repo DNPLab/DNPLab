@@ -119,7 +119,7 @@ def align(all_data, dim="f2", dim2=None, start=None, stop=None):
             refData = data[dimIter, 0].values.reshape(-1)
         else:
             raise ValueError("selected range is not accpetale")
-            
+
         for ix in range(len(data.coords[dimIter])):
             tempData = data[dimIter, ix].values.reshape(-1)
             if start != None and stop != None:
@@ -128,7 +128,7 @@ def align(all_data, dim="f2", dim2=None, start=None, stop=None):
                 rangeData = tempData
             else:
                 raise ValueError("selected range is not accpetale")
-            
+
             corrData = _np.correlate(_np.abs(rangeData), _np.abs(refData), mode="same")
             shiftIx = _np.argmax(corrData) - (
                 len(corrData) / 2
@@ -144,7 +144,7 @@ def align(all_data, dim="f2", dim2=None, start=None, stop=None):
                 refData = data.values[:, 0, 0]
             else:
                 raise ValueError("selected range is not accpetale")
-                
+
             for ix2 in range(len(data.coords[dim2])):
                 tempData = data.values[:, ix2, ix1]
                 if start != None and stop != None:
@@ -153,7 +153,6 @@ def align(all_data, dim="f2", dim2=None, start=None, stop=None):
                     rangeData = tempData
                 else:
                     raise ValueError("selected range is not accpetale")
-                    
 
                 corrData = _np.correlate(
                     _np.abs(rangeData), _np.abs(refData), mode="same"
