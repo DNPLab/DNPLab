@@ -77,15 +77,15 @@ def ndalign(all_data, dim="f2", reference=None):
         return data
 
 
-def align(all_data, dim="f2", dim2=None, start=None, stop=None):
+def align(all_data, dim="f2", dim2=None, center=None, width=None):
     """Alignment of NMR spectra down given dimension or dimensions
 
     Args:
         all_data (object) : dnpdata object
         dim (str) : dimension to align along
         dim2 (str) : second dimension to align along
-        start (float) : range start
-        stop (float) : range stop
+        center (float) : range center
+        width (float) : range width
 
     returns:
         dnpdata: Aligned data in container
@@ -111,10 +111,17 @@ def align(all_data, dim="f2", dim2=None, start=None, stop=None):
     else:
         data.reorder([dim, dim2])
         dimIter = data.dims[-1]
-
+    if center != None and width != None:
+        start = center - 0.5 * width
+        stop = center + 0.5 * width
+    elif center == None and width == None:
+        start = None
+        stop = None
+    else:
+        raise ValueError("selected range is not accpetale")
     if dim2 == None:
         if start != None and stop != None:
-            refData = data[dimIter, 0, "f2", (start, stop)].values.reshape(-1)
+            refData = data[dimIter, 0, dim, (start, stop)].values.reshape(-1)
         elif start == None and stop == None:
             refData = data[dimIter, 0].values.reshape(-1)
         else:
@@ -123,7 +130,7 @@ def align(all_data, dim="f2", dim2=None, start=None, stop=None):
         for ix in range(len(data.coords[dimIter])):
             tempData = data[dimIter, ix].values.reshape(-1)
             if start != None and stop != None:
-                rangeData = data[dimIter, ix, "f2", (start, stop)].values.reshape(-1)
+                rangeData = data[dimIter, ix, dim, (start, stop)].values.reshape(-1)
             elif start == None and stop == None:
                 rangeData = tempData
             else:
@@ -139,7 +146,7 @@ def align(all_data, dim="f2", dim2=None, start=None, stop=None):
 
         for ix1 in range(len(data.coords[-1])):
             if start != None and stop != None:
-                refData = data["f2", (start, stop)].values[:, 0, 0]
+                refData = data[dim, (start, stop)].values[:, 0, 0]
             elif start == None and stop == None:
                 refData = data.values[:, 0, 0]
             else:
@@ -148,7 +155,7 @@ def align(all_data, dim="f2", dim2=None, start=None, stop=None):
             for ix2 in range(len(data.coords[dim2])):
                 tempData = data.values[:, ix2, ix1]
                 if start != None and stop != None:
-                    rangeData = data["f2", (start, stop)].values[:, ix2, ix1]
+                    rangeData = data[dim, (start, stop)].values[:, ix2, ix1]
                 elif start == None and stop == None:
                     rangeData = tempData
                 else:
