@@ -20,30 +20,35 @@ import dnplab as dnp
 file_name_path = "../data/h5/PowerBuildUp.h5"
 ws = dnp.dnpImport.load(file_name_path)
 
-# # %%
-# # Calculate DNP Enhancement Factors
-# # ---------------------------------
-# # The DNP enhancement factors are calculated using the "calculate_enhancement" function. 
-# dnp.dnpNMR.calculate_enhancement(ws, off_spectrum = 1)
+# %%
+# Calculate DNP Enhancement Factors
+# ---------------------------------
+# The DNP enhancement factors are calculated using the "calculate_enhancement" function. 
+dnp.dnpTools.integrate(ws)
 
-# # %%
-# # .. note::
-# #     The default behavior of the ``calculate_enhancement`` function is to use the first spectrum as the Off signal. If this is the case, the argument ``off_spectrum`` is not necessary unless you want to specify the slice that contains the off spectrum.
-# #     The ``calculate_enhancement``` function can also calculate the enhancement for specific regions of the spectrum. THis behavior will be discussed in the next example (:ref:`07_align_nmr_spectra`).
+# %%% Write note about integrate
 
-# # %%
-# # If needed, access your array of enhancements as:
-# enhancements = ws["enhancements"].values
 
-# # %%
-# # Plot Enhancement Data
-# # ---------------------
-# # Finally, we can plot the enhancement data versus the microwave power.
+dnp.dnpNMR.calculate_enhancement(ws)
 
-# dnp.dnpResults.figure()
-# dnp.dnpResults.plot(ws["enhancements"],linestyle = '-', marker = 'o', fillstyle = 'none')
-# dnp.dnpResults.plt.xlabel("Microwave Power (dBm)")
-# dnp.dnpResults.plt.ylabel("ODNP Enhancement Factor")
-# dnp.dnpResults.plt.title("10 mM TEMPO in Toluene")
-# dnp.dnpResults.plt.grid(True)
-# dnp.dnpResults.show()
+# %%
+# .. note::
+#     The default behavior of the ``calculate_enhancement`` function is to use the first spectrum as the Off signal. If this is the case, the argument ``off_spectrum`` is not necessary unless you want to specify the slice that contains the off spectrum.
+#     The ``calculate_enhancement``` function can also calculate the enhancement for specific regions of the spectrum. THis behavior will be discussed in the next example (:ref:`07_align_nmr_spectra`).
+
+# %%
+# If needed, access your array of enhancements as:
+enhancements = ws["enhancements"].values
+
+# %%
+# Plot Enhancement Data
+# ---------------------
+# Finally, we can plot the enhancement data versus the microwave power.
+
+dnp.dnpResults.figure()
+dnp.dnpResults.plot(ws["enhancements"],linestyle = '-', marker = 'o', fillstyle = 'none')
+dnp.dnpResults.plt.xlabel("Microwave Power (dBm)")
+dnp.dnpResults.plt.ylabel("ODNP Enhancement Factor")
+dnp.dnpResults.plt.title("10 mM TEMPO in Toluene")
+dnp.dnpResults.plt.grid(True)
+dnp.dnpResults.show()
