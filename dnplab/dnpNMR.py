@@ -30,10 +30,10 @@ def ndalign(all_data, dim="f2", reference=None, center=None, width=None):
     original_order = data.dims  # Original order of dims
 
     data.reorder([dim])  # Move dim to first dimension
-        
+
     all_values = data.values  # Extract Data Values for alignment
 
-    if center != None and width!= None:
+    if center != None and width != None:
         start = center - 0.5 * width
         stop = center + 0.5 * width
     elif center == None and width == None:
@@ -78,7 +78,7 @@ def ndalign(all_data, dim="f2", reference=None, center=None, width=None):
         all_aligned_values[:, ix] = _np.roll(
             all_values[:, ix], -1 * delta_max_ix
         )  # shift values
-    
+
     all_aligned_values = all_aligned_values.reshape(
         all_original_shape
     )  # reshape to original values shape
