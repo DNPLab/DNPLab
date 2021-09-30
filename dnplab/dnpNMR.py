@@ -66,7 +66,6 @@ def ndalign(all_data, dim="f2", reference=None, center=None, width=None):
 
     ref_max_ix = _np.argmax(reference)
 
-    aligned_values = _np.zeros_like(values)
     all_aligned_values = _np.zeros_like(all_values)
 
     for ix in range(dim2):
