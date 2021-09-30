@@ -76,9 +76,9 @@ def ndalign(all_data, dim="f2", reference=None, center=None, width=None):
         max_ix = _np.argmax(cor)  # Maximum of cross correlation
         delta_max_ix = max_ix - ref_max_ix  # Calculate how many points to shift
         all_aligned_values[:, ix] = _np.roll(
-            all_values[:, ix], -1 * int(_np.round(delta_max_ix, 0))
+            all_values[:, ix], -1 * delta_max_ix
         )  # shift values
-
+    
     all_aligned_values = all_aligned_values.reshape(
         all_original_shape
     )  # reshape to original values shape
