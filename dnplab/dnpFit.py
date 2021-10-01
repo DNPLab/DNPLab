@@ -1,26 +1,7 @@
-from . import dnpdata as dnpdata, dnpdata_collection
+from . import return_data, dnpdata, dnpdata_collection
 from . import dnpMath
 import numpy as _np
 from scipy.optimize import curve_fit
-
-
-def return_data(all_data):
-
-    is_workspace = False
-    if isinstance(all_data, dnpdata):
-        data = all_data.copy()
-    elif isinstance(all_data, dict):
-        raise ValueError("Type dict is not supported")
-    elif isinstance(all_data, dnpdata_collection):
-        is_workspace = True
-        if all_data.processing_buffer in all_data.keys():
-            data = all_data[all_data.processing_buffer]
-        else:
-            raise ValueError("No data in processing buffer")
-    else:
-        raise ValueError("Data type not supported")
-
-    return data, is_workspace
 
 
 def exponential_fit(
@@ -30,7 +11,6 @@ def exponential_fit(
     bounds=None,
     p0=None,
     dim="t1",
-    indirect_dim=None,
     ws_key="integrals",
 ):
     """Fits various forms of exponential functions
@@ -52,8 +32,6 @@ def exponential_fit(
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | parameter     | type  | default     | description                                                                       |
     +===============+=======+=============+===================================================================================+
-    | dim           | str   | "f2"        | dimension to fit down                                                             |
-    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | type          | str   | "mono"      | "T1" for inversion recovery fit, "T2" for stretched exponential, "mono", or "bi"  |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | stretch       | bool  | False       | if False "p" is set to 1, if True "p" is a fit parameter                          |
@@ -63,8 +41,6 @@ def exponential_fit(
     | p0            | list  | None        | initial guesses for fit parameters                                                |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | dim           | str   | "t1"        | direct dimension                                                                  |
-    +---------------+-------+-------------+-----------------------------------------------------------------------------------+
-    | indirect_dim  | str   | None        | indirect dimension                                                                |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
     | ws_key        | str   | "integrals" | if False "p" is set to 1, if True "p" is a fit parameter                          |
     +---------------+-------+-------------+-----------------------------------------------------------------------------------+
@@ -232,7 +208,7 @@ def exponential_fit(
         return fit_data
 
 
-def enhancement_fit(all_data, bounds=None, p0=None):
+def enhancement_fit(all_data, dim="power", bounds=None, p0=None):
     """Fits enhancement curves to return Emax and power and one half maximum saturation
 
     .. math::
@@ -241,12 +217,13 @@ def enhancement_fit(all_data, bounds=None, p0=None):
 
     Args:
         all_data (dnpdata, dict): data container
+        dim (str): name of power dimension
         bounds (tuple): bounds on fit parameters
         p0 (list): initial guesses for fit parameters
 
     Returns:
-        all_data (dnpdata, dict): Processed data in container, updated with fit data
-        attributes: Emax, Emax standard deviation, p_one_half, and p_one_half standard deviation
+        fit_data (dnpdata): Processed data in container, updated with fit data
+        attrs (dict): Emax, Emax standard deviation, p_one_half, and p_one_half standard deviation
 
     Example::
 
@@ -267,12 +244,15 @@ def enhancement_fit(all_data, bounds=None, p0=None):
 
     data, isDict = return_data(all_data)
 
-    if "enhancements" not in all_data.keys():
-        raise TypeError("please use dnpNMR.calculate_enhancement() first")
-
-    power_axes = all_data["enhancements"].coords["power"]
-
-    input_data = _np.real(all_data["enhancements"].values)
+    if isDict:
+        if "enhancements" not in all_data.keys():
+            raise TypeError("please use dnpNMR.calculate_enhancement() first")
+        else:
+            power_axes = all_data["enhancements"].coords[dim]
+            input_data = _np.real(all_data["enhancements"].values)
+    else:
+        power_axes = data.coords[dim]
+        input_data = _np.real(data.values)
 
     if p0 is None:
         x0 = [input_data[-1], 0.1]
@@ -298,7 +278,7 @@ def enhancement_fit(all_data, bounds=None, p0=None):
     stdd = _np.sqrt(_np.diag(cov))
     fit = dnpMath.buildup_function(power_axes, out[0], out[1])
 
-    fit_data = dnpdata(fit, [power_axes], ["power"])
+    fit_data = dnpdata(fit, [power_axes], [dim])
     fit_data.attrs["E_max"] = out[0]
     fit_data.attrs["E_max_stdd"] = stdd[0]
     fit_data.attrs["power_half"] = out[1]

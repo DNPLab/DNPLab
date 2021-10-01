@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from dnplab import dnpdata
+from .. import dnpdata
 
 
 def import_specman(path):
@@ -110,7 +110,7 @@ def load_specman_d01(path, params):
 
     y_data = np.transpose(y_data)
 
-    dims_full = ["t", "x", "y", "z"]
+    dims_full = ["t2", "t1", "t0", "t"]
     dims = dims_full[0 : uint_read[2]]
     axes_lengths = uint_read[9:13]
 

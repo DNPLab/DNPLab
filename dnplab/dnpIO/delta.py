@@ -1,6 +1,6 @@
 import numpy as np
 from struct import unpack
-from dnplab import dnpdata
+from .. import dnpdata
 
 
 def import_delta(path):

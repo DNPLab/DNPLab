@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from dnplab import dnpdata
+from .. import dnpdata
 import warnings
 
 
@@ -160,31 +160,16 @@ def load_spc(path, params):
         warnings.warn("unable to define axis, indexed only")
         abscissa = [range(params["x_points"])]
 
-    if "x_unit" not in params.keys() or params["x_unit"] in [
-        "s",
-        "ms",
-        "ns",
-        "ps",
-        "Time",
-        "time",
-    ]:
-        dims = ["t2"]
-    elif params["x_unit"] in ["G", "mT", "T", "Field", "field"]:
+    if "x_unit" in params.keys() and params["x_unit"] in ["G", "T"]:
         if params["x_unit"] == "G":
             abscissa = [x / 10 for x in abscissa]
         elif params["x_unit"] == "T":
             abscissa = [x * 1000 for x in abscissa]
-        dims = ["B0"]
-    else:
-        dims = ["t2"]
+    dims = ["t2"]
 
     if "y_points" in params.keys() and params["y_points"] != 1:
         spec = np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
-
-        if "y_unit" in params.keys():
-            dims.append(params["y_unit"])
-        else:
-            dims.append("t1")
+        dims.append("t1")
 
         if "y_min" in params.keys() and "y_width" in params.keys():
             abscissa.append(

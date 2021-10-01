@@ -1,26 +1,7 @@
 import numpy as _np
 
-from . import dnpdata, dnpdata_collection
+from . import return_data, dnpdata, dnpdata_collection
 from scipy.optimize import curve_fit
-
-
-def return_data(all_data):
-
-    is_workspace = False
-    if isinstance(all_data, dnpdata):
-        data = all_data.copy()
-    elif isinstance(all_data, dict):
-        raise ValueError("Type dict is not supported")
-    elif isinstance(all_data, dnpdata_collection):
-        is_workspace = True
-        if all_data.processing_buffer in all_data.keys():
-            data = all_data[all_data.processing_buffer]
-        else:
-            raise ValueError("No data in processing buffer")
-    else:
-        raise ValueError("Data type not supported")
-
-    return data, is_workspace
 
 
 def convert_power(watts=False, dBm=False, loss=0):
@@ -295,7 +276,7 @@ def buildup_function(p, E_max, p_half):
     return E_max * p / (p_half + p)
 
 
-def baseline_fit(coords, values, type, order):
+def baseline_fit(coords, values, type, order, p0=None):
     """Fit a polynomial or exponential to a given coords and values pair
 
     Args:
@@ -313,11 +294,17 @@ def baseline_fit(coords, values, type, order):
     elif type == "exponential":
         values = values.real
         if order == 1:
-            x0 = [values[-1], values[0], 1]
+            if p0 is None:
+                x0 = [values[-1], values[0], 1]
+            else:
+                x0 = p0
             out, cov = curve_fit(monoexp_fit, coords, values, x0, method="lm")
             base_line = monoexp_fit(coords, out[0], out[1], out[2])
         elif order == 2:
-            x0 = [values[-1], values[0], 1, values[0], 1]
+            if p0 is None:
+                x0 = [values[-1], values[0], 1, values[0], 1]
+            else:
+                x0 = p0
             out, cov = curve_fit(biexp_fit, coords, values, x0, method="lm")
             base_line = biexp_fit(coords, out[0], out[1], out[2], out[3], out[4])
         else:

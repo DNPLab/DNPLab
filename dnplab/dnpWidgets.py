@@ -1,28 +1,9 @@
 import numpy as _np
 
-from . import dnpdata, dnpdata_collection
+from . import return_data, dnpdata, dnpdata_collection
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
-
-
-def return_data(all_data):
-
-    is_workspace = False
-    if isinstance(all_data, dnpdata):
-        data = all_data.copy()
-    elif isinstance(all_data, dict):
-        raise ValueError("Type dict is not supported")
-    elif isinstance(all_data, dnpdata_collection):
-        is_workspace = True
-        if all_data.processing_buffer in all_data.keys():
-            data = all_data[all_data.processing_buffer]
-        else:
-            raise ValueError("No data in processing buffer")
-    else:
-        raise ValueError("Data type not supported")
-
-    return data, is_workspace
 
 
 def manual_align(all_data, dim):
