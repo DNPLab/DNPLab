@@ -9,13 +9,15 @@ import re
 import copy
 
 
-def ndalign(all_data, dim="f2", reference=None):
+def ndalign(all_data, dim="f2", reference=None, center=None, width=None, average=None):
     """Alignment of NMR spectra using FFT Cross Correlation
 
     Args:
         all_data (object) : dnpdata object
         dim (str) : dimension to align along
         reference (numpy) : second dimension to align along
+        center (float) : range center
+        width (float) : range width
 
     returns:
         dnpdata: Aligned data in container
@@ -29,14 +31,30 @@ def ndalign(all_data, dim="f2", reference=None):
 
     data.reorder([dim])  # Move dim to first dimension
 
-    values = data.values  # Extract Data Values for alignment
+    all_values = data.values  # Extract Data Values for alignment
 
+    if center != None and width != None:
+        start = center - 0.5 * width
+        stop = center + 0.5 * width
+    elif center == None and width == None:
+        start = data.coords[dim][-1]
+        stop = data.coords[dim][0]
+    else:
+        raise ValueError("selected rangfe is not accpetable")
+
+    values = data[dim, (start, stop)].values
+
+    all_original_shape = all_values.shape
     original_shape = values.shape  # Preserve original shape
+
+    all_align_dim_length = all_original_shape[0]
     align_dim_length = original_shape[0]  # length of dimension to align down
 
+    all_values = all_values.reshape(all_align_dim_length, -1)
     values = values.reshape(align_dim_length, -1)  # Reshape to 2d
 
     new_shape = _np.shape(values)
+
     dim2 = new_shape[1]
 
     abs_values = _np.abs(values)
@@ -44,27 +62,33 @@ def ndalign(all_data, dim="f2", reference=None):
     if reference is None:
         reference = _np.abs(values[:, -1])
     elif isinstance(reference, dnpdata):
-        reference = reference.values
+        reference = _np.abs(reference.values)
+        if average != None:
+            reference = _np.convolve(reference, _np.ones(average), "same") / average
 
     ref_max_ix = _np.argmax(reference)
 
-    aligned_values = _np.zeros_like(values)
+    all_aligned_values = _np.zeros_like(all_values)
 
     for ix in range(dim2):
+        if average != None:
+            abs_values[:, ix] = (
+                _np.convolve(abs_values[:, ix], _np.ones(average), "same") / average
+            )
         cor = _np.correlate(
             abs_values[:, ix], reference, mode="same"
         )  # calculate cross-correlation
         max_ix = _np.argmax(cor)  # Maximum of cross correlation
         delta_max_ix = max_ix - ref_max_ix  # Calculate how many points to shift
-        aligned_values[:, ix] = _np.roll(
-            values[:, ix], -1 * delta_max_ix
+        all_aligned_values[:, ix] = _np.roll(
+            all_values[:, ix], -1 * delta_max_ix
         )  # shift values
 
-    aligned_values = aligned_values.reshape(
-        original_shape
+    all_aligned_values = all_aligned_values.reshape(
+        all_original_shape
     )  # reshape to original values shape
 
-    data.values = aligned_values  # Add aligned values back to data object
+    data.values = all_aligned_values  # Add aligned values back to data object
 
     data.reorder(original_order)  # Back to original order
 
