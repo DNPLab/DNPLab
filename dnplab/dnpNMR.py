@@ -9,7 +9,7 @@ import re
 import copy
 
 
-def ndalign(all_data, dim="f2", reference=None, center=None, width=None):
+def ndalign(all_data, dim="f2", reference=None, center=None, width=None, average=None):
     """Alignment of NMR spectra using FFT Cross Correlation
 
     Args:
@@ -63,12 +63,17 @@ def ndalign(all_data, dim="f2", reference=None, center=None, width=None):
         reference = _np.abs(values[:, -1])
     elif isinstance(reference, dnpdata):
         reference = _np.abs(reference.values)
+        if average != None:
+            reference = _np.convolve(reference, _np.ones(average), 'same')/average
+
 
     ref_max_ix = _np.argmax(reference)
 
     all_aligned_values = _np.zeros_like(all_values)
 
     for ix in range(dim2):
+        if average != None:
+            abs_values[:, ix] = _np.convolve(abs_values[:,ix], _np.ones(average), 'same')/average
         cor = _np.correlate(
             abs_values[:, ix], reference, mode="same"
         )  # calculate cross-correlation
