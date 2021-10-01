@@ -1,78 +1,21 @@
-from . import dnpMath, dnpNMR, dnpdata, dnpdata_collection
+from warnings import warn
+
+from . import return_data, dnpdata, dnpdata_collection
+from . import dnpMath, dnpNMR
 import numpy as np
 import scipy.integrate
+from scipy.special import wofz
 
 from .mrProperties import gmrProperties, radicalProperties
-
-
-def concat(data_list, dim, coord=None):
-    """Concatenates list of data objects down another dimension
-
-    args:
-        data_list (list): List of dnpdata objects to concatentate
-        dim (str): new dimension name
-        coord: coords for new dimension
-
-    Returns:
-        data (dnpdata): concatenated data object
-
-    """
-
-    shape = data_list[0].shape
-    values_list = [data.values for data in data_list]
-
-    for values in values_list:
-        this_shape = values.shape
-        if this_shape != shape:
-            raise IndexError(
-                "Cannot concatenate data objects. Array shapes do not match.",
-                this_shape,
-                shape,
-            )
-
-    dims = data_list[0].dims
-    coords = data_list[0].coords.coords
-    attrs = data_list[0].attrs
-
-    values = np.stack(values_list, axis=-1)
-
-    dims.append(dim)
-
-    if coord is None:
-        coords.append(values_list)
-    else:
-        coords.append(coord)
-
-    data = dnpdata(values, coords, dims, attrs)
-
-    return data
-
-
-def return_data(all_data):
-
-    is_workspace = False
-    if isinstance(all_data, dnpdata):
-        data = all_data.copy()
-    elif isinstance(all_data, dict):
-        raise ValueError("Type dict is not supported")
-    elif isinstance(all_data, dnpdata_collection):
-        is_workspace = True
-        if all_data.processing_buffer in all_data.keys():
-            data = all_data[all_data.processing_buffer]
-        else:
-            raise ValueError("No data in processing buffer")
-    else:
-        raise ValueError("Data type not supported")
-
-    return data, is_workspace
 
 
 def baseline(
     all_data,
     dim="f2",
-    indirect_dim=None,
     type="polynomial",
     order=1,
+    p0=None,
+    mode="subtract",
     reference_slice=None,
 ):
     """Baseline correction of NMR spectra down given dimension
@@ -85,11 +28,13 @@ def baseline(
     +=================+======+===============+===================================================+
     | dim             | str  | 'f2'          | Dimension to apply baseline correction            |
     +-----------------+------+---------------+---------------------------------------------------+
-    | indirect_dim    | str  | None          | indirect dimension                                |
-    +-----------------+------+---------------+---------------------------------------------------+
     | type            | str  | 'polynomial'  | type of baseline fit                              |
     +-----------------+------+---------------+---------------------------------------------------+
     | order           | int  | 1             | polynomial order, or 1=mono 2=bi exponential      |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | p0              | list | None          | initial guess for exponential baseline fit        |
+    +-----------------+------+---------------+---------------------------------------------------+
+    | mode            | str  | 'subtract'    | either 'subtract' or 'divide' by baseline         |
     +-----------------+------+---------------+---------------------------------------------------+
     | reference_slice | int  | None          | slice of 2D data used to define the baseline      |
     +-----------------+------+---------------+---------------------------------------------------+
@@ -99,48 +44,51 @@ def baseline(
     """
 
     data, isDict = return_data(all_data)
-
-    if not indirect_dim:
-        if len(data.dims) == 2:
-            ind_dim = list(set(data.dims) - set([dim]))[0]
-        elif len(data.dims) == 1:
-            ind_dim = data.dims[0]
-        else:
-            raise ValueError(
-                "you must specify the indirect dimension, use argument indirect_dim= "
-            )
-    else:
-        ind_dim = indirect_dim
+    index = data.dims.index(dim)
 
     if reference_slice is not None:
         if len(np.shape(data.values)) == 1:
             reference_slice = None
-            warnings.warn("ignoring reference_slice, this is 1D data")
+            warn("ignoring reference_slice, this is 1D data")
         else:
             reference_slice -= 1
 
-    if len(np.shape(data.values)) == 2:
+    if len(data.dims) == 1:
+        bline = dnpMath.baseline_fit(data.coords[dim], data.values, type, order, p0=p0)
+        if mode == "subtract":
+            data.values -= bline
+        elif mode == "divide":
+            data.values /= bline
+    else:
+        ind_dim = list(set(data.dims) - set([dim]))[0]
+        ind_shape = data.shape[data.index(ind_dim)]
+        bline_array = np.zeros(shape=(data.shape[index], ind_shape))
         if reference_slice is not None:
             bline = dnpMath.baseline_fit(
-                data.coords[dim], data.values[:, reference_slice], type, order
+                data.coords[dim],
+                data[dim, :].values[:, reference_slice],
+                type,
+                order,
+                p0=p0,
             )
-            for ix in range(len(data.coords[ind_dim])):
-                data.values[:, ix] -= bline
+            for ix in range(ind_shape):
+                bline_array[:, ix] = bline.real
         elif reference_slice is None:
-            for ix in range(len(data.coords[ind_dim])):
+            for ix in range(ind_shape):
                 bline = dnpMath.baseline_fit(
-                    data.coords[dim], data.values[:, ix], type, order
+                    data.coords[dim],
+                    data[dim, :].values[:, ix],
+                    type,
+                    order,
+                    p0=p0,
                 )
-                data.values[:, ix] -= bline
+                bline_array[:, ix] = bline.real
         else:
             raise TypeError("invalid reference_slice")
-
-    elif len(np.shape(data.values)) == 1:
-        bline = dnpMath.baseline_fit(data.coords[dim], data.values, type, order)
-        data.values -= bline
-
-    else:
-        raise ValueError("1D or 2D only")
+        if mode == "subtract":
+            data.values -= bline_array
+        elif mode == "divide":
+            data.values /= bline_array
 
     proc_parameters = {
         "dim": dim,
@@ -159,7 +107,11 @@ def baseline(
 
 
 def integrate(
-    all_data, dim="f2", type="single", integrate_center=0, integrate_width="full"
+    all_data,
+    dim="f2",
+    type="trapz",
+    integrate_center=0,
+    integrate_width="full",
 ):
     """Integrate data down given dimension
 
@@ -183,21 +135,14 @@ def integrate(
     """
 
     data, isDict = return_data(all_data)
-    index = data.index(dim)
+    index = data.dims.index(dim)
 
-    if len(data.dims) == 2:
-        ind_dim = list(set(data.dims) - set([dim]))[0]
-        indirect_coords = data.coords[ind_dim]
-    elif len(data.dims) == 1:
-        ind_dim = "index"
-        indirect_coords = [0]
-
-    data_new = None
+    data_new = data.copy()
     if type == "double":
         first_int = scipy.integrate.cumtrapz(
             data.values, x=data.coords[dim], axis=index, initial=0
         )
-        data.values = first_int
+        data_new.values = first_int
 
     if integrate_width == "full":
         pass
@@ -206,7 +151,7 @@ def integrate(
     ):
         integrateMin = integrate_center - np.abs(integrate_width) / 2.0
         integrateMax = integrate_center + np.abs(integrate_width) / 2.0
-        data = data[dim, (integrateMin, integrateMax)]
+        data_new = data_new[dim, (integrateMin, integrateMax)]
 
     elif (
         isinstance(integrate_width, list)
@@ -219,50 +164,99 @@ def integrate(
                 "If integrate_center and integrate_width are both lists, they must be the same length"
             )
 
-        integrateMin = []
-        integrateMax = []
-        for x, cent in enumerate(integrate_center):
-            integrateMin.append((cent - np.abs(integrate_width[x]) / 2.0))
-            integrateMax.append((cent + np.abs(integrate_width[x]) / 2.0))
-        data_new = []
-        for mx, mn in enumerate(integrateMin):
-            data_new.append(data[dim, (mn, integrateMax[mx])])
+        integrateMinMax = [
+            [
+                (cent - np.abs(integrate_width[x]) / 2.0),
+                (cent + np.abs(integrate_width[x]) / 2.0),
+            ]
+            for x, cent in enumerate(integrate_center)
+        ]
+        data_new = [data_new[dim, (mx[0], mx[1])] for mx in integrateMinMax]
     elif (
         isinstance(integrate_width, (int, float))
         and isinstance(integrate_center, list)
         and all((isinstance(x, (int, float)) for x in integrate_center))
     ):
-        integrateMin = []
-        integrateMax = []
-        for cent in integrate_center:
-            integrateMin.append((cent - np.abs(integrate_width) / 2.0))
-            integrateMax.append((cent + np.abs(integrate_width) / 2.0))
-        data_new = []
-        for mx, mn in enumerate(integrateMin):
-            data_new.append(data[dim, (mn, integrateMax[mx])])
+        integrateMinMax = [
+            [
+                (cent - np.abs(integrate_width) / 2.0),
+                (cent + np.abs(integrate_width) / 2.0),
+            ]
+            for cent in integrate_center
+        ]
+        data_new = [data_new[dim, (mx[0], mx[1])] for mx in integrateMinMax]
+
+    elif (
+        isinstance(integrate_center, (int, float))
+        and isinstance(integrate_width, list)
+        and all((isinstance(x, (int, float)) for x in integrate_width))
+    ):
+        integrateMinMax = [
+            [
+                (integrate_center - np.abs(wid) / 2.0),
+                (integrate_center + np.abs(wid) / 2.0),
+            ]
+            for wid in integrate_width
+        ]
+        data_new = [data_new[dim, (mx[0], mx[1])] for mx in integrateMinMax]
 
     else:
         raise ValueError(
             "integrate_width must be 'full', int, float, or list of int or float; integrate_center must be int, float, or list of ints or floats"
         )
 
-    if data_new and isinstance(data_new, list):
-        data_integrals = []
-        for x in data_new:
-            data_integrals.append(np.trapz(x.values, x=x.coords[dim], axis=index))
-
-        data.values = np.array(data_integrals)
-        int_coords = [integrate_center, indirect_coords]
-        indirect_dim = ["center", ind_dim]
-
+    remaining_dims = [x for x in data.dims if x != dim]
+    if (
+        len(remaining_dims) == 0
+        and isinstance(integrate_center, (int, float))
+        and isinstance(integrate_width, (int, float))
+    ):
+        remaining_dims = ["index"]
+        remaining_coords = [np.array([0])]
     else:
-        data.values = np.trapz(data.values, x=data.coords[dim], axis=index)
-        int_coords = [indirect_coords]
-        indirect_dim = [ind_dim]
+        remaining_coords = [data.coords[x] for x in remaining_dims]
 
-    integrate_data = dnpdata(data.values, int_coords, indirect_dim)
+    if isinstance(data_new, list):
+        data_integrals = [
+            np.trapz(x.values, x=x.coords[dim], axis=index) for x in data_new
+        ]
+        if not all([isinstance(x, list) for x in [integrate_center, integrate_width]]):
+            if isinstance(integrate_center, list) and not isinstance(
+                integrate_width, list
+            ):
+                remaining_coords = [np.array(integrate_center)] + remaining_coords
+                remaining_dims = ["center"] + remaining_dims
+            elif isinstance(integrate_width, list) and not isinstance(
+                integrate_center, list
+            ):
+                remaining_coords = [np.array(integrate_width)] + remaining_coords
+                remaining_dims = ["width"] + remaining_dims
+            data_values = np.array(data_integrals)
+        elif isinstance(integrate_center, list) and isinstance(integrate_width, list):
+            ind_dim = list(set(data.dims) - set([dim]))[0]
+            ind_shape = data.shape[data.index(ind_dim)]
+            remaining_coords = [
+                np.array(integrate_center),
+                np.array(integrate_width),
+            ] + remaining_coords
+            remaining_dims = ["center", "width"] + remaining_dims
+            data_values = np.array(
+                tuple([data_integrals for _ in range(len(data_integrals))])
+            ).reshape(len(data_integrals), len(data_integrals), ind_shape)
+    else:
+        data_values = np.trapz(data_new.values, x=data_new.coords[dim], axis=index)
+
+    if not isinstance(data_values, (list, np.ndarray)):
+        data_values = [data_values]
+
+    integrate_data = dnpdata(np.array(data_values), remaining_coords, remaining_dims)
+
+    integrate_data.attrs["integrate_center"] = integrate_center
+    integrate_data.attrs["integrate_width"] = integrate_width
+
     if type == "double":
         integrate_data.attrs["first_integral"] = first_int
+        integrate_data.attrs["dim_coords"] = data.coords[dim]
 
     if isDict:
         all_data["integrals"] = integrate_data
@@ -514,9 +508,10 @@ def signal_to_noise(
     """
 
     data, isDict = return_data(all_data)
+    index = data.dims.index(dim)
 
     if signal_width == "full" and isinstance(signal_center, (int, float)):
-        s_data = data.real
+        s_data = data[dim, :].real
     elif isinstance(signal_width, (int, float)) and isinstance(
         signal_center, (int, float)
     ):
@@ -550,20 +545,14 @@ def signal_to_noise(
     noiseMax = noise_center + np.abs(noise_width) / 2.0
     n_data = data[dim, (noiseMin, noiseMax)].real
 
-    if data.ndim == 2:
-        sig = []
-        noi = []
-        for ix in range(data.shape[1]):
-            sig.append(s_data.values[np.argmax(s_data.values[:, ix], axis=0), ix])
-            noi.append(np.std(n_data.values[:, ix], axis=0))
-
-        s_n = np.array(sig) / np.array(noi)
-    elif data.ndim == 1:
-        s_n = s_data.values[np.argmax(s_data.values, axis=0)] / np.std(
-            n_data.values, axis=0
-        )
+    if len(data.dims) == 1:
+        s_n = s_data.values[np.argmax(s_data.values)] / np.std(n_data.values)
     else:
-        raise TypeError("only 1D or 2D data currently supported")
+        sn_maxs = np.argmax(s_data.values, axis=index)
+        s_n = [
+            s_data.values[x, ix] / np.std(n_data.values[:, ix], axis=index)
+            for ix, x in enumerate(sn_maxs)
+        ]
 
     data.attrs["s_n"] = s_n
     data.attrs["signal"] = s_data
@@ -578,76 +567,46 @@ def signal_to_noise(
 def zero_fill(
     all_data,
     dim="t2",
-    zero_fill_factor=2,
-    shift=True,
-    inverse=False,
-    convert_from_ppm=True,
+    factor=2,
 ):
-
-    """Perform zero filling down dim dimension
-
-    .. Note::
-        Assumes dt = t[1] - t[0]
+    """
+    Perform zero-filling (append) down given dimension
 
     Args:
-        all_data (dnpdata, dict): Data container
+        all_data (dnpdata): data object
 
     +------------------+------+-----------+--------------------------------------------------+
     | parameter        | type | default   | description                                      |
     +==================+======+===========+==================================================+
-    | dim              | str  | 't2'      | dimension to Fourier transform                   |
+    | dim              | str  | 't2'      | dimension to zero-fill                           |
     +------------------+------+-----------+--------------------------------------------------+
-    | zero_fill_factor | int  | 2         | factor to increase dim with zeros                |
-    +------------------+------+-----------+--------------------------------------------------+
-    | shift            | bool | True      | Perform fftshift to set zero frequency to center |
-    +------------------+------+-----------+--------------------------------------------------+
-    | inverse          | bool | False     | True means zero-fill in frequency domain         |
-    +------------------+------+-----------+--------------------------------------------------+
-    | convert_from_ppm | bool | True      | True if frequency axis is in ppm                 |
+    | factor           | int  | 2         | factor to increase dim with zeros                |
     +------------------+------+-----------+--------------------------------------------------+
 
     Returns:
-        dnpdata: data object after zero fill
+        dnpdata: data object after zero-fill
     """
 
     data, isDict = return_data(all_data)
+    index = data.dims.index(dim)
 
-    # handle zero_fill_factor
-    if not isinstance(zero_fill_factor, int) or zero_fill_factor <= 0:
-        raise ValueError("zero_fill_factor must be type int greater than 0")
+    factor = int(factor)
+    if factor <= 0:
+        factor = 1
+
+    n_pts = data.shape[index] * factor
+    data.coords[dim] = np.linspace(data.coords[dim][0], data.coords[dim][-1], num=n_pts)
+
+    shape = list(data.shape)
+    shape[index] = n_pts - data.shape[index]
+    data.values = np.concatenate(
+        (data.values, np.zeros(shape=tuple(shape))), axis=index
+    )
 
     proc_parameters = {
         "dim": dim,
-        "zero_fill_factor": zero_fill_factor,
-        "shift": shift,
-        "inverse": inverse,
+        "factor": factor,
     }
-
-    if inverse:
-        df = data.coords[dim][1] - data.coords[dim][0]
-        if convert_from_ppm:
-            df /= -1 / (data.attrs["nmr_frequency"] / 1.0e6)
-
-        n_pts = zero_fill_factor * len(data.coords[dim])
-        data.coords[dim] = (1.0 / (n_pts * df)) * _np.r_[0:n_pts]
-
-        proc_parameters["convert_from_ppm"] = convert_from_ppm
-
-    else:
-        dt = data.coords[dim][1] - data.coords[dim][0]
-        n_pts = zero_fill_factor * len(data.coords[dim])
-        data.coords[dim] = (1.0 / (n_pts * dt)) * np.r_[0:n_pts]
-        if shift == True:
-            data.coords[dim] -= 1.0 / (2 * dt)
-
-    if len(data.shape) == 2:
-        temp = np.zeros((n_pts, data.shape[1]), dtype=np.complex)
-        temp[: data.shape[0], : data.shape[1]] = data.values
-    elif len(data.shape) == 1:
-        temp = np.zeros(n_pts, dtype=np.complex)
-        temp[: data.shape[0]] = data.values
-
-    data.values = temp
 
     proc_attr_name = "zero_fill"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
@@ -656,3 +615,22 @@ def zero_fill(
         all_data[all_data.processing_buffer] = data
     else:
         return data
+
+
+def voigtian(x, x0, sigma, gamma):
+    """
+    Voigt is a combintaion of Gaussian and Lorentzian lineshapes
+    """
+    z = ((x0 - x) + 1j * gamma) / (sigma * np.sqrt(2.0))
+    fit = np.real(wofz(z)) / (sigma * np.sqrt(2 * np.pi))
+    return fit
+
+
+def gaussian(x, x0, sigma):
+    return (
+        1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(-((x - x0) ** 2) / (2 * sigma ** 2))
+    )
+
+
+def lorentzian(x, x0, gamma):
+    return (1.0 / (np.pi * gamma)) * gamma ** 2 / ((x - x0) ** 2 + gamma ** 2)

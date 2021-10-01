@@ -33,7 +33,7 @@ To use the dnpHydration module first create a dictionary with the necessary inpu
               'spin_C': 100, # spin concentration in micromolar
               'field': 350, # magnetic field in mT
               'smax_model': 'tethered', # choice of smax model
-              't1_interp_method': 'second_order' # choice of interpolation method
+              'interpolate_method': 'second_order' # choice of interpolation method
               }
     
 

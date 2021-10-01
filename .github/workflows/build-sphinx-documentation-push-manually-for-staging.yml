@@ -1,13 +1,8 @@
 # This GitHub Action will build the sphinx documentation and publish it to AWS S3
 
-name: Build Sphinx Documentation and Publish to AWS
+name: Build Sphinx Documentation and Push to Staging
 
 on:
-  push:
-    branches:
-      - master
-      - release
-      - develop
   workflow_dispatch:
 
 jobs:
@@ -35,9 +30,4 @@ jobs:
         aws-region: us-east-1
 
     - name: Upload to staging website
-      if: github.ref == 'refs/heads/develop'
       run: aws s3 sync --delete --acl public-read ./docs/build/html/ s3://dnplab-docu-staging
-
-    - name: Upload to staging website
-      if: github.ref == 'refs/heads/release'
-      run: aws s3 sync --delete --acl public-read ./docs/build/html/ s3://dnplab.net

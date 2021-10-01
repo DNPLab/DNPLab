@@ -884,7 +884,7 @@ class hydrationGUI(QMainWindow):
         self.flname = os.path.normpath(flname)
         exten = self.flname.split(".")
 
-        if "h5" in exten or "mat" in exten:
+        if exten in ["h5", "mat"]:
             self.GUI_Result()
         else:
             self.NMR_Data()

@@ -1,17 +1,15 @@
 import numpy as _np
-from scipy.io import loadmat as _loadmat
-
-from .. import dnpData as _dnpData
+from scipy.io import loadmat
 
 
-def importPower(path, filename=""):
+def import_power(path, filename=""):
     """
     import powers file
     """
     fullPath = path + filename
 
     if fullPath[-4:] == ".mat":
-        rawDict = _loadmat(fullPath)
+        rawDict = loadmat(fullPath)
         t = rawDict["timelist"].reshape(-1)
         p = rawDict["powerlist"].reshape(-1)
 
@@ -27,7 +25,7 @@ def importPower(path, filename=""):
     return t, p
 
 
-def chopPower(t, p, threshold=0.1):
+def chop_power(t, p, threshold=0.1):
     """
     Use Derivative to chop Powers
     """
@@ -68,7 +66,7 @@ def chopPower(t, p, threshold=0.1):
     return averageTimeArray, averagePowerArray
 
 
-def assignPower(dataDict, expNumList, powersList):
+def assign_power(dataDict, expNumList, powersList):
     """
     Given a dictionary of dnpData objects with key being folder string,
     return the data with power values assigned to a new axis dimension
