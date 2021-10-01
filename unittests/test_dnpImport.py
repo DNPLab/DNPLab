@@ -147,13 +147,13 @@ class bes3t_import_tester(unittest.TestCase):
 
     def test_import_bes3t_1D(self):
         data = wrapper.load(self.test_data_1D, data_type="xenon")
-        self.assertEqual(data.dims, ["t2"])
+        self.assertEqual(data.dims, ["B0"])
         self.assertEqual(data.values.shape, (2250,))
         self.assertEqual(data.attrs["frequency"], 9.804448)
 
     def test_import_bes3t_2D(self):
         data = wrapper.load(self.test_data_2D, data_type="xenon")
-        self.assertEqual(data.dims, ["t2", "t1"])
+        self.assertEqual(data.dims, ["B0", "t1"])
         self.assertEqual(data.values.shape, (1600, 100))
         self.assertEqual(data.attrs["frequency"], 9.627213)
 
