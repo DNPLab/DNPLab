@@ -77,13 +77,15 @@ def ndalign(all_data, dim="f2", reference=None):
         return data
 
 
-def align(all_data, dim="f2", dim2=None):
+def align(all_data, dim="f2", dim2=None, center=None, width=None):
     """Alignment of NMR spectra down given dimension or dimensions
 
     Args:
         all_data (object) : dnpdata object
         dim (str) : dimension to align along
         dim2 (str) : second dimension to align along
+        center (float) : range center
+        width (float) : range width
 
     returns:
         dnpdata: Aligned data in container
@@ -109,14 +111,32 @@ def align(all_data, dim="f2", dim2=None):
     else:
         data.reorder([dim, dim2])
         dimIter = data.dims[-1]
-
+    if center != None and width != None:
+        start = center - 0.5 * width
+        stop = center + 0.5 * width
+    elif center == None and width == None:
+        start = None
+        stop = None
+    else:
+        raise ValueError("selected range is not accpetale")
     if dim2 == None:
-        refData = data[dimIter, 0].values.reshape(-1)
+        if start != None and stop != None:
+            refData = data[dimIter, 0, dim, (start, stop)].values.reshape(-1)
+        elif start == None and stop == None:
+            refData = data[dimIter, 0].values.reshape(-1)
+        else:
+            raise ValueError("selected range is not accpetale")
 
         for ix in range(len(data.coords[dimIter])):
             tempData = data[dimIter, ix].values.reshape(-1)
+            if start != None and stop != None:
+                rangeData = data[dimIter, ix, dim, (start, stop)].values.reshape(-1)
+            elif start == None and stop == None:
+                rangeData = tempData
+            else:
+                raise ValueError("selected range is not accpetale")
 
-            corrData = _np.correlate(_np.abs(tempData), _np.abs(refData), mode="same")
+            corrData = _np.correlate(_np.abs(rangeData), _np.abs(refData), mode="same")
             shiftIx = _np.argmax(corrData) - (
                 len(corrData) / 2
             )  # subtract half length so spectrum is shifted relative to center, not edge
@@ -125,12 +145,24 @@ def align(all_data, dim="f2", dim2=None):
     else:
 
         for ix1 in range(len(data.coords[-1])):
-            refData = data.values[:, 0, ix1]
+            if start != None and stop != None:
+                refData = data[dim, (start, stop)].values[:, 0, 0]
+            elif start == None and stop == None:
+                refData = data.values[:, 0, 0]
+            else:
+                raise ValueError("selected range is not accpetale")
+
             for ix2 in range(len(data.coords[dim2])):
                 tempData = data.values[:, ix2, ix1]
+                if start != None and stop != None:
+                    rangeData = data[dim, (start, stop)].values[:, ix2, ix1]
+                elif start == None and stop == None:
+                    rangeData = tempData
+                else:
+                    raise ValueError("selected range is not accpetale")
 
                 corrData = _np.correlate(
-                    _np.abs(tempData), _np.abs(refData), mode="same"
+                    _np.abs(rangeData), _np.abs(refData), mode="same"
                 )
                 shiftIx = _np.argmax(corrData) - (
                     len(corrData) / 2
