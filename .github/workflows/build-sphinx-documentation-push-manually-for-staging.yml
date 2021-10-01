@@ -1,6 +1,6 @@
 # This GitHub Action will build the sphinx documentation and publish it to AWS S3
 
-name: Build Sphinx Documentation and Publish to AWS
+name: Build Sphinx Documentation and Push to Staging
 
 on:
   workflow_dispatch:
