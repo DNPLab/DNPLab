@@ -64,8 +64,7 @@ def ndalign(all_data, dim="f2", reference=None, center=None, width=None, average
     elif isinstance(reference, dnpdata):
         reference = _np.abs(reference.values)
         if average != None:
-            reference = _np.convolve(reference, _np.ones(average), 'same')/average
-
+            reference = _np.convolve(reference, _np.ones(average), "same") / average
 
     ref_max_ix = _np.argmax(reference)
 
@@ -73,7 +72,9 @@ def ndalign(all_data, dim="f2", reference=None, center=None, width=None, average
 
     for ix in range(dim2):
         if average != None:
-            abs_values[:, ix] = _np.convolve(abs_values[:,ix], _np.ones(average), 'same')/average
+            abs_values[:, ix] = (
+                _np.convolve(abs_values[:, ix], _np.ones(average), "same") / average
+            )
         cor = _np.correlate(
             abs_values[:, ix], reference, mode="same"
         )  # calculate cross-correlation
