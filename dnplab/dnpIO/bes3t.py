@@ -81,12 +81,54 @@ def load_dsc(path):
         params (dict) : dictionary of parameters
     """
 
+
     file_opened = open(path, "r")
     dscfile_contents = file_opened.readlines()
     file_opened.close()
 
     params = {}
     sweep_domain = None
+
+    rename_dict = {
+            'MWFQ':'frequency',
+            'mW': "power",
+            }
+
+    test_params = {}
+    
+    for line in dscfile_contents:
+        print('#'*100)
+        print(line)
+        if line[0] == '*' or line[0] == '#':
+            print(line, 'PASS')
+            pass
+        else:
+            if '\t' in line:
+                split_line = line.rstrip().split('\t', 1)
+            elif '   ' in line:
+                split_line = line.rstrip().split('   ', 1)
+            if len(split_line) == 2:
+                key = split_line[0]
+                value = split_line[1]
+                if '\'' in value:
+                    value = value.replace('\'', '')
+                print(line, split_line)
+
+                if key in rename_dict: # rename keys
+                    key = rename_dict[key]
+
+                print(key, value)
+                test_params[key] = value
+
+            else:
+                print(split_line, 'NO SPLIT')
+
+    for key in test_params:
+        print(key, test_params[key])
+
+    print('#'*1000)
+
+
     for ix in range(len(dscfile_contents)):
         try:
             par = dscfile_contents[ix].rstrip("\t").rstrip("\n")
@@ -228,6 +270,7 @@ def load_dsc(path):
             elif params["data_type"] == "CPLX":
                 params[x + "_format"] = params["imag_format"]
 
+    print(params)
     return params
 
 
@@ -249,6 +292,7 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
         dims (list) : dimensions
     """
 
+    print(params)
     dta_dtype = np.dtype(params["x_format"]).newbyteorder(params["endian"])
     file_opened = open(path_dta, "rb")
     file_bytes = file_opened.read()
