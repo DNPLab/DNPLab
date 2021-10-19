@@ -1,3 +1,5 @@
+"""This module contains Matplotlib widgets for manually processing data. Examples include manually phasing and manually aligning NMR spectra
+"""
 import numpy as _np
 
 from . import return_data, dnpdata, dnpdata_collection
