@@ -1,3 +1,5 @@
+""" Fitting functions for dnpData and Workspace
+"""
 from . import return_data, dnpdata, dnpdata_collection
 from . import dnpMath
 import numpy as _np
