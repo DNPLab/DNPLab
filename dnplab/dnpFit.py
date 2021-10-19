@@ -4,6 +4,15 @@ import numpy as _np
 from scipy.optimize import curve_fit
 
 
+def fit(function, data, p0 = None, sigma = None, absolute_sigma = False, check_finite = True, bounds = (-inf, inf), method = None, jac = None, **kwargs):
+    """ Fit data to generic function and return the fitting parameters and fit
+    """
+
+    
+
+
+
+
 def exponential_fit(
     all_data,
     type="mono",
