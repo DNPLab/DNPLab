@@ -1,3 +1,5 @@
+""" Module for calculating ODNP hydration dynamics parameters
+"""
 import numpy as np
 from scipy import interpolate
 from scipy import optimize
