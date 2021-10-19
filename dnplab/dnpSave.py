@@ -1,3 +1,5 @@
+""" Functions to save dnpData in hdf5 format
+"""
 import os
 from . import dnpIO, dnpdata, dnpdata_collection, create_workspace
 
