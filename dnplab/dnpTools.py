@@ -1,3 +1,5 @@
+""" General processing functions for data. For example, baseline correction which is general and applies to many types of data.
+"""
 from warnings import warn
 
 from . import return_data, dnpdata, dnpdata_collection
