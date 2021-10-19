@@ -1,3 +1,6 @@
+"""
+Magnetic properties of nuclei and radicals
+"""
 #####################################
 # Gyromagnetic Properties of nuclei #
 #####################################
