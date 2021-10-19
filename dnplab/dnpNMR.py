@@ -1,3 +1,5 @@
+""" Functions specific to processing NMR data
+"""
 from warnings import warn
 
 import numpy as _np
