@@ -4,14 +4,18 @@ import numpy as _np
 from scipy.optimize import curve_fit
 
 
-def fit(function, data, p0 = None, sigma = None, absolute_sigma = False, check_finite = True, bounds = (-inf, inf), method = None, jac = None, **kwargs):
+def fit(f, data, dim = None, p0 = None, sigma = None, absolute_sigma = False, check_finite = True, bounds = (-1*_np.inf, _np.inf), method = None, jac = None, **kwargs):
     """ Fit data to generic function and return the fitting parameters and fit
     """
 
+    ydata = data.values
+    xdata = data.coords[dim]
     
+    out = curve_fit(f, xdata, ydata, p0 = p0, sigma = sigma, absolute_sigma = absolute_sigma, check_finite = check_finite, bounds = bounds, method = method, jac = jac, **kwargs)
+    
+    fit = f(xdata, *out[0])
 
-
-
+    return fit
 
 def exponential_fit(
     all_data,
