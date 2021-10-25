@@ -8,6 +8,15 @@ def fit(f, data, dim = None, p0 = None, sigma = None, absolute_sigma = False, ch
     """ Fit data to generic function and return the fitting parameters and fit
     """
 
+    '''
+    proc_parameters = {"dim": dim}
+    original_order = data.dims  # Original order of dims
+    data.reorder([dim])  # Move dim to first dimension
+    all_values = data.values  # Extract Data Values for alignment
+    '''
+
+
+
     ydata = data.values
     xdata = data.coords[dim]
     
