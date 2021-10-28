@@ -617,6 +617,19 @@ def zero_fill(
 
 
 def polyfit(all_data, dim="t2", deg=1):
+    """
+    Perform Polynomial fit down given dimension
+
+    Args:
+        all_data (dnpdata): Data object
+        dim (str): Dimension to perform polynomial fit down
+        deg (int): Degree of polynomial
+
+
+    Returns:
+        dnpdata: polynomial fit to data object
+
+    """
 
     data, isDict = return_data(all_data)
 
@@ -639,22 +652,21 @@ def polyfit(all_data, dim="t2", deg=1):
     new_shape = np.shape(values)
     dim2 = new_shape[1]
 
-    #    poly_coef = np.polyfit(x, values, deg = deg)
-
-    #    fit = np.zeros_like(values)
+    p_array = np.zeros((dim2, deg + 1))
 
     for ix in range(dim2):
         p = np.polyfit(x, values[:, ix], deg=deg)
         fit = np.polyval(p, x)
-        #        print(p)
-        #        fit[p_ix,:] = np.polyval(p, x)
-        values[:, ix] -= fit
+        values[:, ix] = fit
+        p_array[ix, :] = p
 
     values = values.reshape(original_shape)
 
     data.values = values
 
     data.reorder(original_order)
+
+    data.attrs["polyfit"] = p_array
 
     proc_attr_name = "ndalign"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
