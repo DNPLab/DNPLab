@@ -336,7 +336,7 @@ class nddata_core(object):
             if key not in self.attrs:
                 self.attrs[key] = b.attrs[key]
             else:
-                if self.attrs[key] != b.attrs[key]:
+                if not self.attrs[key] is b.attrs[key]:
                     warnings.warn(
                         "attrs in two dictionarys contain different values, leaving original value:\n{}:{}".format(
                             key, self.attrs[key]
