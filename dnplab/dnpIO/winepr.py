@@ -3,6 +3,55 @@ import os
 from .. import dnpdata
 import warnings
 
+__all__ = ["import_winepr", "load_par", "load_spc"]
+
+rename_dict = {
+    "MF": "frequency",
+    "MP": "power",
+    "MPD": "attenuation",
+    "HCF": "center_field",
+    "RCT": "conversion_time",
+    "RTC": "time_constant",
+    "GST": "sweep_start",
+    "GSI": "sweep_extent",
+    "RMA": "modulation_amplitude",
+    "RRG": "receiver_gain",
+    "JSD": "nscans",
+    "TE": "temperature",
+    "JUN": "x_unit",
+    "SSX": "x_points",
+    "HSW": "x_width",
+    "XXUN": "x_unit",
+    "XXLB": "x_min",
+    "XYUN": "y_unit",
+    "SSY": "y_points",
+    "XYWI": "y_width",
+}
+
+float_params = [
+    "frequency",
+    "power",
+    "center_field",
+    "conversion_time",
+    "time_constant",
+    "sweep_start",
+    "sweep_extent",
+    "modulation_amplitude",
+    "receiver_gain",
+    "temperature",
+    "x_width",
+    "x_min",
+    "y_min",
+    "y_width",
+]
+
+int_params = [
+    "attenuation",
+    "nscans",
+    "x_points",
+    "y_points",
+]
+
 
 def import_winepr(path):
     """
@@ -43,67 +92,34 @@ def load_par(path):
         params (dict) : dictionary of parameters
     """
 
-    file_opened = open(path, "r")
-    parfile_contents = file_opened.readlines()
-
     params = {}
-    for ix in range(len(parfile_contents)):
-        par = parfile_contents[ix].rstrip("\n")
-        if "MF" in par and "EMF" not in par:
-            params["frequency"] = float(par.replace("MF", "").strip())
-        elif "MP" in par and "MPD" not in par:
-            params["power"] = float(par.replace("MP", "").strip())
-        elif "MPD" in par:
-            params["attenuation"] = int(float(par.replace("MPD", "").strip()))
-        elif "HCF" in par:
-            params["center_field"] = float(par.replace("HCF", "").strip())
+    with open(path, "r") as f:
 
-        elif "RCT" in par:
-            params["conversion_time"] = float(par.replace("RCT", "").strip())
-        elif "RTC" in par:
-            params["time_constant"] = float(par.replace("RTC", "").strip())
-        elif "GST" in par:
-            params["sweep_start"] = float(par.replace("GST", "").strip())
-        elif "GSI" in par:
-            params["sweep_extent"] = float(par.replace("GSI", "").strip())
-        elif "RMA" in par:
-            params["modulation_amplitude"] = float(par.replace("RMA", "").strip())
-        elif "RRG" in par:
-            params["receiver_gain"] = float(par.replace("RRG", "").strip())
-        elif "JSD" in par:
-            params["nscans"] = int(par.replace("JSD", "").strip())
-        elif "TE" in par and "TE1" not in par:
-            params["temperature"] = float(par.replace("TE", "").strip())
-        elif "JUN" in par and "JDA" not in par:
-            params["x_unit"] = par.replace("JUN", "").strip()
-        elif "SSX" in par:
-            params["x_points"] = int(par.replace("SSX", "").strip())
-        elif "HSW" in par:
-            params["x_width"] = float(par.replace("HSW", "").strip())
+        for line in f:
+            line = line.rstrip()
+            split_line = line.split(" ", 1)
 
-        elif "XXUN" in par:
-            params["x_unit"] = par.replace("XXUN", "").strip()
-        elif "XXLB" in par:
-            params["x_min"] = float(par.replace("XXLB", "").strip())
+            if len(split_line) == 2:
+                key = split_line[0].strip()
+                value = split_line[1].strip()
+                params[key] = value
 
-        elif "XYUN" in par:
-            params["y_unit"] = par.replace("XYUN", "").strip()
-        elif "SSY" in par:
-            params["y_points"] = int(par.replace("SSY", "").strip())
-        elif "XYLB" in par:
-            params["y_min"] = float(par.replace("XYLB", "").strip())
-        elif "XYWI" in par:
-            params["y_width"] = float(par.replace("XYWI", "").strip())
+    for key in rename_dict:
+        if key in params:
+            new_key = rename_dict[key]
+            if new_key in float_params:
+                params[new_key] = float(params[key])
+            elif new_key in int_params:
+                params[new_key] = int(float(params[key]))
+            else:
+                params[new_key] = params[key]
 
-        elif "DOS" in par:
-            params["endian"] = "LIT"
-            params["data_type"] = "float32"
-
-    if "data_type" not in params.keys():
+    if "DOS" in params:
+        params["endian"] = "LIT"
+        params["data_type"] = "float32"
+    else:
         params["endian"] = "BIG"
         params["data_type"] = "int32"
-
-    file_opened.close()
 
     return params
 
