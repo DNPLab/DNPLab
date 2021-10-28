@@ -4,6 +4,7 @@ from . import return_data, dnpdata, dnpdata_collection
 from . import dnpMath, dnpNMR
 import numpy as np
 import scipy.integrate
+from scipy.special import wofz
 
 from .mrProperties import gmrProperties, radicalProperties
 
@@ -675,3 +676,22 @@ def polyfit(all_data, dim="t2", deg=1):
         all_data[all_data.processing_buffer] = data
     else:
         return data
+
+
+def voigtian(x, x0, sigma, gamma):
+    """
+    Voigt is a combintaion of Gaussian and Lorentzian lineshapes
+    """
+    z = ((x0 - x) + 1j * gamma) / (sigma * np.sqrt(2.0))
+    fit = np.real(wofz(z)) / (sigma * np.sqrt(2 * np.pi))
+    return fit
+
+
+def gaussian(x, x0, sigma):
+    return (
+        1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(-((x - x0) ** 2) / (2 * sigma ** 2))
+    )
+
+
+def lorentzian(x, x0, gamma):
+    return (1.0 / (np.pi * gamma)) * gamma ** 2 / ((x - x0) ** 2 + gamma ** 2)

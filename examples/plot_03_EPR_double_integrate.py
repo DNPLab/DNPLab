@@ -78,24 +78,3 @@ dnp.dnpResults.show()
 
 # %%
 # Note the DC offset of about -0.5.
-
-
-# %%
-# Hint: Use matplotlib to plot arrays such as the attributes "first_integral" or "baseline" over the spectrum, in this case access the spectrum directly as '.values'
-
-# import matplotlib.pyplot as plt
-
-
-# plt.figure
-# plt.plot(ws["raw"].coords["B0"], ws["spec"].values, label = "Corrected EPR Spectrum")
-# plt.plot(ws["raw"].coords["B0"], ws["raw"].values, label = "Original EPR Spectrum")
-# plt.plot(ws["raw"].coords["B0"], ws["proc"].attrs["baseline"], label = "Baseline")
-# plt.plot(ws["raw"].coords["B0"], ws["integrals"].values, label = "DI")
-# # plt.plot(
-# #     ws["raw"].coords["B0"], ws["proc"].attrs["first_integral"], label = "First Integral"
-# # )
-# plt.legend()
-# plt.title("EPR Spectrum, Baseline Correction, Double Integration")
-# plt.grid(True)
-# plt.tight_layout()
-# plt.show()

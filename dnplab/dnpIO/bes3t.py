@@ -280,7 +280,9 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
             abscissa = [x / 10 for x in abscissa]
         elif params["x_unit"] == "T":
             abscissa = [x * 1000 for x in abscissa]
-    dims = ["t2"]
+        dims = ["B0"]
+    else:
+        dims = ["t2"]
 
     if params["data_type"] == "CPLX":
         spec = spec.astype(dtype=params["imag_format"]).view(dtype=np.dtype("complex"))
