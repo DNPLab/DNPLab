@@ -3,6 +3,76 @@ import os
 from .. import dnpdata
 import warnings
 
+import re
+import io
+
+__all__ = ['import_bes3t', 'load_dsc', 'load_dta', 'load_gf_files',]
+
+rename_dict = {
+        'MWFQ': 'frequency',
+        'mW': "power",
+        'PowerAtten':'attenuation',
+        'Attenuation':'pulse_attenuation',
+        'CenterField':'center_field',
+        'ConvTime':'conversion_time',
+        'TimeConst':'time_constant',
+        'ModAmp':'modulation_amplitude',
+        'ModFreq':'modulation_frequency',
+        'NbScansDone':'nscans',
+        'Temperature':'temperature',
+        'XNAM':'x_name',
+        'XUNI':'x_unit',
+        'XPTS':'x_points',
+        'XMIN':'x_min',
+        'XWID':'x_width',
+        'XTYP':'x_type',
+        'XFMT':'x_format',
+        'YUNI':'y_unit',
+        'YPTS':'y_points',
+        'YMIN':'y_min',
+        'YWID':'y_width',
+        'YTYP':'y_type',
+        'YFMT':'y_format',
+        'ZNAM':'z_name',
+        'ZUNI':'z_unit',
+        'ZPTS':'z_points',
+        'ZMIN':'z_min',
+        'ZWID':'z_width',
+        'ZTYP':'z_type',
+        'ZFMT':'z_format',
+        'IRFMT':'real_format',
+        'IKKF':'data_type',
+        'BSEQ':'endian',
+        }
+
+float_params = [
+        'frequency',
+        'power',
+        'center_field',
+        'conversion_time',
+        'time_constant',
+        'modulation_amplitude',
+        'modulation_frequency',
+        'temperature',
+        'x_min',
+        'y_min',
+        'z_min',
+        'x_width',
+        'y_width',
+        'z_width',
+        ]
+
+int_params = [
+        'attenuation',
+        'pulse_attenuation',
+        'nscans',
+        'x_points',
+        'y_points',
+        'z_points',
+        ]
+
+find_string = r'\n\\n\\'
+replace_string = r'\\n\\n\\'
 
 def import_bes3t(path):
     """
@@ -82,186 +152,139 @@ def load_dsc(path):
     """
 
 
-    file_opened = open(path, "r")
-    dscfile_contents = file_opened.readlines()
-    file_opened.close()
+    desc_params = {}
+    spl_params = {}
+    dsl_params = {}
+    dvc_params = {}
+    with open(path, 'r') as f:
+
+        # Section 1: DESC Descriptor Information
+        line = f.readline().strip()
+        for line in f:
+            if line[0] == '#':
+                break
+            if line[0] == '*':
+                continue
+
+            split_line = line.split('\t', 1)
+
+            if len(split_line) == 2:
+                key = split_line[0].strip()
+                value = split_line[1].strip()
+                desc_params[key] = value
+
+        # Section 2: SPL Standard Parameter Layer
+        for line in f:
+            if line[0] == '#':
+                break
+            if line[0] == '*':
+                continue
+
+            split_line = line.split(' ', 1)
+
+            if len(split_line) == 2:
+                key = split_line[0].strip()
+                value = split_line[1].strip()
+                spl_params[key] = value
+
+        dsl_lines = f.read()
+
+        # Fixes ^M character sometimes present in pulse program
+        lines = re.sub(find_string, replace_string, dsl_lines)
+
+    # Section 3: DSL Device Specific Layer
+    with io.StringIO(lines) as f:
+        for line in f:
+            if line[0] == '#':
+                break
+            if line[0] == '*':
+                continue
+            if line[0:4] == '.DVC':
+                split_line = line[4:].split(',', 1)
+                key = split_line[0].strip()
+                value = split_line[1].strip()
+                dvc_params[key] = value
+                continue
+
+            split_line = line.split(' ', 1)
+
+            if len(split_line) == 2:
+                key = split_line[0].strip()
+                value = split_line[1].strip()
+
+                if len(value) == 0:
+                    continue
+
+                ix = 0
+                while value[-1] == '\\':
+                     
+                    ix+=1
+                    line = f.readline().rstrip()
+                    value += line
+
+
+                dsl_params[key] = value
+
+    if 'PlsSPELPrgTxt' in dsl_params:
+        dsl_params['PlsSPELPrgTxt'] = dsl_params['PlsSPELPrgTxt'].replace('\\n','\n').replace('\\','')
+
+    if 'PlsSPELGlbTxt' in dsl_params:
+        dsl_params['PlsSPELGlbTxt'] = dsl_params['PlsSPELGlbTxt'].replace('\\n','\n').replace('\\','')
 
     params = {}
-    sweep_domain = None
+    params.update(desc_params)
+    params.update(spl_params)
+    params.update(dsl_params)
+    params.update(dvc_params)
 
-    rename_dict = {
-            'MWFQ':'frequency',
-            'mW': "power",
-            }
+    for key in rename_dict:
+        if key in params:
+            new_key = rename_dict[key]
+            value = params[key].strip()
+            split_value = value.split(' ', 1)
+            if len(split_value) == 1:
+                value = split_value[0]
+            elif len(split_value) == 2:
+                params[key + '_units'] = split_value[1]
+                value = split_value[0]
 
-    test_params = {}
-    
-    for line in dscfile_contents:
-        print('#'*100)
-        print(line)
-        if line[0] == '*' or line[0] == '#':
-            print(line, 'PASS')
-            pass
-        else:
-            if '\t' in line:
-                split_line = line.rstrip().split('\t', 1)
-            elif '   ' in line:
-                split_line = line.rstrip().split('   ', 1)
-            if len(split_line) == 2:
-                key = split_line[0]
-                value = split_line[1]
-                if '\'' in value:
-                    value = value.replace('\'', '')
-                print(line, split_line)
+            if new_key in float_params:
+                value = float(value)
+            elif new_key in int_params:
+                value = int(float(value))
 
-                if key in rename_dict: # rename keys
-                    key = rename_dict[key]
+            params[new_key] = value
 
-                print(key, value)
-                test_params[key] = value
+    params['frequency'] = params['frequency'] / 1e9
 
-            else:
-                print(split_line, 'NO SPLIT')
+    if 'XFMT' in params:
+        params["x_format"] = _return_data_type(params['XFMT'], "XFMT")
+    if 'YFMT' in params:
+        params["y_format"] = _return_data_type(params['YFMT'], "YFMT")
+    if 'ZFMT' in params:
+        params["z_format"] = _return_data_type(params['ZFMT'], "ZFMT")
 
-    for key in test_params:
-        print(key, test_params[key])
-
-    print('#'*1000)
+    if 'IRFMT' in params:
+        params["real_format"] = _return_data_type(params['IRFMT'], "IRFMT")
+    if 'IIFMT' in params:
+        params["imag_format"] = _return_data_type(params['IIFMT'], "IIFMT")
 
 
-    for ix in range(len(dscfile_contents)):
-        try:
-            par = dscfile_contents[ix].rstrip("\t").rstrip("\n")
-            if "MWFQ" in par:
-                params["frequency"] = float(par.replace("MWFQ", "").strip()) / 1e9
-            elif "Power" in par and "Atten" not in par:
-                params["power"] = float(
-                    par.replace("Power", "").replace("mW", "").strip()
-                )
-            elif "PowerAtten" in par:
-                params["attenuation"] = int(
-                    float(par.replace("PowerAtten", "").replace("dB", "").strip())
-                )
-            elif "Attenuation" in par:
-                params["pulse_attenuation"] = int(
-                    float(par.replace("Attenuation", "").replace("dB", "").strip())
-                )
-            elif "CenterField" in par:
-                params["center_field"] = float(
-                    par.replace("CenterField", "").replace("G", "").strip()
-                )
-            elif "ConvTime" in par:
-                params["conversion_time"] = float(
-                    par.replace("ConvTime", "").replace("ms", "").strip()
-                )
-            elif "TimeConst" in par:
-                params["time_constant"] = float(
-                    par.replace("TimeConst", "").replace("ms", "").strip()
-                )
-            elif "ModAmp" in par:
-                params["modulation_amplitude"] = float(
-                    par.replace("ModAmp", "").replace("G", "").strip()
-                )
-            elif "ModFreq" in par:
-                params["modulation_frequency"] = float(
-                    par.replace("ModFreq", "").replace("kHz", "").strip()
-                )
-            elif "NbScansDone" in par:
-                params["nscans"] = int(par.replace("NbScansDone", "").strip())
-            elif "Temperature" in par:
-                params["temperature"] = float(
-                    par.replace("Temperature", "").replace("K", "").strip()
-                )
-            elif "XNAM" in par:
-                sweep_domain = par.replace("XNAM", "").replace("'", "").strip()
-            elif "XUNI" in par:
-                params["x_unit"] = par.replace("XUNI", "").replace("'", "").strip()
-            elif "XPTS" in par:
-                params["x_points"] = int(par.replace("XPTS", "").strip())
-            elif "XMIN" in par:
-                params["x_min"] = float(par.replace("XMIN", "").strip())
-            elif "XWID" in par:
-                params["x_width"] = float(par.replace("XWID", "").strip())
-            elif "XTYP" in par:
-                xtyp = par.replace("XTYP", "").strip()
-                if xtyp == "IGD":
-                    params["x_type"] = "nonlinear"
-                elif xtyp == "IDX":
-                    params["x_type"] = "linear"
+    if params['XTYP'] == "IGD":
+        params["x_type"] = "nonlinear"
+    else:
+        params["x_type"] = "linear"
 
-            elif "XFMT" in par:
-                params["x_format"] = _return_data_type(par, "XFMT")
+    if params['YTYP'] == "IGD":
+        params["y_type"] = "nonlinear"
+    else:
+        params["y_type"] = "linear"
 
-            elif "YNAM" in par:
-                y_domain = par.replace("YNAM", "").replace("'", "").strip()
-            elif "YUNI" in par:
-                params["y_unit"] = par.replace("YUNI", "").replace("'", "").strip()
-            elif "YPTS" in par:
-                params["y_points"] = int(par.replace("YPTS", "").strip())
-            elif "YMIN" in par:
-                params["y_min"] = float(par.replace("YMIN", "").strip())
-            elif "YWID" in par:
-                params["y_width"] = float(par.replace("YWID", "").strip())
-            elif "YTYP" in par:
-                ytyp = par.replace("YTYP", "").strip()
-                if ytyp == "IGD":
-                    params["y_type"] = "nonlinear"
-                elif ytyp == "IDX":
-                    params["y_type"] = "linear"
+    if params['ZTYP'] == "IGD":
+        params["z_type"] = "nonlinear"
+    else:
+        params["z_type"] = "linear"
 
-            elif "YFMT" in par:
-                params["y_format"] = _return_data_type(par, "YFMT")
-
-            elif "ZNAM" in par:
-                z_domain = par.replace("ZNAM", "").replace("'", "").strip()
-            elif "ZUNI" in par:
-                params["z_unit"] = par.replace("ZUNI", "").replace("'", "").strip()
-            elif "ZPTS" in par:
-                params["z_points"] = int(par.replace("ZPTS", "").strip())
-            elif "ZMIN" in par:
-                params["z_min"] = float(par.replace("ZMIN", "").strip())
-            elif "ZWID" in par:
-                params["z_width"] = float(par.replace("ZWID", "").strip())
-            elif "ZTYP" in par:
-                ztyp = par.replace("ZTYP", "").strip()
-                if ztyp == "IGD":
-                    params["z_type"] = "nonlinear"
-                elif ztyp == "IDX":
-                    params["z_type"] = "linear"
-
-            elif "ZFMT" in par:
-                params["z_format"] = _return_data_type(par, "ZFMT")
-
-            elif "IRFMT" in par:
-                params["real_format"] = _return_data_type(par, "IRFMT")
-
-            elif "IIFMT" in par:
-                params["imag_format"] = _return_data_type(par, "IIFMT")
-
-            elif "IKKF" in par:
-                params["data_type"] = par.replace("IKKF", "").strip()
-            elif "BSEQ" in par:
-                params["endian"] = par.replace("BSEQ", "").strip()
-
-        except ValueError:
-            continue
-
-    if sweep_domain == "Time" and int(params["attenuation"]) == 60:
-        params.pop("attenuation", None)
-        params.pop("power", None)
-    elif sweep_domain == "Time" and int(params["pulse_attenuation"]) == 60:
-        params["pulse_attenuation"] = params["attenuation"]
-        params.pop("attenuation", None)
-
-    if all(
-        [
-            y not in params.keys()
-            for y in ["real_format", "imag_format", "x_format", "y_format", "z_format"]
-        ]
-    ):
-        raise TypeError(
-            "data format unknown. None of IRFMT, IIFMT, XFMT, YFMT, ZFMT found in DSC"
-        )
 
     for x in ["x", "y", "z"]:
         if x + "_format" not in params.keys():
@@ -270,7 +293,7 @@ def load_dsc(path):
             elif params["data_type"] == "CPLX":
                 params[x + "_format"] = params["imag_format"]
 
-    print(params)
+#    print(params)
     return params
 
 
