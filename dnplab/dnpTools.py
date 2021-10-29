@@ -617,6 +617,67 @@ def zero_fill(
         return data
 
 
+def polyfit(all_data, dim="t2", deg=1):
+    """
+    Perform Polynomial fit down given dimension
+
+    Args:
+        all_data (dnpdata): Data object
+        dim (str): Dimension to perform polynomial fit down
+        deg (int): Degree of polynomial
+
+
+    Returns:
+        dnpdata: polynomial fit to data object
+
+    """
+
+    data, isDict = return_data(all_data)
+
+    proc_parameters = {"dim": dim, "deg": deg}
+
+    original_order = data.dims
+
+    data.reorder([dim])
+
+    x = data.coords[0]
+
+    values = data.values
+
+    original_shape = values.shape
+
+    align_dim_length = original_shape[0]
+
+    values = values.reshape(align_dim_length, -1)
+
+    new_shape = np.shape(values)
+    dim2 = new_shape[1]
+
+    p_array = np.zeros((dim2, deg + 1))
+
+    for ix in range(dim2):
+        p = np.polyfit(x, values[:, ix], deg=deg)
+        fit = np.polyval(p, x)
+        values[:, ix] = fit
+        p_array[ix, :] = p
+
+    values = values.reshape(original_shape)
+
+    data.values = values
+
+    data.reorder(original_order)
+
+    data.attrs["polyfit"] = p_array
+
+    proc_attr_name = "ndalign"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+    else:
+        return data
+
+
 def voigtian(x, x0, sigma, gamma):
     """
     Voigt is a combintaion of Gaussian and Lorentzian lineshapes
