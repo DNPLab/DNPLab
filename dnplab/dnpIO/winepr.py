@@ -26,6 +26,7 @@ rename_dict = {
     "XYUN": "y_unit",
     "SSY": "y_points",
     "XYWI": "y_width",
+    "XYLB": "y_min",
 }
 
 float_params = [
