@@ -255,7 +255,8 @@ def load_dsc(path):
 
             params[new_key] = value
 
-    params['frequency'] = params['frequency'] / 1e9
+    if 'frequency' in params:
+        params['frequency'] = params['frequency'] / 1e9
 
     if 'XFMT' in params:
         params["x_format"] = _return_data_type(params['XFMT'], "XFMT")
@@ -293,7 +294,6 @@ def load_dsc(path):
             elif params["data_type"] == "CPLX":
                 params[x + "_format"] = params["imag_format"]
 
-#    print(params)
     return params
 
 
@@ -315,7 +315,6 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
         dims (list) : dimensions
     """
 
-    print(params)
     dta_dtype = np.dtype(params["x_format"]).newbyteorder(params["endian"])
     file_opened = open(path_dta, "rb")
     file_bytes = file_opened.read()
