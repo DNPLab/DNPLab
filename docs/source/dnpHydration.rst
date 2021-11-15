@@ -17,6 +17,7 @@ To use the dnpHydration module first create a dictionary with the necessary inpu
 .. code-block:: python
 
     import dnplab
+    import numpy as np
     
     Enhancements = # list of signal enhancements
     Enhancement_powers = # list of powers in Watts corresponding to Enhancements

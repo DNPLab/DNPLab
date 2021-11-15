@@ -95,7 +95,6 @@ Features
    dnpFit
    dnpHydration
    dnpResults
-   hydrationGUI
 
 Index
 =====
