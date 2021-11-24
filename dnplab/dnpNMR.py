@@ -983,4 +983,8 @@ def phasecycle(all_data, dim, receiver_phase):
     proc_attr_name = "phasecycle"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+    else:
+        return data
+
