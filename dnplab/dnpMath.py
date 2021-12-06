@@ -154,7 +154,7 @@ def sin2_window(dim_size):
     )
 
 
-def traf_window(all_data, dim, exp_lw, gauss_lw):
+def traf_window(all_data, dim, traf_lw):
     """Calculate traf window function
 
     .. math::
@@ -175,9 +175,12 @@ def traf_window(all_data, dim, exp_lw, gauss_lw):
         array: traf window function
     """
     data, _ = return_data(all_data)
-    E_t = _np.exp(-1 * data.coords[dim] * _np.pi * exp_lw)
-    e_t = _np.exp((data.coords[dim] - max(data.coords[dim])) * _np.pi * gauss_lw)
-    return (E_t * (E_t + e_t)) / ((E_t ** 2) + (e_t ** 2))
+    T2 = 1./(_np.pi*traf_lw)
+    t = data.coords[dim]
+    T = _np.max(t)
+    E = _np.exp(-1 * t / T2)
+    e = _np.exp(-1 * (T - t) / T2)
+    return E * (E + e) / (E ** 2 + e ** 2)
 
 
 def t1_function(t, T1, M_0, M_inf):
