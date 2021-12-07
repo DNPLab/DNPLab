@@ -137,9 +137,9 @@ def import_topspin(path, phase_cycle=[0, 90, 180, 270]):
     dir_list = _os.listdir(path)
 
     if "fid" in dir_list and "ser" not in dir_list:
-        data = load_fid_ser(path, type="fid", phase_cycle=phase_cycle)
+        data = load_fid_ser(path, dtype="fid", phase_cycle=phase_cycle)
     elif "ser" in dir_list:
-        data = load_fid_ser(path, type="ser", phase_cycle=phase_cycle)
+        data = load_fid_ser(path, dtype="ser", phase_cycle=phase_cycle)
     else:
         raise ValueError("Could Not Identify Data Type in File")
 
@@ -226,13 +226,13 @@ def load_acqu_proc(path="1", param_filename="acqus", proc_num=1):
     return attrs_dict
 
 
-def load_fid_ser(path, type="fid", phase_cycle=None):
+def load_fid_ser(path, dtype="fid", phase_cycle=None):
     """
     Import topspin fid or ser file
 
     Args:
         path (str): Directory of data
-        type (str): "fid" for 1D, "ser" or "serPhaseCycle" for 2D
+        dtype (str): "fid" for 1D, "ser" or "serPhaseCycle" for 2D
         phase_cycle (list): list of phases used for phase cycling (deg, multiples of 90)
 
     Returns:
@@ -276,7 +276,7 @@ def load_fid_ser(path, type="fid", phase_cycle=None):
     else:
         endian = ">"
 
-    if type == "fid":
+    if dtype == "fid":
         raw = _np.fromfile(_os.path.join(path, "fid"), dtype=endian + "i4")
     else:
         raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
@@ -295,11 +295,11 @@ def load_fid_ser(path, type="fid", phase_cycle=None):
     if "vdlist" in dir_list:
         important_params_dict.update({"VDLIST": topspin_vdlist(path)})
 
-    if type == "fid":
+    if dtype == "fid":
         data = data[group_delay : int(attrs_dict["TD"] / 2)] / attrs_dict["RG"]
         coords = [t]
         dims = ["t2"]
-    elif type == "ser":
+    elif dtype == "ser":
         ser_data = data.reshape(int(attrs_dict["TD_2"]), -1).T
         ser_data = (
             ser_data[group_delay : int(attrs_dict["TD"] / 2), :] / attrs_dict["RG"]
@@ -392,6 +392,16 @@ def topspin_vdlist(path):
 
     vdlist = _np.array(vdlist)
     return vdlist
+
+def load_ser(path, dtype = ">i4", is_complex = True):
+    ''' Import Topspin Ser file
+    '''
+
+    raw = _np.fromfile(_os.path.join(path), dtype=dtype)
+
+    data = raw[0::2] + 1j * raw[1::2]  # convert to complex
+
+    return data
 
 
 def load_title(
