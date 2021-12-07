@@ -393,15 +393,20 @@ def topspin_vdlist(path):
     vdlist = _np.array(vdlist)
     return vdlist
 
-def load_ser(path, dtype = ">i4", is_complex = True):
+def load_ser(path, dtype = ">i4"):
     ''' Import Topspin Ser file
+
+    Args:
+        path (str): Directory of data
+        dtype (str): data format for import
+
+    returns:
+        raw (np.ndarray): Data from ser file
     '''
 
     raw = _np.fromfile(_os.path.join(path), dtype=dtype)
 
-    data = raw[0::2] + 1j * raw[1::2]  # convert to complex
-
-    return data
+    return raw
 
 
 def load_title(
