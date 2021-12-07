@@ -987,4 +987,3 @@ def phasecycle(all_data, dim, receiver_phase):
         all_data[all_data.processing_buffer] = data
     else:
         return data
-

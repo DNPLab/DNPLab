@@ -393,8 +393,9 @@ def topspin_vdlist(path):
     vdlist = _np.array(vdlist)
     return vdlist
 
-def load_ser(path, dtype = ">i4"):
-    ''' Import Topspin Ser file
+
+def load_ser(path, dtype=">i4"):
+    """Import Topspin Ser file
 
     Args:
         path (str): Directory of data
@@ -402,7 +403,7 @@ def load_ser(path, dtype = ">i4"):
 
     returns:
         raw (np.ndarray): Data from ser file
-    '''
+    """
 
     raw = _np.fromfile(_os.path.join(path), dtype=dtype)
 
