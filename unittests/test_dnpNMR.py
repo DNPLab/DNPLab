@@ -74,7 +74,7 @@ class dnpNMR_tester(unittest.TestCase):
         wf = Math.sin2_window(len(self.ws["proc"]))
         self.assertEqual(max(wf), 1.0)
 
-        wf = Math.traf_window(self.ws["proc"], dim="t2", exp_lw=1, gauss_lw=1)
+        wf = Math.traf_window(self.ws["proc"], dim="t2", traf_lw = 1.)
 
         wf = Math.exponential_window(self.ws["proc"], "t2", 5)
         self.assertAlmostEqual(min(wf), 0.00035733315645396175, places=4)
