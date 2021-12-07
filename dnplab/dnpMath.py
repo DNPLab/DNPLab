@@ -175,7 +175,7 @@ def traf_window(all_data, dim, traf_lw):
         array: traf window function
     """
     data, _ = return_data(all_data)
-    T2 = 1./(_np.pi*traf_lw)
+    T2 = 1.0 / (_np.pi * traf_lw)
     t = data.coords[dim]
     T = _np.max(t)
     E = _np.exp(-1 * t / T2)
