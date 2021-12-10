@@ -32,9 +32,12 @@ from datetime import datetime
 date = datetime.now().strftime(u"%m/%d/%Y, %H:%M:%S")
 
 # The short X.Y version
-version = u"1.0.8"
-# The full version, including alpha/beta/rc tags
-release = u"1.0.8"
+version_file = '../../dnplab/version.py'
+with open(version_file, 'r') as f:
+    version_code = f.read()
+exec(version_code)
+version = __version__
+release = __version__
 
 print(u"Build Time: " + date)
 print(u"Version: " + version)
