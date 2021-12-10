@@ -917,7 +917,7 @@ def window(
     elif type == "sin2":
         apwin = dnpMath.sin2_window(dim_size)
     elif type == "traf":
-        apwin = dnpMath.traf_window(all_data, dim, exp_lw, gauss_lw)
+        apwin = dnpMath.traf_window(all_data, dim, exp_lw)
     else:
         raise ValueError("Invalid window type")
 
@@ -983,4 +983,7 @@ def phasecycle(all_data, dim, receiver_phase):
     proc_attr_name = "phasecycle"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    if isDict:
+        all_data[all_data.processing_buffer] = data
+    else:
+        return data
