@@ -285,6 +285,6 @@ def enhancement_fit(all_data, dim="power", bounds=None, p0=None):
     fit_data.attrs["power_half_stdd"] = stdd[1]
 
     if isDict:
-        dataDict["fit"] = fit_data
+        all_data["fit"] = fit_data
     else:
         return fit_data
