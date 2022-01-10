@@ -3,6 +3,7 @@ from .dnpImport import load
 from .dnpSave import save
 from .dnpNMR import *
 from . import io
+from . import math
 from .dnpFit import *
 from .dnpTools import *
 from .dnpMath import *
