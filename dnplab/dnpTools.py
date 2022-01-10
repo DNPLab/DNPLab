@@ -6,7 +6,7 @@ import numpy as np
 import scipy.integrate
 from scipy.special import wofz
 
-from .mrProperties import gmrProperties, radicalProperties
+from .constants import gmrProperties, radicalProperties
 
 
 def baseline(

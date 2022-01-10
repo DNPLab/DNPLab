@@ -1,5 +1,5 @@
 import os
-from . import dnpIO
+from . import io
 
 from .dnpData import concat
 
@@ -53,43 +53,43 @@ def load_file(path, data_type=None, *args, **kwargs):
         data_type = autodetect(path)
 
     if data_type == "prospa":
-        return dnpIO.prospa.import_prospa(path, *args, **kwargs)
+        return io.prospa.import_prospa(path, *args, **kwargs)
 
     elif data_type == "topspin":
-        return dnpIO.topspin.import_topspin(path, *args, **kwargs)
+        return io.topspin.import_topspin(path, *args, **kwargs)
 
     elif data_type == "topspin dir":
-        return dnpIO.topspin.import_topspin_dir(path, *args, **kwargs)
+        return io.topspin.import_topspin_dir(path, *args, **kwargs)
 
     elif data_type == "delta":
-        return dnpIO.delta.import_delta(path, *args, **kwargs)
+        return io.delta.import_delta(path, *args, **kwargs)
 
     elif data_type == "vnmrj":
-        return dnpIO.vnmrj.import_vnmrj(path, *args, **kwargs)
+        return io.vnmrj.import_vnmrj(path, *args, **kwargs)
 
     elif data_type == "tnmr":
-        return dnpIO.tnmr.import_tnmr(path, *args, **kwargs)
+        return io.tnmr.import_tnmr(path, *args, **kwargs)
 
     elif data_type == "specman":
-        return dnpIO.specman.import_specman(path, *args, **kwargs)
+        return io.specman.import_specman(path, *args, **kwargs)
 
     elif data_type in ["xepr", "xenon"]:
-        return dnpIO.bes3t.import_bes3t(path, *args, **kwargs)
+        return io.bes3t.import_bes3t(path, *args, **kwargs)
 
     elif data_type in ["winepr", "esp"]:
-        return dnpIO.winepr.import_winepr(path, *args, **kwargs)
+        return io.winepr.import_winepr(path, *args, **kwargs)
 
     elif data_type == "h5":
-        return dnpIO.h5.load_h5(path, *args, **kwargs)
+        return io.h5.load_h5(path, *args, **kwargs)
 
     elif data_type == "power":
-        return dnpIO.power.importPower(path, *args, **kwargs)
+        return io.power.importPower(path, *args, **kwargs)
 
     elif data_type == "vna":
-        return dnpIO.vna.import_vna(path, *args, **kwargs)
+        return io.vna.import_vna(path, *args, **kwargs)
 
     elif data_type == "cnsi_powers":
-        return dnpIO.cnsi.get_powers(path, *args, **kwargs)
+        return io.cnsi.get_powers(path, *args, **kwargs)
 
     else:
         raise ValueError("Invalid data type: %s" % data_type)

@@ -1,5 +1,5 @@
 import os
-from . import dnpIO, dnpdata, dnpdata_collection, create_workspace
+from . import io, dnpdata, dnpdata_collection, create_workspace
 
 
 def save(data_object, filename, save_type=None, *args, **kwargs):
