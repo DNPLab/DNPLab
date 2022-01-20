@@ -1,4 +1,4 @@
-#from .dnpData import dnpdata, dnpdata_collection, create_workspace, return_data
+from .core.data import DNPData
 #from .dnpImport import load
 #from .dnpSave import save
 
@@ -9,7 +9,8 @@ from . import constants
 from . import fitting
 #from . import io
 from . import math
-from . import processing
+#from . import processing
+from .processing import *
 from . import widgets
 #from .dnpFit import *
 #from .dnpTools import *

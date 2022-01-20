@@ -2,14 +2,14 @@ from warnings import warn
 
 import numpy as _np
 
-from . import return_data, dnpdata, dnpdata_collection
+#from . import return_data, dnpdata, dnpdata_collection
 from . import dnpTools, dnpMath
 
 import re
 import copy
 
 
-def ndalign(all_data, dim="f2", reference=None, center=None, width=None, average=None):
+def ndalign(data, dim="f2", reference=None, center=None, width=None, average=None):
     """Alignment of NMR spectra using FFT Cross Correlation
 
     Args:
@@ -22,8 +22,6 @@ def ndalign(all_data, dim="f2", reference=None, center=None, width=None, average
     returns:
         dnpdata: Aligned data in container
     """
-
-    data, isDict = return_data(all_data)
 
     proc_parameters = {"dim": dim}
 
@@ -95,10 +93,7 @@ def ndalign(all_data, dim="f2", reference=None, center=None, width=None, average
     proc_attr_name = "ndalign"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    if isDict:
-        all_data[all_data.processing_buffer] = data
-    else:
-        return data
+    return data
 
 
 def align(all_data, dim="f2", dim2=None, center=None, width=None):
@@ -983,7 +978,4 @@ def phasecycle(all_data, dim, receiver_phase):
     proc_attr_name = "phasecycle"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    if isDict:
-        all_data[all_data.processing_buffer] = data
-    else:
-        return data
+    return data

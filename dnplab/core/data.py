@@ -1,12 +1,12 @@
 """
-dnpdata object for storing N-dimensional data with coordinates
+DNPData object for storing N-dimensional data with coordinates
 """
 from collections.abc import MutableMapping
 
 import numpy as np
 
-from .core import nddata
-from .version import __version__
+from .base import ABCData
+from ..version import __version__
 
 version = __version__
 
@@ -15,11 +15,11 @@ core_attrs_list = ["nmr_frequency"]
 np.set_printoptions(threshold=15)
 
 
-class dnpdata(nddata.nddata_core):
+class DNPData(ABCData):
     """
-    dnpdata Class for handling dnp data
+    DNPData Class for handling dnp data
 
-    The dnpdata class is inspired by pyspecdata nddata object which handles n-dimensional data, axes, and other relevant information together.
+    The DNPData class is inspired by pyspecdata nddata object which handles n-dimensional data, axes, and other relevant information together.
 
     This class is designed to handle data and axes together so that performing NMR processing can be performed easily.
 
@@ -31,9 +31,9 @@ class dnpdata(nddata.nddata_core):
 
     """
 
-    def __init__(self, values=np.r_[[]], coords=[], dims=[], attrs={}, procList=[]):
+    def __init__(self, values=np.r_[[]], dims=[], coords=[], attrs={}, procList=[]):
         """
-        dnpdata Class __init__ method
+        DNPData Class __init__ method
 
         Args:
             data (numpy.ndarray):
@@ -53,11 +53,11 @@ class dnpdata(nddata.nddata_core):
 
     @property
     def _constructor(self):
-        return dnpdata
+        return DNPData
 
     def __repr__(self):
         """
-        Representation of dnpdata object
+        Representation of DNPData object
         """
         return "nddata(values = {}, coords = {}, dims = {}, attrs = {})".format(
             repr(self.values), repr(self.coords), repr(self.dims), repr(self.attrs)
@@ -65,7 +65,7 @@ class dnpdata(nddata.nddata_core):
 
     def __str__(self):
         """
-        String representation of dnpdata object
+        String representation of DNPData object
         """
 
         string = "values:\n\t"
@@ -118,7 +118,7 @@ class dnpdata(nddata.nddata_core):
 
     def add_proc_attrs(self, proc_attr_name, proc_dict):
         """
-        Stamp processing step to dnpdata object
+        Stamp processing step to DNPData object
 
         Args:
             proc_attr_name (str): Name of processing step (e.g. "fourier_transform"
@@ -133,7 +133,7 @@ class dnpdata(nddata.nddata_core):
 
     def phase(self):
         """
-        Return phase of dnpdata object
+        Return phase of DNPData object
 
         Returns:
             phase (float,int): phase of data calculated from sum of imaginary
@@ -170,7 +170,7 @@ class dnpdata(nddata.nddata_core):
             selection (int, range, list, tuple): list or tuple of slices to keep
 
         Returns:
-            dnpdata object: subset of dnpdata object
+            DNPData object: subset of DNPData object
 
         Example:
             data.select((1, range(5,10), 15)) # keeps slices: 1, 5, 6, 7, 8, 9, and 15
@@ -219,7 +219,7 @@ class dnpdata(nddata.nddata_core):
             procList=self.proc_attrs,
         )
 
-    def window(self, dim="t2", linewidth=10, inplace=False) -> "dnpdata":
+    def window(self, dim="t2", linewidth=10, inplace=False) -> "DNPData":
         """Apply Apodization to data down given dimension
 
         See dnplab.dnpNMR.window for full documentation
@@ -231,7 +231,7 @@ class dnpdata(nddata.nddata_core):
 
         .. code-block:: python
 
-            dnpdata = dnpdata.window(dim="t2", linewidth=10)
+            DNPData = dnpdata.window(dim="t2", linewidth=10)
 
             # For inplace operation to save memory
             dnpdata.window(dim="t2", linewidth=10, inplace=True)
@@ -273,7 +273,7 @@ class dnpdata_collection(MutableMapping):
             **kwargs: kwargs
 
         Examples:
-            >>> raw = dnpdata()
+            >>> raw = DNPData()
             >>> dnpdata_collection(raw)
             dnpdata_collection({'raw': nddata(values = array([], dtype=float64), coords = nddata_coord_collection([]), dims = [], attrs = {})})
             >>> dnpdata_collection({"raw": raw, "attrs": {}})
@@ -288,24 +288,24 @@ class dnpdata_collection(MutableMapping):
             return
 
         elif len(args) == 1:
-            if isinstance(args[0], dnpdata):
+            if isinstance(args[0], DNPData):
                 self.__data_dict.__setitem__("raw", args[0])
             elif isinstance(args[0], dict):
                 data_dict = args[0]
                 for key in data_dict:
-                    if isinstance(data_dict[key], (dnpdata, dict)):
+                    if isinstance(data_dict[key], (DNPData, dict)):
                         self.__data_dict[key] = data_dict[key]
                     else:
-                        raise TypeError("Each type in dict must be dnpdata or dict")
+                        raise TypeError("Each type in dict must be DNPData or dict")
             else:
-                raise TypeError("Argument must be type dnpdata")
+                raise TypeError("Argument must be type DNPData")
 
         elif len(args) == 2:
-            if isinstance(args[0], str) and isinstance(args[1], (dnpdata, dict)):
+            if isinstance(args[0], str) and isinstance(args[1], (DNPData, dict)):
                 self.__data_dict[args[0]] = args[1]
             else:
                 raise TypeError(
-                    "If two arguments, first argument must be str and 2nd argument must be dnpdata or dict"
+                    "If two arguments, first argument must be str and 2nd argument must be DNPData or dict"
                 )
 
         else:
@@ -315,8 +315,8 @@ class dnpdata_collection(MutableMapping):
         return self.__data_dict[key]
 
     def __setitem__(self, key, value):
-        if (not isinstance(key, str)) or (not isinstance(value, (dict, dnpdata))):
-            raise TypeError("Key must be string and value must be dnpdata or dict")
+        if (not isinstance(key, str)) or (not isinstance(value, (dict, DNPData))):
+            raise TypeError("Key must be string and value must be DNPData or dict")
         self.__data_dict[key] = value
 
     def __delitem__(self, key):
@@ -423,10 +423,10 @@ class dnpdata_collection(MutableMapping):
 
         Args:
             key (str): key corresponding to new data
-            data (dnpdata): data object corresponding to key
+            data (DNPData): data object corresponding to key
         """
-        if (not isinstance(key, str)) or (not isinstance(data, (dnpdata, dict))):
-            raise TypeError("add takes two arguments, a string and dnplab.dnpdata type")
+        if (not isinstance(key, str)) or (not isinstance(data, (DNPData, dict))):
+            raise TypeError("add takes two arguments, a string and dnplab.DNPData type")
         self.__data_dict[key] = data
 
     def __repr__(self):
@@ -458,7 +458,7 @@ class dnpdata_collection(MutableMapping):
         Examples:
             >>> ws_original = dnpdata_collection(
             ...     {
-            ...         "raw": dnpdata(
+            ...         "raw": DNPData(
             ...             np.array([3.0, 2.0, 1.0]),
             ...             dims=["t2"],
             ...             coords=[np.r_[1, 2, 3]],
@@ -508,19 +508,19 @@ def create_workspace(*args):
 
 def return_data(all_data, key="proc"):
     """
-    Return data and bool indicating dnpdata or dnpdata_collection.
+    Return data and bool indicating DNPData or dnpdata_collection.
 
     Args:
-        all_data (dnpdata or dnpdata_collection): dnpdata object or workspace
+        all_data (DNPData or dnpdata_collection): DNPData object or workspace
         key (str): workspace key to look for if dnpdata_collection
 
     Returns:
-        data (dnpdata): dnpdata object
+        data (DNPData): dnpdata object
         is_workspace (bool): True if dnpdata_collection
     """
 
     is_workspace = False
-    if isinstance(all_data, dnpdata):
+    if isinstance(all_data, DNPData):
         data = all_data.copy()
     elif isinstance(all_data, dnpdata_collection):
         is_workspace = True
@@ -538,12 +538,12 @@ def concat(data_list, dim, coord=None):
     """Concatenates list of data objects down another dimension
 
     args:
-        data_list (list): List of dnpdata objects to concatentate
+        data_list (list): List of DNPData objects to concatentate
         dim (str): new dimension name
         coord: coords for new dimension
 
     Returns:
-        data (dnpdata): concatenated data object
+        data (DNPData): concatenated data object
 
     """
 
@@ -572,6 +572,6 @@ def concat(data_list, dim, coord=None):
     else:
         coords.append(coord)
 
-    data = dnpdata(values, coords, dims, attrs)
+    data = DNPData(values, coords, dims, attrs)
 
     return data

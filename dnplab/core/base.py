@@ -4,14 +4,15 @@ import numpy as np
 import warnings
 from copy import deepcopy
 from collections import OrderedDict
-from . import nddata_coord
+from .coord import nddata_coord_collection
+
 
 _numerical_types = (np.ndarray, int, float, complex, np.complex64)
 
 _nddata_core_version = "1.0"
 
 
-class nddata_core(object):
+class ABCData(object):
     """nddata class"""
 
     __array_priority__ = 1000  # radd, rsub, ... should return nddata object
@@ -34,7 +35,7 @@ class nddata_core(object):
                 'values must be type "numpy.ndarray" not %s' % str(type(values))
             )
 
-        self._coords = nddata_coord.nddata_coord_collection(dims, coords)
+        self._coords = nddata_coord_collection(dims, coords)
 
         if isinstance(attrs, dict):
             self._attrs = attrs

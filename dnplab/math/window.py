@@ -33,7 +33,7 @@ def gaussian(x, lw):
     """
     return np.exp((lw * x) ** 2)
 
-def hann(N):
+def hann(x):
     """Calculate hann window function
 
     .. math::
@@ -45,7 +45,13 @@ def hann(N):
     Returns:
         array: hann window function
     """
-    return 0.5 + 0.5 * _np.cos(1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1))
+
+    if type(x) == int:
+        N = x
+    else:
+        N = len(x)
+
+    return 0.5 + 0.5 * np.cos(1.0 * np.pi * np.arange(N) / (N - 1))
 
 
 def traf(x, lw):
@@ -67,11 +73,11 @@ def traf(x, lw):
         np.ndarray: traf window function
     """
     data, _ = return_data(all_data)
-    T2 = 1.0 / (_np.pi * lw)
+    T2 = 1.0 / (np.pi * lw)
     t = data.coords[dim]
-    T = _np.max(t)
-    E = _np.exp(-1 * t / T2)
-    e = _np.exp(-1 * (T - t) / T2)
+    T = np.max(t)
+    E = np.exp(-1 * t / T2)
+    e = np.exp(-1 * (T - t) / T2)
     return E * (E + e) / (E ** 2 + e ** 2)
 
 
