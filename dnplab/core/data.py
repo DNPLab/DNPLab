@@ -14,6 +14,8 @@ core_attrs_list = ["nmr_frequency"]
 
 np.set_printoptions(threshold=15)
 
+#__all__ = ["DNPData"]
+
 
 class DNPData(ABCData):
     """

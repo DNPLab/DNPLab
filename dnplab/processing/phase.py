@@ -219,3 +219,12 @@ def phase_cycle(data, dim, receiver_phase):
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return data
+
+def p0_phase():
+    return NotImplemented
+
+def p1_phase():
+    return NotImplemented
+
+def phase():
+    return NotImplemented

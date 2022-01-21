@@ -669,7 +669,7 @@ def polyfit(all_data, dim="t2", deg=1):
 
     data.attrs["polyfit"] = p_array
 
-    proc_attr_name = "ndalign"
+    proc_attr_name = "polyfit"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if isDict:

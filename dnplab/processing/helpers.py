@@ -191,3 +191,9 @@ def left_shift(data, dim="t2", shift_points=0):
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return data
+
+def normalize():
+    return NotImplemented
+
+def reference():
+    return NotImplemented

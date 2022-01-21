@@ -165,3 +165,6 @@ def inverse_fourier_transform(
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return data
+
+def zero_fill():
+    return NotImplemented
