@@ -166,19 +166,19 @@ class winepr_import_tester(unittest.TestCase):
 
     def test_import_winepr_ESP(self):
         data = wrapper.load(self.test_data_ESP, data_type="esp")
-        self.assertEqual(data.dims, ["t2"])
+        self.assertEqual(data.dims, ["B0"])
         self.assertEqual(data.values.shape, (1024,))
         self.assertEqual(data.attrs["conversion_time"], 81.92)
 
     def test_import_winepr_1D(self):
         data = wrapper.load(self.test_data_1D, data_type="winepr")
-        self.assertEqual(data.dims, ["t2"])
+        self.assertEqual(data.dims, ["B0"])
         self.assertEqual(data.values.shape, (512,))
         self.assertEqual(data.attrs["temperature"], 294.2)
 
     def test_import_winepr_2D(self):
         data = wrapper.load(self.test_data_2D, data_type="winepr")
-        self.assertEqual(data.dims, ["t2", "t1"])
+        self.assertEqual(data.dims, ["B0", "t1"])
         self.assertEqual(data.values.shape, (1024, 15))
         self.assertEqual(data.attrs["frequency"], 9.79)
 
