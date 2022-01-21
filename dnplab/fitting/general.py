@@ -1,6 +1,8 @@
 import numpy as _np
 from scipy.optimize import curve_fit
 
+def fit(data):
+    return NotImplemented
 
 def exponential_fit(
     all_data,

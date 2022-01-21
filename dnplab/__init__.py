@@ -11,7 +11,7 @@ from . import fitting
 from . import math
 #from . import processing
 from .processing import *
-from . import widgets
+from .widgets import *
 #from .dnpFit import *
 #from .dnpTools import *
 #from .dnpMath import *
