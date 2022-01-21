@@ -182,7 +182,9 @@ def load_spc(path, params):
             abscissa = [x / 10 for x in abscissa]
         elif params["x_unit"] == "T":
             abscissa = [x * 1000 for x in abscissa]
-    dims = ["t2"]
+        dims = ["B0"]
+    else:
+        dims = ["t2"]
 
     if "y_points" in params.keys() and params["y_points"] != 1:
         spec = np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
