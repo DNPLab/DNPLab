@@ -3,7 +3,8 @@ from .core.data import DNPData
 #from .dnpSave import save
 
 #from . import analysis
-from . import constants
+#from . import constants
+from .constants import *
 #from .constants import constants
 #from . import core
 from . import fitting
