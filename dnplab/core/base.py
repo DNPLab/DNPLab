@@ -484,7 +484,7 @@ class ABCData(object):
         if not isinstance(b, (int, complex, float, np.ndarray)):
             raise TypeError('Values must be type "numpy.ndarray" not %s' % type(b))
         if isinstance(b, (int, complex, float)):
-            b = np.r_[b]
+            b = np.array(b)
 
         self._values = b
 
