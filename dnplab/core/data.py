@@ -570,7 +570,7 @@ def concat(data_list, dim, coord=None):
     dims.append(dim)
 
     if coord is None:
-        coords.append(values_list)
+        coords.append(np.arange(len(data_list)))
     else:
         coords.append(coord)
 
