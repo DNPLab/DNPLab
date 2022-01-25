@@ -245,7 +245,7 @@ class ABCData(object):
         """
         a = self.copy()
 
-        if isinstance(new_values, nddata_core):
+        if isinstance(new_values, ABCData):
             new_values = new_values.values
 
         if len(args) % 2 == 1:
@@ -367,7 +367,7 @@ class ABCData(object):
             raise ValueError("%s not in %s" % (dim, self.dims))
 
     def __truediv__(self, b):
-        if isinstance(b, nddata_core):
+        if isinstance(b, ABCData):
 
             a, b = self.align(b)
 
@@ -376,7 +376,7 @@ class ABCData(object):
             # error propagation
             if a.error is not None and b.error is not None:
                 error = abs(a.values) * np.sqrt(
-                    (self.error / result) ** 2.0 + (b.error / result) ** 2.0
+                    (self.error / a.values) ** 2.0 + (b.error / a.values) ** 2.0
                 )
             elif b.error is not None:
                 a.error = b.error
@@ -399,7 +399,7 @@ class ABCData(object):
             raise TypeError("Cannot add type: {}".format(type(b)))
 
     def __mul__(self, b):
-        if isinstance(b, nddata_core):
+        if isinstance(b, ABCData):
             a, b = self.align(b)
 
             a.values = a.values * b.values
@@ -407,7 +407,7 @@ class ABCData(object):
             # error propagation
             if a.error is not None and b.error is not None:
                 error = abs(a.values) * np.sqrt(
-                    (self.error / result) ** 2.0 + (b.error / result) ** 2.0
+                    (self.error / a.values) ** 2.0 + (b.error / a.values) ** 2.0
                 )
             elif b.error is not None:
                 a.error = b.error
@@ -424,7 +424,7 @@ class ABCData(object):
     __rmul__ = __mul__
 
     def __add__(self, b):
-        if isinstance(b, nddata_core):
+        if isinstance(b, ABCData):
             a, b = self.align(b)
 
             a.values = a.values + b.values
@@ -447,7 +447,7 @@ class ABCData(object):
     __radd__ = __add__
 
     def __sub__(self, b):
-        if isinstance(b, nddata_core):
+        if isinstance(b, ABCData):
             a, b = self.align(b)
 
             a.values = a.values - b.values
@@ -576,7 +576,7 @@ class ABCData(object):
             repr(self.values), repr(self.dims), repr(self.coords), repr(self.attrs)
         )
 
-    def squeeze(self):
+    def squeeze(self, dim):
         """Remove length 1 axes"""
         a = self.copy()
         shape = a.shape
@@ -595,7 +595,7 @@ class ABCData(object):
                 attrs[dim] = np.array(out)
             else:
                 warnings.warn(
-                    "Attribute lost {}:{}".format(lost_dims[ix], lost_coords[ix])
+                    "Attribute lost {}:{}".format(dim, out)
                 )
 
         return a
