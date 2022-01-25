@@ -574,6 +574,6 @@ def concat(data_list, dim, coord=None):
     else:
         coords.append(coord)
 
-    data = DNPData(values, coords, dims, attrs)
+    data = DNPData(values, dims, coords, attrs)
 
     return data
