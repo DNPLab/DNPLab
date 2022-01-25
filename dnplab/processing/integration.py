@@ -30,15 +30,15 @@ def integrate(
     index = data.index(dim)
     if regions == None:
         data.values = cumtrapz(data.values, data.coords[dim], axis = index)
-        data.sum(dim)
+        data = data.sum(dim)
 
     else:
         data_list = []
         for region in regions:
             data_list.append(integrate(data[dim, region], dim))
         
-        x = list(range(len(data_list)))
+        x = np.array(list(range(len(data_list))))
         dim_name = 'integrals'
-        concat(data_list, dim_name, coord = x)
+        data = concat(data_list, dim_name, coord = x)
 
     return data
