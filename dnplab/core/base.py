@@ -137,8 +137,7 @@ class ABCData(object):
 
         return coords_check and dims_check
 
-    # FIXME: the following method has syntax error
-    def _attrs_valid():
+    def _attrs_valid(self):
         """Verify attrs attribute is valid. All values in attrs must be list, numpy.ndarray, int, float, complex, or str.
 
         Returns:
