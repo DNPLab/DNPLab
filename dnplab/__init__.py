@@ -13,6 +13,7 @@ from . import math
 #from . import processing
 from .processing import *
 from .widgets import *
+from .plotting import *
 #from .dnpFit import *
 #from .dnpTools import *
 #from .dnpMath import *
