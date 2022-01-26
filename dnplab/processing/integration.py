@@ -8,6 +8,7 @@ from scipy.integrate import trapz, cumtrapz
 def cumulative_integrate(
     data,
     dim = "f2",
+    regions = None
 ):
     """ Cumulative integration
 
@@ -20,10 +21,17 @@ def cumulative_integrate(
 
     data = data.copy()
 
-    index = data.index(dim)
-    data.values = cumtrapz(data.values, data.coords[dim], axis = index, initial = 0)
+    if regions == None:
+        index = data.index(dim)
+        data.values = cumtrapz(data.values, data.coords[dim], axis = index, initial = 0)
+        return data
+    else:
+        data_list = []
+        for region in regions:
+            data_list.append(cumulative_integrate(data[dim, region], dim))
+        
+        return data_list
 
-    return data
 
 def integrate(
     data,
