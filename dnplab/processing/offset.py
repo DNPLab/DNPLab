@@ -36,3 +36,29 @@ def remove_offset(data, dim="t2", offset_points=10):
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return data
+
+
+def background(data, dim = "t2", deg = 0, regions = None):
+    """ Remove background from data
+    """
+
+    out = data.copy()
+    out.unfold(dim)
+
+    coord = out.coords[dim]
+    fit_points = [False for x in coord]
+
+    for region in regions:
+        fit_points = [fit_points[ix] or ((coord[ix] >= region[0]) & (coord[ix] <= region[1])) for ix in range(len(coord))]
+
+
+    for ix in range(out.shape[1]):
+        p = np.polyfit(coord[fit_points], out.values[:,ix][fit_points], deg = deg)
+        fit = np.polyval(p,coord)
+        out.values[:,ix] = fit
+
+    out.fold()
+
+    return out
+
+
