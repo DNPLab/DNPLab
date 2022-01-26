@@ -548,7 +548,7 @@ class ABCData(object):
             raise ValueError("Dimension name %s is not in dims" % dim)
 
     def reorder(self, dims):
-        """TODO: need docstring"""
+        """Reorder dimensions"""
 
         if not self._check_dims(dims):
             raise TypeError("New dims must be list of str with no duplicates")
@@ -904,3 +904,25 @@ class ABCData(object):
     @property
     def ndim(self):
         return self.values.ndim
+
+    def unfold(self, dim):
+        """Unfold ND data to 2d data"""
+
+        folded_order = self.dims  # Original order of dims
+        self.reorder([dim])  # Move dim to first dimension
+        folded_shape = self.values.shape
+        align_dim_length = folded_shape[0]  # length of dimension to align down
+        self.values = self.values.reshape(align_dim_length, -1)  # Reshape to 2d
+        self.attrs['folded_shape'] = folded_shape
+        self.attrs['folded_order'] = folded_order
+
+    def fold(self):
+        """Fold 2d data to original ND shape"""
+
+        if 'folded_shape' in self.attrs:
+            original_shape = self.attrs['folded_shape']
+            self.values = self.values.reshape(original_shape)
+            self.attrs.pop('folded_shape')
+        if 'folded_order' in self.attrs:
+            self.reorder(self.attrs['folded_order'])
+            self.attrs.pop('folded_order')
