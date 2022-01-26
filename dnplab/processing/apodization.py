@@ -1,13 +1,22 @@
 import numpy as np
 
+from ..math import window
+from ..core.data import DNPData
+
+_windows = {
+    'exponential': window.exponential,
+#    'gaussian': window.gaussian,
+#    'hann': window.hann,
+#    'hamming': window.hamming,
+#    'lorentz_gauss': window.lorentz_gauss,
+#    'traf': window.traf,
+}
 
 def apodize(
     data,
     dim="t2",
-    type="exponential",
-    linewidth=1,
-    gaussian_max=0,
-    inverse=False,
+    kind="exponential",
+    **kwargs
 ):
     """Apply Apodization to data down given dimension
 
@@ -37,76 +46,38 @@ def apodize(
 
 
     Args:
-        all_data (dnpdata, dict): data container
+        data (dnpdata, dict): data container
 
     +-----------------+-------------------------+---------------+---------------------------------------------------+
     | parameter       | type                    | default       | description                                       |
     +=================+=========================+===============+===================================================+
     | dim             | str                     | 't2'          | Dimension to apply exponential apodization        |
     +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | type            | str                     | 'exponential' | type of apodization                               |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | linewidth       | float, list, or ndarray | 1             | linewidths  in Hz                                 |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | gaussian_max    | float                   | 0             | Location of gaussian component maximum            |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | inverse         | boolean                 | False         | invert the window function                        |
+    | kind            | str                     | 'exponential' | type of apodization                               |
     +-----------------+-------------------------+---------------+---------------------------------------------------+
 
     Returns:
         dnpdata: data object with window function applied, including attr "window"
     """
 
-    dim_size = data.coords[dim].size
-    shape_data = np.shape(data.values)
+    coord = data.coords[dim]
     index = data.index(dim)
 
-    if (isinstance(linewidth, np.ndarray) or isinstance(linewidth, list)) and len(
-        linewidth
-    ) == 2:
-        exp_lw = linewidth[0]
-        gauss_lw = linewidth[1]
-    elif isinstance(linewidth, (int, float)):
-        exp_lw = linewidth
-        gauss_lw = linewidth
-    else:
-        raise ValueError("linewidth must be int/float, or list/ndarray with len==2")
+    window = _windows[kind]
+    apwin = window(coord, **kwargs)
 
-    if type == "exponential":
-        apwin = dnpMath.exponential_window(all_data, dim, linewidth)
-    elif type == "gaussian":
-        apwin = dnpMath.gaussian_window(all_data, dim, [exp_lw, gauss_lw])
-    elif type == "hamming":
-        apwin = dnpMath.hamming_window(dim_size)
-    elif type == "hann":
-        apwin = dnpMath.hann_window(dim_size)
-    elif type == "lorentz_gauss":
-        apwin = dnpMath.lorentz_gauss_window(
-            all_data, dim, exp_lw, gauss_lw, gaussian_max=gaussian_max
-        )
-    elif type == "sin2":
-        apwin = dnpMath.sin2_window(dim_size)
-    elif type == "traf":
-        apwin = dnpMath.traf_window(all_data, dim, exp_lw)
-    else:
-        raise ValueError("Invalid window type")
+    data_shape = data.shape
 
-    apwin.reshape(dim_size)
-
-    if inverse:
-        apwin = 1 / apwin
-
-    new_shape = [1 if ix != index else shape_data[index] for ix in range(data.ndim)]
+    new_shape = [1 if ix != index else data_shape[index] for ix in range(data.ndim)]
     apwin = np.reshape(apwin, new_shape)
 
     data.values *= apwin
 
+    data *= apwin
+
     proc_parameters = {
-        "type": type,
-        "linewidth": linewidth,
-        "dim": dim,
-        "gaussian_max": gaussian_max,
-        "inverse": inverse,
+        "kind": kind,
+        "args": kwargs,
     }
     proc_attr_name = "window"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
