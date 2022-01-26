@@ -2,14 +2,28 @@ import numpy as np
 from ..core.data import DNPData
 from ..core.data import concat
 
-from scipy.integrate import trapz
+from scipy.integrate import trapz, cumtrapz
 
-def cumtrapz(
 
+def cumulative_integrate(
+    data,
+    dim = "f2",
 ):
-    """ Cummulative sum down given dimension
+    """ Cumulative integration
 
+    Args:
+        data (DNPData): Data object
+
+    Returns:
+        data: cumulative sum of data
     """
+
+    data = data.copy()
+
+    index = data.index(dim)
+    data.values = cumtrapz(data.values, data.coords[dim], axis = index, initial = 0)
+
+    return data
 
 def integrate(
     data,
@@ -19,7 +33,9 @@ def integrate(
     """Integrate data down given dimension
 
     Args:
-        all_data (dnpdata,dict): Data container
+        data (DNPData): Data object
+        dim (str): Dimension to perform integration
+        regions (list): List of tuples, by default entire dimension is integrated
 
     +------------------+---------------+----------+-------------------------------+
     | parameter        | type          | default  | description                   |
@@ -30,7 +46,7 @@ def integrate(
     +------------------+---------------+----------+-------------------------------+
 
     Returns:
-        dnpdata: integrals of data
+        data: integrals of data
     """
 
     data = data.copy()
