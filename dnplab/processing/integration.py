@@ -2,8 +2,14 @@ import numpy as np
 from ..core.data import DNPData
 from ..core.data import concat
 
-from scipy.integrate import cumtrapz
+from scipy.integrate import trapz
 
+def cumtrapz(
+
+):
+    """ Cummulative sum down given dimension
+
+    """
 
 def integrate(
     data,
@@ -27,9 +33,11 @@ def integrate(
         dnpdata: integrals of data
     """
 
+    data = data.copy()
+
     index = data.index(dim)
     if regions == None:
-        data.values = cumtrapz(data.values, data.coords[dim], axis = index)
+        data.values = trapz(data.values, data.coords[dim], axis = index)
         data = data.sum(dim)
 
     else:
