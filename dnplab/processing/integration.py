@@ -62,7 +62,7 @@ def integrate(
     index = data.index(dim)
     if regions == None:
         data.values = trapz(data.values, data.coords[dim], axis = index)
-        data = data.sum(dim)
+        data.coords.pop(dim)
 
     else:
         data_list = []
