@@ -3,6 +3,7 @@ import operator
 import unittest
 from numpy.testing import assert_array_equal
 from dnplab.core.base import ABCData
+from dnplab.core.coord import nddata_coord_collection, nddata_coord
 import numpy as np
 import random
 
@@ -32,7 +33,7 @@ def get_random_ABCData_list(seed_axis=0, seed_data=0):
         coords = [axis[1] for axis in random_axis]
         shape = [coord.size for coord in coords]
         values = np.random.randn(*shape)
-        ABCData_list.append((ABCData.ABCData_core(values, dims, coords), values))
+        ABCData_list.append((ABCData(values, dims, coords), values))
     # ABCData_list.append((ABCData.ABCData_core(), np.array([])))  # UserWarning: Github #37
     return ABCData_list
 
@@ -70,7 +71,7 @@ def test_ABCData_core_math_operators(operator, i_data):
 
 def test_ABCData_core_math_div_by_zero():
     with pytest.warns(RuntimeWarning):
-        ABCData.ABCData_core(
+        ABCData(
             values=np.array([1, 2, 3]), coords=[np.array([3, 2, 1])], dims=["x"]
         ) / 0
 
@@ -87,7 +88,7 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
         shape = [coord.size for coord in random_coords]
 
         random_values = np.random.randn(*shape)
-        data = ABCData.ABCData_core(random_values, random_dims, random_coords)
+        data = ABCData(random_values, random_dims, random_coords)
         return data, random_dims, random_values, random_coords
 
     def test_ABCData_core_init(self):
@@ -106,24 +107,24 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
 
     def test_coord_type(self):
         data, _, _, _ = self.construct_random_data()
-        self.assertEqual(type(data.coords), ABCData_coord_collection)
+        self.assertEqual(type(data.coords), nddata_coord_collection)
 
     def test_ndim(self):
         values = np.r_[1:10].reshape(3, 3)
         x = np.r_[0:3]
         y = np.r_[0:3]
 
-        data = ABCData.ABCData_core(values, ["x", "y"], [x, y])
+        data = ABCData(values, ["x", "y"], [x, y])
 
         self.assertEqual(data.ndim, 2)
 
 
 class dnplab_ABCData_coord_tester(unittest.TestCase):
     def setUp(self):
-        self.coord_inst_a = ABCData_coord("a", slice(0, 10, 1))
-        self.coord_inst_b = ABCData_coord("b", slice(0, 1, 50e-3))
+        self.coord_inst_a = nddata_coord("a", slice(0, 10, 1))
+        self.coord_inst_b = nddata_coord("b", slice(0, 1, 50e-3))
         self.numpy_inst = np.r_[1:2:0.25]
-        self.collection_inst = ABCData_coord_collection(
+        self.collection_inst = nddata_coord_collection(
             ["a", "b", "c"], [self.coord_inst_a, self.coord_inst_b, self.numpy_inst]
         )
 

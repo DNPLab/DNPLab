@@ -102,12 +102,13 @@ class TestHydration(unittest.TestCase):
             "macro_C": False,
         }
 
-        self.ws = dnp.create_workspace("hydration_inputs", self.data)
-        self.ws.add("hydration_constants", self.constants)
+        self.ws = {}
+        self.ws["hydration_inputs"] = self.data
+        self.ws["hydration_constants"] = self.constants
 
     def test_hydration_return_dict(self):
 
-        result = dnp.dnpHydration.hydration(self.ws)
+        result = dnp.hydration(self.ws)
 
         self.assertEqual(len(self.data["E_powers"]), 21)
         self.assertEqual(len(self.data["E_array"]), 21)
@@ -143,7 +144,7 @@ class TestHydration(unittest.TestCase):
         self.ws["hydration_inputs"]["interpolate_method"] = "linear"
         self.ws["hydration_constants"]["D_SL"] = 4.1e-9
 
-        dnp.dnpHydration.hydration(self.ws)
+        dnp.hydration(self.ws)
 
         self.assertEqual(len(self.ws["hydration_results"]["interpolated_T1"]), 21)
         self.assertAlmostEqual(
