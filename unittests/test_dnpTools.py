@@ -2,8 +2,6 @@ import unittest
 import dnplab as dnp
 from numpy.testing import assert_array_equal
 import numpy as np
-import os
-import copy
 
 
 class dnpTools_tester(unittest.TestCase):
