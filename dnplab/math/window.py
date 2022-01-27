@@ -1,5 +1,21 @@
 import numpy as np
 
+def _handle_array(x):
+    '''Handle array or integer input argument for window functions
+
+    Args:
+        x (array_like, int): array or integer
+    
+    Returns:
+        int: length of array or integer input
+    '''
+    if type(x) == int:
+        N = x
+    else:
+        N = len(x)
+    
+    return N
+
 def exponential(x, lw):
     """Calculate exponential window function
 

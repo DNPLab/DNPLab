@@ -1,5 +1,5 @@
 import unittest
-from dnplab import load
+import dnplab as dnp
 import os
 
 
@@ -27,20 +27,20 @@ class load_wrapper_tester(unittest.TestCase):
         self.dim_name = "test_dim"
 
     def test_topspin(self):
-        data = load(os.path.join(self.topspin_dir, str(1)), data_type="topspin")
+        data = dnp.load(os.path.join(self.topspin_dir, str(1)), data_type="topspin")
         self.assertEqual(data.dims[0], "t2")
         self.assertEqual(data.values.size, 8147)
         self.assertAlmostEqual(data.values.min(), -5 - 4.168734491315137j)
         self.assertAlmostEqual(data.attrs["nmr_frequency"], 14831413.270000001)
 
     def test_prospa(self):
-        load(os.path.join(self.prospa_dir, str(1), "data.csv"), data_type="prospa")
+        dnp.load(os.path.join(self.prospa_dir, str(1), "data.csv"), data_type="prospa")
 
     def test_vnmrj(self):
-        load(self.vnmrj_dir, data_type="vnmrj")
+        dnp.load(self.vnmrj_dir, data_type="vnmrj")
 
     def test_import_list(self):
-        load(
+        dnp.load(
             self.list_prospa_dir,
             data_type="prospa",
             dim=self.dim_name,

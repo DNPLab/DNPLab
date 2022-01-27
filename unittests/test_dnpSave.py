@@ -1,7 +1,6 @@
 import unittest
 import dnplab as dnp
 import os
-import time
 from numpy.testing import assert_array_equal
 import numpy as np
 
@@ -37,5 +36,4 @@ class save_h5_tester(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    #unittest.main()
     pass

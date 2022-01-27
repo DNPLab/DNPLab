@@ -1,3 +1,4 @@
+import numpy as np
 #####################################
 # Gyromagnetic Properties of nuclei #
 #####################################
@@ -131,3 +132,110 @@ gmrProperties["205Tl"] = [0.5, 15.6921808, 0, 70.476, 0.142, 2.83747094, 0]
 gmrProperties["207Pb"] = [0.5, 5.58046, 0, 22.1, 0.00201, 1.00906, 0]
 gmrProperties["209Bi"] = [4.5, 4.375, -51.6, 100, 0.144, 4.5444, 200]
 gmrProperties["235U"] = [3.5, -0.52, 493.6, 0.72, None, -0.43, None]
+
+
+def mr_properties(nucleus, *args):
+    """Return magnetic resonance property of specified isotope.
+
+    This function is modeled after the Matlab function gmr written by Mirko Hrovat: https://www.mathworks.com/matlabcentral/fileexchange/12078-gmr-m-nmr-mri-properties
+
+    Also see: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818. Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants, http://physics.nist.gov/PhysRefData/codata86/codata86.html, or http://www.isis.rl.ac.uk/neutronSites/constants.htm. Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
+
+    Args:
+
+        nucleus:          '1H', '2H', '6Li', '13C', 14N', etc.
+        numerical:        If only a numerical is given in addition to the nucleus it must be a B0 value in Tesla and the Larmor frequency will be returned
+
+    +------------------+----------------------------------------------------------------------------+
+    | args             |  returns                                                                   |
+    +==================+============================================================================+
+    | "gamma"          | Gyromagnetic Ration [radians/T/s]                                          |
+    +------------------+----------------------------------------------------------------------------+
+    | "spin"           | Spin number of selected nucleus [1]                                        |
+    +------------------+----------------------------------------------------------------------------+
+    | "qmom"           | Quadrupole moment [fm^2] (100 barns)                                       |
+    +------------------+----------------------------------------------------------------------------+
+    | "natAbundance"   | Natural abundance [%]                                                      |
+    +------------------+----------------------------------------------------------------------------+
+    | "relSensitivity" | Relative sensitiviy with respect to 1H at constant B0                      |
+    +------------------+----------------------------------------------------------------------------+
+    | "moment"         | Magnetic dipole moment, abs(u)/uN = abs(gamma)*hbar[I(I + 1)]^1/2/uN,      |
+    +------------------+----------------------------------------------------------------------------+
+    | "qlw"            | quadrupolar line-width factor, Qlw = Q^2(2I + 3)/[I^2(2I + 1)]             |
+    +------------------+----------------------------------------------------------------------------+
+
+
+    Examples:
+        .. code-block:: python
+
+            dnp.dnpTools.mrProperties('1H') = 26.7522128 # 1H Gyromagnetic Ratio (10^7r/Ts)
+
+            dnp.dnpTools.mrProperties('1H', 0.35) = 14902114.17018196 # 1H Larmor Freq at .35 T (Hz)
+
+            dnp.dnpTools.mrProperties('2H', 'qmom') = 0.286 # Nuclear Quadrupole Moment (fm^2)
+
+            dnp.dnpTools.mrProperties('6Li', 'natAbundance') = 7.59 # % Natural Abundance
+
+            dnp.dnpTools.mrProperties('6Li', 'relSensitivity') = 0.000645 # Relative sensitivity
+    """
+
+    if isinstance(nucleus, str):
+        if nucleus in gmrProperties:
+            gmr = gmrProperties.get(nucleus)[1]
+        else:
+            print("Isotope doesn't exist in list")
+            return
+    else:
+        print("ERROR: String expected")
+
+    if len(args) == 0:
+        return gmr
+
+    elif len(args) == 1:
+
+        if isinstance(args[0], str):
+            if args[0] == "gamma":
+                return gmrProperties.get(nucleus)[1]
+
+            if args[0] == "spin":
+                return gmrProperties.get(nucleus)[0]
+
+            elif args[0] == "qmom":
+                return gmrProperties.get(nucleus)[2]
+
+            elif args[0] == "natAbundance":
+                return gmrProperties.get(nucleus)[3]
+
+            elif args[0] == "relSensitivity":
+                return gmrProperties.get(nucleus)[4]
+
+            elif args[0] == "moment":
+                return gmrProperties.get(nucleus)[5]
+
+            elif args[0] == "qlw":
+                return gmrProperties.get(nucleus)[6]
+
+            else:
+                print("Keyword not recognize")
+
+        else:
+            vLarmor = args[0] * gmr * 1e7 / 2 / np.pi
+            return vLarmor
+
+    elif len(args) == 2:
+
+        if args[1] == True:
+            print(" ")
+            print("Nucleus                    : ", nucleus)
+            print("Spin                       : ", gmrProperties.get(nucleus)[0])
+            print(
+                "Gyromagnetic Ratio [kHz/T] : %5.2f"
+                % (gmrProperties.get(nucleus)[1] * 10 / 2 / np.pi)
+            )
+            print(
+                "Natural Abundance      [%%] : %5.2f" % (gmrProperties.get(nucleus)[3])
+            )
+            print("")
+
+    elif len(args) > 2:
+        print("Too many input arguments")

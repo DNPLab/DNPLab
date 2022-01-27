@@ -1,8 +1,5 @@
 import unittest
-import dnplab.io.load as wrapper
-import dnplab.io.topspin as topspin
-import dnplab.io.prospa as prospa
-import dnplab.io.vnmrj as vnmrj
+import dnplab as dnp
 import os
 from numpy.testing import assert_array_equal
 
@@ -12,28 +9,28 @@ class import_topspin_tester(unittest.TestCase):
         self.testdata = os.path.join(".", "data", "topspin")
 
     def test_import_topspin_exp1_is_fid(self):
-        data = wrapper.load(os.path.join(self.testdata, str(1)), data_type="topspin")
+        data = dnp.load(os.path.join(self.testdata, str(1)), data_type="topspin")
         self.assertEqual(data.dims[0], "t2")
         self.assertEqual(data.values.size, 8147)
         self.assertAlmostEqual(data.values.min(), -5 - 4.168734491315137j)
         self.assertAlmostEqual(data.attrs["nmr_frequency"], 14831413.270000001)
 
     def test_import_topspin_exp5_is_2d_phcyc(self):
-        data = wrapper.load(os.path.join(self.testdata, str(5)), data_type="topspin")
+        data = dnp.load(os.path.join(self.testdata, str(5)), data_type="topspin")
         self.assertEqual(data.values.shape[0], 11912)
         self.assertEqual(data.dims, ["t2"])
         self.assertAlmostEqual(data.attrs["nmr_frequency"], 14831413.270000001)
         self.assertAlmostEqual(data.values[365], -0.182861328125 - 0.71875j)
 
     def test_import_topspin_exp28_is_2d(self):
-        data = wrapper.load(os.path.join(self.testdata, str(28)), data_type="topspin")
+        data = dnp.load(os.path.join(self.testdata, str(28)), data_type="topspin")
         self.assertEqual(data.values.shape, (7922, 8))
         self.assertEqual(data.dims, ["t2", "t1"])
         self.assertAlmostEqual(data.attrs["nmr_frequency"], 14831413.270000001)
         self.assertAlmostEqual(data.values[365, 6], -0.110595703125 + 0.47705078125j)
 
     def test_import_topspin_jcamp_dx(self):
-        attrs = topspin.topspin_jcamp_dx(os.path.join(self.testdata, "1", "acqus"))
+        attrs = dnp.io.topspin.topspin_jcamp_dx(os.path.join(self.testdata, "1", "acqus"))
         self.assertEqual(attrs["DIGTYP"], 9)
         self.assertAlmostEqual(attrs["O1"], 1413.27)
         assert_array_equal(attrs["XGAIN"], [0, 0, 0, 0])
@@ -46,7 +43,7 @@ class prospa_import_tester(unittest.TestCase):
 
     def test_import_prospa_exp_is_1d(self):
         datas = [
-            wrapper.load(
+            dnp.load(
                 os.path.join(self.test_data, "%i" % expNum, "data.csv"),
                 data_type="prospa",
             )
@@ -77,7 +74,7 @@ class vnmrj_import_tester(unittest.TestCase):
 
     def test_import_vnmrj_1d(self):
         datas = [
-            wrapper.load(path=path, data_type="vnmrj") for path in self.test_data1Ds
+            dnp.load(path=path, data_type="vnmrj") for path in self.test_data1Ds
         ]
         for i, data in enumerate(datas):
             self.assertEqual(data.values.shape, (131072,))
@@ -93,7 +90,7 @@ class vnmrj_import_tester(unittest.TestCase):
 
     def test_import_vnmrj_2d(self):
         datas = [
-            wrapper.load(path=path, data_type="vnmrj") for path in self.test_data2Ds
+            dnp.load(path=path, data_type="vnmrj") for path in self.test_data2Ds
         ]
         for i, data in enumerate(datas):
             self.assertEqual(data.values.shape, (131072, 5))
@@ -108,12 +105,12 @@ class specman_import_tester(unittest.TestCase):
         self.test_data_4D = os.path.join(".", "data", "specman", "test_specman4D.d01")
 
     def test_import_specman_2D(self):
-        data = wrapper.load(self.test_data_2D, data_type="specman")
+        data = dnp.load(self.test_data_2D, data_type="specman")
         self.assertEqual(data.dims, ["t2", "t1"])
         self.assertEqual(data.values.shape, (1500, 80))
 
     def test_import_specman_4D(self):
-        data = wrapper.load(self.test_data_4D, data_type="specman")
+        data = dnp.load(self.test_data_4D, data_type="specman")
         self.assertEqual(data.dims, ["t2", "t1", "t0", "t"])
         self.assertEqual(data.values.shape, (1500, 40, 5, 3))
 
@@ -127,32 +124,32 @@ class bes3t_import_tester(unittest.TestCase):
         self.test_data_2D = os.path.join(".", "data", "bes3t", "2D_CW.YGF")
 
     def test_import_bes3t_HYSCORE(self):
-        data = wrapper.load(self.test_data_HYSCORE, data_type="xepr")
+        data = dnp.load(self.test_data_HYSCORE, data_type="xepr")
         self.assertEqual(data.dims, ["t2", "t1"])
         self.assertEqual(data.values.shape, (175, 175))
         self.assertEqual(max(data.coords["t2"]), 3520.0)
         self.assertEqual(max(data.coords["t1"]), 3520.0)
 
     def test_import_bes3t_DEER(self):
-        data = wrapper.load(self.test_data_DEER, data_type="xepr")
+        data = dnp.load(self.test_data_DEER, data_type="xepr")
         self.assertEqual(data.dims, ["t2"])
         self.assertEqual(data.values.shape, (504,))
         self.assertEqual(data.attrs["frequency"], 33.85)
 
     def test_import_bes3t_ESE(self):
-        data = wrapper.load(self.test_data_ESE, data_type="xepr")
+        data = dnp.load(self.test_data_ESE, data_type="xepr")
         self.assertEqual(data.dims, ["t2", "t1"])
         self.assertEqual(data.values.shape, (512, 50))
         self.assertEqual(data.attrs["frequency"], 9.296)
 
     def test_import_bes3t_1D(self):
-        data = wrapper.load(self.test_data_1D, data_type="xenon")
+        data = dnp.load(self.test_data_1D, data_type="xenon")
         self.assertEqual(data.dims, ["B0"])
         self.assertEqual(data.values.shape, (2250,))
         self.assertEqual(data.attrs["frequency"], 9.804448)
 
     def test_import_bes3t_2D(self):
-        data = wrapper.load(self.test_data_2D, data_type="xenon")
+        data = dnp.load(self.test_data_2D, data_type="xenon")
         self.assertEqual(data.dims, ["B0", "t1"])
         self.assertEqual(data.values.shape, (1600, 100))
         self.assertEqual(data.attrs["frequency"], 9.627213)
@@ -165,19 +162,19 @@ class winepr_import_tester(unittest.TestCase):
         self.test_data_2D = os.path.join(".", "data", "parspc", "Example2D.spc")
 
     def test_import_winepr_ESP(self):
-        data = wrapper.load(self.test_data_ESP, data_type="esp")
+        data = dnp.load(self.test_data_ESP, data_type="esp")
         self.assertEqual(data.dims, ["t2"])
         self.assertEqual(data.values.shape, (1024,))
         self.assertEqual(data.attrs["conversion_time"], 81.92)
 
     def test_import_winepr_1D(self):
-        data = wrapper.load(self.test_data_1D, data_type="winepr")
+        data = dnp.load(self.test_data_1D, data_type="winepr")
         self.assertEqual(data.dims, ["B0"])
         self.assertEqual(data.values.shape, (512,))
         self.assertEqual(data.attrs["temperature"], 294.2)
 
     def test_import_winepr_2D(self):
-        data = wrapper.load(self.test_data_2D, data_type="winepr")
+        data = dnp.load(self.test_data_2D, data_type="winepr")
         self.assertEqual(data.dims, ["B0", "t1"])
         self.assertEqual(data.values.shape, (1024, 15))
         self.assertEqual(data.attrs["frequency"], 9.79)
@@ -189,13 +186,13 @@ class delta_import_tester(unittest.TestCase):
         self.test_data_2D = os.path.join(".", "data", "delta", "lineshape_drift.jdf")
 
     def test_import_delta_1D(self):
-        data = wrapper.load(self.test_data_1D, data_type="delta")
+        data = dnp.load(self.test_data_1D, data_type="delta")
         self.assertEqual(data.dims, ["t2"])
         self.assertEqual(data.values.shape, (16384,))
         self.assertEqual(max(data.coords["t2"]), 0.262128)
 
     def test_import_delta_2D(self):
-        data = wrapper.load(self.test_data_2D, data_type="delta")
+        data = dnp.load(self.test_data_2D, data_type="delta")
         self.assertEqual(data.dims, ["t2", "t1"])
         self.assertEqual(data.values.shape, (8192, 256))
         self.assertEqual(max(data.coords["t2"]), 0.5451929600000001)
