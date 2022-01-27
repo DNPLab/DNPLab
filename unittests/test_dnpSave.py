@@ -1,7 +1,7 @@
 import unittest
-import dnplab.dnpImport as wrapper
-import dnplab.dnpSave as saver
-from dnplab import create_workspace
+import dnplab.io.load as wrapper
+import dnplab.io.save as saver
+import dnplab as dnp
 import os
 import time
 from numpy.testing import assert_array_equal
@@ -70,9 +70,9 @@ class save_h5_tester(unittest.TestCase):
 
         os.remove(os.path.join(".", "unittests", "test_ob.h5"))
 
-        ws_ws = create_workspace()
-        ws_ws.add("raw", self.testdata_wsob)
-        ws_ws.copy("raw", "proc")
+        ws_ws = {}
+        ws_ws["raw"] = self.testdata_wsob
+        ws_ws["proc"] = ws_ws["raw"].copy()
 
         saver.save(ws_ws, os.path.join(".", "unittests", "test_ws.h5"), overwrite=True)
 
