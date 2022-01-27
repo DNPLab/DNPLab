@@ -160,7 +160,7 @@ def load_acqu_proc(path="1", param_filename="acqus", proc_num=1):
     """
 
     if "proc" in param_filename:
-        path_filename = os.path.join(path, "pdata", str(procNum), param_filename)
+        path_filename = os.path.join(path, "pdata", str(proc_num), param_filename)
     else:
         path_filename = os.path.join(path, param_filename)
 
