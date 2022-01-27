@@ -9,3 +9,4 @@ from . import h5
 from . import power
 from . import cnsi
 from . import vna
+from . import tnmr
