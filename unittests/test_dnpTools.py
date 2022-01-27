@@ -1,9 +1,6 @@
 import unittest
 import dnplab as dnp
-from dnplab import dnpdata
 from numpy.testing import assert_array_equal
-import dnplab.dnpImport as wrapper
-import dnplab.dnpNMR as nmr
 import numpy as np
 import os
 import copy

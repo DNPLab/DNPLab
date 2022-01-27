@@ -2,13 +2,13 @@ import unittest
 import numpy as np
 from numpy.testing import assert_array_equal as assertArrayEqual
 from .testing import get_gauss_3d
-from dnplab.core.data import DNPData
+import dnplab as dnp
 
 
 class dnpDataTester(unittest.TestCase):
     def setUp(self):
         self.x, self.y, self.z, self.gauss_3d = get_gauss_3d(0.1)
-        self.data = DNPData(self.gauss_3d, ["x", "y", "z"], [self.x, self.y, self.z])
+        self.data = dnp.DNPData(self.gauss_3d, ["x", "y", "z"], [self.x, self.y, self.z])
 
     def test_DNPData(self):
         assertArrayEqual(self.data.coords["x"], self.x)
