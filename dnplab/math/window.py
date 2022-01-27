@@ -1,7 +1,5 @@
 import numpy as np
 
-__all__ = ['exponential']
-
 def exponential(x, lw):
     """Calculate exponential window function
 
@@ -82,30 +80,7 @@ def traf(x, lw):
 
 
 
-def gaussian_window(all_data, dim, lw):
-    """Calculate gaussian window function
-
-    .. math::
-        \mathrm{gaussian} = e^{((\mathrm{linewidth}[0] * t) - (\mathrm{linewidth}[1] * t^{2}))}
-
-    Args:
-        all_data (dnpdata, dict): data container
-        dim (str): dimension to window
-
-    Returns:
-        array: gaussian window function
-    """
-    if (
-        not isinstance(lw, list)
-        or len(lw) != 2
-        or any([isinstance(x, list) for x in lw])
-    ):
-        raise ValueError("lw must a list with len=2 for the gaussian window")
-    else:
-        data, _ = return_data(all_data)
-        return _np.exp((lw[0] * data.coords[dim]) - (lw[1] * data.coords[dim] ** 2))
-
-
+#TODO Convert to DNPLab 2
 def hamming_window(dim_size):
     """Calculate hamming window function
 
@@ -118,8 +93,8 @@ def hamming_window(dim_size):
     Returns:
         array: hamming window function
     """
-    return 0.53836 + 0.46164 * _np.cos(
-        1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1)
+    return 0.53836 + 0.46164 * np.cos(
+        1.0 * np.pi * np.arange(dim_size) / (dim_size - 1)
     )
 
 
@@ -135,10 +110,10 @@ def hann_window(dim_size):
     Returns:
         array: hann window function
     """
-    return 0.5 + 0.5 * _np.cos(1.0 * _np.pi * _np.arange(dim_size) / (dim_size - 1))
+    return 0.5 + 0.5 * np.cos(1.0 * np.pi * np.arange(dim_size) / (dim_size - 1))
 
 
-def lorentz_gauss_window(all_data, dim, exp_lw, gauss_lw, gaussian_max=0):
+def lorentz_gauss_window(x, exp_lw, gauss_lw, gaussian_max=0):
     """Calculate lorentz-gauss window function
 
     .. math::
@@ -159,11 +134,10 @@ def lorentz_gauss_window(all_data, dim, exp_lw, gauss_lw, gaussian_max=0):
     Returns:
         array: gauss_lorentz window function
     """
-    data, _ = return_data(all_data)
-    dim_size = data.coords[dim].size
-    expo = _np.pi * data.coords[dim] * exp_lw
-    gaus = 0.6 * _np.pi * gauss_lw * (gaussian_max * (dim_size - 1) - data.coords[dim])
-    return _np.exp(expo - gaus ** 2).reshape(dim_size)
+    dim_size = len(x)
+    expo = np.pi * x * exp_lw
+    gaus = 0.6 * np.pi * gauss_lw * (gaussian_max * (dim_size - 1) - x)
+    return np.exp(expo - gaus ** 2).reshape(dim_size)
 
 
 def sin2_window(dim_size):
@@ -179,11 +153,11 @@ def sin2_window(dim_size):
         array: sin-squared window function
     """
     return (
-        _np.cos((-0.5 * _np.pi * _np.arange(dim_size) / (dim_size - 1)) + _np.pi) ** 2
+        np.cos((-0.5 * np.pi * np.arange(dim_size) / (dim_size - 1)) + np.pi) ** 2
     )
 
 
-def traf_window(all_data, dim, traf_lw):
+def traf_window(x, traf_lw):
     """Calculate traf window function
 
     .. math::
@@ -203,10 +177,9 @@ def traf_window(all_data, dim, traf_lw):
     Returns:
         array: traf window function
     """
-    data, _ = return_data(all_data)
-    T2 = 1.0 / (_np.pi * traf_lw)
-    t = data.coords[dim]
-    T = _np.max(t)
-    E = _np.exp(-1 * t / T2)
-    e = _np.exp(-1 * (T - t) / T2)
+    T2 = 1.0 / (np.pi * traf_lw)
+    t = x
+    T = np.max(t)
+    E = np.exp(-1 * t / T2)
+    e = np.exp(-1 * (T - t) / T2)
     return E * (E + e) / (E ** 2 + e ** 2)

@@ -1,9 +1,7 @@
 import unittest
 from numpy.testing import assert_array_equal
-import dnplab.dnpFit as efit
 import dnplab as dnp
 import numpy as np
-
 
 #FIX -> Should only use Fit functions, not import or processing functions
 class dnpFit_tester(unittest.TestCase):
