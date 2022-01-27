@@ -1,7 +1,7 @@
 import os
 from . import io
 
-from ..core.data import concat
+from ..core.util import concat
 
 
 def load(path, data_type=None, dim=None, coord=None, *args, **kwargs):

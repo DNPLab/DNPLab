@@ -1,4 +1,4 @@
-from .. import dnpdata, create_workspace
+from ..core.data import DNPData
 import warnings
 import numpy as np
 import h5py
@@ -29,11 +29,11 @@ def load_h5(path):
             warnings.warn("could not import key: %s" % str(key))
 
         dnp_dict[key] = data
-    return create_workspace(dnp_dict)
+    return dnp_dict
 
 
 def read_dnpdata(dnpdata_group):
-    axes = []
+    coords = []
     dims = []
     attrs = {}
     values = dnpdata_group["values"][:]
@@ -41,13 +41,13 @@ def read_dnpdata(dnpdata_group):
 
     for index in range(len(np.shape(values))):
         dim_key = dnpdata_group["values"].dims[index].keys()[0]  # assumes 1 key only
-        axes.append(dnpdata_group["values"].dims[index][dim_key][:])
+        coords.append(dnpdata_group["values"].dims[index][dim_key][:])
         dims.append(dim_key)
 
     for k in dnpdata_group["attrs"].attrs.keys():
         attrs[k] = dnpdata_group["attrs"].attrs[k]
 
-    data = dnpdata(values, axes, dims, attrs)
+    data = DNPData(values, dims, coords, attrs)
 
     if "proc_attrs" in dnpdata_group.keys():
         proc_attrs = []
@@ -67,7 +67,7 @@ def save_h5(dataDict, path, overwrite=False):
     """Save workspace in .h5 format
 
     Args:
-        dataDict (dnpdata_collection): dnpdata_collection object to save.
+        dataDict (dict): dnpdata_collection object to save.
         path (str): Path to save data
         overwrite (bool): If True, h5 file can be overwritten. Otherwise, h5 file cannot be overwritten
     """
@@ -85,7 +85,7 @@ def save_h5(dataDict, path, overwrite=False):
         dnpDataObject = dataDict[key]
 
         dnpDataGroup = f.create_group(key, track_order=True)
-        if isinstance(dnpDataObject, dnpdata):
+        if isinstance(dnpDataObject, DNPData):
             write_dnpdata(dnpDataGroup, dnpDataObject)
         elif isinstance(dnpDataObject, dict):
             write_dict(dnpDataGroup, dnpDataObject)
