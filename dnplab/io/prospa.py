@@ -1,5 +1,4 @@
-from .. import dnpdata
-from .. import create_workspace
+from ..core.data import DNPData
 import numpy as np
 from struct import unpack
 import warnings
@@ -66,7 +65,7 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
 
     dims, coords = prospa_coords(attrs, data_shape, experiment=experiment)
 
-    kea_data = dnpdata(data, coords, dims, attrs)
+    kea_data = DNPData(data, dims, coords, attrs)
 
     return kea_data
 
@@ -79,12 +78,12 @@ def import_prospa_dir(path, exp_list=None):
     if exp_list is not None:
         dirs = [dir_ for dir_ in dirs if dir_ in exp_list]
 
-    ws = create_workspace()
+    ws = {}
 
     for ix, dir_ in enumerate(dirs):
         try:
             tmp = import_prospa(os.path.join(path, dir_))
-            ws.add(dir_, tmp)
+            ws[dir] = tmp
         except ValueError as e:
             print("Skipping folder: %s" % str(e))
 

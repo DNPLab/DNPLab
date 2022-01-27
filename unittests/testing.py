@@ -1,5 +1,5 @@
 import numpy as np
-from dnplab.dnpData import dnpdata
+from dnplab.core.data import DNPData
 
 
 def get_gauss_3d(std_noise=0.0):
@@ -18,5 +18,5 @@ def get_gauss_3d(std_noise=0.0):
 
 def test3d(std_noise=0.0):
     x, y, z, gauss_3d = get_gauss_3d(std_noise)
-    test_data = dnpdata(gauss_3d, [x, y, z], ["x", "y", "z"])
+    test_data = dnpdata(gauss_3d,  ["x", "y", "z"], [x, y, z])
     return test_data

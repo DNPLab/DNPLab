@@ -2,6 +2,8 @@ from .core.data import DNPData
 #from .dnpImport import load
 #from .dnpSave import save
 
+#from .io import *
+
 #from . import analysis
 #from . import constants
 from .constants import *
