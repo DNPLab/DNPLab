@@ -163,6 +163,93 @@ def calculate_enhancement(
 
     return enhancement_data
 
+def signal_to_noise(
+    data,
+    dim="f2",
+    signal_center=0,
+    signal_width="full",
+    noise_center="default",
+    noise_width="default",
+):
+    """Find signal-to-noise ratio
+
+    .. note::
+
+        S/N = signal / stdd(noise)
+
+    Args:
+        all_data (dnpdata,dict): Data container
+
+    +------------------+-------+-----------+------------------------------+
+    | parameter        | type  | default   | description                  |
+    +==================+=======+===========+==============================+
+    | dim              | str   | 'f2'      | dimension                    |
+    +------------------+-------+-----------+------------------------------+
+    | signal_center    | float | 0         | center of signal             |
+    +------------------+-------+-----------+------------------------------+
+    | signal_width     | float | "full"    | width of signal              |
+    +------------------+-------+-----------+------------------------------+
+    | noise_center     | float | "default" | center of noise region       |
+    +------------------+-------+-----------+------------------------------+
+    | noise_width      | float | "default" | width of noise region        |
+    +------------------+-------+-----------+------------------------------+
+
+    Returns:
+        dnpdata: data object with attrs "s_n", "signal", and "noise" added
+    """
+
+    index = data.dims.index(dim)
+
+    if signal_width == "full" and isinstance(signal_center, (int, float)):
+        s_data = data[dim, :].real
+    elif isinstance(signal_width, (int, float)) and isinstance(
+        signal_center, (int, float)
+    ):
+        signalMin = signal_center - np.abs(signal_width) / 2.0
+        signalMax = signal_center + np.abs(signal_width) / 2.0
+        s_data = data[dim, (signalMin, signalMax)].real
+    else:
+        raise ValueError(
+            "signal_center and signal_width must be int or float, signal_width may also be 'full'"
+        )
+
+    if noise_center == "default" and noise_width == "default":
+        noise_width = 0.05 * (max(data.coords[dim]) - min(data.coords[dim]))
+        noise_center = max(data.coords[dim]) - (np.abs(noise_width) / 2.0)
+    elif isinstance(noise_center, (int, float)) and noise_width == "default":
+        noise_width = 0.05 * (max(data.coords[dim]) - min(data.coords[dim]))
+        if noise_center + (np.abs(noise_width) / 2.0) > max(data.coords[dim]):
+            noise_width = 2 * (max(data.coords[dim]) - noise_center)
+    elif isinstance(noise_width, (int, float)) and noise_center == "default":
+        noise_center = max(data.coords[dim]) - (np.abs(noise_width) / 2.0)
+    elif isinstance(noise_width, (int, float)) and isinstance(
+        noise_center, (int, float)
+    ):
+        pass
+    else:
+        raise ValueError(
+            "noise_center and noise_width must be int, float, or 'default'"
+        )
+
+    noiseMin = noise_center - np.abs(noise_width) / 2.0
+    noiseMax = noise_center + np.abs(noise_width) / 2.0
+    n_data = data[dim, (noiseMin, noiseMax)].real
+
+    if len(data.dims) == 1:
+        s_n = s_data.values[np.argmax(s_data.values)] / np.std(n_data.values)
+    else:
+        sn_maxs = np.argmax(s_data.values, axis=index)
+        s_n = [
+            s_data.values[x, ix] / np.std(n_data.values[:, ix], axis=index)
+            for ix, x in enumerate(sn_maxs)
+        ]
+
+    data.attrs["s_n"] = s_n
+    data.attrs["signal"] = s_data
+    data.attrs["noise"] = n_data
+
+    return data
+
 def left_shift(data, dim="t2", shift_points=0):
     """Remove points from the left of data
 
