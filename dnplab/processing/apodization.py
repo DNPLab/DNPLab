@@ -60,6 +60,8 @@ def apodize(
         dnpdata: data object with window function applied, including attr "window"
     """
 
+    data = data.copy()
+
     coord = data.coords[dim]
     index = data.index(dim)
 
