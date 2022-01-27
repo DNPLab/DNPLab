@@ -1,4 +1,5 @@
 from .data import DNPData
+import numpy as np
 
 
 def concat(data_list, dim, coord=None):
