@@ -115,6 +115,7 @@ def hamming(x):
         1.0 * np.pi * np.arange(N) / (N - 1)
     )
 
+#FIX -> Function does not look correct
 def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
     """Calculate lorentz-gauss window function
 
@@ -137,6 +138,7 @@ def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
         array: gauss_lorentz window function
     """
 
+    N = len(x)
     expo = np.pi * x * exp_lw
     gaus = 0.6 * np.pi * gauss_lw * (gaussian_max * (N - 1) - x)
     return np.exp(expo - gaus ** 2).reshape(N)
