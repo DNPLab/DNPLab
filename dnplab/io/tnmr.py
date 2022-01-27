@@ -1,4 +1,4 @@
-from .. import dnpdata
+from .. import DNPData
 import numpy as np
 import struct
 import re
@@ -6,19 +6,19 @@ import re
 
 def import_tnmr(path):
     """
-    Import tnmr data and return dnpdata object
+    Import tnmr data and return DNPData object
 
     Args:
         path (str) : Path to .jdf file
 
     Returns:
-        tnmr_data (object) : dnpdata object containing tnmr data
+        tnmr_data (object) : DNPData object containing tnmr data
     """
 
     attrs = import_tnmr_pars(path)
-    values, coords, dims = import_tnmr_data(path)
+    values, dims, coords = import_tnmr_data(path)
 
-    tnmr_data = dnpdata(values, coords, dims, attrs)
+    tnmr_data = DNPData(values, dims, coords, attrs)
 
     return tnmr_data
 
@@ -102,4 +102,4 @@ def import_tnmr_data(path):
 
     dims = ["t2"]
 
-    return data, list(abscissa), dims
+    return data, dims, list(abscissa)

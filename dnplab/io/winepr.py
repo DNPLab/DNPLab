@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from .. import dnpdata
+from .. import DNPData
 import warnings
 
 __all__ = ["import_winepr", "load_par", "load_spc"]
@@ -56,13 +56,13 @@ int_params = [
 
 def import_winepr(path):
     """
-    Import Bruker par/spc data and return dnpdata object
+    Import Bruker par/spc data and return DNPData object
 
     Args:
         path (str) : Path to either .par or .spc file
 
     Returns:
-        parspc_data (object) : dnpdata object containing Bruker par/spc data
+        parspc_data (object) : DNPData object containing Bruker par/spc data
     """
 
     pathexten = os.path.splitext(path)[1]
@@ -75,9 +75,9 @@ def import_winepr(path):
         raise TypeError("data file must be .spc or .par")
 
     params = load_par(path_par)
-    values, coords, dims, attrs = load_spc(path_spc, params)
+    values, dims, coords, attrs = load_spc(path_spc, params)
 
-    parspc_data = dnpdata(values, coords, dims, attrs)
+    parspc_data = DNPData(values, dims, coords, attrs)
 
     return parspc_data
 
@@ -203,4 +203,4 @@ def load_spc(path, params):
 
     file_opened.close()
 
-    return spec, abscissa, dims, params
+    return spec, dims, abscissa, params

@@ -4,14 +4,14 @@ import os
 import re
 from matplotlib.pylab import *
 
-from .. import dnpdata as _dnpdata
+from .. import DNPData
 
 
 def import_vna(path):
     """Import VNA data and return dnpdata object"""
     x, data = import_snp(path)
     # Not General
-    dnpDataObject = _dnpdata(data, [x], ["f"], {})
+    dnpDataObject = DNPData(data, [x], ["f"], {})
 
     return dnpDataObject
 

@@ -1,5 +1,6 @@
 import os
-from . import io
+#from ..io import *
+from .. import io
 
 from ..core.util import concat
 

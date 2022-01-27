@@ -61,7 +61,7 @@ def import_bes3t(path):
         raise TypeError("data file must be .DTA, .DSC, .YGF, or .ZGF")
 
     params = load_dsc(path_dsc)
-    values, coords, dims, attrs = load_dta(
+    values, dims, coords, attrs = load_dta(
         path_dta, path_xgf, path_ygf, path_zgf, params
     )
 
@@ -370,7 +370,7 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
         ]
     }
 
-    return spec, abscissa, dims, params
+    return spec, dims, abscissa, params
 
 
 def load_gf_files(

@@ -1,23 +1,23 @@
 import numpy as np
 from struct import unpack
-from .. import dnpdata
+from .. import DNPData
 
 
 def import_delta(path):
     """
-    Import Delta data and return dnpdata object
+    Import Delta data and return DNPData object
 
     Args:
         path (str) : Path to .jdf file
 
     Returns:
-        delta_data (object) : dnpdata object containing Delta data
+        delta_data (object) : DNPData object containing Delta data
     """
 
     pars = import_delta_pars(path)
-    values, coords, dims, attrs = import_delta_data(path, pars)
+    values, dims, coords, attrs = import_delta_data(path, pars)
 
-    delta_data = dnpdata(values, coords, dims, attrs)
+    delta_data = DNPData(values, dims, coords, attrs)
 
     return delta_data
 
@@ -182,4 +182,4 @@ def import_delta_data(path, params):
     else:
         raise TypeError("Only 1D or 2D are supported")
 
-    return y_data, abscissa, dims, params
+    return y_data, dims, abscissa, params

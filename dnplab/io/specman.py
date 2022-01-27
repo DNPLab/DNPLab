@@ -1,17 +1,17 @@
 import numpy as np
 import os
-from .. import dnpdata
+from .. import DNPData
 
 
 def import_specman(path):
     """
-    Import specman data and return dnpdata object
+    Import specman data and return DNPData object
 
     Args:
         path (str) : Path to either .d01 or .exp file
 
     Returns:
-        specman_data (object) : dnpdata object containing specman data
+        specman_data (object) : DNPData object containing specman data
     """
     if path[-1] == os.sep:
         path = path[:-1]
@@ -25,9 +25,9 @@ def import_specman(path):
         raise TypeError("Incorrect file type, must be .d01 or .exp")
 
     params = load_specman_exp(file_name_exp)
-    values, coords, dims, attrs = load_specman_d01(file_name_d01, params)
+    values, dims, coords, attrs = load_specman_d01(file_name_d01, params)
 
-    specman_data = dnpdata(values, coords, dims, attrs)
+    specman_data = DNPData(values, dims, coords, attrs)
 
     return specman_data
 
@@ -121,4 +121,4 @@ def load_specman_d01(path, params):
         else:
             abscissa.append(np.array(range(0, axes_lengths[k])))
 
-    return y_data, abscissa, dims, params
+    return y_data, dims, abscissa, params

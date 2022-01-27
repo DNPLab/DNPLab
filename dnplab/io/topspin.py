@@ -1,9 +1,9 @@
-import numpy as _np
-import re as _re
+import numpy as np
+import re
 
-from .. import dnpdata as _dnpdata
+from .. import DNPData
 
-import os as _os
+import os
 
 _dspfvs_table_10 = {
     2: 44.7500,
@@ -134,7 +134,7 @@ def import_topspin(path, phase_cycle=[0, 90, 180, 270]):
     Returns:
         dnpdata: topspin data
     """
-    dir_list = _os.listdir(path)
+    dir_list = os.listdir(path)
 
     if "fid" in dir_list and "ser" not in dir_list:
         data = load_fid_ser(path, dtype="fid", phase_cycle=phase_cycle)
@@ -160,9 +160,9 @@ def load_acqu_proc(path="1", param_filename="acqus", proc_num=1):
     """
 
     if "proc" in param_filename:
-        path_filename = _os.path.join(path, "pdata", str(procNum), param_filename)
+        path_filename = os.path.join(path, "pdata", str(procNum), param_filename)
     else:
-        path_filename = _os.path.join(path, param_filename)
+        path_filename = os.path.join(path, param_filename)
 
     # Import parameters
     with open(path_filename, "r") as f:
@@ -249,7 +249,7 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
             elif x in [270, 630, 990, 1350]:
                 phase_cycle[indx] = -1j
 
-    dir_list = _os.listdir(path)
+    dir_list = os.listdir(path)
 
     attrs_dict_list = [
         load_acqu_proc(path, x) for x in ["acqus", "acqu2s", "acqu3s"] if x in dir_list
@@ -277,19 +277,19 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
         endian = ">"
 
     if dtype == "fid":
-        raw = _np.fromfile(_os.path.join(path, "fid"), dtype=endian + "i4")
+        raw = np.fromfile(os.path.join(path, "fid"), dtype=endian + "i4")
     else:
-        raw = _np.fromfile(_os.path.join(path, "ser"), dtype=endian + "i4")
+        raw = np.fromfile(os.path.join(path, "ser"), dtype=endian + "i4")
 
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(attrs_dict)
-    group_delay = int(_np.ceil(group_delay))
+    group_delay = int(np.ceil(group_delay))
 
     t = (
         1.0
         / attrs_dict["SW_h"]
-        * _np.arange(0, int(attrs_dict["TD"] / 2) - group_delay)
+        * np.arange(0, int(attrs_dict["TD"] / 2) - group_delay)
     )
 
     if "vdlist" in dir_list:
@@ -312,11 +312,11 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
                     coords = [t, important_params_dict["VDLIST"]]
             else:
                 if isinstance(phase_cycle, list):
-                    length1d = int((_np.ceil(attrs_dict["TD"] / 256.0) * 256) / 2)
+                    length1d = int((np.ceil(attrs_dict["TD"] / 256.0) * 256) / 2)
                     ser_data = data.reshape(-1, int(length1d)).T
                     ser_data = ser_data[group_delay : int(attrs_dict["TD"] / 2), :]
-                    phs_facs = _np.tile(
-                        _np.array(phase_cycle),
+                    phs_facs = np.tile(
+                        np.array(phase_cycle),
                         int(attrs_dict["TD_2"]) / len(phase_cycle),
                     )
                     for indx in range(int(attrs_dict["TD_2"])):
@@ -329,7 +329,7 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
             t = (
                 1.0
                 / attrs_dict["SW_h"]
-                * _np.arange(
+                * np.arange(
                     0, int(attrs_dict["TD"] / 2 / int(attrs_dict["TD_3"])) - group_delay
                 )
             )
@@ -355,7 +355,7 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
             )
         data = ser_data
 
-    return _dnpdata(data, coords, dims, important_params_dict)
+    return DNPData(data, dims, coords, important_params_dict)
 
 
 def topspin_vdlist(path):
@@ -368,7 +368,7 @@ def topspin_vdlist(path):
     Returns:
         numpy.ndarray: vdlist as numpy array
     """
-    fullPath = _os.path.join(path, "vdlist")
+    fullPath = os.path.join(path, "vdlist")
 
     with open(fullPath, "r") as f:
         raw = f.read()
@@ -390,7 +390,7 @@ def topspin_vdlist(path):
             value = float(line)
             vdlist.append(value)
 
-    vdlist = _np.array(vdlist)
+    vdlist = np.array(vdlist)
     return vdlist
 
 
@@ -405,13 +405,13 @@ def load_ser(path, dtype=">i4"):
         raw (np.ndarray): Data from ser file
     """
 
-    raw = _np.fromfile(_os.path.join(path), dtype=dtype)
+    raw = np.fromfile(os.path.join(path), dtype=dtype)
 
     return raw
 
 
 def load_title(
-    path="1", title_path=_os.path.join("pdata", "1"), title_filename="title"
+    path="1", title_path=os.path.join("pdata", "1"), title_filename="title"
 ):
     """
     Import Topspin Experiment Title File
@@ -425,7 +425,7 @@ def load_title(
         str: Contents of experiment title file
     """
 
-    path_filename = _os.path.join(path, title_path, title_filename)
+    path_filename = os.path.join(path, title_path, title_filename)
 
     with open(path_filename, "r") as f:
         rawTitle = f.read()
@@ -456,7 +456,7 @@ def topspin_jcamp_dx(path):
 
                 # Test for array
                 if value[0] == "(":
-                    x = _re.findall("\([0-9]+\.\.[0-9]+\)", value)
+                    x = re.findall("\([0-9]+\.\.[0-9]+\)", value)
 
                     start, end = tuple(x[0][1:-1].split("..", 1))
 
@@ -482,7 +482,7 @@ def topspin_jcamp_dx(path):
 
                         array += array_line
 
-                    array = _np.array(array)
+                    array = np.array(array)
 
                     attrs[key] = array
 

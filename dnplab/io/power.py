@@ -1,4 +1,4 @@
-import numpy as _np
+import numpy as np
 from scipy.io import loadmat
 
 
@@ -14,7 +14,7 @@ def import_power(path, filename=""):
         p = rawDict["powerlist"].reshape(-1)
 
     elif fullPath[-4:] == ".csv":
-        raw = _np.loadtxt(fullPath, delimiter=",", skiprows=1)
+        raw = np.loadtxt(fullPath, delimiter=",", skiprows=1)
         t = raw[:, 0].reshape(-1)
         p = raw[:, 1].reshape(-1)
 
@@ -30,7 +30,7 @@ def chop_power(t, p, threshold=0.1):
     Use Derivative to chop Powers
     """
 
-    diffPower = _np.diff(p)
+    diffPower = np.diff(p)
 
     step = [abs(x) > threshold for x in diffPower]
 
@@ -56,13 +56,13 @@ def chop_power(t, p, threshold=0.1):
     averageTimeList = []
     for stepTuple in stepTupleList:
         averagePower = p[stepTuple[0] + 1 : stepTuple[1]]
-        averagePower = _np.mean(averagePower)
+        averagePower = np.mean(averagePower)
         averagePowerList.append(averagePower)
         averageTime = (t[stepTuple[0] + 1] + t[stepTuple[1]]) / 2.0
         averageTimeList.append(averageTime)
 
-    averagePowerArray = _np.array(averagePowerList)
-    averageTimeArray = _np.array(averageTimeList)
+    averagePowerArray = np.array(averagePowerList)
+    averageTimeArray = np.array(averageTimeList)
     return averageTimeArray, averagePowerArray
 
 

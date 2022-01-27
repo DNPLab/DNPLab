@@ -1,7 +1,7 @@
-import numpy as _np
+import numpy as np
 import os
 
-from .. import dnpdata as _dnpdata
+from .. import DNPData
 
 from struct import unpack
 
@@ -31,7 +31,7 @@ def array_coords(attrs):
         array_stop = attrs["arraystop"]
 
         if array_dim != 1:
-            coord = _np.r_[array_start : array_stop + array_delta : array_delta]
+            coord = np.r_[array_start : array_stop + array_delta : array_delta]
             dim = "t1"
         else:
             coord = None
@@ -95,15 +95,15 @@ def import_fid(path, filename="fid"):
             blockDataString = f.read(tbytes)
 
             if isFloat:
-                blockData = _np.array(
+                blockData = np.array(
                     unpack(">%if" % (npts), blockDataString), dtype=complex
                 )
 
             else:
-                blockData = _np.array(unpack(">%ii" % (npts), blockDataString))
+                blockData = np.array(unpack(">%ii" % (npts), blockDataString))
             data = blockData[0::2] + 1j * blockData[1::2]
             dataList.append(data)
-        dataArray = _np.array(dataList).T
+        dataArray = np.array(dataList).T
 
     return dataArray
 
@@ -211,7 +211,7 @@ def import_vnmrj(path, fidFilename="fid", paramFilename="procpar"):
 
     dwellTime = 1.0 / sw
 
-    t = _np.r_[0.0 : int(npts)] * dwellTime
+    t = np.r_[0.0 : int(npts)] * dwellTime
     dims = ["t2"]
     coords = [t]
 
@@ -223,4 +223,4 @@ def import_vnmrj(path, fidFilename="fid", paramFilename="procpar"):
     else:
         data = data.reshape(-1)
 
-    return _dnpdata(data, coords, dims, attrs)
+    return DNPData(data, dims, coords, attrs)
