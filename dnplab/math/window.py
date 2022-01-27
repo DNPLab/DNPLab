@@ -23,8 +23,7 @@ def exponential(x, lw):
         \mathrm{exponential} =  e^{-2t * \mathrm{linewidth}}
 
     Args:
-        all_data (dnpdata, dict): data container
-        dim (str): dimension to window
+        x (array_like): Vector of points
         lw (int or float): linewidth
 
     Returns:
@@ -39,7 +38,7 @@ def gaussian(x, lw):
         \mathrm{gaussian} = e^{(\sigma * x^{2})}
 
     Args:
-        x (array_like): Vector of points
+        x (array_like): vector of points
         lw (float): Standard deviation of gaussian window
 
     Returns:
@@ -54,6 +53,7 @@ def hann(x):
         \mathrm{han} = 0.5 + 0.5\cos(\pi * n / (N-1))
 
     Args:
+        x (array_like): vector of points
         N(int): number of points to return in window function
 
     Returns:
@@ -80,7 +80,7 @@ def traf(x, lw):
 
 
     Args:
-        x (array_like): axis for traficant window
+        x (array_like): vector of points
         lw (str): linewidth of traficant window
 
     Returns:
@@ -101,7 +101,8 @@ def hamming(x):
         \mathrm{hamming} = 0.53836 + 0.46164\cos(\pi * n / (N-1))
 
     Args:
-        dim_size(int): length of array to window
+        x (array_like): vector of points
+        N(int): number of points to return in window function
 
     Returns:
         array: hamming window function
@@ -128,8 +129,8 @@ def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
 
 
     Args:
-        all_data (dnpdata, dict): data container
-        dim (str): dimension to window
+        x (array_like): vector of points
+        N(int): number of points to return in window function
         exp_lw (int or float): exponential linewidth
         gauss_lw (int or float): gaussian linewidth
         gaussian_max (int): location of maximum in gaussian window
@@ -151,7 +152,8 @@ def sin2(x):
         \sin^{2}  =  \cos((-0.5\pi * n / (N - 1)) + \pi)^{2}
 
     Args:
-        dim_size(int): length of array to window
+        x (array_like): vector of points
+        N(int): number of points to return in window function
 
     Returns:
         array: sin-squared window function
