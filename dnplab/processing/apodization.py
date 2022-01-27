@@ -5,11 +5,12 @@ from ..core.data import DNPData
 
 _windows = {
     'exponential': window.exponential,
-#    'gaussian': window.gaussian,
-#    'hann': window.hann,
-#    'hamming': window.hamming,
-#    'lorentz_gauss': window.lorentz_gauss,
-#    'traf': window.traf,
+    'gaussian': window.gaussian,
+   'hann': window.hann,
+   'hamming': window.hamming,
+   'lorentz_gauss': window.lorentz_gauss,
+   'traf': window.traf,
+   'sin2': window.sin2,
 }
 
 def apodize(
