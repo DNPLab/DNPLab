@@ -1,6 +1,6 @@
 import numpy as np
 from ..core.data import DNPData
-from ..core.data import concat
+from ..core.util import concat
 
 from scipy.integrate import trapz, cumtrapz
 
