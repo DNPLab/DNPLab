@@ -52,10 +52,18 @@ def plot(data, *args, **kwargs):
        dnp.dnpResults.plt.show()
 
     """
-    coord = data.coords[0]
-    dim = data.dims[0]
+
+    if "dim" in kwargs:
+        dim = kwargs.pop("dim")
+    else:
+        dim = data.dims[0]
+
+    coord = data.coords[dim]
+
+    data.unfold(dim)
 
     plt.plot(coord, data.values.real, *args, **kwargs)
+    data.fold()
 
 
 show = plt.show
