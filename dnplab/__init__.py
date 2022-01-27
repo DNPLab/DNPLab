@@ -1,7 +1,7 @@
 from .core.data import DNPData
 
 from .constants import *
-from . import fitting
+from .fitting import *
 from .math import *
 
 from .processing import *
