@@ -1,6 +1,8 @@
 import numpy as np
+from scipy.signal import savgol_filter
 
 from ..core.data import DNPData
+from ..processing.integration import integrate
 
 def calculate_enhancement(
     all_data,
@@ -48,13 +50,13 @@ def calculate_enhancement(
             all_data["integrals"].values.real
             / all_data["integrals"].values.real[off_spectrum - 1]
         )
-        enhancement_data = dnpdata(
+        enhancement_data = Data(
             enh,
             [all_data["integrals"].coords[x] for x in all_data["integrals"].dims],
             all_data["integrals"].dims,
         )
 
-    elif isinstance(off_spectrum, dnpdata) and isinstance(on_spectra, dnpdata):
+    elif isinstance(off_spectrum, DNPData) and isinstance(on_spectra, DNPData):
 
         data_off, _ = return_data(off_spectrum)
         if len(data_off.shape) != 1:
@@ -154,7 +156,7 @@ def calculate_enhancement(
             else:
                 remaining_coords = [data_on.coords[x] for x in data_on.dims if x != dim]
 
-            enhancement_data = dnpdata(enh, remaining_coords, remaining_dims)
+            enhancement_data = DNPData(enh, remaining_coords, remaining_dims)
 
     else:
         raise TypeError(
@@ -198,7 +200,7 @@ def signal_to_noise(
         dnpdata: data object with attrs "s_n", "signal", and "noise" added
     """
 
-    index = data.dims.index(dim)
+    index = data.index(dim)
 
     if signal_width == "full" and isinstance(signal_center, (int, float)):
         s_data = data[dim, :].real
@@ -249,6 +251,17 @@ def signal_to_noise(
     data.attrs["noise"] = n_data
 
     return data
+
+def smooth(data, dim = "t2", window_length = 11, polyorder = 3):
+    out = data.copy()
+
+    out.unfold(dim)
+
+    out.values = savgol_filter(out.values, window_length, polyorder, axis = 0)
+
+    out.fold()
+
+    return out
 
 def left_shift(data, dim="t2", shift_points=0):
     """Remove points from the left of data
