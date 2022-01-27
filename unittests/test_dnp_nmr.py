@@ -16,7 +16,7 @@ class dnpNMR_tester(unittest.TestCase):
 
     def test_basic_nmr_processing(self):
 
-        data = dnp.remove_offset(self.data)
+        data = dnp.remove_background(self.data)
 
         data = dnp.left_shift(data)
 
