@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from .. import dnpdata
+from .. import DNPData
 import warnings
 
 
@@ -12,7 +12,7 @@ def import_bes3t(path):
         path (str) : Path to either .DSC or .DTA file
 
     Returns:
-        bes3t_data (object) : dnpdata object containing Bruker BES3T data
+        bes3t_data (object) : DNPData object containing Bruker BES3T data
     """
 
     pathexten = os.path.splitext(path)[1]
@@ -65,7 +65,7 @@ def import_bes3t(path):
         path_dta, path_xgf, path_ygf, path_zgf, params
     )
 
-    bes3t_data = dnpdata(values, coords, dims, attrs)
+    bes3t_data = DNPData(values, dims, coords, attrs)
 
     return bes3t_data
 
