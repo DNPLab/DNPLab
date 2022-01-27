@@ -13,4 +13,5 @@ from .analysis.hydration import hydration
 from .processing import *
 from .widgets import *
 from .plotting import *
+from .reporting import *
 from .version import __version__
