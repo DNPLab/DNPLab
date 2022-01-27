@@ -1,8 +1,8 @@
 import unittest
-import dnplab.dnpImport as wrapper
-import dnplab.dnpIO.topspin as topspin
-import dnplab.dnpIO.prospa as prospa
-import dnplab.dnpIO.vnmrj as vnmrj
+import dnplab.io.load as wrapper
+import dnplab.io.topspin as topspin
+import dnplab.io.prospa as prospa
+import dnplab.io.vnmrj as vnmrj
 import os
 from numpy.testing import assert_array_equal
 
