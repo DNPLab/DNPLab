@@ -1,3 +1,8 @@
+[![http://dnplab.net](https://img.shields.io/pypi/v/dnplab)](https://pypi.org/project/dnplab/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dnplab)](https://www.python.org/downloads/)
+[![Downloads](https://pepy.tech/badge/dnplab/month)](https://pepy.tech/project/dnplab)
+
+[![DNPLab Logo](docs/source/_static/images/dnpLabLogo.png)](http://dnplab.net)
 # DNPLab - Bringing the Power of Python to DNP-NMR Spectroscopy
 
 DNPLab is a collaboration between:
@@ -12,20 +17,17 @@ DNPLab is an open-source, python library for importing and processing DNP-NMR da
 
 # Features
 
-  - Import DNP-NMR data from Topspin, VnmrJ, and Prospa formats
-  - Construct N-dimensional data objects easily
+  - Import data from Topspin, VnmrJ, Prospa, etc. formats
+  - Construct N-dimensional data objects
   - Process data using apodization, zero-filling, Fourier transformations, alignment, etc.
-  - Analyze data using the hydration module
+  - Analyze data using the specific modules
 
 # Requirements
 
   - Python 3.6 or Later
-  - DNPLab requires: numpy, matplotlib, scipy, h5py, PyQt5
+  - DNPLab dependencies: numpy, matplotlib, scipy, h5py
 
-To install the required packages, perform:
-```console
-pip install numpy matplotlib scipy h5py PyQt5
-```
+All dependencies are automatically installed during setup.
 
 # Installation
 
