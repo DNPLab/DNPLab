@@ -1,13 +1,19 @@
-from .dnpData import dnpdata, dnpdata_collection, create_workspace, return_data
-from .dnpImport import load
-from .dnpSave import save
-from .dnpNMR import *
-from . import dnpIO
-from .dnpFit import *
-from .dnpTools import *
-from .dnpMath import *
-from .dnpHydration import *
-from . import core
-from .dnpResults import *
-from .dnpWidgets import manualphase, manual_align
+from .core.data import DNPData
+from .core.ufunc import *
+from .core.util import *
+
+from .constants import *
+from .fitting import *
+from .math import *
+
+from .io import *
+from .io.save import save
+from .io.load import load
+
+from .analysis.hydration import hydration
+
+from .processing import *
+from .widgets import *
+from .plotting import *
+from .reporting import *
 from .version import __version__
