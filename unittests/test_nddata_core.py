@@ -2,19 +2,20 @@ import pytest
 import operator
 import unittest
 from numpy.testing import assert_array_equal
-from dnplab.core import nddata
+from dnplab.core.base import ABCData
+from dnplab.core.coord import nddata_coord_collection, nddata_coord
 import numpy as np
 import random
 
-from dnplab.core.nddata_coord import nddata_coord, nddata_coord_collection
+from dnplab.core.coord import nddata_coord, nddata_coord_collection
 
 test_dims = ["x", "y", "z", "p", "q", "r"]
 num_random_tests = 10
 
 
-def get_random_nddata_list(seed_axis=0, seed_data=0):
+def get_random_ABCData_list(seed_axis=0, seed_data=0):
     """
-    Pre-generate a list of randomized tuple (nddata, np.array) for all the
+    Pre-generate a list of randomized tuple (ABCData, np.array) for all the
     test cases here
     """
     random.seed(seed_axis)
@@ -26,19 +27,19 @@ def get_random_nddata_list(seed_axis=0, seed_data=0):
         for _ in range(3)
     ]
     random.seed(seed_data)
-    nddata_list = []
+    ABCData_list = []
     for random_axis in random_axes:
         dims = [axis[0] for axis in random_axis]
         coords = [axis[1] for axis in random_axis]
         shape = [coord.size for coord in coords]
         values = np.random.randn(*shape)
-        nddata_list.append((nddata.nddata_core(values, dims, coords), values))
-    # nddata_list.append((nddata.nddata_core(), np.array([])))  # UserWarning: Github #37
-    return nddata_list
+        ABCData_list.append((ABCData(values, dims, coords), values))
+    # ABCData_list.append((ABCData.ABCData_core(), np.array([])))  # UserWarning: Github #37
+    return ABCData_list
 
 
-random_nddata_list = get_random_nddata_list(seed_axis=0, seed_data=0)
-random_nddata_list_2 = get_random_nddata_list(seed_axis=0, seed_data=1)
+random_ABCData_list = get_random_ABCData_list(seed_axis=0, seed_data=0)
+random_ABCData_list_2 = get_random_ABCData_list(seed_axis=0, seed_data=1)
 
 
 @pytest.mark.filterwarnings("ignore:divide by zero")
@@ -46,36 +47,36 @@ random_nddata_list_2 = get_random_nddata_list(seed_axis=0, seed_data=1)
 @pytest.mark.parametrize(
     "operator", [operator.add, operator.sub, operator.mul, operator.truediv]
 )
-@pytest.mark.parametrize("nddata_value_tuple", random_nddata_list)
+@pytest.mark.parametrize("ABCData_value_tuple", random_ABCData_list)
 @pytest.mark.parametrize("number", [-1.1j, -1.1, -1, 0, 1, 1.1, 1.1j])
-def test_nddata_core_math_operators_numeric(operator, nddata_value_tuple, number):
-    nddata, values = nddata_value_tuple
-    assert_array_equal(operator(nddata, number).values, operator(values, number))
-    assert_array_equal(operator(number, nddata).values, operator(number, values))
+def test_ABCData_core_math_operators_numeric(operator, ABCData_value_tuple, number):
+    ABCData, values = ABCData_value_tuple
+    assert_array_equal(operator(ABCData, number).values, operator(values, number))
+    assert_array_equal(operator(number, ABCData).values, operator(number, values))
 
 
 @pytest.mark.parametrize(
     "operator", [operator.add, operator.sub, operator.mul, operator.truediv]
 )
-@pytest.mark.parametrize("i_data", range(0, len(random_nddata_list)))
-def test_nddata_core_math_operators(operator, i_data):
-    nddata, values = random_nddata_list[i_data]
-    nddata_2, values_2 = random_nddata_list_2[i_data]
-    nddata_3, values_3 = operator(nddata, nddata_2), operator(values, values_2)
+@pytest.mark.parametrize("i_data", range(0, len(random_ABCData_list)))
+def test_ABCData_core_math_operators(operator, i_data):
+    ABCData, values = random_ABCData_list[i_data]
+    ABCData_2, values_2 = random_ABCData_list_2[i_data]
+    ABCData_3, values_3 = operator(ABCData, ABCData_2), operator(values, values_2)
     # assert self consistent
-    assert nddata_3._self_consistent()
+    assert ABCData_3._self_consistent()
     # assert values equal
-    assert_array_equal(nddata_3.values, values_3)
+    assert_array_equal(ABCData_3.values, values_3)
 
 
-def test_nddata_core_math_div_by_zero():
+def test_ABCData_core_math_div_by_zero():
     with pytest.warns(RuntimeWarning):
-        nddata.nddata_core(
+        ABCData(
             values=np.array([1, 2, 3]), coords=[np.array([3, 2, 1])], dims=["x"]
         ) / 0
 
 
-class dnplab_nddata_core_tester(unittest.TestCase):
+class dnplab_ABCData_core_tester(unittest.TestCase):
     def setUp(self):
         self.dims = test_dims
         random.sample(test_dims, random.randint(1, len(test_dims)))
@@ -87,10 +88,10 @@ class dnplab_nddata_core_tester(unittest.TestCase):
         shape = [coord.size for coord in random_coords]
 
         random_values = np.random.randn(*shape)
-        data = nddata.nddata_core(random_values, random_dims, random_coords)
+        data = ABCData(random_values, random_dims, random_coords)
         return data, random_dims, random_values, random_coords
 
-    def test_nddata_core_init(self):
+    def test_ABCData_core_init(self):
         for ix in range(num_random_tests):
             (
                 data,
@@ -113,12 +114,12 @@ class dnplab_nddata_core_tester(unittest.TestCase):
         x = np.r_[0:3]
         y = np.r_[0:3]
 
-        data = nddata.nddata_core(values, ["x", "y"], [x, y])
+        data = ABCData(values, ["x", "y"], [x, y])
 
         self.assertEqual(data.ndim, 2)
 
 
-class dnplab_nddata_coord_tester(unittest.TestCase):
+class dnplab_ABCData_coord_tester(unittest.TestCase):
     def setUp(self):
         self.coord_inst_a = nddata_coord("a", slice(0, 10, 1))
         self.coord_inst_b = nddata_coord("b", slice(0, 1, 50e-3))
