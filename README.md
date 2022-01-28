@@ -1,6 +1,5 @@
 [![http://dnplab.net](https://img.shields.io/pypi/v/dnplab)](https://pypi.org/project/dnplab/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dnplab)](https://www.python.org/downloads/)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/dnplab.svg?label=Pypi%20downloads)](https://pypi.org/project/dnplab/)
 [![Downloads](https://pepy.tech/badge/dnplab/month)](https://pepy.tech/project/dnplab)
 
 [![DNPLab Logo](docs/source/_static/images/dnpLabLogo.png)](http://dnplab.net)
