@@ -1,4 +1,4 @@
-![DNPLab Logo](docs/source/_static/dnpLabLogo.png)
+![DNPLab Logo](docs/source/_static/images/dnpLabLogo.png)
 # DNPLab - Bringing the Power of Python to DNP-NMR Spectroscopy
 
 
