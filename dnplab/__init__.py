@@ -1,4 +1,6 @@
 from .core.data import DNPData
+from .core.ufunc import *
+from .core.util import *
 
 from .constants import *
 from .fitting import *

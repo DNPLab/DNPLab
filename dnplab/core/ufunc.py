@@ -1,5 +1,20 @@
-import nddata
+from .data import DNPData
 import numpy as np
+
+__all__ = ['generate_data']
+
+def generate_data(shape):
+    size = 1
+    dims = []
+    coords = []
+    for ix, length in enumerate(shape):
+        dims.append('x' + str(ix))
+        coords.append(np.array(range(length)))
+        size *= length
+
+    values = np.random.randn(size)
+
+    return DNPData(values, dims, coords)
 
 
 def ones(shape, dtype=None):
@@ -10,7 +25,7 @@ def ones(shape, dtype=None):
         dims.append(str(ix))
         coords.append(np.arange(shape[ix]))
 
-    return nddata.nddata_core(values, dims, coords)
+    return DNPData(values, dims, coords)
 
 
 def ones_like(a):
@@ -25,7 +40,7 @@ def zeros(shape, dtype=None):
         dims.append(str(ix))
         coords.append(np.arange(shape[ix]))
 
-    return nddata.nddata_core(values, dims, coords)
+    return DNPData(values, dims, coords)
 
 
 def zeros_like(a):
@@ -33,7 +48,7 @@ def zeros_like(a):
     zeros_.dims = a.dims
     zeros_.coords = a.coords
     zeros_.attrs = a.attrs
-    return zeros_
+    return zeros(a.shape, a.dtype)
 
 
 def randn(shape):
@@ -44,7 +59,7 @@ def randn(shape):
         dims.append(str(ix))
         coords.append(np.arange(shape[ix]))
 
-    return nddata.nddata_core(values, dims, coords)
+    return DNPData(values, dims, coords)
 
 
 def randn_like(a):
