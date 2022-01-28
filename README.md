@@ -1,13 +1,6 @@
+![DNPLab Logo](docs/source/_static/dnpLabLogo.png)
 # DNPLab - Bringing the Power of Python to DNP-NMR Spectroscopy
 
-.. raw:: html
-
-    <p>
-      <h1>
-        <a href="https://dnplab.net"><img valign="middle" src="docs/source/_static/dnpLabLogo.png" height="50" height="50" alt="DNPLab logo"/></a>
-        SciPy
-      </h1>
-    </p>
 
 DNPLab is a collaboration between:
 - [Bridge12 Technologies, Inc.](http://www.bridge12.com/)
