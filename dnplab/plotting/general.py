@@ -3,12 +3,6 @@ import numpy as np
 
 from ..core.data import DNPData
 
-figure = plt.figure
-legend = plt.legend
-xlim = plt.xlim
-ylim = plt.ylim
-gca = plt.gca
-
 dark_green = "#46812B"
 light_green = "#67AE3E"
 dark_grey = "#4D4D4F"
