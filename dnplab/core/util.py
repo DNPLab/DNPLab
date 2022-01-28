@@ -43,4 +43,3 @@ def concat(data_list, dim, coord=None):
     data = DNPData(values, dims, coords, attrs)
 
     return data
-

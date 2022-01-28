@@ -2,6 +2,7 @@ from warnings import warn
 
 import numpy as np
 
+
 def autophase(
     data,
     dim="f2",
@@ -184,6 +185,7 @@ def autophase(
 
     return data
 
+
 def phase_cycle(data, dim, receiver_phase):
     """Phase cycle
 
@@ -220,11 +222,14 @@ def phase_cycle(data, dim, receiver_phase):
 
     return data
 
+
 def p0_phase():
     return NotImplemented
 
+
 def p1_phase():
     return NotImplemented
+
 
 def phase():
     return NotImplemented

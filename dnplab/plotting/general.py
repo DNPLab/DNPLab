@@ -14,6 +14,7 @@ plt.rcParams["axes.prop_cycle"] = plt.cycler(
     color=[orange, dark_green, light_green, dark_grey, light_grey]
 )
 
+
 def plot(data, *args, **kwargs):
     """Plot function for dnpdata object
 

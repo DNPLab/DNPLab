@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def imshow(data, *args, **kwargs):  # TODO: drop unused args and kwargs
     """Image Plot for dnpdata object
 

@@ -95,7 +95,7 @@ def load_file(path, data_type=None, *args, **kwargs):
         raise ValueError("Invalid data type: %s" % data_type)
 
 
-#TODO rename to detect_file_format
+# TODO rename to detect_file_format
 def autodetect(test_path):
 
     if test_path[-1] == os.sep:

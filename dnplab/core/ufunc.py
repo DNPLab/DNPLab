@@ -1,14 +1,15 @@
 from .data import DNPData
 import numpy as np
 
-__all__ = ['generate_data']
+__all__ = ["generate_data"]
+
 
 def generate_data(shape):
     size = 1
     dims = []
     coords = []
     for ix, length in enumerate(shape):
-        dims.append('x' + str(ix))
+        dims.append("x" + str(ix))
         coords.append(np.array(range(length)))
         size *= length
 

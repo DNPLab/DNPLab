@@ -14,7 +14,7 @@ core_attrs_list = ["nmr_frequency"]
 
 np.set_printoptions(threshold=15)
 
-#__all__ = ["DNPData"]
+# __all__ = ["DNPData"]
 
 
 class DNPData(ABCData):
@@ -534,6 +534,3 @@ def return_data(all_data, key="proc"):
         raise ValueError("Data type not supported")
 
     return data, is_workspace
-
-
-

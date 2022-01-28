@@ -1,6 +1,7 @@
 import numpy as np
 from ..core.data import DNPData
 
+
 def ndalign(data, dim="f2", reference=None, center=None, width=None, average=None):
     """Alignment of NMR spectra using FFT Cross Correlation
 
@@ -170,9 +171,7 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
                 else:
                     raise ValueError("selected range is not accpetale")
 
-                corrData = np.correlate(
-                    np.abs(rangeData), np.abs(refData), mode="same"
-                )
+                corrData = np.correlate(np.abs(rangeData), np.abs(refData), mode="same")
                 shiftIx = np.argmax(corrData) - (
                     len(corrData) / 2
                 )  # subtract half length so spectrum is shifted relative to center, not edge

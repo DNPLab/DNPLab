@@ -1,20 +1,22 @@
 import numpy as np
 
+
 def _handle_array(x):
-    '''Handle array or integer input argument for window functions
+    """Handle array or integer input argument for window functions
 
     Args:
         x (array_like, int): array or integer
-    
+
     Returns:
         int: length of array or integer input
-    '''
+    """
     if type(x) == int:
         N = x
     else:
         N = len(x)
-    
+
     return N
+
 
 def exponential(x, lw):
     """Calculate exponential window function
@@ -29,7 +31,8 @@ def exponential(x, lw):
     Returns:
         array: exponential window function
     """
-    return np.exp(-1. * (x - x[0]) * lw)
+    return np.exp(-1.0 * (x - x[0]) * lw)
+
 
 def gaussian(x, lw):
     """Calculate gaussian window function
@@ -45,6 +48,7 @@ def gaussian(x, lw):
         array: gaussian window function
     """
     return np.exp((lw * x) ** 2)
+
 
 def hann(x):
     """Calculate hann window function
@@ -112,11 +116,10 @@ def hamming(x):
     else:
         N = len(x)
 
-    return 0.53836 + 0.46164 * np.cos(
-        1.0 * np.pi * np.arange(N) / (N - 1)
-    )
+    return 0.53836 + 0.46164 * np.cos(1.0 * np.pi * np.arange(N) / (N - 1))
 
-#FIX -> Function does not look correct
+
+# FIX -> Function does not look correct
 def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
     """Calculate lorentz-gauss window function
 
@@ -163,6 +166,4 @@ def sin2(x):
     else:
         N = len(x)
 
-    return (
-        np.cos((-0.5 * np.pi * np.arange(N) / (N - 1)) + np.pi) ** 2
-    )
+    return np.cos((-0.5 * np.pi * np.arange(N) / (N - 1)) + np.pi) ** 2

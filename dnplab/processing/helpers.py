@@ -4,6 +4,7 @@ from scipy.signal import savgol_filter
 from ..core.data import DNPData
 from ..processing.integration import integrate
 
+
 def calculate_enhancement(
     all_data,
     off_spectrum=1,
@@ -165,6 +166,7 @@ def calculate_enhancement(
 
     return enhancement_data
 
+
 def signal_to_noise(
     data,
     dim="f2",
@@ -252,16 +254,18 @@ def signal_to_noise(
 
     return data
 
-def smooth(data, dim = "t2", window_length = 11, polyorder = 3):
+
+def smooth(data, dim="t2", window_length=11, polyorder=3):
     out = data.copy()
 
     out.unfold(dim)
 
-    out.values = savgol_filter(out.values, window_length, polyorder, axis = 0)
+    out.values = savgol_filter(out.values, window_length, polyorder, axis=0)
 
     out.fold()
 
     return out
+
 
 def left_shift(data, dim="t2", shift_points=0):
     """Remove points from the left of data
@@ -292,8 +296,10 @@ def left_shift(data, dim="t2", shift_points=0):
 
     return data
 
+
 def normalize():
     return NotImplemented
+
 
 def reference():
     return NotImplemented

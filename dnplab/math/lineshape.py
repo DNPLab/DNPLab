@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.special import wofz
 
+
 def voigtian(x, x0, sigma, gamma):
     """
     Voigt is a combintaion of Gaussian and Lorentzian lineshapes

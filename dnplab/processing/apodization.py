@@ -4,21 +4,17 @@ from ..math import window
 from ..core.data import DNPData
 
 _windows = {
-    'exponential': window.exponential,
-    'gaussian': window.gaussian,
-   'hann': window.hann,
-   'hamming': window.hamming,
-   'lorentz_gauss': window.lorentz_gauss,
-   'traf': window.traf,
-   'sin2': window.sin2,
+    "exponential": window.exponential,
+    "gaussian": window.gaussian,
+    "hann": window.hann,
+    "hamming": window.hamming,
+    "lorentz_gauss": window.lorentz_gauss,
+    "traf": window.traf,
+    "sin2": window.sin2,
 }
 
-def apodize(
-    data,
-    dim="t2",
-    kind="exponential",
-    **kwargs
-):
+
+def apodize(data, dim="t2", kind="exponential", **kwargs):
     """Apply Apodization to data down given dimension
 
     .. math::

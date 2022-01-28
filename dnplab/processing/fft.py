@@ -4,16 +4,19 @@ import re
 
 import numpy as np
 
-__all__ = ['fourier_transform', 'inverse_fourier_transform']
+__all__ = ["fourier_transform", "inverse_fourier_transform"]
+
 
 def convert_to_ppm(freq_coord):
     return NotImplemented
 
+
 def rename_ft_dim(dim, old_string, new_string):
-    if re.fullmatch("%s[0-9]*"%old_string, dim) is not None:
+    if re.fullmatch("%s[0-9]*" % old_string, dim) is not None:
         dim = dim.replace(old_string, new_string)
 
     return dim
+
 
 def fourier_transform(
     data,
@@ -165,6 +168,7 @@ def inverse_fourier_transform(
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return data
+
 
 def zero_fill():
     return NotImplemented

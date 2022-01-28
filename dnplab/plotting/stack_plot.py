@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def stack(data, *args, offset=None, **kwargs):
     """Stack Plot for 2D data
 

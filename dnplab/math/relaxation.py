@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def t1_function(t, T1, M_0, M_inf):
     """Calculate exponential T1 curve
 
