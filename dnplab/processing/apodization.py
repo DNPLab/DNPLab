@@ -74,8 +74,6 @@ def apodize(
     new_shape = [1 if ix != index else data_shape[index] for ix in range(data.ndim)]
     apwin = np.reshape(apwin, new_shape)
 
-    data.values *= apwin
-
     data *= apwin
 
     proc_parameters = {
