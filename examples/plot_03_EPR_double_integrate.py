@@ -21,24 +21,19 @@ import dnplab as dnp
 data = dnp.dnpImport.load("../data/bes3t/1D_CW.DTA")
 
 # %%
-# Next, create a workspace and add the loaded data
+# Next create a workspace, add the loaded data, and copy the data to the processing buffer 'proc',
 ws = dnp.create_workspace()
 ws.add("raw", data)
-
-# %%
-# Copy the data to the processing buffer 'proc'
 ws.copy("raw", "proc")
 
 # %%
-# Raw data are now in both ws["proc"] and ws["raw"]. The following processing steps will modify ws["proc"] but leave ws["raw"] untouched so that you can always return
-# to the original data. To see what attributes are loaded with the data use:
+# Raw data are now in both ws["proc"] and ws["raw"]. The following processing steps will modify ws["proc"] but leave ws["raw"] untouched so that you can always return to the original data. To see what attributes are loaded with the data use:
 print("BEFORE PROCESSING: " + str(ws["raw"].attrs.keys()))
 
 # %%
 # Process EPR Data and Plot Results
 # ---------------------------------
-# In this section, we will demonstrate how to process the EPR data and plot the results. Start with renaming the x-axis to NMR style notation to more seamlessly interact with some functions. "f2" is the default for argument dim.
-# ws["proc"].rename("G", "f2")
+# In this section, we will demonstrate how to process the EPR data and plot the results.
 
 # %%
 # You can display the current axis names with
@@ -46,9 +41,7 @@ print("raw axis names: " + str(ws["raw"].dims))
 print("proc axis names: " + str(ws["proc"].dims))
 
 # %%
-# Now, let's perform a baseline correction using a zeroth order polynomial to remove a DC offset
-# print(ws["proc"].dims)
-
+# Now let's perform a baseline correction using a zeroth order polynomial to remove a DC offset
 dnp.dnpTools.baseline(ws, dim = "B0", type = "polynomial", order = 0)
 
 # %%
@@ -61,12 +54,9 @@ dnp.dnpTools.integrate(ws, dim = "B0", type = "double")
 
 # %%
 # If needed, access your processed spectrum as follows:
-
-# print(ws["proc"].keys())
-
-x_axis = ws["raw"].coords["B0"]                          # Imported field axis
-spectrum = ws["spec"].values                            # Spectrum after any processing steps, before integration
-# first_integral = ws["proc"].attrs["first_integral"]     # First integral
+x_axis = ws["raw"].coords["B0"]                              # Imported field axis
+spectrum = ws["spec"].values                                 # Spectrum after any processing steps, before integration
+first_integral = ws["integrals"].attrs["first_integral"]     # First integral
 double_integral = ws["integrals"].values                     # Double integral
 print(double_integral)
 
@@ -88,24 +78,3 @@ dnp.dnpResults.show()
 
 # %%
 # Note the DC offset of about -0.5.
-
-
-# %%
-# Hint: Use matplotlib to plot arrays such as the attributes "first_integral" or "baseline" over the spectrum, in this case access the spectrum directly as '.values'
-
-# import matplotlib.pyplot as plt
-
-
-# plt.figure
-# plt.plot(ws["raw"].coords["B0"], ws["spec"].values, label = "Corrected EPR Spectrum")
-# plt.plot(ws["raw"].coords["B0"], ws["raw"].values, label = "Original EPR Spectrum")
-# plt.plot(ws["raw"].coords["B0"], ws["proc"].attrs["baseline"], label = "Baseline")
-# plt.plot(ws["raw"].coords["B0"], ws["integrals"].values, label = "DI")
-# # plt.plot(
-# #     ws["raw"].coords["B0"], ws["proc"].attrs["first_integral"], label = "First Integral"
-# # )
-# plt.legend()
-# plt.title("EPR Spectrum, Baseline Correction, Double Integration")
-# plt.grid(True)
-# plt.tight_layout()
-# plt.show()

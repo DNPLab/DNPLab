@@ -23,13 +23,19 @@ ws = dnp.dnpImport.load(file_name_path)
 # %%
 # Calculate DNP Enhancement Factors
 # ---------------------------------
-# The DNP enhancement factors are calculated using the "calculate_enhancement" function. 
-dnp.dnpNMR.calculate_enhancement(ws, off_spectrum = 1)
+# DNPLab provides a convenient way to calculate the DNP enhancement factors by using the function ``calculate_enhancement``. Enhancement factors are calculated using integrals. Integrals can be calculated over the entire spectrum, multiple regions, or can be just a single point. However, without calculating integrals first, the ``calculate_enhancement`` function will return an error.
+
+dnp.dnpTools.integrate(ws)
+dnp.dnpNMR.calculate_enhancement(ws)
+
+# %%
+# In this case, the integral is calculated over the entire spectrum followed by calculating the enhancement factors.
 
 # %%
 # .. note::
 #     The default behavior of the ``calculate_enhancement`` function is to use the first spectrum as the Off signal. If this is the case, the argument ``off_spectrum`` is not necessary unless you want to specify the slice that contains the off spectrum.
 #     The ``calculate_enhancement``` function can also calculate the enhancement for specific regions of the spectrum. THis behavior will be discussed in the next example (:ref:`07_align_nmr_spectra`).
+
 
 # %%
 # If needed, access your array of enhancements as:

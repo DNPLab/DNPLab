@@ -32,16 +32,13 @@ setup(
         "scipy>=1.5",
         "matplotlib>=3.3",
         "h5py>=2.10",
-        "PyQt5<=5.14",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3",
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
     ],
-    entry_points=dict(
-        console_scripts=[
-            "hydrationGUI=dnplab.hydrationGUI:main_func",
-        ]
-    ),
 )

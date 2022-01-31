@@ -64,6 +64,12 @@ Please report all issues related to dnpLab using the: |dnpLabGitIssueTrackerLink
    * - Author(s)
      - |author|
 
+To check the version of DNPLab that is currently installed type:
+
+.. code-block:: bash
+
+    $ pip show dnplab
+
 
 Features
 ========
@@ -83,12 +89,12 @@ Features
    dnpImport
    dnpIO
    dnpSave
+   dnpMath
    dnpTools
    dnpNMR
    dnpFit
    dnpHydration
    dnpResults
-   hydrationGUI
 
 Index
 =====

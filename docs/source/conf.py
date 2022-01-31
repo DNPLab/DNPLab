@@ -32,9 +32,12 @@ from datetime import datetime
 date = datetime.now().strftime(u"%m/%d/%Y, %H:%M:%S")
 
 # The short X.Y version
-version = u"1.0.3"
-# The full version, including alpha/beta/rc tags
-release = u"1.0.3"
+version_file = '../../dnplab/version.py'
+with open(version_file, 'r') as f:
+    version_code = f.read()
+exec(version_code)
+version = __version__
+release = __version__
 
 print(u"Build Time: " + date)
 print(u"Version: " + version)
@@ -117,8 +120,8 @@ sphinx_gallery_conf = {
     "examples_dirs": "../../examples",  # path to your example scripts
     "gallery_dirs": "auto_examples",  # path to where to save gallery generated output
     "remove_config_comments": True,
-    'within_subsection_order': FileNameSortKey,
-    'run_stale_examples': True,
+    "within_subsection_order": FileNameSortKey,
+    "run_stale_examples": True,
 }
 
 
