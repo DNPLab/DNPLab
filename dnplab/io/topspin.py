@@ -117,7 +117,8 @@ def find_group_delay(attrs_dict):
     else:
         dsp_version = attrs_dict["DSPFVS"]
         if dsp_version in _group_delay_dict:
-            group_delay = _group_delay_dict[dsp_version]
+            decim = int(attrs_dict['DECIM'])
+            group_delay = _group_delay_dict[dsp_version][decim]
         else:
             print(
                 "GRPDLY and DSPFVS parameters not found in acqus file, setting group delay to 0"
@@ -229,12 +230,13 @@ def load_acqu_proc(path="1", param_filename="acqus", proc_num=1):
     return attrs_dict
 
 
+#NOTE LOW LEVEL IMPORT FUNCTION, SHOULD ONLY RETURN NUMPY ARRAY OF DATA, NO RESHAPING, or reformatting, imports binary data only
 def load_fid_ser(path, dtype="fid", phase_cycle=None):
     """
     Import topspin fid or ser file
 
     Args:
-        path (str): Directory of data
+        path (str): Path to ser or fid file
         dtype (str): "fid" for 1D, "ser" or "serPhaseCycle" for 2D
         phase_cycle (list): list of phases used for phase cycling (deg, multiples of 90)
 
@@ -393,7 +395,7 @@ def topspin_vdlist(path):
     return vdlist
 
 
-def load_ser(path, dtype=">i4"):
+def load_bin(path, dtype=">i4"):
     """Import Topspin Ser file
 
     Args:
@@ -459,7 +461,7 @@ def topspin_jcamp_dx(path):
 
                     array_size = int(end) + 1
 
-                    same_line_array = value.split(")", 1)[-1]
+                    same_line_array = value.split(")", 1)[-1] # Is this necessary?
 
                     array = []
                     if same_line_array != "":
