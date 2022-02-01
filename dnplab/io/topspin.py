@@ -89,6 +89,14 @@ _dspfvs_table_13 = {
     96: 2.995,
 }
 
+_group_delay_dict = {
+    10 : _dspfvs_table_10,
+    11 : _dspfvs_table_11,
+    12 : _dspfvs_table_12,
+    13 : _dspfvs_table_13,
+
+
+}
 
 def find_group_delay(attrs_dict):
     """
@@ -107,14 +115,9 @@ def find_group_delay(attrs_dict):
     elif attrs_dict["DECIM"] == 1.0:
         pass
     else:
-        if attrs_dict["DSPFVS"] == 10:
-            group_delay = _dspfvs_table_10[int(attrs_dict["DECIM"])]
-        elif attrs_dict["DSPFVS"] == 11:
-            group_delay = _dspfvs_table_11[int(attrs_dict["DECIM"])]
-        elif attrs_dict["DSPFVS"] == 12:
-            group_delay = _dspfvs_table_12[int(attrs_dict["DECIM"])]
-        elif attrs_dict["DSPFVS"] == 13:
-            group_delay = _dspfvs_table_13[int(attrs_dict["DECIM"])]
+        dsp_version = attrs_dict["DSPFVS"]
+        if dsp_version in _group_delay_dict:
+            group_delay = _group_delay_dict[dsp_version]
         else:
             print(
                 "GRPDLY and DSPFVS parameters not found in acqus file, setting group delay to 0"
