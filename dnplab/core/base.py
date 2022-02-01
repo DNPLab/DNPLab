@@ -4,7 +4,6 @@ import numpy as np
 import warnings
 from copy import deepcopy
 from collections import OrderedDict
-from .coord import nddata_coord_collection
 
 
 _numerical_types = (np.ndarray, int, float, complex, np.complex64)
@@ -35,7 +34,7 @@ class ABCData(object):
                 'values must be type "numpy.ndarray" not %s' % str(type(values))
             )
 
-        self._coords = nddata_coord_collection(dims, coords)
+        self._coords = OrderedDict(zip(dims, coords))
 
         if isinstance(attrs, dict):
             self._attrs = attrs
@@ -131,7 +130,10 @@ class ABCData(object):
         if self._values.size == 0:
             coords_check = len(self._coords) == 0
         else:
-            coords_check = list(self._values.shape) == list(self.coords.shape)
+            coords_shape = []
+            for coord in self._coords.items():
+                coords_shape.append(len(coord))
+            coords_check = list(self._values.shape) == coords_shape
 
         dims_check = len(self.values.shape) == len(self.dims)
 
@@ -488,21 +490,17 @@ class ABCData(object):
 
         self._values = b
 
-    @values.getter
-    def values(self):
-        return self._values
-
     @property
     def dims(self):
-        return self.coords.dims
+        return list(self.coords.keys())
 
     @dims.setter
     def dims(self, b):
-        self.coords.dims = b
+        self._coords = OrderedDict(zip(b,list(self.coords.values())))
 
     @property
     def coords(self):
-        return self._coords
+        return list(self._coords)
 
     @coords.setter
     def coords(self, b):
@@ -634,6 +632,7 @@ class ABCData(object):
         """
         return NotImplemented
 
+    #NOTE REMOVE, INSTEAD USE a.coords[dim] since coords is OrderedDict
     def get_coord(self, dim):
         """Return coord corresponding to given dimension name
 

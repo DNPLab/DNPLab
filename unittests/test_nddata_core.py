@@ -3,11 +3,9 @@ import operator
 import unittest
 from numpy.testing import assert_array_equal
 from dnplab.core.base import ABCData
-from dnplab.core.coord import nddata_coord_collection, nddata_coord
 import numpy as np
 import random
 
-from dnplab.core.coord import nddata_coord, nddata_coord_collection
 
 test_dims = ["x", "y", "z", "p", "q", "r"]
 num_random_tests = 10
@@ -105,10 +103,6 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
                 assert_array_equal(data.coords[dim], random_coords[ix])
             self.assertListEqual(data.dims, random_dims)
 
-    def test_coord_type(self):
-        data, _, _, _ = self.construct_random_data()
-        self.assertEqual(type(data.coords), nddata_coord_collection)
-
     def test_ndim(self):
         values = np.r_[1:10].reshape(3, 3)
         x = np.r_[0:3]
@@ -118,42 +112,3 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
 
         self.assertEqual(data.ndim, 2)
 
-
-class dnplab_ABCData_coord_tester(unittest.TestCase):
-    def setUp(self):
-        self.coord_inst_a = nddata_coord("a", slice(0, 10, 1))
-        self.coord_inst_b = nddata_coord("b", slice(0, 1, 50e-3))
-        self.numpy_inst = np.r_[1:2:0.25]
-        self.collection_inst = nddata_coord_collection(
-            ["a", "b", "c"], [self.coord_inst_a, self.coord_inst_b, self.numpy_inst]
-        )
-
-    def test_get_str_uses_dim(self):
-        assert_array_equal(self.collection_inst.dims, ["a", "b", "c"])
-
-    def test_str_rep(self):
-        self.assertEqual(str(self.collection_inst["a"]), r"'a':[0 1 2 3 4 5 6 7 8 9]")
-
-    def test_get_int_uses_index(self):
-        assert_array_equal(self.collection_inst[0], self.coord_inst_a)
-
-    def test_like_dict(self):
-        assert_array_equal(self.collection_inst["a"], self.coord_inst_a)
-
-    def test_reorder_only_1_dim(self):
-        self.collection_inst.reorder(["c"])
-        assert_array_equal(self.collection_inst.dims, ["c", "a", "b"])
-
-    def test_reorder_all_3_dims(self):
-        self.collection_inst.reorder(["b", "c", "a"])
-        assert_array_equal(self.collection_inst.dims, ["b", "c", "a"])
-
-    def test_rename(self):
-        self.collection_inst.rename("a", "new_a")
-        assert_array_equal(self.collection_inst.dims, ["new_a", "b", "c"])
-
-    def test_rename_child_rep_changes(self):
-        self.collection_inst.rename("a", "new_a")
-        self.assertEqual(
-            str(self.collection_inst["new_a"]), r"'new_a':[0 1 2 3 4 5 6 7 8 9]"
-        )
