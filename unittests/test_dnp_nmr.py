@@ -7,12 +7,12 @@ import numpy as np
 class dnpNMR_tester(unittest.TestCase):
     def setUp(self):
         pts = 1024
-        omega = 50*np.pi
+        omega = 50 * np.pi
         tau = 0.1
-        t2 = np.r_[0:1:1j*pts]
-        y = np.exp(1j*t2*omega) * np.exp(-1 * t2 / tau)
-        self.data = dnp.DNPData(y, ['t2'], [t2])
-        self.data.attrs['nmr_frequency'] = 400e6
+        t2 = np.r_[0 : 1 : 1j * pts]
+        y = np.exp(1j * t2 * omega) * np.exp(-1 * t2 / tau)
+        self.data = dnp.DNPData(y, ["t2"], [t2])
+        self.data.attrs["nmr_frequency"] = 400e6
 
     def test_basic_nmr_processing(self):
 
@@ -20,7 +20,7 @@ class dnpNMR_tester(unittest.TestCase):
 
         data = dnp.left_shift(data)
 
-        data = dnp.apodize(data, lw = 1)
+        data = dnp.apodize(data, lw=1)
 
         data = dnp.fourier_transform(data)
 

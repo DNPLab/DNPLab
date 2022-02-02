@@ -8,11 +8,10 @@ import numpy as np
 class save_h5_tester(unittest.TestCase):
     def setUp(self):
         self.x = np.r_[0:10]
-        self.y = self.x**2
-        self.data = dnp.DNPData(self.y, ['x'], [self.x])
+        self.y = self.x ** 2
+        self.data = dnp.DNPData(self.y, ["x"], [self.x])
 
-        self.ws = {'data':self.data}
-
+        self.ws = {"data": self.data}
 
     def test_h5_save(self):
 

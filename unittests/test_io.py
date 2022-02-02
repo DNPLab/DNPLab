@@ -30,7 +30,9 @@ class import_topspin_tester(unittest.TestCase):
         self.assertAlmostEqual(data.values[365, 6], -0.110595703125 + 0.47705078125j)
 
     def test_import_topspin_jcamp_dx(self):
-        attrs = dnp.io.topspin.topspin_jcamp_dx(os.path.join(self.testdata, "1", "acqus"))
+        attrs = dnp.io.topspin.topspin_jcamp_dx(
+            os.path.join(self.testdata, "1", "acqus")
+        )
         self.assertEqual(attrs["DIGTYP"], 9)
         self.assertAlmostEqual(attrs["O1"], 1413.27)
         assert_array_equal(attrs["XGAIN"], [0, 0, 0, 0])
@@ -73,9 +75,7 @@ class vnmrj_import_tester(unittest.TestCase):
         ]
 
     def test_import_vnmrj_1d(self):
-        datas = [
-            dnp.load(path=path, data_type="vnmrj") for path in self.test_data1Ds
-        ]
+        datas = [dnp.load(path=path, data_type="vnmrj") for path in self.test_data1Ds]
         for i, data in enumerate(datas):
             self.assertEqual(data.values.shape, (131072,))
             self.assertEqual(
@@ -89,9 +89,7 @@ class vnmrj_import_tester(unittest.TestCase):
         self.assertAlmostEqual(datas[1].values[365], (-950662 + 138458j))
 
     def test_import_vnmrj_2d(self):
-        datas = [
-            dnp.load(path=path, data_type="vnmrj") for path in self.test_data2Ds
-        ]
+        datas = [dnp.load(path=path, data_type="vnmrj") for path in self.test_data2Ds]
         for i, data in enumerate(datas):
             self.assertEqual(data.values.shape, (131072, 5))
             self.assertEqual(data.dims, ["t2", "t1"])
