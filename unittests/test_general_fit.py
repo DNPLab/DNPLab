@@ -13,7 +13,10 @@ class dnpFit_tester(unittest.TestCase):
         self.data = dnp.DNPData(self.y, [self.dim], [self.x])
 
     def test_fit_function(self):
-        fit = dnp.fit(dnp.lineshape.gaussian, self.data, dim = self.dim, p0 = self.p0)
+        out = dnp.fit(dnp.lineshape.gaussian, self.data, dim = self.dim, p0 = self.p0)
+        fit = out['fit']
+        print(fit)
+        print(fit.coords['x'])
 
         assert_allclose(self.data.values, fit.values)
         assert_array_equal(self.data.coords['x'], fit.coords['x'])
