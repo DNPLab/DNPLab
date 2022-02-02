@@ -95,7 +95,7 @@ def traf(x, lw):
     T = np.max(t)
     E = np.exp(-1 * t / T2)
     e = np.exp(-1 * (T - t) / T2)
-    return E * (E + e) / (E ** 2 + e ** 2)
+    return E * (E + e) / (E**2 + e**2)
 
 
 def hamming(x):
@@ -145,7 +145,7 @@ def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
     N = len(x)
     expo = np.pi * x * exp_lw
     gaus = 0.6 * np.pi * gauss_lw * (gaussian_max * (N - 1) - x)
-    return np.exp(expo - gaus ** 2).reshape(N)
+    return np.exp(expo - gaus**2).reshape(N)
 
 
 def sin2(x):

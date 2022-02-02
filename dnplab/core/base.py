@@ -431,7 +431,7 @@ class ABCData(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                a.error = np.sqrt(a.error ** 2.0 + b.error ** 2.0)
+                a.error = np.sqrt(a.error**2.0 + b.error**2.0)
             elif b.error is not None:
                 a.error = b.error
 
@@ -454,7 +454,7 @@ class ABCData(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                a.error = np.sqrt(a.error ** 2.0 + b.error ** 2.0)
+                a.error = np.sqrt(a.error**2.0 + b.error**2.0)
             elif b.error is not None:
                 a.error = b.error
 
