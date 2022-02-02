@@ -61,10 +61,10 @@ def fit(
 
     fit.fold()
 
-    pdims = fit.dims
+    pdims = list(fit.dims)
     pdims[0] = "popt"
 
-    pcoords = [x for x in fit.coords]
+    pcoords = list(fit.coords)
 
     pcoords[0] = np.array(range(0, len(p0)))
 
