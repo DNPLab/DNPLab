@@ -8,7 +8,7 @@ from copy import deepcopy
 
 class Coords(object):
     def __init__(self, dims, coords):
-        #super(Coords, self).__init__()
+        # super(Coords, self).__init__()
 
         if not isinstance(dims, list):
             raise ValueError("dims must be a list")
@@ -180,7 +180,7 @@ class Coords(object):
 
     def copy(self):
         return deepcopy(self)
-    
+
     def reorder_index(self, new_order):
         """Reorder based on index"""
         self._coords = [self._coords[x] for x in new_order]
