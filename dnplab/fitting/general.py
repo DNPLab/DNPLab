@@ -29,7 +29,6 @@ def fit(
     ydata = fit.values
     xdata = fit.coords[dim]
 
-
     popt_list = []
     perr_list = []
     for ix in range(fit.shape[1]):
@@ -55,7 +54,7 @@ def fit(
         popt_list.append(popt)
         perr_list.append(perr)
 
-    p_shape = list(fit.attrs['folded_shape'])
+    p_shape = list(fit.attrs["folded_shape"])
     p_shape[0] = len(p0)
     popt_array = np.array(popt_list).T.reshape(p_shape)
     perr_array = np.array(perr_list).T.reshape(p_shape)
@@ -63,19 +62,19 @@ def fit(
     fit.fold()
 
     pdims = fit.dims
-    pdims[0] = 'popt'
+    pdims[0] = "popt"
 
     pcoords = [x for x in fit.coords]
 
-    pcoords[0] = np.array(range(0,len(p0)))
+    pcoords[0] = np.array(range(0, len(p0)))
 
     popt_data = DNPData(popt_array, pdims, pcoords)
     perr_data = DNPData(perr_array, pdims, pcoords)
 
     out = {
-        'fit': fit,
-        'popt': popt_data,
-        'err': perr_data,
-        }
+        "fit": fit,
+        "popt": popt_data,
+        "err": perr_data,
+    }
 
     return out
