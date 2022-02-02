@@ -129,9 +129,6 @@ class dnplab_ABCData_coord_tester(unittest.TestCase):
     def test_get_str_uses_dim(self):
         assert_array_equal(self.collection_inst.dims, ["a", "b", "c"])
 
-    def test_str_rep(self):
-        self.assertEqual(str(self.collection_inst["a"]), r"'a':[0 1 2 3 4 5 6 7 8 9]")
-
     def test_get_int_uses_index(self):
         assert_array_equal(self.collection_inst[0], self.coord_inst_a)
 
@@ -149,9 +146,3 @@ class dnplab_ABCData_coord_tester(unittest.TestCase):
     def test_rename(self):
         self.collection_inst.rename("a", "new_a")
         assert_array_equal(self.collection_inst.dims, ["new_a", "b", "c"])
-
-    def test_rename_child_rep_changes(self):
-        self.collection_inst.rename("a", "new_a")
-        self.assertEqual(
-            str(self.collection_inst["new_a"]), r"'new_a':[0 1 2 3 4 5 6 7 8 9]"
-        )
