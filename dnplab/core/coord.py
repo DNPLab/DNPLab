@@ -6,281 +6,9 @@ from collections import OrderedDict
 from copy import deepcopy
 
 
-allowed_domains = ["FT", "IFT"]
-
-
-class nddata_coord(object):
-
-    # TODO: drop usused arguments
-    def __init__(self, dim, *args, step_type="linear", endpoint=False, **kwargs):
-        """
-        Args:
-            dim (str): name of dimension
-        """
-
-        self.dim = dim
-        if len(args) == 0:
-            self.__start = None
-            self.__stop = None
-            self.__step = None
-
-        if len(args) == 1:
-            coord = args[0]
-            if isinstance(coord, np.ndarray):
-                self._axis = coord
-                try:
-                    self.reduce()
-                    self._type = "linear"
-                except:
-                    self._type = "ndarray"
-            elif isinstance(coord, slice):
-                self.__start = coord.start
-                self.__stop = coord.stop
-                self.__step = coord.step
-            elif isinstance(coord, (int, float)):
-                self.__start = None
-                self.__stop = coord
-                self.__step = None
-            else:
-                raise ValueError("coord not understood")
-        if len(args) == 2:
-            start = args[0]
-            stop = args[1]
-            if isinstance(start, (int, float)) and isinstance(stop, (int, float)):
-                self.__start = start
-                self.__stop = stop
-                self.__step = None
-            else:
-                raise TypeError("coord not understood")
-        if len(args) == 3:
-            start = args[0]
-            stop = args[1]
-            step = args[2]
-            if (
-                isinstance(start, (int, float))
-                and isinstance(stop, (int, float))
-                and isinstance(step, (int, float))
-            ):
-                self.__start = start
-                self.__stop = stop
-                self.__step = step
-            else:
-                raise TypeError("coord not understood")
-
-        # set up other variables
-        if "type" in kwargs:
-            self._type = kwargs["type"]
-        else:
-            self._type = "linear"
-
-    def transform(self, new_domain, shift=False):
-
-        if new_domain not in allowed_domains:
-            raise ValueError("domain not supported")
-
-        if new_domain == "FT" or new_domain == "IFT":
-            step = 1.0 / (
-                self.size * self.step
-            )  # Does this reduce performance? size calculates array
-
-            if shift == True:
-                start = -0.5 / self.step
-                stop = 0.5 / self.step
-            else:
-                start = 0
-                stop = 1.0 / self.step
-
-        if hasattr(self, "_array"):
-            del self._array
-
-        return nddata_coord(self.dim, slice(start, stop, step))
-
-    def reduce(self):
-
-        if hasattr(self, "_array"):
-            start = self._array[0]
-            step = self._array[1] - self._array[0]
-            stop = self._array[-1] + step
-
-            if np.allclose(self._array, np.r_[slice(start, stop, step)]):
-                self.start = start
-                self.stop = stop
-                self.step = step
-            else:
-                raise ValueError("Array must have evenly spaced values to be reduced")
-        else:
-            raise ValueError("No array to reduce")
-
-    @property
-    def dim(self):
-        return self.__dim
-
-    @dim.setter
-    def dim(self, dim):
-
-        if isinstance(dim, str):
-            self.__dim = dim
-        else:
-            raise TypeError("dim must be type str not %s" % str(type(dim)))
-
-    @property
-    def start(self):
-        return self.__start
-
-    @start.setter
-    def start(self, b):
-        if isinstance(b, (int, float)):
-            self.__start = b
-        if hasattr(self, "_array"):
-            del self._array
-
-    @property
-    def stop(self):
-        return self.__stop
-
-    @stop.setter
-    def stop(self, b):
-        if isinstance(b, (int, float)):
-            self.__stop = b
-        if hasattr(self, "_array"):
-            del self._array
-
-    @property
-    def step(self):
-        return self.__step
-
-    @step.setter
-    def step(self, b):
-        if isinstance(b, (int, float)):
-            self.__step = b
-        if hasattr(self, "_array"):
-            del self._array
-
-    @property
-    def array(self):
-        """Return axes as numpy array"""
-        if hasattr(self, "_array"):
-            return self._array
-        else:
-            self._array = np.r_[slice(self.start, self.stop, self.step)]
-            return self._array
-
-    @array.setter
-    def array(self, b):
-        if isinstance(b, np.ndarray):
-            self._array = b
-        else:
-            raise TypeError("array type must be numpy.ndarray")
-
-    @array.deleter
-    def array(self):
-        del self._array
-
-    def slice(self, *args):
-        return self.array[slice(*args)]
-
-    def __getitem__(self, x):
-        return self.array[x]
-
-    def _del_array(self):
-        del self._array
-
-    @property
-    def size(self):
-        if hasattr(self, "_array"):
-            return self.array.size  # 3 times faster when array is stored in object
-        else:
-            return max(
-                int((self.stop - self.start) / self.step), 0
-            )  # Take max for case when direction is reversed
-
-    def __repr__(self):
-        return "nddata_coord('{}', {})".format(self.dim, self.array)
-
-    def __str__(self):
-        return "'{}':{}".format(self.dim, str(self.array))
-
-    def __add__(self, b):
-        start = self.start + b
-        stop = self.stop + b
-        step = self.step
-
-        if hasattr(self, "_array"):
-            del self.array
-
-        return nddata_coord(self.dim, slice(start, stop, step))
-
-    __radd__ = __add__
-
-    def __sub__(self, b):
-        start = self.start - b
-        stop = self.stop - b
-        step = self.step
-
-        if hasattr(self, "_array"):
-            del self.array
-
-        return nddata_coord(self.dim, slice(start, stop, step))
-
-    def __rsub__(self, b):
-        # switch start and stop
-        start = b - self.stop
-        stop = b - self.start
-        step = self.step
-
-        if hasattr(self, "_array"):
-            del self.array
-
-        return nddata_coord(self.dim, slice(start, stop, step))
-
-    def __mul__(self, b):
-        start = b * self.start
-        stop = b * self.stop
-        step = b * self.step
-
-        if hasattr(self, "_array"):
-            del self.array
-
-        return nddata_coord(self.dim, slice(start, stop, step))
-
-    __rmul__ = __mul__
-
-    def __truediv__(self, b):
-        start = self.start / b
-        stop = self.stop / b
-        step = self.step / b
-
-        if hasattr(self, "_array"):
-            del self.array
-
-        return nddata_coord(self.dim, slice(start, stop, step))
-
-    def __rtruediv__(self, b):
-        start = b / self.start
-        stop = b / self.stop
-        step = b / self.step
-
-        if hasattr(self, "_array"):
-            del self.array
-
-        return nddata_coord(self.dim, slice(start, stop, step))
-
-    def __array__(self):
-        return self.array
-
-    def __len__(self):
-        return len(self.array)
-
-    def __matmul__(self, b):
-        return self.start + self.step * b
-
-    @property
-    def shape(self):
-        return self.array.shape
-
-
-class nddata_coord_collection(object):
+class Coords(object):
     def __init__(self, dims, coords):
+        #super(Coords, self).__init__()
 
         if not isinstance(dims, list):
             raise ValueError("dims must be a list")
@@ -341,7 +69,7 @@ class nddata_coord_collection(object):
 
         # Verify each member is 1d numpy array (and not empty)
         for coord in coords:
-            if not isinstance(coord, (nddata_coord, np.ndarray)):
+            if not isinstance(coord, np.ndarray):
                 return False
             if (not (len(coord.shape) == 1)) or (coord.size == 0):
                 return False
@@ -365,7 +93,7 @@ class nddata_coord_collection(object):
     def __setitem__(self, dim, coord):
         if not isinstance(dim, str):
             raise TypeError("dim must be type str not %s" % str(type(dim)))
-        if not isinstance(coord, (nddata_coord, np.ndarray)):
+        if not isinstance(coord, (np.ndarray)):
             raise TypeError(
                 "argument must be type nddata_coord or numpy ndarray not %s"
                 % str(type(coord))
@@ -407,7 +135,7 @@ class nddata_coord_collection(object):
             raise TypeError("Invalid coords. Cannot set coords to {}".format(coords))
 
     def __repr__(self):
-        return "nddata_coord_collection({})".format(self.coords)
+        return "Coords({})".format(self.coords)
 
     def __str__(self):
         return "dims:\n{}\ncoords:\n{}".format(self.dims, self.coords)
@@ -452,7 +180,7 @@ class nddata_coord_collection(object):
 
     def copy(self):
         return deepcopy(self)
-
+    
     def reorder_index(self, new_order):
         """Reorder based on index"""
         self._coords = [self._coords[x] for x in new_order]
@@ -460,18 +188,14 @@ class nddata_coord_collection(object):
 
     def rename(self, dim, new_dim):
 
-        if isinstance(self[dim], nddata_coord):
-            self[dim].dim = new_dim
-            self.dims[self.index(dim)] = new_dim
-        else:
-            self.dims[self.index(dim)] = new_dim
+        self.dims[self.index(dim)] = new_dim
 
     def append(self, dim, coord):
         """Append to coords"""
         if not isinstance(dim, str):
             raise TypeError("dim must be type str not %s" % str(type(dim)))
 
-        if not isinstance(coord, (complex, float, int, np.ndarray, nddata_coord)):
+        if not isinstance(coord, (complex, float, int, np.ndarray)):
             raise TypeError("coord must be type numpy not %s" % str(type(coord)))
 
         if isinstance(coord, (list, range, float, int, complex)):
