@@ -37,6 +37,9 @@ def background(data, dim="t2", deg=0, regions=None):
         dim (str): Dimension to perform background fit
         deg (int): Polynomial degree
         regions (None, list): Background regions, by default entire region is background corrected. Regions can be specified as a list of tuples [(min, max), ...]
+
+    Returns:
+        DNPData: Background fit
     """
 
     out = data.copy()
