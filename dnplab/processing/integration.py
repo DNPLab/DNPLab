@@ -39,14 +39,6 @@ def integrate(data, dim="f2", regions=None):
         dim (str): Dimension to perform integration
         regions (None, list): List of tuples, by default entire dimension is integrated
 
-    +------------------+---------------+----------+-------------------------------+
-    | parameter        | type          | default  | description                   |
-    +==================+===============+==========+===============================+
-    | dim              | str           | 'f2'     | dimension to integrate        |
-    +------------------+---------------+----------+-------------------------------+
-    | regions          | list          | None     | Regions for integration       |
-    +------------------+---------------+----------+-------------------------------+
-
     Returns:
         data: integrals of data
     """
