@@ -20,7 +20,7 @@ def t1(t, T1, M_0, M_inf):
     return M_0 - M_inf * np.exp(-1.0 * t / T1)
 
 
-def t2(t, M_0, T2, p = 1.0):
+def t2(t, M_0, T2, p=1.0):
     """Calculate stretched or un-stretched (p=1) exponential T2 curve
 
     .. math::
