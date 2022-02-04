@@ -1,7 +1,6 @@
 import numpy as np
 
 from ..math import window
-from ..core.data import DNPData
 
 _windows = {
     "exponential": window.exponential,
