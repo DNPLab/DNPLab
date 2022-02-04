@@ -2,10 +2,10 @@ import numpy as np
 
 
 def t1(t, T1, M_0, M_inf):
-    """Calculate exponential T1 curve
+    """Exponential recovery for inversion recovery and saturation recovery T1 Measurements
 
     .. math::
-        f(t) = M_0 - M_{\infty} e^{-t/T_{1}}
+        f(t) = M_{\infty} - (M_{\infty} - M_0) e^{-t/T_1}
 
     Args:
         t (array_like): time series
@@ -17,14 +17,14 @@ def t1(t, T1, M_0, M_inf):
         ndarray: T1 curve
     """
 
-    return M_0 - M_inf * np.exp(-1.0 * t / T1)
+    return M_inf - (M_inf - M_0) * np.exp(-1.0 * t / T1)
 
 
 def t2(t, M_0, T2, p=1.0):
     """Calculate stretched or un-stretched (p=1) exponential T2 curve
 
     .. math::
-        f(t) = M_{0} e^{(-2(t/T_{2})^{p}}
+        f(t) = M_{0} e^{(-(t/T_{2})^{p}}
 
     Args:
         t (array_like): time series
@@ -36,7 +36,7 @@ def t2(t, M_0, T2, p=1.0):
         ndarray: T2 curve
     """
 
-    return M_0 * np.exp(-2.0 * (t / T2) ** p)
+    return M_0 * np.exp(-1.0 * (t / T2) ** p)
 
 
 def general_exp(t, C1, C2, tau):
