@@ -1,25 +1,31 @@
-import numpy as _np
+import numpy as np
 from scipy.optimize import curve_fit
+from ..core.data import DNPData
 
 
 def fit(
     f,
     data,
-    dim=None,
-    p0=None,
+    dim,
+    p0,
     sigma=None,
     absolute_sigma=False,
     check_finite=True,
-    bounds=(-1 * _np.inf, _np.inf),
+    bounds=(-1 * np.inf, np.inf),
     method=None,
     jac=None,
     **kwargs
 ):
-    """
-    proc_parameters = {"dim": dim}
-    original_order = data.dims  # Original order of dims
-    data.reorder([dim])  # Move dim to first dimension
-    all_values = data.values  # Extract Data Values for alignment
+    """Fitting function for DNPData
+
+    Args:
+        f (func): Function used in scipy.curve_fit
+        data (DNPData): Data for fit
+        dim (str): Dimension to perform fit along
+        p0 (tuple): Initial guess for fit
+
+    Returns:
+        out (dict): Dictionary of fit, fitting parameters, and error
     """
 
     fit = data.copy()
@@ -28,6 +34,8 @@ def fit(
     ydata = fit.values
     xdata = fit.coords[dim]
 
+    popt_list = []
+    perr_list = []
     for ix in range(fit.shape[1]):
         ydata = fit.values[:, ix]
         out = curve_fit(
@@ -45,7 +53,33 @@ def fit(
         )
         fit_values = f(xdata, *out[0])
         fit.values[:, ix] = fit_values
+        popt = out[0]
+        pcov = out[1]
+        perr = np.sqrt(np.diag(pcov))
+        popt_list.append(popt)
+        perr_list.append(perr)
+
+    p_shape = list(fit.attrs["folded_shape"])
+    p_shape[0] = len(p0)
+    popt_array = np.array(popt_list).T.reshape(p_shape)
+    perr_array = np.array(perr_list).T.reshape(p_shape)
 
     fit.fold()
 
-    return fit
+    pdims = list(fit.dims)
+    pdims[0] = "popt"
+
+    pcoords = list(fit.coords)
+
+    pcoords[0] = np.array(range(0, len(p0)))
+
+    popt_data = DNPData(popt_array, pdims, pcoords)
+    perr_data = DNPData(perr_array, pdims, pcoords)
+
+    out = {
+        "fit": fit,
+        "popt": popt_data,
+        "err": perr_data,
+    }
+
+    return out

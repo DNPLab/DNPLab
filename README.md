@@ -2,7 +2,7 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dnplab)](https://www.python.org/downloads/)
 [![Downloads](https://pepy.tech/badge/dnplab/month)](https://pepy.tech/project/dnplab)
 
-[![DNPLab Logo](docs/source/_static/images/dnpLabLogo.png)](http://dnplab.net)
+[![DNPLab Logo](http://dnplab.net/_static/dnpLabLogo.png)](http://dnplab.net)
 # DNPLab - Bringing the Power of Python to DNP-NMR Spectroscopy
 
 DNPLab is a collaboration between:
