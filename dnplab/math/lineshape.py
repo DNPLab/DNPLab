@@ -5,6 +5,12 @@ from scipy.special import wofz
 def voigtian(x, x0, sigma, gamma, integral = 1.0):
     """Voigtian distribution. Lineshape given by a convolution of Gaussian and Lorentzian distributions.
 
+    :math:`f(x; x_0, \sigma, \gamma) = \frac{\operatorname{Re}[w(z)]}{\sigma \sqrt{2 \pi}}
+
+    where,
+
+    :math:`z = \frac{x + i\gamma}{\sigma \sqrt{2}}
+
     Args:
         x (array_like): input x
         x0 (float): center of distribution
@@ -23,6 +29,8 @@ def voigtian(x, x0, sigma, gamma, integral = 1.0):
 def gaussian(x, x0, sigma, integral = 1.0):
     """Gaussian distribution. 
 
+    :math:`f(x; x_0, \sigma) = \frac{1}{\sigma \sqrt{2 \pi}} \exp{\left(\frac{(x-x_0)^2}{2 \sigma^2}\right)}
+
     Args:
         x (array_like): input x
         x0 (float): Center of distribution
@@ -39,6 +47,8 @@ def gaussian(x, x0, sigma, integral = 1.0):
 
 def lorentzian(x, x0, gamma, integral = 1.0):
     """Lorentzian Distribution.
+
+    f(x) = \frac{1}{\pi \gamma} \left[\frac{\gamma^2}{(x-x_0)^2 + \gamma^2}\right]
 
     Args:
         x (array_like): input x
