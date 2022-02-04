@@ -10,6 +10,8 @@ def cumulative_integrate(data, dim="f2", regions=None):
 
     Args:
         data (DNPData): Data object
+        dim (str): Dimension to perform cumulative integration
+        regions (None, list): List of tuples to specify range of integration [(min, max), ...]
 
     Returns:
         data: cumulative sum of data
@@ -35,7 +37,7 @@ def integrate(data, dim="f2", regions=None):
     Args:
         data (DNPData): Data object
         dim (str): Dimension to perform integration
-        regions (list): List of tuples, by default entire dimension is integrated
+        regions (None, list): List of tuples, by default entire dimension is integrated
 
     +------------------+---------------+----------+-------------------------------+
     | parameter        | type          | default  | description                   |
