@@ -4,7 +4,7 @@ import numpy as np
 import warnings
 from copy import deepcopy
 from collections import OrderedDict
-from .coord import nddata_coord_collection
+from .coord import Coords
 
 
 _numerical_types = (np.ndarray, int, float, complex, np.complex64)
@@ -35,7 +35,7 @@ class ABCData(object):
                 'values must be type "numpy.ndarray" not %s' % str(type(values))
             )
 
-        self._coords = nddata_coord_collection(dims, coords)
+        self._coords = Coords(dims, coords)
 
         if isinstance(attrs, dict):
             self._attrs = attrs
@@ -431,7 +431,7 @@ class ABCData(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                a.error = np.sqrt(a.error ** 2.0 + b.error ** 2.0)
+                a.error = np.sqrt(a.error**2.0 + b.error**2.0)
             elif b.error is not None:
                 a.error = b.error
 
@@ -454,7 +454,7 @@ class ABCData(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                a.error = np.sqrt(a.error ** 2.0 + b.error ** 2.0)
+                a.error = np.sqrt(a.error**2.0 + b.error**2.0)
             elif b.error is not None:
                 a.error = b.error
 

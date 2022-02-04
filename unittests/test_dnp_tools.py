@@ -7,18 +7,15 @@ import numpy as np
 class dnpTools_tester(unittest.TestCase):
     def setUp(self):
         x = np.r_[0:10]
-        y = x**2.
+        y = x ** 2.0
         self.data = dnp.DNPData(y, ["t2"], [x])
 
     def test_signal_to_noise(self):
 
-        dnp.signal_to_noise(
-            self.data,
-            dim = 't2',
-        )
+        dnp.signal_to_noise()
 
     def test_integrate(self):
-        dnp.integrate(self.data, dim = "t2")
+        dnp.integrate(self.data, dim="t2")
 
     def test_mr_properties(self):
 
@@ -36,4 +33,3 @@ class dnpTools_tester(unittest.TestCase):
 
         info_6Li = dnp.mr_properties("6Li", "relSensitivity")
         self.assertEqual(info_6Li, 0.000645)
-

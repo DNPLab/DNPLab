@@ -31,7 +31,7 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         start = data.coords[dim][-1]
         stop = data.coords[dim][0]
     else:
-        raise ValueError("selected rangfe is not accpetable")
+        raise ValueError("selected range is not accpetable")
 
     values = data[dim, (start, stop)].values
 

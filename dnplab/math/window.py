@@ -22,7 +22,7 @@ def exponential(x, lw):
     """Calculate exponential window function
 
     .. math::
-        \mathrm{exponential} =  e^{-2t * \mathrm{linewidth}}
+        f(x) =  e^{-2t * lw}
 
     Args:
         x (array_like): Vector of points
@@ -35,7 +35,7 @@ def exponential(x, lw):
 
 
 def gaussian(x, lw):
-    """Calculate gaussian window function
+    r"""Calculate gaussian window function
 
     .. math::
         \mathrm{gaussian} = e^{(\sigma * x^{2})}
@@ -51,7 +51,7 @@ def gaussian(x, lw):
 
 
 def hann(x):
-    """Calculate hann window function
+    r"""Calculate hann window function
 
     .. math::
         \mathrm{han} = 0.5 + 0.5\cos(\pi * n / (N-1))
@@ -61,7 +61,7 @@ def hann(x):
         N(int): number of points to return in window function
 
     Returns:
-        array: hann window function
+        ndarray: hann window function
     """
 
     if type(x) == int:
@@ -73,7 +73,7 @@ def hann(x):
 
 
 def traf(x, lw):
-    """Calculate traf window function
+    r"""Calculate traf window function
 
     .. math::
         \mathrm{traf}  &=  (f1 * (f1 + f2)) / (f1^{2} + f2^{2}) &
@@ -88,18 +88,18 @@ def traf(x, lw):
         lw (str): linewidth of traficant window
 
     Returns:
-        np.ndarray: traf window function
+        ndarray: traf window function
     """
     T2 = 1.0 / (np.pi * lw)
     t = x
     T = np.max(t)
     E = np.exp(-1 * t / T2)
     e = np.exp(-1 * (T - t) / T2)
-    return E * (E + e) / (E ** 2 + e ** 2)
+    return E * (E + e) / (E**2 + e**2)
 
 
 def hamming(x):
-    """Calculate hamming window function
+    r"""Calculate hamming window function
 
     .. math::
         \mathrm{hamming} = 0.53836 + 0.46164\cos(\pi * n / (N-1))
@@ -109,7 +109,7 @@ def hamming(x):
         N(int): number of points to return in window function
 
     Returns:
-        array: hamming window function
+        ndarray: hamming window function
     """
     if type(x) == int:
         N = x
@@ -121,7 +121,7 @@ def hamming(x):
 
 # FIX -> Function does not look correct
 def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
-    """Calculate lorentz-gauss window function
+    r"""Calculate lorentz-gauss window function
 
     .. math::
         \mathrm{lorentz\_gauss} &=  \exp(L -  G^{2}) &
@@ -145,11 +145,11 @@ def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
     N = len(x)
     expo = np.pi * x * exp_lw
     gaus = 0.6 * np.pi * gauss_lw * (gaussian_max * (N - 1) - x)
-    return np.exp(expo - gaus ** 2).reshape(N)
+    return np.exp(expo - gaus**2).reshape(N)
 
 
 def sin2(x):
-    """Calculate sin-squared window function
+    r"""Calculate sin-squared window function
 
     .. math::
         \sin^{2}  =  \cos((-0.5\pi * n / (N - 1)) + \pi)^{2}
