@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 
 
-def manual_phase(data, dim = "f2", fast = True):
+def manual_phase(data, dim = "f2"):
     """Manually Phase NMR Spectra"""
 
     fig, ax = plt.subplots()
@@ -17,10 +17,9 @@ def manual_phase(data, dim = "f2", fast = True):
     size = coord.size
     values = data.values
     values = values.reshape(size, -1)
-    if fast:
-        values = values[:,0].reshape(-1,1)
+    values = values[:,0].reshape(-1,1)
 
-    l0 = plt.plot(coord, values, alpha=0.2)
+    l0 = plt.plot(coord, values, alpha=0.5)
     l = plt.plot(coord, values)
     ax.margins(x=0)
 
