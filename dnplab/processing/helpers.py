@@ -6,13 +6,12 @@ from ..processing.integration import integrate
 
 
 def calculate_enhancement():
-    """Calculate enhancement 
-    
+    """Calculate enhancement
+
     Returns:
         NotImplemented
 
     """
-    
 
     return NotImplemented
 
@@ -73,7 +72,7 @@ def normalize():
     return NotImplemented
 
 
-def reference(data, dim = 'f2', old_ref = 0, new_ref = 0):
+def reference(data, dim="f2", old_ref=0, new_ref=0):
     """Function for referencing NMR spectra
 
     Args:
@@ -88,6 +87,6 @@ def reference(data, dim = 'f2', old_ref = 0, new_ref = 0):
 
     data = data.copy()
 
-    data.coords[dim] -= (old_ref - new_ref)
+    data.coords[dim] -= old_ref - new_ref
 
     return data

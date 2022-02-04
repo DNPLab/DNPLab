@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 
 
-def manual_phase(data, dim = "f2"):
+def manual_phase(data, dim="f2"):
     """Manually Phase NMR Spectra"""
 
     fig, ax = plt.subplots()
@@ -17,7 +17,7 @@ def manual_phase(data, dim = "f2"):
     size = coord.size
     values = data.values
     values = values.reshape(size, -1)
-    values = values[:,0].reshape(-1,1)
+    values = values[:, 0].reshape(-1, 1)
 
     l0 = plt.plot(coord, values, alpha=0.5)
     l = plt.plot(coord, values)
@@ -35,8 +35,8 @@ def manual_phase(data, dim = "f2"):
         margin = 0
         min_y_data = 0
         max_y_data = 0
-        for ix,line in enumerate(l):
-            y_data = np.real(np.exp(-1j * np.pi * phase / 180.0) * values[:,ix])
+        for ix, line in enumerate(l):
+            y_data = np.real(np.exp(-1j * np.pi * phase / 180.0) * values[:, ix])
             margin = max(0.1 * (np.max(y_data) - np.min(y_data)), margin)
             line.set_ydata(y_data)
             min_y_data = min(min_y_data, np.min(y_data))
