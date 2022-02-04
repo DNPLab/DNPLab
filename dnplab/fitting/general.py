@@ -6,8 +6,8 @@ from ..core.data import DNPData
 def fit(
     f,
     data,
-    dim=None,
-    p0=None,
+    dim,
+    p0,
     sigma=None,
     absolute_sigma=False,
     check_finite=True,
@@ -16,11 +16,16 @@ def fit(
     jac=None,
     **kwargs
 ):
-    """
-    proc_parameters = {"dim": dim}
-    original_order = data.dims  # Original order of dims
-    data.reorder([dim])  # Move dim to first dimension
-    all_values = data.values  # Extract Data Values for alignment
+    """Fitting function for DNPData
+
+    Args:
+        f (func): Function used in scipy.curve_fit
+        data (DNPData): Data for fit
+        dim (str): Dimension to perform fit along
+        p0 (tuple): Initial guess for fit
+
+    Returns:
+        out (dict): Dictionary of fit, fitting parameters, and error
     """
 
     fit = data.copy()
