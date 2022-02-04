@@ -73,5 +73,21 @@ def normalize():
     return NotImplemented
 
 
-def reference():
-    return NotImplemented
+def reference(data, dim = 'f2', old_ref = 0, new_ref = 0):
+    """Function for referencing NMR spectra
+
+    Args:
+        data (DNPData): Data for referencing
+        dim (str): dimension to perform referencing down. By default this dimension is "f2".
+        old_ref (float): Value of old reference
+        new_ref (float): New reference value
+
+    Returns:
+        DNPData: referenced data
+    """
+
+    data = data.copy()
+
+    data.coords[dim] -= (old_ref - new_ref)
+
+    return data
