@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def t1_function(t, T1, M_0, M_inf):
+def t1(t, T1, M_0, M_inf):
     """Calculate exponential T1 curve
 
     .. math::
@@ -20,7 +20,7 @@ def t1_function(t, T1, M_0, M_inf):
     return M_0 - M_inf * np.exp(-1.0 * t / T1)
 
 
-def t2_function(t, M_0, T2, p):
+def t2(t, M_0, T2, p):
     """Calculate stretched or un-stretched (p=1) exponential T2 curve
 
     .. math::
@@ -39,7 +39,7 @@ def t2_function(t, M_0, T2, p):
     return M_0 * np.exp(-2.0 * (t / T2) ** p)
 
 
-def monoexp_fit(t, C1, C2, tau):
+def general_exp(t, C1, C2, tau):
     """Calculate mono-exponential curve
 
     .. math::
@@ -58,7 +58,7 @@ def monoexp_fit(t, C1, C2, tau):
     return C1 + C2 * np.exp(-1.0 * t / tau)
 
 
-def biexp_fit(t, C1, C2, tau1, C3, tau2):
+def general_biexp(t, C1, C2, tau1, C3, tau2):
     """Calculate bi-exponential curve
 
     .. math::
@@ -94,4 +94,4 @@ def buildup_function(p, E_max, p_half):
         array: buildup curve
     """
 
-    return E_max * p / (p_half + p)
+    return 1 + E_max * p / (p_half + p)
