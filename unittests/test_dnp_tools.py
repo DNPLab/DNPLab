@@ -12,10 +12,7 @@ class dnpTools_tester(unittest.TestCase):
 
     def test_signal_to_noise(self):
 
-        dnp.signal_to_noise(
-            self.data,
-            dim="t2",
-        )
+        dnp.signal_to_noise()
 
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")
