@@ -31,7 +31,7 @@ def remove_background(data, dim="t2", deg=0, regions=None):
 
 def background(data, dim="t2", deg=0, regions=None):
     """Remove background from data
-    
+
     Args:
         data (DNPData): Data object
         dim (str): Dimension to perform background fit
