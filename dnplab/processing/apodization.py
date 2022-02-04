@@ -14,7 +14,7 @@ _windows = {
 
 
 def apodize(data, dim="t2", kind="exponential", **kwargs):
-    """Apply Apodization to data down given dimension
+    r"""Apply Apodization to data down given dimension
 
     .. math::
 

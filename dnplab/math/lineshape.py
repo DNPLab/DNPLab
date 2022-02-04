@@ -3,7 +3,7 @@ from scipy.special import wofz
 
 
 def voigtian(x, x0, sigma, gamma, integral=1.0):
-    """Voigtian distribution. Lineshape given by a convolution of Gaussian and Lorentzian distributions.
+    r"""Voigtian distribution. Lineshape given by a convolution of Gaussian and Lorentzian distributions.
 
     :math:`f(x; x_0, \sigma, \gamma) = \frac{\operatorname{Re}[w(z)]}{\sigma \sqrt{2 \pi}}
 
@@ -27,7 +27,7 @@ def voigtian(x, x0, sigma, gamma, integral=1.0):
 
 
 def gaussian(x, x0, sigma, integral=1.0):
-    """Gaussian distribution.
+    r"""Gaussian distribution.
 
     :math:`f(x; x_0, \sigma) = \frac{1}{\sigma \sqrt{2 \pi}} \exp{\left(\frac{(x-x_0)^2}{2 \sigma^2}\right)}
 
@@ -48,7 +48,7 @@ def gaussian(x, x0, sigma, integral=1.0):
 
 
 def lorentzian(x, x0, gamma, integral=1.0):
-    """Lorentzian Distribution.
+    r"""Lorentzian Distribution.
 
     f(x) = \frac{1}{\pi \gamma} \left[\frac{\gamma^2}{(x-x_0)^2 + \gamma^2}\right]
 
