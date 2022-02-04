@@ -22,7 +22,7 @@ def exponential(x, lw):
     """Calculate exponential window function
 
     .. math::
-        \mathrm{exponential} =  e^{-2t * \mathrm{linewidth}}
+        f(x) =  e^{-2t * lw}
 
     Args:
         x (array_like): Vector of points
@@ -61,7 +61,7 @@ def hann(x):
         N(int): number of points to return in window function
 
     Returns:
-        array: hann window function
+        ndarray: hann window function
     """
 
     if type(x) == int:
@@ -88,7 +88,7 @@ def traf(x, lw):
         lw (str): linewidth of traficant window
 
     Returns:
-        np.ndarray: traf window function
+        ndarray: traf window function
     """
     T2 = 1.0 / (np.pi * lw)
     t = x

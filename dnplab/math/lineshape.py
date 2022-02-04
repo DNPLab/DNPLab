@@ -40,9 +40,7 @@ def gaussian(x, x0, sigma, integral = 1.0):
     Returns:
         ndarray: Gaussian distribution
     """
-    return (
-        integral / (sigma * np.sqrt(2 * np.pi)) * np.exp(-((x - x0) ** 2) / (2 * sigma**2))
-    )
+    return integral / (sigma * np.sqrt(2 * np.pi)) * np.exp(-((x - x0) ** 2) / (2 * sigma**2))
 
 
 def lorentzian(x, x0, gamma, integral = 1.0):
