@@ -1,7 +1,6 @@
 """
 DNPData object for storing N-dimensional data with coordinates
 """
-from collections.abc import MutableMapping
 
 import numpy as np
 

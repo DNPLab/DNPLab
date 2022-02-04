@@ -1,7 +1,6 @@
 import numpy as np
 
 from ..math import window
-from ..core.data import DNPData
 
 _windows = {
     "exponential": window.exponential,
@@ -15,7 +14,7 @@ _windows = {
 
 
 def apodize(data, dim="t2", kind="exponential", **kwargs):
-    """Apply Apodization to data down given dimension
+    r"""Apply Apodization to data down given dimension
 
     .. math::
 
