@@ -83,30 +83,31 @@ Features
 
    introduction
    install
-   quick-start
-   auto_examples/index
-   dnpData
-   dnpImport
-   dnpIO
-   dnpSave
-   dnpMath
-   dnpTools
-   dnpNMR
-   dnpFit
-   dnpHydration
-   dnpResults
+
+.. quick-start
+.. auto_examples/index
+.. dnpData
+.. dnpImport
+.. dnpIO
+.. dnpSave
+.. dnpMath
+.. dnpTools
+.. dnpNMR
+.. dnpFit
+.. dnpHydration
+.. dnpResults
 
 Index
 =====
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`
 
 Acknowledgements
 ================
 
-Development of DNPLap is sponsored by grants by the United States and the Germany. In particular:
+Development of DNPLap is sponsored by grants by the United States and Germany. In particular:
 
 * |B12TLink| acknowledges support from the U.S. National Institutes of Health (NIH), grant |GM116612|.
 * The |HanLabLink| acknowledges support from the U.S. National Science Foundation (NSF), Award No. CHE-1800596 and the German Science Foundation (DFG) as part of the Excellence Initiative under RESOLVDFG-EXC-2033 Project No. 390677874.
