@@ -1,3 +1,5 @@
+"""Modules for importing experimental data and exporting data and results"""
+
 from . import prospa
 from . import topspin
 from . import delta

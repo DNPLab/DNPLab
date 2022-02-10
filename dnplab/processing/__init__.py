@@ -1,3 +1,4 @@
+"""Modules operating on a DNPData object to return a new DNPData object"""
 from .align import *
 from .apodization import *
 from .fft import *
