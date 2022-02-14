@@ -26,26 +26,18 @@ def plot(data, *args, **kwargs):
 
     Example::
 
-       # Plotting a dnpdata object
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.plot(data)
-       dnp.dnpResults.plt.show()
+    
+        import matplotlib.pylab as plt
 
-       # Plotting a workspace (dnpdata_collection)
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.plot(ws['proc'])
-       dnp.dnpResults.plt.show()
+        # Plotting a dnpdata object
+        plt.figure()
+        dnp.plot(data)
+        plt.show()
 
-       # Plotting two curves on the same figure
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.plot(ws['proc1'])
-       dnp.dnpResults.plot(ws['proc2'])
-       dnp.dnpResults.plt.show()
-
-       # Plotting with some custom parameters
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.plot(ws['proc'], 'k-', linewidth = 3.0, alpha = 0.5)
-       dnp.dnpResults.plt.show()
+        # Plotting with some custom parameters
+        plt.figure()
+        dnp.plot(data, 'k-', linewidth = 3.0, alpha = 0.5)
+        plt.show()
 
     """
 
