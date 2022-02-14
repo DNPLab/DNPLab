@@ -10,6 +10,7 @@ light_grey = "#A7A9AC"
 orange = "#F37021"
 
 plt.rcParams["lines.linewidth"] = 1.5
+plt.rcParams["font.size"] = 14
 plt.rcParams["axes.prop_cycle"] = plt.cycler(
     color=[orange, dark_green, light_green, dark_grey, light_grey]
 )
