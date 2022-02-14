@@ -59,6 +59,7 @@ def plot(data, *args, **kwargs):
     data.unfold(dim)
 
     plt.plot(coord, data.values.real, *args, **kwargs)
+    plt.xlabel(dim)
     data.fold()
 
 
