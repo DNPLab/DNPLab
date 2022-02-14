@@ -62,5 +62,3 @@ def plot(data, *args, **kwargs):
     plt.xlabel(dim)
     data.fold()
 
-
-show = plt.show
