@@ -1,6 +1,6 @@
 .. List of static links to website. Order alphabetically by reference name
 
-.. Unsorted Lins
+.. -------------------------- Unsorted Links --------------------------
 
 .. |MITLicense| raw:: html
 
@@ -12,8 +12,22 @@
    <a href="https://en.wikipedia.org/wiki/Open_source" target="_blank">Open Source</a>
 
 
+.. |Git| raw:: html
 
-.. Sorted Links
+   <a href="https://en.wikipedia.org/wiki/Git" target="_blank">Git</a>
+
+.. |HanLab| raw:: html
+
+   <a href="https://github.com/thcasey3/hanlab" target="_blank">Han Lab</a>
+
+
+.. |pip| raw:: html
+
+   <a href="https://pip.pypa.io/en/stable/" target="_blank">pip</a>
+
+
+
+.. -------------------------- Sorted Links --------------------------
 
 .. |B12TLink| raw:: html
 
@@ -28,6 +42,11 @@
 .. |dnpLabGitLink| raw:: html
 
    <a href="https://github.com/DNPLab/dnpLab" target="_blank"> DNPLab on GitHub</a>
+
+
+.. |DNPNMR| raw:: html
+
+   <a href="https://www.bridge12.com/learn/dnp-spectroscopy/" target="_blank">DNP-NMR</a>
 
 
 .. |DNPSpectroscopy| raw:: html

@@ -2,46 +2,31 @@
 Welcome to DNPLab
 =================
 
-Welcome to the DNPLab documentation. DNPLab is an Open Source Python package for importing, processing, and analyzing data determined in a Dynamic Nuclear Polarization (|DNPSpectroscopy|) experiment. The aim of the project is to provide a free, turn-key python-based processing package DNP-NMR data.
+Welcome to the DNPLab documentation. DNPLab is an object-oriented |OpenSource| Python-based package for importing, processing, and analyzing data determined in a Dynamic Nuclear Polarization (|DNPSpectroscopy|) experiment. The aim of the project is to provide a free, turn-key python-based processing package DNP-NMR data.
 
-DNPLab is a collaborative project created by
+DNPLab is a collaborative project created by:
 
 * |B12TLink|
 * The |HanLabLink| at University of California, Santa Barbara
 * The |FranckLabLink| at Syracuse University
 
-DNPLab is a python-based |OpenSource| software package, distributed under the |MITLicense|. 
+DNPLab is distributed free of charge under the |MITLicense|. 
 
-The source code for the project is published here: |dnpLabGitLink|
-
-Please report all issues related to dnpLab using the: |dnpLabGitIssueTrackerLink|
-
-.. list-table::
-   :widths: 60 40
-
-   * - Current Release
-     - |release|
-   * - Documentation Build Date
-     - |date|
-   * - Author(s)
-     - |author|
-
-To check the DNPLab version that is currently installed on your computer type in a terminal
-
-.. code-block:: bash
-
-    $ pip show dnplab
+Please report all issues on the |dnpLabGitIssueTrackerLink|.
 
 
 .. toctree::
    :caption: Overview
+   :maxdepth: 1
    :hidden:
 
    introduction
+   currentRelease
 
 
 .. toctree::
    :caption: User Guide
+   :maxdepth: 1
    :hidden:
 
    installation
