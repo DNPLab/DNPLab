@@ -1,2 +1,2 @@
-"""Modules which provide a workflow for processing DNPData objects"""
+"""Modules which provide a workflow for processing dnpData objects"""
 from . import hydration
