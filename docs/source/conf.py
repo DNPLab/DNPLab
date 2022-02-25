@@ -24,7 +24,7 @@ print(sys.path)
 # -- Project information -----------------------------------------------------
 
 project = u"DNPLab"
-copyright = u"2021, DNPLab"
+copyright = u"2022, DNPLab"
 author = u"DNPLab Team"
 
 from datetime import datetime
@@ -65,9 +65,14 @@ def make_rst_epilog(rst_epilog_list):
 
 rst_epilog = make_rst_epilog(rst_epilog_list)
 
+# Add links from linkList.rst
+with open('_static/linkList.rst') as f:
+     rst_epilog += f.read()
+
 # rst_epilog = """
 # .. |psf| replace:: Python Software Foundation
 # """
+
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -108,7 +113,7 @@ language = u"Python"
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_build', 'links.rst']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
