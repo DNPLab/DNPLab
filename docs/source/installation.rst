@@ -1,8 +1,3 @@
-.. |dnpLabGitLink| raw:: html
-
-   <a href="https://github.com/DNPLab" target="_blank"> DNPLab </a>
-
-
 ==================
 Installing DNPLab
 ==================

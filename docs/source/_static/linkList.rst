@@ -1,5 +1,20 @@
 .. List of static links to website. Order alphabetically by reference name
 
+.. Unsorted Lins
+
+.. |MITLicense| raw:: html
+
+   <a href="https://en.wikipedia.org/wiki/MIT_License" target="_blank">MIT License</a>
+
+
+.. |OpenSource| raw:: html
+
+   <a href="https://en.wikipedia.org/wiki/Open_source" target="_blank">Open Source</a>
+
+
+
+.. Sorted Links
+
 .. |B12TLink| raw:: html
 
    <a href="http://www.bridge12.com" target="_blank"> Bridge12 Technologies, Inc.</a>
@@ -15,6 +30,11 @@
    <a href="https://github.com/DNPLab/dnpLab" target="_blank"> DNPLab on GitHub</a>
 
 
+.. |DNPSpectroscopy| raw:: html
+
+   <a href="https://www.bridge12.com/learn/dnp-spectroscopy/" target="_blank">DNP</a>
+
+
 .. |FranckLabLink| raw:: html
 
    <a href="https://jmfrancklab.github.io/" target="_blank"> Franck Lab</a>
@@ -28,3 +48,4 @@
 .. |HanLabLink| raw:: html
 
    <a href="https://han.chem.ucsb.edu/" target="_blank"> Han Lab</a>
+

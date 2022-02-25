@@ -1,6 +1,17 @@
-======================
-Introduction to DNPLab
-======================
+============
+Introduction
+============
+
+
+.. Features
+.. ========
+.. * Import NMR spectra in various formats (Bruker - TopSpin, Varian - (Open) VnmrJ, Magritek - Kea) 
+.. * Process NMR data
+.. * Extract Hydration Dynamics Information
+.. * Create Publication Quality Figures
+
+
+
 
 The aim of DNPLab is to provide a turn-key data processing environment for DNP-NMR data. The software package is entirely written in Python and no proprietary software is required.
 
