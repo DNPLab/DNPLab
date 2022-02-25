@@ -3,6 +3,12 @@ import warnings
 import numpy as np
 import h5py
 
+None_alias = "__PYTHON_NONE__" # h5 does not have Null type
+
+
+python_types = [None]
+replace_types = [None_alias]
+
 
 def load_h5(path):
     """Returns Dictionary of dnpDataObjects
@@ -45,7 +51,14 @@ def read_dnpdata(dnpdata_group):
         dims.append(dim_key)
 
     for k in dnpdata_group["attrs"].attrs.keys():
-        attrs[k] = dnpdata_group["attrs"].attrs[k]
+        v = dnpdata_group["attrs"].attrs[k]
+        if v in replace_types:
+            ix = replace_types.index(v)
+            v = python_types[ix]
+        attrs[k] = v
+    for k in dnpdata_group["attrs"]:
+        v = dnpdata_group["attrs"][k][:]
+        attrs[k] = v
 
     data = DNPData(values, dims, coords, attrs)
 
@@ -119,7 +132,15 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
 
     # Save Parameters
     for key in dnpDataObject.attrs:
-        attrs_group.attrs[key] = dnpDataObject.attrs[key]
+        value = dnpDataObject.attrs[key]
+
+        if isinstance(value, np.ndarray):
+            attrs_group.create_dataset(key, data=value)
+        else:
+            if value in python_types:
+                ix = python_types.index(value)
+                value = replace_types[ix]
+            attrs_group.attrs[key] = value
 
     # Save proc_steps
     if hasattr(dnpDataObject, "proc_attrs"):
