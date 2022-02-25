@@ -40,7 +40,6 @@ Please report all issues on the |dnpLabGitIssueTrackerLink|.
 
    modules
    functions
-   allFunctions
 
 
 .. toctree::
