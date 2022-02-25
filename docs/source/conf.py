@@ -16,6 +16,7 @@
 import os
 import sys
 
+
 sys.path.insert(0, os.path.abspath("../../"))
 print("path:")
 print(sys.path)
@@ -90,6 +91,8 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx_gallery.gen_gallery",
 ]
+
+autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
