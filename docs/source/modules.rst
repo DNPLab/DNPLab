@@ -1,36 +1,34 @@
 =======
 Modules
 =======
+DNPLab is structured into several different modules, which all contain different functions. The functions are grouped into modules depending on their specific tasks. The following modules are currently part of DNPLab:
 
-DNPLab has the following modules:
+.. autosummary::
 
-* Analysis
-* Constants
-* Core 
-* dnpIO
-* Fitting
-* IO
-* Math
-* Plotting
-* Processing
-* Reporting
-* Widgets
+    dnplab.analysis
+    dnplab.constants
+    dnplab.core
+    dnplab.fitting
+    dnplab.io
+    dnplab.math
+    dnplab.plotting
+    dnplab.processing
+    dnplab.reporting
+    dnplab.widgets
 
 
-.. automodule:: dnp.io
-    :members:
-    :show-inheritance:
-    :member-order: bysource
 
+
+
+
+
+.. .. automodule:: dnplab.io.bes3t
+..     :show-inheritance:
+..     :member-order: bysource
+
+.. .. autosummary:: dnplab.io
+
+.. .. autosummary:: dnplab.io.bes3t
 
 
 .. Use dnpImport.load and the correct IO module will be automatically selected.
-
-.. Detailed Descriptions of Functions
-.. ==================================
-
-.. .. automodule:: dnplab.dnpImport
-..    :members:
-..    :show-inheritance:
-..    :member-order: bysource
-
