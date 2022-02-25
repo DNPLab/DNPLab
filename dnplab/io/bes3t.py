@@ -1,3 +1,5 @@
+"""Functions to import Bruker EPR data"""
+
 import numpy as np
 import os
 from .. import DNPData
