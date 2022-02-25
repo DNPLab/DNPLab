@@ -1,15 +1,3 @@
-.. dnpLab documentation master file, created by
-   sphinx-quickstart on Fri Jan 10 17:26:18 2020.
-
-.. .. image:: b12logo.png
-..     :alt: Bridge12 Technologies, Inc
-..     :target: http://www.bridge12.com
-
-.. .. image:: hanlogo.png
-..     :alt: Han Lab UCSB
-..     :target: https://han.chem.ucsb.edu/
-
-
 =================
 Welcome to DNPLab
 =================
