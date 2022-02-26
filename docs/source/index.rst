@@ -48,7 +48,7 @@ Please report all issues on the |dnpLabGitIssueTrackerLink|.
 
    people
    license
-   .. getInvolved
+   getInvolved
    funding
 
 
