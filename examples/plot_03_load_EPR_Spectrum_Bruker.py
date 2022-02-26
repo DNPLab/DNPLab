@@ -12,43 +12,45 @@ In this example we demonstrate how to load and EPR spectrum and process the data
 # %%
 # Load EPR Data
 # -------------
-# First, load DNPLab,
+# First, add DNPLab to the Python environment,
 
 import dnplab as dnp
 
 # %%
-# and then import an EPR spectrum. DNPLab can handle spectra recorded on different spectrometers such as the Bruker ElexSys or EMX system. 
+# and then import an EPR spectrum. DNPLab can handle spectra recorded on different spectrometers such as the Bruker ElexSys, the Bruker EMX system, or home-built spectrometers runing on Boris Epel's software SpecMan4EPR. In this example we will load a spectrum from a Bruker EMX system.
+
 data = dnp.load("../data/bes3t/1D_CW.DTA")
 
 # %%
-# Next create a workspace, add the loaded data, and copy the data to the processing buffer 'proc',
-# ws = dnp.create_workspace()
-# ws.add("raw", data)
-# ws.copy("raw", "proc")
+# Process EPR Data
+# ----------------
+# In this section, we will demonstrate some basic EPR processing.
 
-# # %%
-# # Raw data are now in both ws["proc"] and ws["raw"]. The following processing steps will modify ws["proc"] but leave ws["raw"] untouched so that you can always return to the original data. To see what attributes are loaded with the data use:
-# print("BEFORE PROCESSING: " + str(ws["raw"].attrs.keys()))
+# %%
+# First, let's perform a baseline correction using a zeroth order polynomial to remove a DC offset:
+data_proc = dnp.remove_background(data, dim = "B0")
 
-# # %%
-# # Process EPR Data and Plot Results
-# # ---------------------------------
-# # In this section, we will demonstrate how to process the EPR data and plot the results.
+# %%
+# Here a new dnpData object is created containing the corrected data. This is helpful, if the processing for different data sets need to be compared. The remove_background function will calculate a zero order polynomial background and will subtract this value from the data. To plot the corrected spectrum simply use:
 
-# # %%
-# # You can display the current axis names with
-# print("raw axis names: " + str(ws["raw"].dims))
-# print("proc axis names: " + str(ws["proc"].dims))
+dnp.dnplabplot(data_proc, xlim = [344, 354], title ='EPR Spectrum')
 
-# # %%
-# # Now let's perform a baseline correction using a zeroth order polynomial to remove a DC offset
-# dnp.dnpTools.baseline(ws, dim = "B0", type = "polynomial", order = 0)
+# %% 
+# The dnplabplot function is very helpful to create simple plots. For more complicated figures the matplotlib functions can be used. Note, that the plotting functions of the matplotlib package are already loaded into the DNPLab environment.
 
-data = dnp.remove_background(data, dim = "B0")
-# data = dnp.background()
-# # %%
-# # Keep a copy of the processed spectrum before integrating
-# ws.copy("proc", "spec")
+dnp.plt.figure()
+dnp.plt.plot(data.coords["B0"], data.values.real, label = "Background Correction")
+dnp.plt.plot(data_proc.coords["B0"], data_proc.values.real, label = "No Background Correction")
+dnp.plt.xlabel("Magnetic Field (mT)")
+dnp.plt.ylabel("EPR Signal Intensity (a.u.)")
+dnp.plt.grid(True)
+dnp.plt.tight_layout()
+dnp.plt.legend()
+dnp.plt.show()
+
+# %%
+# Note the DC offset of about -0.5.
+
 
 # # %%
 # # Now let's double integrate the EPR spectrum. 
@@ -61,28 +63,3 @@ data = dnp.remove_background(data, dim = "B0")
 # first_integral = ws["integrals"].attrs["first_integral"]     # First integral
 # double_integral = ws["integrals"].values                     # Double integral
 # print(double_integral)
-
-
-# # %%
-# # Your originally imported spectrum is still accessible using ws["raw"].values.
-# #
-# # To see if any attributes have been added after processing
-# print("AFTER PROCESSING: " + str(ws["proc"].attrs.keys()))
-
-# # %%
-# # First, let's start with plotting the original EPR spectrum (note the 'raw' keyword) using dnpResults
-# dnp.dnpResults.plot(ws["raw"])
-# dnp.dnpResults.plt.title("EPR Spectrum, raw data")
-# dnp.dnpResults.plt.xlabel("Magnetic Field (mT)")
-# dnp.dnpResults.plt.grid(True)
-# dnp.dnpResults.plt.tight_layout()
-# dnp.dnpResults.show()
-
-# # %%
-# # Note the DC offset of about -0.5.
-
-dnp.dnplabplot(data, xlim = [344, 354], title ='EPR Spectrum')
-
-# dnp.plot(data)
-# dnp.show()
-

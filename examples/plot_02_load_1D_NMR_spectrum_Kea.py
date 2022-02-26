@@ -22,57 +22,47 @@ import dnplab as dnp
 # %%
 # Load and Process Off-Signal
 # -----------------------------
-#
-# The next section demonstrates how a FID is imported into DNPLab (lines 35) and how a workspace is created (line 37). Many functions within DNPLab work by default on the processing buffer ('proc') and leave the raw data untouched. After importing, the data is first copied to the 'rawOff' buffer (line 38) and then the 'rawOff' buffer is copied to the 'proc' buffer (line 39).
-# Afterwards the FID is processed, first by removing any DC offset (line 41), then a 15 Hz linewidth is applied (line 42) before performing the Fourier transformation (line 43). At the end the processed data in the 'proc' buffer is copied to a results buffer called 'offSignal' 9line 45).
+# The next section demonstrates how the FID is imported into DNPLab and processed. Processing involves removing any DC offset, followed by a 15 Hz linewidth appodization, prior to performing the Fourier transformation.
 
-# ########## OFF Signal (P = 0 W) ##########
-# data = dnp.dnpImport.load("../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/35/data.1d")
+########## OFF Signal (P = 0 W) ##########
+data_off = dnp.load("../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/35/data.1d")
 
-# ws = dnp.create_workspace()
-# ws.add("rawOff", data)
-# ws.copy("rawOff", "proc")
+data_off = dnp.remove_background(data_off)
+data_off = dnp.apodize(data_off, lw = 15)
+data_off = dnp.fourier_transform(data_off)
 
-# dnp.dnpNMR.remove_offset(ws)
-# dnp.dnpNMR.window(ws, linewidth=15)
-# dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
+# %%
+# Load and Process ON-Signal
+# ----------------------------
+# Importing the on-signal involves the same steps as importing the off-signal. Once processed the data is copied to the results buffer 'onSignal'.
 
-# ws.copy("proc", "offSignal")
+########## ON Signal (P = 2 W) ##########
+data_on = dnp.load("../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/51/data.1d")
 
+data_on = dnp.remove_background(data_on)
+data_on = dnp.apodize(data_on, lw = 15)
+data_on = dnp.fourier_transform(data_on)
 
-# # %%
-# # Load and Process ON-Signal
-# # ----------------------------
-# #
-# # Importing the on-signal involves the same steps as importing the off-signal. Once processed the data is copied to the results buffer 'onSignal'.
+# %%
+# Plot Microwave On/Off DNP Spectra
+# ---------------------------------
+# First plot individual spectra
 
-# ########## ON Signal (P = 2 W) ##########
-# data = dnp.dnpImport.load("../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/51/data.1d")
+sampleTag = "10 mM TEMPO in Water, "
 
-# ws.add("rawOn", data)
-# ws.copy("rawOn")
+# dnp.dnplabplot(data_on, title = sampleTag + "MW ON Spectrum")
+# dnp.dnplabplot(data_off, title = sampleTag + "MW ON Spectrum")
 
-# dnp.dnpNMR.remove_offset(ws)
-# dnp.dnpNMR.window(ws, linewidth=15)
-# dnp.dnpNMR.fourier_transform(ws, zero_fill_factor=2)
+# %%
+# Next plot both spectra in the same figure
 
-# ws.copy("proc", "onSignal")
-
-
-# # %%
-# # Create a Figure and Plot On/Off Spectra
-# # ---------------------------------------
-# #
-# #
-
-# ########## Plot Spectra ##########
-# dnp.dnpResults.figure()
-# dnp.dnpResults.plot(ws["offSignal"].real * 10 - 100, label = "Off Signal x 10")
-# dnp.dnpResults.plot(ws["onSignal"].real, label = "On Signal")
-# dnp.dnpResults.xlim([30, -30])
-# dnp.dnpResults.plt.xlabel("Chemical Shift [ppm]")
-# dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")
-# dnp.dnpResults.plt.title("DNP On/Off Signal, 10 mM TEMPO in Water")
-# dnp.dnpResults.plt.legend()
-# dnp.dnpResults.plt.grid(True)
-# dnp.dnpResults.show()
+dnp.plt.figure()
+dnp.plt.plot(data_on.coords["f2"], data_on.values.real, label = "MW On Signal (2 W)")
+dnp.plt.plot(data_on.coords["f2"], data_off.values.real * 10 - 100, label = "MW Off Signal x 10")
+dnp.plt.xlim([30, -30])
+dnp.plt.xlabel("Chemical Shift [ppm]")
+dnp.plt.ylabel("Signal Amplitude [a.u.]")
+dnp.plt.title("DNP On/Off Signal, 10 mM TEMPO in Water")
+dnp.plt.legend()
+dnp.plt.grid(True)
+dnp.plt.show()
