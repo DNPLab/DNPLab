@@ -15,8 +15,8 @@ Many labs therefore create their own routines to import, process, and analyze DN
 
 Often, this results in a time-consuming workflow. In the worst case, the lack of processing software may discourage researchers to enter this new field.
 
-Why DNPLab
-==========
+Why DNPLab?
+===========
 
 DNPLab was written with these key points in mind. The main features are:
 
@@ -37,24 +37,24 @@ In the following section, we introduce the intended workflow for processing DNP-
 4. Further Processing and Data Analysis
 5. Create Report
 
-Importing Data
---------------
-The data is imported using the :ref:`dnpImport <dnpImport>`  sub-package. This sub-package calls modules for importing various spectrometer formats (e.g. topspin, vnmrj, prospa, etc.).
+.. Importing Data
+.. --------------
+.. The data is imported using the :ref:`dnpImport <dnpImport>`  sub-package. This sub-package calls modules for importing various spectrometer formats (e.g. topspin, vnmrj, prospa, etc.).
 
-The data is imported as a :ref:`dnpdata <dnpData>` object. The dnpdata object is a container for data (values), coordinates for each dimension (coords), dimension labels (dims), and experimental parameters (attrs). In addition, each processing step applied to the data is saved in the dnpdata object (stored as proc_attrs).
+.. The data is imported as a :ref:`dnpdata <dnpData>` object. The dnpdata object is a container for data (values), coordinates for each dimension (coords), dimension labels (dims), and experimental parameters (attrs). In addition, each processing step applied to the data is saved in the dnpdata object (stored as proc_attrs).
 
-The dnpdata object is a flexible data format which can handle N-dimensional data and coordinates together.
+.. The dnpdata object is a flexible data format which can handle N-dimensional data and coordinates together.
 
-The imported data is stored in a dnpdata object and the first object that is created during the import process is the *raw* object. It contains the raw data from the spectrometer and will be accessible at any time. All processing steps are automatically documented and the entire workspace can be saved as a single file in the h5 format.
+.. The imported data is stored in a dnpdata object and the first object that is created during the import process is the *raw* object. It contains the raw data from the spectrometer and will be accessible at any time. All processing steps are automatically documented and the entire workspace can be saved as a single file in the h5 format.
 
 
-Processing Data
----------------
-The DNPLab workspace has the concept of a "processing_buffer" (typically called proc). The processing buffer specifies the data which is meant for processing. Typically one will add (raw) data to the workspace and copy or move the data to the processing buffer (proc). DNPLab is primarily designed for processing and analyzing DNP-NMR data. Processing DNP-NMR data is performed using the the :ref:`dnpNMR <dnpNMR>` module. 
+.. Processing Data
+.. ---------------
+.. The DNPLab workspace has the concept of a "processing_buffer" (typically called proc). The processing buffer specifies the data which is meant for processing. Typically one will add (raw) data to the workspace and copy or move the data to the processing buffer (proc). DNPLab is primarily designed for processing and analyzing DNP-NMR data. Processing DNP-NMR data is performed using the the :ref:`dnpNMR <dnpNMR>` module. 
 
-Saving Data
------------
-Once the data is processed, the entire workspace can be saved in a single file in the h5 format. This is done using the :ref:`dnpSave <dnpSave>` module. The workspace can then be loaded, subsequent processing can be performed and the data can be saved again.
+.. Saving Data
+.. -----------
+.. Once the data is processed, the entire workspace can be saved in a single file in the h5 format. This is done using the :ref:`dnpSave <dnpSave>` module. The workspace can then be loaded, subsequent processing can be performed and the data can be saved again.
 
 
 .. Workflow

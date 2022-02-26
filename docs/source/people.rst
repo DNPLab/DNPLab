@@ -1,8 +1,21 @@
 ======
 People
 ======
+DNPLab is a collaborative project created by:
 
+* |B12TLink|
+* The |HanLabLink| at University of California, Santa Barbara
+* The |FranckLabLink| at Syracuse University
 
-.. Active Authors and Contributors: Timothy Keller, Thomas Casey, Thorsten Maly, John Franck, Yen-Chun Huang, Thomas Webber
+Currently active authors and contributors:
 
-.. Past Authors: Yanxian Lin
+* Timothy Keller (|B12TLink|)
+* Thorsten Maly (|B12TLink|, |thmalyTwitter|)
+* Tom Casey
+* John Franck (|FranckLabLink|)
+* Yen-Chun Huang (|B12TLink|)
+* Thomas Webber (|HanLabLink|)
+
+Past authors and contributors:
+
+* Yanxian Lin

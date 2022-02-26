@@ -26,6 +26,9 @@
    <a href="https://pip.pypa.io/en/stable/" target="_blank">pip</a>
 
 
+.. |thmalyTwitter| raw:: html
+
+   <a href="https://twitter.com/thmaly" target="_blank">@thmaly</a>
 
 .. -------------------------- Sorted Links --------------------------
 
