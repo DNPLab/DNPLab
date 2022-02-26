@@ -85,6 +85,8 @@ If you wish to use a pre-release version of DNPLab (downloaded from the GitHub r
     
     $ python setup.py develop
 
+Once you ran the above command, check the path and version of the package by running :code:`pip show dnplab`. If the version does not match the version of the checked-out branch, you may have to first uninstall DNPLab (:code:`pip uninstall dnplab`), then re-install the version you would like to use (:code:`pip install dnplab`) and then running (:code:`python setup.py develop`) if you would like to make your own changes to the code.
+
 Upgrading DNPLab
 ================
 To upgrade your currently installed version of DNPLab type the following command:
