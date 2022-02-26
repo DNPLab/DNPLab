@@ -61,4 +61,58 @@ def plot(data, *args, **kwargs):
     data.fold()
 
 
-show = plt.show
+def dnplabplot(data, xlim = [], title = '', *args, **kwargs):
+    """Streamline Plot function for dnpdata objects
+
+    This function creates streamlined plots for NMR and EPR spectra. The type of the spectrum is automatically detected and the axis are formated accordingly.
+
+    Args:
+
+    Returns:
+
+    Example:
+    """
+
+    if "dim" in kwargs:
+        dim = kwargs.pop("dim")
+    else:
+        dim = data.dims[0]
+
+    coord = data.coords[dim]
+    data.unfold(dim)
+
+    if dim == "f2":
+        plt.plot(coord, data.values.real, *args, **kwargs)
+        plt.grid(True)
+
+        plt.xlabel("Chemical Shift $\delta$ (ppm)")
+        plt.ylabel("NMR Signal Intensity (a.u.)")
+        plt.title(title)
+
+        plt.xlim(max(coord), min(coord))
+
+        if xlim != []:
+
+            plt.xlim(xlim[1],xlim[0])
+
+    elif dim == "B0":
+        plt.plot(coord, data.values.real, *args, **kwargs)
+        plt.grid(True)
+        plt.xlabel("Magnetic Field $B_{0}$ (mT)")
+        plt.ylabel("EPR Signal Intensity (a.u.)")
+        plt.title(title)
+
+        if xlim != []:
+
+            plt.xlim(xlim[0],xlim[1])
+
+
+
+    else:
+        print("Spectrum type unknown")
+
+    plt.show()
+
+    data.fold()
+
+
