@@ -1,4 +1,3 @@
-DNPLab Examples
-===============
-
-Below is a gallery of examples
+Examples
+========
+Below is a gallery of examples describing the different applications of DNPLab.
