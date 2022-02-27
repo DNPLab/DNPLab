@@ -106,13 +106,7 @@ def dnplabplot(data, xlim = [], title = '', *args, **kwargs):
 
             plt.xlim(xlim[0],xlim[1])
 
-
-
     else:
         print("Spectrum type unknown")
 
-    plt.show()
-
     data.fold()
-
-
