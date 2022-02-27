@@ -52,6 +52,7 @@ data = dnp.autophase(data, force_positive = True)
 # To plot the NMR spectrum simply use the following command. By default, only the real part of the NMR spectrum is shown.
 
 dnp.dnplabplot(data)
+dnp.plt.show()
 
 # %%
 # Note, that the DNPLab plotting function will automatically reverse the direction of the x axis, as it is custom for NRM spectra and axis labels are automatically generated
@@ -61,7 +62,8 @@ dnp.dnplabplot(data)
 
 sampleTag = 'ODNP Experiment of 10 mM TEMPO in Water'
 
-dnp.dnplabplot(data, xlim = [-100, 100], title = sampleTag)
+dnp.dnplabplot(data, xlim = [-100, 100], title = sampleTag, showPar = True)
+dnp.plt.show()
 
 # %%
 # Advanced Usage
