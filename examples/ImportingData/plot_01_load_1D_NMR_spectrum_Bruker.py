@@ -2,9 +2,9 @@
 """
 .. _01_load_1d_spectrum_topspin:
 
-==================================
-01 - Load 1D NMR Spectrum (Bruker)
-==================================
+======================================
+Load 1D NMR spectrum in TopSpin format
+======================================
 
 This example demonstrates how to load and process a single 1D NMR spectrum recorded on a Bruker spectrometer acquired using TopSpin. This examples also demonstrates how to access the various components of the data object and generally how to interact with the functions.
 
@@ -20,7 +20,7 @@ import matplotlib.pylab as plt
 # ---------------------------------
 # In this example we use a 1D NMR spectrum aqcuired using TopSpin. Example data is located in the data folder. All data enters into the same object structure so this example applies to any NMR format. DNPLab will try to identify the format of the NMR spectrum (e.g. TopSpin, VnmrJ, Kea, etc.). This will work in most cases. If the autodetect fails, the format can be explicitely given using the data_type attribute of the load function (e.g. data_type = "topspin").
 
-data = dnp.load("../data/topspin/1")
+data = dnp.load("../../data/topspin/1")
 
 # %%
 # The spectral data is now stored in the data object. DNPLab uses object oriented programming, therefore, data is not just a variable. It is a dnpData object. Next, we will perform some basic processing, methods that are pretty standard in NMR spectroscopy. For this just pass the dnpData object from one function to the next.
