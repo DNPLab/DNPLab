@@ -1,3 +1,4 @@
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -61,7 +62,7 @@ def plot(data, *args, **kwargs):
     data.fold()
 
 
-def dnplabplot(data, xlim = [], title = '', *args, **kwargs):
+def dnplabplot(data, xlim = [], title = '', showPar = False, *args, **kwargs):
     """Streamline Plot function for dnpdata objects
 
     This function creates streamlined plots for NMR and EPR spectra. The type of the spectrum is automatically detected and the axis are formated accordingly.
@@ -95,6 +96,15 @@ def dnplabplot(data, xlim = [], title = '', *args, **kwargs):
 
             plt.xlim(xlim[1],xlim[0])
 
+        if showPar == True:
+
+            parameterString = "Freq: " + str(round(data.attrs["nmr_frequency"],4))
+
+            box_style = dict(boxstyle = 'round', facecolor = 'white', alpha = 0.25)
+            xmin, xmax, ymin, ymax = plt.axis()
+
+            plt.text(xmin * 0.95, ymax/10, parameterString, bbox = box_style)
+
     elif dim == "B0":
         plt.plot(coord, data.values.real, *args, **kwargs)
         plt.grid(True)
@@ -103,8 +113,23 @@ def dnplabplot(data, xlim = [], title = '', *args, **kwargs):
         plt.title(title)
 
         if xlim != []:
-
             plt.xlim(xlim[0],xlim[1])
+        
+        if showPar == True:
+            SW = coord[-1] - coord[0]
+
+            parameterString = "MF: " + str(round(data.attrs["frequency"],4)) + \
+                "\nMP: " + str(round(data.attrs["power"],3)) + \
+                "\nCF: " + str(round(data.attrs["center_field"]/10,2)) + \
+                "\nSW: " + str(round(SW,2)) + \
+                "\nMA: " +  str(round(data.attrs["modulation_amplitude"],2)) + \
+                "\nNS: " +  str(data.attrs["nscans"]) + \
+                "\nTM: " +  str(round(data.attrs["temperature"],1))
+
+            box_style = dict(boxstyle = 'round', facecolor = 'white', alpha = 0.25)
+            xmin, xmax, ymin, ymax = plt.axis()
+
+            plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox = box_style)
 
     else:
         print("Spectrum type unknown")
