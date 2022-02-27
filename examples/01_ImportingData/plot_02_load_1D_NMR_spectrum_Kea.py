@@ -1,6 +1,6 @@
 # %%
 """
-.. _02_load_1d_spectrum_kea:
+.. _plot_02_load_1D_NMR_spectrum_Kea:
 
 =====================================
 Load two 1D NMR spectra in Kea format

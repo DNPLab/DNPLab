@@ -1,6 +1,6 @@
 # %%
 """
-.. _01_load_1d_spectrum_topspin:
+.. _plot_01_load_1D_NMR_spectrum_Bruker:
 
 ======================================
 Load 1D NMR spectrum in TopSpin format
