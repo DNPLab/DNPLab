@@ -127,11 +127,11 @@ pygments_style = None
 from sphinx_gallery.sorting import FileNameSortKey
 
 sphinx_gallery_conf = {
-    "examples_dirs": "../../examples",  # path to your example scripts
-    "gallery_dirs": "auto_examples",  # path to where to save gallery generated output
+    "examples_dirs": "../../examples",                  # path to your example scripts
+    "gallery_dirs": "auto_examples",                    # path to where to save gallery generated output
     "remove_config_comments": True,
-    "within_subsection_order": FileNameSortKey,
-    "run_stale_examples": True,
+    "within_subsection_order": FileNameSortKey,         # Sort by file name
+    "run_stale_examples": True,                         # Force sphinx to rebuild example. Set to False to only run examples that have changed
 }
 
 
