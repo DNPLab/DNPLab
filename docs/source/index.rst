@@ -31,6 +31,13 @@ Please report all issues on the |dnpLabGitIssueTrackerLink|.
 
    installation
    gettingStarted
+
+
+.. toctree::
+   :caption: Examples
+   :maxdepth: 1
+   :hidden:
+
    auto_examples/index
 
 
