@@ -10,6 +10,13 @@ dark_grey = "#4D4D4F"
 light_grey = "#A7A9AC"
 orange = "#F37021"
 
+
+plt.rcParams["figure.figsize"] = [7, 5]
+plt.rcParams["savefig.dpi"] = 300
+plt.rcParams["pdf.fonttype"] = 42
+
+# plt.rcParams["font.size"] = 18
+
 plt.rcParams["lines.linewidth"] = 1.5
 plt.rcParams["axes.prop_cycle"] = plt.cycler(
     color=[orange, dark_green, light_green, dark_grey, light_grey]
