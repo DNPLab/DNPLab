@@ -163,14 +163,108 @@ WinEPR
 Math
 ==============================
 
+Lineshape
+------------------------------
+.. automodule:: dnplab.math.lineshape
+   :members:
+   :show-inheritance:
+
+Relaxation
+------------------------------
+.. automodule:: dnplab.math.relaxation
+   :members:
+   :show-inheritance:
+
+Window
+------------------------------
+.. automodule:: dnplab.math.window
+   :members:
+   :show-inheritance:
+
+
 Plotting
 ==============================
+
+General
+------------------------------
+.. automodule:: dnplab.plotting.general
+   :members:
+   :show-inheritance:
+
+Image
+------------------------------
+.. automodule:: dnplab.plotting.image
+   :members:
+   :show-inheritance:
+
+Stack Plot
+------------------------------
+.. automodule:: dnplab.plotting.stack_plot
+   :members:
+   :show-inheritance:
+
 
 Processing
 ==============================
 
+Align
+------------------------------
+.. automodule:: dnplab.processing.align
+   :members:
+   :show-inheritance:
+
+Apodization
+------------------------------
+.. automodule:: dnplab.processing.apodization
+   :members:
+   :show-inheritance:
+
+FFT
+------------------------------
+.. automodule:: dnplab.processing.fft
+   :members:
+   :show-inheritance:
+
+Helpers
+------------------------------
+.. automodule:: dnplab.processing.helpers
+   :members:
+   :show-inheritance:
+
+Integration
+------------------------------
+.. automodule:: dnplab.processing.integration
+   :members:
+   :show-inheritance:
+
+Offset
+------------------------------
+.. automodule:: dnplab.processing.offset
+   :members:
+   :show-inheritance:
+
+Phase
+------------------------------
+.. automodule:: dnplab.processing.phase
+   :members:
+   :show-inheritance:
+
+
 Reporting
 ==============================
 
+
 Widgets
 ==============================
+
+Manual Align
+------------------------------
+.. automodule:: dnplab.widgets.manual_align
+   :members:
+   :show-inheritance:
+
+Manual Phase
+------------------------------
+.. automodule:: dnplab.widgets.manual_phase
+   :members:
+   :show-inheritance:
