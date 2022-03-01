@@ -99,8 +99,8 @@ dnp.plt.show()
 # -------------------------
 # DNPLab can save large data sets in a single file, so the processed data can be used at a later stage for further processing or analysis.
 
-# file_name_path = "../../data/h5/PowerBuildUp.h5"
-# dnp.save(data,file_name_path, overwrite = True)
+file_name_path = "../../data/h5/PowerBuildUp.h5"
+dnp.save(data,file_name_path, overwrite = True)
 
 # %%
 # DNPLab saves the 2D dnpdata object in the hdf5 file format. We will use this data in the next example (:ref:`plot_01_load_2D_calculate_DNP_enhancements`) for further processing.
