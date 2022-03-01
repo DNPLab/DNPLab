@@ -89,10 +89,10 @@ def dnplabplot(data, xlim = [], title = '', showPar = False, *args, **kwargs):
     coord = data.coords[dim]
     data.unfold(dim)
 
-    if dim == "f2":
-        plt.plot(coord, data.values.real, *args, **kwargs)
-        plt.grid(True)
+    plt.plot(coord, data.values.real, *args, **kwargs)
 
+    if dim == "f2":
+        plt.grid(True)
         plt.xlabel("Chemical Shift $\delta$ (ppm)")
         plt.ylabel("NMR Signal Intensity (a.u.)")
         plt.title(title)
@@ -112,8 +112,14 @@ def dnplabplot(data, xlim = [], title = '', showPar = False, *args, **kwargs):
 
             plt.text(xmin * 0.95, ymax/10, parameterString, bbox = box_style)
 
+    elif dim == "t2":
+        plt.grid(True)
+        plt.xlabel("Evolution Time t2 (s)")
+        plt.ylabel("NMR FID Intensity (a.u.)")
+        plt.title(title)
+
+
     elif dim == "B0":
-        plt.plot(coord, data.values.real, *args, **kwargs)
         plt.grid(True)
         plt.xlabel("Magnetic Field $B_{0}$ (mT)")
         plt.ylabel("EPR Signal Intensity (a.u.)")
