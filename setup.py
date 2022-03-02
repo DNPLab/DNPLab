@@ -21,7 +21,7 @@ setup(
     download_url="",
     project_urls={
         "Documentation": "http://docs.dnpLab.net",
-        "Examples": "http://examples.dnplab.net/",
+        "Examples": "http://dnplab.net/auto_examples/index.html",
         "Source Code": "https://github.com/DNPLab/dnplab",
         "Web App": "http://odnplab.com/",
     },
