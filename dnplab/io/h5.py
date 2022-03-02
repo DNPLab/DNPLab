@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 import h5py
 
-None_alias = "__PYTHON_NONE__" # h5 does not have Null type
+None_alias = "__PYTHON_NONE__"  # h5 does not have Null type
 
 
 python_types = [None]
