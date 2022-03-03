@@ -81,13 +81,13 @@ def dnplabplot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     coord = data.coords[dim]
     data.unfold(dim)
 
-    if dim == "f2":
-        plt.plot(coord, data.values.real, *args, **kwargs)
-        plt.grid(True)
+    plt.grid(True)
+    plt.title(title)
 
+    if data.attrs["experiment_type"] == "nmr_spectrum":
+        plt.plot(coord, data.values.real, *args, **kwargs)
         plt.xlabel("Chemical Shift $\delta$ (ppm)")
         plt.ylabel("NMR Signal Intensity (a.u.)")
-        plt.title(title)
 
         plt.xlim(max(coord), min(coord))
 
@@ -104,12 +104,10 @@ def dnplabplot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
-    elif dim == "B0":
+    elif data.attrs["experiment_type"] == "epr_spectrum":
         plt.plot(coord, data.values.real, *args, **kwargs)
-        plt.grid(True)
         plt.xlabel("Magnetic Field $B_{0}$ (mT)")
         plt.ylabel("EPR Signal Intensity (a.u.)")
-        plt.title(title)
 
         if xlim != []:
             plt.xlim(xlim[0], xlim[1])
@@ -139,7 +137,18 @@ def dnplabplot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
 
+    elif data.attrs["experiment_type"] == "enhancements_P":
+        plt.plot(coord, data.values.real, marker = 'o', fillstyle = 'none', *args, **kwargs)
+        plt.xlabel("Microwave Power (dBm)")
+        plt.ylabel("DNP Enhancement")
+
+        if xlim != []:
+            plt.xlim(xlim[0], xlim[1])
+
+        # if showPar == True:
+
     else:
-        print("Spectrum type unknown")
+
+        plot(data)
 
     data.fold()
