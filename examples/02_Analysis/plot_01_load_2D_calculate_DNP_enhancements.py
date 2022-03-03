@@ -17,16 +17,25 @@ This example demonstrates how to import DNP-NMR data in form of a 2D dnpdata obj
 # First, load the 2D dnplab data object:
 
 import dnplab as dnp
+from dnplab.processing.integration import integrate
 
-# file_name_path = "../data/h5/PowerBuildUp.h5"
-# ws = dnp.dnpImport.load(file_name_path)
+file_name_path = "../../data/h5/PowerBuildUp.h5"
+data = dnp.load(file_name_path)
 
 # %%
 # Calculate DNP Enhancement Factors
 # ---------------------------------
 # DNPLab provides a convenient way to calculate the DNP enhancement factors by using the ``calculate_enhancement`` function. Enhancement factors are calculated using integrals. Integrals can be calculated over the entire spectrum, multiple regions, or can be just a single point. However, without calculating integrals first, the ``calculate_enhancement`` function will return an error.
 
-# dnp.dnpTools.integrate(ws)
+intensities = dnp.integrate(data)
+
+# dnp.plot(intensities)
+# dnp.plt.show()
+# print(intensities)
+
+enhancements = dnp.calculate_enhancement(intensities)
+
+print(enhancements)
 # dnp.dnpNMR.calculate_enhancement(ws)
 
 # %%
