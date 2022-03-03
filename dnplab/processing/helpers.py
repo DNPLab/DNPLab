@@ -5,31 +5,10 @@ from ..core.data import DNPData
 from ..processing.integration import integrate
 
 
-def calculate_enhancement():
-    """Calculate enhancement
-
-    Returns:
-        NotImplemented
-
-    """
-
-    return NotImplemented
+def calculate_enhancement(integrals, off_spectrum_index = 0, return_complex_values = False):
+    """Calculate enhancement of a power series. Needs integrals as input
 
 
-
-# calculate_enhancement(
-#     all_data,
-#     off_spectrum=1,
-#     on_spectra="all",
-#     integrate_center=0,
-#     integrate_width="full",
-#     method="integrate",
-#     dim="f2",
-# ):
-#     """Calculate enhancement from DNP data
-
-#     Args:
-#         all_data (dnpdata, dict): data container
 
 #     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
 #     | parameter        | type                       | default     | description                                                          |
@@ -47,140 +26,52 @@ def calculate_enhancement():
 #     | dim              | str                        | "f2"        | dimension to integrate down or search down for max                   |
 #     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
 
-#     Returns:
-#         dnpdata: data object with "enhancements" key added
 
-#     """
-#     if off_spectrum == 0:
-#         raise ValueError(
-#             "please use indices from 1 to number of slices, i.e. use 1 instead of 0"
-#         )
 
-#     _, isDict = return_data(all_data)
 
-#     if isDict and "integrals" in all_data.keys() and isinstance(off_spectrum, int):
-#         enh = _np.array(
-#             all_data["integrals"].values.real
-#             / all_data["integrals"].values.real[off_spectrum - 1]
-#         )
-#         enhancement_data = dnpdata(
-#             enh,
-#             [all_data["integrals"].coords[x] for x in all_data["integrals"].dims],
-#             all_data["integrals"].dims,
-#         )
+    Args:
+    Returns:
 
-#     elif isinstance(off_spectrum, dnpdata) and isinstance(on_spectra, dnpdata):
+    """
 
-#         data_off, _ = return_data(off_spectrum)
-#         if len(data_off.shape) != 1:
-#             raise TypeError("off_spectrum should be 1D")
-#         data_on, _ = return_data(on_spectra)
-#         index_on = data_on.dims.index(dim)
+    if integrals.dims[0] == "Power":
+        enhancements = integrals.copy()
 
-#         if integrate_width == "full":
-#             int_width_off = max(data_off.coords[dim]) - min(data_off.coords[dim])
-#             int_width_on = max(data_on.coords[dim]) - min(data_on.coords[dim])
-#         elif (
-#             isinstance(integrate_width, (list, _np.ndarray))
-#             and len(integrate_width) == 2
-#         ):
-#             int_width_off = integrate_width[0]
-#             int_width_on = integrate_width[1]
-#         elif isinstance(integrate_width, int):
-#             int_width_off = integrate_width
-#             int_width_on = integrate_width
-#         else:
-#             raise ValueError(
-#                 "integrate_width must be an integer, a list/array with len = 2, or 'full'"
-#             )
+        enhancements.values = enhancements.values / enhancements.values[off_spectrum_index]
 
-#         if integrate_center == "max":
-#             on_maxs = _np.argmax(data_on.values.real, axis=index_on)
-#             int_center_off = data_off.coords[dim][_np.argmax(data_off.values.real)]
-#             if on_maxs.size == 1:
-#                 int_center_on = data_on.coords[dim][on_maxs]
-#             else:
-#                 int_center_on = [data_on.coords[dim][x] for x in on_maxs]
-#         elif (
-#             isinstance(integrate_center, (list, _np.ndarray))
-#             and len(integrate_center) == 2
-#         ):
-#             int_center_off = integrate_center[0]
-#             int_center_on = integrate_center[1]
-#         elif isinstance(integrate_center, int):
-#             int_center_off = integrate_center
-#             int_center_on = integrate_center
-#         else:
-#             raise ValueError(
-#                 "integrate_center must be an integer, a list/array with len = 2, or 'max'"
-#             )
+        enhacements.attribute
 
-#         if method == "integrate":
-#             off_data = dnpTools.integrate(
-#                 data_off,
-#                 dim=dim,
-#                 integrate_center=int_center_off,
-#                 integrate_width=int_width_off,
-#             )
+        data.add_proc_attrs(proc_attr_name, proc_parameters)
 
-#             on_data = dnpTools.integrate(
-#                 data_on,
-#                 dim=dim,
-#                 integrate_center=int_center_on,
-#                 integrate_width=int_width_on,
-#             )
+        if return_complex_values == True:
+            return enhancements
 
-#             enh = _np.array(on_data.values.real / off_data.values.real)
-#             enhancement_data = dnpdata(
-#                 enh, [on_data.coords[x] for x in on_data.dims], on_data.dims
-#             )
+        elif return_complex_values == False:
+            return enhancements.real
 
-#         elif method == "amplitude":
-#             on_maxs = _np.argmax(abs(data_on.values.real), axis=index_on)
-#             if integrate_center == "max":
-#                 off_data = data_off.values.real[_np.argmax(abs(data_off.values.real))]
-#                 if on_maxs.size == 1:
-#                     on_data = data_on.values.real[on_maxs]
-#                 else:
-#                     on_data = [
-#                         data_on.values.real[x, indx] for indx, x in enumerate(on_maxs)
-#                     ]
-#             else:
-#                 off_data = data_off.values.real[int_center_off]
-#                 if on_maxs.size == 1:
-#                     on_data = data_on.values.real[int_center_on]
-#                 else:
-#                     on_data = [
-#                         data_on.values.real[int_center_on, indx]
-#                         for indx, _ in enumerate(on_maxs)
-#                     ]
 
-#             if (isinstance(on_data, list) and len(on_data) == 1) or (
-#                 isinstance(on_data, float) and on_data.size == 1
-#             ):
-#                 enh = _np.array([on_data / off_data])
-#             else:
-#                 enh = _np.array(on_data / off_data)
 
-#             remaining_dims = [x for x in data_on.dims if x != dim]
-#             if len(remaining_dims) == 0:
-#                 remaining_dims = ["index"]
-#                 remaining_coords = [_np.array([0])]
-#             else:
-#                 remaining_coords = [data_on.coords[x] for x in data_on.dims if x != dim]
 
-#             enhancement_data = dnpdata(enh, remaining_coords, remaining_dims)
 
-#     else:
-#         raise TypeError(
-#             "Either use the integrate function first and define the index of the off spectrum, or pass dnpata objects for off_spectrum and on_spectra"
-#         )
 
-#     if isDict:
-#         all_data["enhancements"] = enhancement_data
-#     else:
-#         return enhancement_data
+    elif integrals.dim[0] == "B0":
+        enhacements = integrals.copy()
+            
+        print("This is a DNP enhancement profile")
 
+        if return_complex_values == True:
+            return enhancements
+
+        elif return_complex_values == False:
+            return enhancements.real
+
+
+
+
+    else:
+
+        raise TypeError("Integral format not recognized. First dimension should be Power or B0.")
+        
 
 
 
