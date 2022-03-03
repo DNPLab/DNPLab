@@ -28,7 +28,7 @@ import dnplab as dnp
 data_off = dnp.load("../../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/35/data.1d")
 
 data_off = dnp.remove_background(data_off)
-data_off = dnp.apodize(data_off, lw = 15)
+data_off = dnp.apodize(data_off, lw=15)
 data_off = dnp.fourier_transform(data_off)
 
 # %%
@@ -40,7 +40,7 @@ data_off = dnp.fourier_transform(data_off)
 data_on = dnp.load("../../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/51/data.1d")
 
 data_on = dnp.remove_background(data_on)
-data_on = dnp.apodize(data_on, lw = 15)
+data_on = dnp.apodize(data_on, lw=15)
 data_on = dnp.fourier_transform(data_on)
 
 # %%
@@ -51,17 +51,17 @@ data_on = dnp.fourier_transform(data_on)
 sampleTag = "10 mM TEMPO in Water"
 
 dnp.plt.figure()
-dnp.dnplabplot(data_on, title = sampleTag + ", MW On Spectrum")
+dnp.dnplabplot(data_on, title=sampleTag + ", MW On Spectrum")
 
 dnp.plt.figure()
-dnp.dnplabplot(data_off, title = sampleTag + ", MW Off Spectrum")
+dnp.dnplabplot(data_off, title=sampleTag + ", MW Off Spectrum")
 dnp.plt.show()
 
 # %%
 # Next plot both spectra in the same figure
 
 dnp.plt.figure()
-dnp.dnplabplot(data_on, xlim = [-30, 30])
-dnp.dnplabplot(data_off, xlim = [-30, 30])
+dnp.dnplabplot(data_on, xlim=[-30, 30])
+dnp.dnplabplot(data_off, xlim=[-30, 30])
 dnp.plt.title(sampleTag)
 dnp.plt.show()

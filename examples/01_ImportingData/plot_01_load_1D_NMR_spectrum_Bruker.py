@@ -26,7 +26,7 @@ data = dnp.load("../../data/topspin/1")
 # The spectral data is now stored in the data object. DNPLab uses object oriented programming, therefore, data is not just a variable. It is a dnpData object. Next, we will perform some basic processing, methods that are pretty standard in NMR spectroscopy. For this just pass the dnpData object from one function to the next.
 
 # data = dnp.remove_background(data)
-data = dnp.apodize(data, lw = 100)
+data = dnp.apodize(data, lw=100)
 data = dnp.fourier_transform(data)
 
 # %%
@@ -34,12 +34,12 @@ data = dnp.fourier_transform(data)
 #
 # NMR spectra are typically phase sensitive (complex data) and the final processing step is to phase the spectrum. In DNPLab you can either manually phase correct the spectrum using the 'autophase' function using the 'manual' keyword and by giving a phase explicitely:
 
-data = dnp.autophase(data, method = "manual", phase = -1*dnp.constants.pi / 2)
+data = dnp.autophase(data, method="manual", phase=-1 * dnp.constants.pi / 2)
 
 # %%
 # Or by using the autophase function to automatically search for and apply the best phase angle
 
-data = dnp.autophase(data, force_positive = True)
+data = dnp.autophase(data, force_positive=True)
 
 # %%
 # Plot Processed Data
@@ -60,9 +60,9 @@ dnp.plt.show()
 # %%
 # The integrated plotting function allows for additional input arguments. For example to only show a portion of the spectrum use the xlim argument. A title can be passed to the function using the title argument. This can also be a variable. For example:
 
-sampleTag = 'ODNP Experiment of 10 mM TEMPO in Water'
+sampleTag = "ODNP Experiment of 10 mM TEMPO in Water"
 
-dnp.dnplabplot(data, xlim = [-100, 100], title = sampleTag, showPar = True)
+dnp.dnplabplot(data, xlim=[-100, 100], title=sampleTag, showPar=True)
 dnp.plt.show()
 
 # %%
@@ -77,5 +77,5 @@ print(nmr_frequency)
 # All variables in DNPLab are stored in SI units. Therefore, the NMR frequency is given in (Hz).
 # If needed, access your processed spectrum as follows:
 
-x_axis = data.coords["f2"]        # ppm axis
-spectrum = data.values            # spectrum
+x_axis = data.coords["f2"]  # ppm axis
+spectrum = data.values  # spectrum

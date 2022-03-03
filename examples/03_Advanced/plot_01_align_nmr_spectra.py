@@ -16,7 +16,7 @@ The align routine implemented in DNPLab overlays each individual scan by maximiz
 # # %%
 # # Load NMR Spectral Data
 # # ----------------------
-# # Start with importing the NMR spectra from the prevous example (:ref:`04-create-a-2d-dnpdata-object-from-individual-spectra`). 
+# # Start with importing the NMR spectra from the prevous example (:ref:`04-create-a-2d-dnpdata-object-from-individual-spectra`).
 
 # import dnplab as dnp
 
