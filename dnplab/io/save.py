@@ -21,7 +21,7 @@ def save(data_object, filename, save_type=None, *args, **kwargs):
             return save_h5(data_object, filename, *args, **kwargs)
         elif isinstance(data_object, DNPData):
             ws = {}
-            ws["data"] = data_object
+            ws["__DNPDATA__"] = data_object
             return save_h5(ws, filename, *args, **kwargs)
         else:
             raise TypeError(
