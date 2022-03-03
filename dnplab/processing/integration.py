@@ -4,7 +4,6 @@ from ..core.util import concat
 
 from scipy.integrate import trapz, cumtrapz
 
-
 def cumulative_integrate(data, dim="f2", regions=None):
     """Cumulative integration
 
@@ -44,6 +43,7 @@ def integrate(data, dim="f2", regions=None):
     """
 
     data = data.copy()
+    data.attrs['experiment_type'] = "integrals"
 
     index = data.index(dim)
     if regions == None:
