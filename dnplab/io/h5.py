@@ -20,10 +20,16 @@ def load_h5(path):
         dnpdata_collection: workspace object with data
     """
 
-    dnp_dict = {}
-
     f = h5py.File(path, "r")
     keys_list = f.keys()
+
+    if list(keys_list) == [
+        "__DNPDATA__"
+    ]:  # If Only DNPData object in h5 file, return DNPData object, not dictionary
+        data = read_dnpdata(f["__DNPDATA__"])
+        return data
+
+    dnp_dict = {}
 
     for key in keys_list:
 
