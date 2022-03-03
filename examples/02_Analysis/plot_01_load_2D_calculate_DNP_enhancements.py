@@ -27,16 +27,8 @@ data = dnp.load(file_name_path)
 # ---------------------------------
 # DNPLab provides a convenient way to calculate the DNP enhancement factors by using the ``calculate_enhancement`` function. Enhancement factors are calculated using integrals. Integrals can be calculated over the entire spectrum, multiple regions, or can be just a single point. However, without calculating integrals first, the ``calculate_enhancement`` function will return an error.
 
-intensities = dnp.integrate(data)
-
-# dnp.plot(intensities)
-# dnp.plt.show()
-# print(intensities)
-
-enhancements = dnp.calculate_enhancement(intensities)
-
-print(enhancements)
-# dnp.dnpNMR.calculate_enhancement(ws)
+integrals = dnp.integrate(data)
+enhancements = dnp.calculate_enhancement(integrals)
 
 # %%
 # In this case, the integral is calculated over the entire spectrum followed by calculating the enhancement factors.
@@ -48,19 +40,10 @@ print(enhancements)
 # #     The ``calculate_enhancement``` function can also calculate the enhancement for specific regions of the spectrum. THis behavior will be discussed in the next example (:ref:`07_align_nmr_spectra`).
 
 
-# # %%
-# # If needed, access your array of enhancements as:
-# enhancements = ws["enhancements"].values
+# %%
+# Plot Enhancement Data
+# ---------------------
+# Finally, we can plot the enhancement data versus the microwave power.
 
-# # %%
-# # Plot Enhancement Data
-# # ---------------------
-# # Finally, we can plot the enhancement data versus the microwave power.
-
-# dnp.dnpResults.figure()
-# dnp.dnpResults.plot(ws["enhancements"],linestyle = '-', marker = 'o', fillstyle = 'none')
-# dnp.dnpResults.plt.xlabel("Microwave Power (dBm)")
-# dnp.dnpResults.plt.ylabel("ODNP Enhancement Factor")
-# dnp.dnpResults.plt.title("10 mM TEMPO in Toluene")
-# dnp.dnpResults.plt.grid(True)
-# dnp.dnpResults.show()
+dnp.dnplabplot(enhancements)
+dnp.plt.show()
