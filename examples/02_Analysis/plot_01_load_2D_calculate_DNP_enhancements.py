@@ -6,7 +6,7 @@
 Load a 2D dnpdata object and calculate enhancements
 ===================================================
 
-This example demonstrates how to import DNP-NMR data in form of a 2D dnpdata object from an hdf5 file, calculate the DNP enhancement factors and plot the enhancment vs. the applied microwave power. This example uses the 2D data object that was created in a previous tutorial (:ref:`plot_04_create_dnpdata_object_from_individual_files`).
+This example demonstrates how to import DNP-NMR data in form of a 2D dnpdata object from an hdf5 file, calculate the DNP enhancement factors and plot the enhancment vs. the applied microwave power. This example uses the 2D data object that was created in a previous tutorial (:ref:`plot_04_create_dnpdata_object_from_individual_files`). The sample is 10 mM TEMPO in Toluene measured at 14.5MHz (X-Band ODNP spectroscopy).
 
 """
 # %%
@@ -19,6 +19,7 @@ This example demonstrates how to import DNP-NMR data in form of a 2D dnpdata obj
 import dnplab as dnp
 from dnplab.processing.integration import integrate
 
+sampleTag = "10 mM TEMPO in Toluene"
 file_name_path = "../../data/h5/PowerBuildUp.h5"
 data = dnp.load(file_name_path)
 
@@ -45,5 +46,5 @@ enhancements = dnp.calculate_enhancement(integrals)
 # ---------------------
 # Finally, we can plot the enhancement data versus the microwave power.
 
-dnp.fancy_plot(enhancements)
+dnp.fancy_plot(enhancements, title=sampleTag + ", ODNP Enhancements")
 dnp.plt.show()

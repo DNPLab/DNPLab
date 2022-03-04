@@ -29,13 +29,13 @@ data = dnp.fourier_transform(data)
 
 data = dnp.autophase(data)
 
-# dnp.dnplabplot(data, xlim=[-50, 30], title="Inversion Recorvery")
-# dnp.plt.show()
+dnp.fancy_plot(data, xlim=[-50, 30], title="Inversion Recorvery")
+dnp.plt.show()
 
 # %%
 # Align Inversion Recovery Spectra
 # --------------------------------
-# The spectra shown here are the individual NMR spectra for different recovery times. Note how the spectra are not perfectly aligned. This is can be fixed using the aligning function. A more detailed description of the aligning routine of DNPLab is given in the tutorial :ref:`07_align_nmr_spectra`.
+# The spectra shown here are the individual NMR spectra for different recovery times. Note how the spectra are not perfectly aligned. This is can be fixed using the aligning function. A more detailed description of the aligning routine of DNPLab is given in the tutorial :ref:`plot_01_align_nmr_spectra`.
 
 data = dnp.align(data)
 
@@ -46,27 +46,10 @@ data = dnp.align(data)
 # %%
 # Integrate Spectra
 # -----------------
-# To determine the T1 relaxation time, we first integrate the peak intensity across the entire spectrum. After integration the workspace will have a new dnpdata object called "integrals" where the integral values and indirect axis are kept.
+# To determine the T1 relaxation time, we first integrate the peak intensity across the entire spectrum. After integration the workspace will have a new dnpdata object called "integrals" where the integral values and indirect axis are kept. To use ``fancy_plot`` the attribute experiment_type has to be changed to "inversion_recovery".
 
 integrals = dnp.integrate(data)
 integrals.attrs["experiment_type"] = "inversion_recovery"
 
 dnp.fancy_plot(integrals)
 dnp.plt.show()
-
-# %%
-# Fit Inversion Recovery Buildup
-# ------------------------------
-# Fit the inversion recovery build-up and display the T1 value. After the fit the workspace will have a new dnpdata object called "fit" where the fit array and fit axis are kept.
-
-# dnp.dnpFit.exponential_fit(ws, type="T1")
-# print("T1 value (sec) = " + str(ws["fit"].attrs["T1"]))
-
-# dnp.dnpResults.figure()
-# dnp.dnpResults.plot(ws["integrals"], "o", fillstyle="none")
-# dnp.dnpResults.plot(ws["fit"])
-# dnp.dnpResults.plt.xlabel("Time t1 [s]")
-# dnp.dnpResults.plt.ylabel("Signal Amplitude [a.u.]")
-# dnp.dnpResults.plt.title("Inversion Recovery")
-# dnp.dnpResults.plt.grid(True)
-# dnp.dnpResults.show()

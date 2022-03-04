@@ -64,13 +64,25 @@ def plot(data, *args, **kwargs):
 def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     """Streamline Plot function for dnpdata objects
 
-    This function creates streamlined plots for NMR and EPR spectra. The type of the spectrum is automatically detected and the axis are formated accordingly.
+    This function creates streamlined plots for NMR and EPR spectra. The type of the spectrum is detected from the attribute "experiment_type" of the dnpdata object. Currently the following types are implemented: nmr_spectrum, epr_spectrum, enhancements_P, and inversion_recovery.
 
     Args:
+        data (dnpdata): dnpdata object with values to plot
+        xlim: list of limit values for plotting function
+        title: string containing plot title
+        showPar: boolean, toggle whether to show experiment parameters
 
     Returns:
+        Returns formated matplotlib plot.
 
-    Example:
+    Example::
+
+        # Simply just plotting the dnpdata object
+        dnp.fancy_plot(data)
+
+        # Plot EPR spectrum from 344 mT to 354 mT, show experimental parameters
+        dnp.fancy_plot(data, xlim=[344, 354], title="EPR Spectrum", showPar=True)
+
     """
 
     if "dim" in kwargs:
