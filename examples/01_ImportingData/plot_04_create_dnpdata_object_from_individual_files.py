@@ -93,7 +93,7 @@ data = dnp.fourier_transform(data)
 sampleTag = "10 mM TEMPO in Toluene"
 
 dnp.plt.figure()
-dnp.dnplabplot(data, xlim=[-10, 20])
+dnp.fancy_plot(data, xlim=[-10, 20])
 dnp.plt.title(sampleTag)
 dnp.plt.show()
 

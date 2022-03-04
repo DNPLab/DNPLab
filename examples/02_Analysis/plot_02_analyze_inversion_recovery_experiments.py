@@ -3,7 +3,7 @@
 .. _plot_02_analyse_inversion_recovery_experiments:
 
 =========================================
-Analyse T1 Inversion-Recovery Experiments
+Analyze T1 Inversion-Recovery Experiments
 =========================================
 
 This example demonstrates how to import TopSpin data from an inversion recovery NMR experiment and determine the T1 relaxation rate through a fit.
@@ -29,8 +29,8 @@ data = dnp.fourier_transform(data)
 
 data = dnp.autophase(data)
 
-dnp.dnplabplot(data, xlim=[-50, 30], title="Inversion Recorvery")
-dnp.plt.show()
+# dnp.dnplabplot(data, xlim=[-50, 30], title="Inversion Recorvery")
+# dnp.plt.show()
 
 # %%
 # Align Inversion Recovery Spectra
@@ -39,8 +39,8 @@ dnp.plt.show()
 
 data = dnp.align(data)
 
-dnp.dnplabplot(data, xlim=[-50, 30], title="Inversion Recovery, aligned")
-dnp.plt.show()
+# dnp.dnplabplot(data, xlim=[-50, 30], title="Inversion Recovery, aligned")
+# dnp.plt.show()
 
 
 # %%
@@ -49,15 +49,15 @@ dnp.plt.show()
 # To determine the T1 relaxation time, we first integrate the peak intensity across the entire spectrum. After integration the workspace will have a new dnpdata object called "integrals" where the integral values and indirect axis are kept.
 
 integrals = dnp.integrate(data)
+integrals.attrs["experiment_type"] = "inversion_recovery"
 
-dnp.dnplabplot(integrals)
+dnp.fancy_plot(integrals)
 dnp.plt.show()
 
-
-# # %%
-# # Fit Inversion Recovery Buildup
-# # ------------------------------
-# # Fit the inversion recovery build-up and display the T1 value. After the fit the workspace will have a new dnpdata object called "fit" where the fit array and fit axis are kept.
+# %%
+# Fit Inversion Recovery Buildup
+# ------------------------------
+# Fit the inversion recovery build-up and display the T1 value. After the fit the workspace will have a new dnpdata object called "fit" where the fit array and fit axis are kept.
 
 # dnp.dnpFit.exponential_fit(ws, type="T1")
 # print("T1 value (sec) = " + str(ws["fit"].attrs["T1"]))

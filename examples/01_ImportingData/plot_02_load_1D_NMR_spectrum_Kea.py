@@ -53,17 +53,17 @@ data_on = dnp.fourier_transform(data_on)
 sampleTag = "10 mM TEMPO in Water"
 
 dnp.plt.figure()
-dnp.dnplabplot(data_on, title=sampleTag + ", MW On Spectrum")
+dnp.fancy_plot(data_on, title=sampleTag + ", MW On Spectrum")
 
 dnp.plt.figure()
-dnp.dnplabplot(data_off, title=sampleTag + ", MW Off Spectrum")
+dnp.fancy_plot(data_off, title=sampleTag + ", MW Off Spectrum")
 dnp.plt.show()
 
 # %%
 # Next plot both spectra in the same figure
 
 dnp.plt.figure()
-dnp.dnplabplot(data_on, xlim=[-30, 30])
-dnp.dnplabplot(data_off, xlim=[-30, 30])
+dnp.fancy_plot(data_on, xlim=[-30, 30])
+dnp.fancy_plot(data_off, xlim=[-30, 30])
 dnp.plt.title(sampleTag)
 dnp.plt.show()

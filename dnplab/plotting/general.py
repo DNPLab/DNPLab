@@ -61,7 +61,7 @@ def plot(data, *args, **kwargs):
     data.fold()
 
 
-def dnplabplot(data, xlim=[], title="", showPar=False, *args, **kwargs):
+def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     """Streamline Plot function for dnpdata objects
 
     This function creates streamlined plots for NMR and EPR spectra. The type of the spectrum is automatically detected and the axis are formated accordingly.
@@ -78,13 +78,13 @@ def dnplabplot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     else:
         dim = data.dims[0]
 
-    coord = data.coords[dim]
-    data.unfold(dim)
-
     plt.grid(True)
     plt.title(title)
 
     if data.attrs["experiment_type"] == "nmr_spectrum":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
         plt.plot(coord, data.values.real, *args, **kwargs)
         plt.xlabel("Chemical Shift $\delta$ (ppm)")
         plt.ylabel("NMR Signal Intensity (a.u.)")
@@ -105,6 +105,9 @@ def dnplabplot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
     elif data.attrs["experiment_type"] == "epr_spectrum":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
         plt.plot(coord, data.values.real, *args, **kwargs)
         plt.xlabel("Magnetic Field $B_{0}$ (mT)")
         plt.ylabel("EPR Signal Intensity (a.u.)")
@@ -138,9 +141,23 @@ def dnplabplot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
 
     elif data.attrs["experiment_type"] == "enhancements_P":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
         plt.plot(coord, data.values.real, marker = 'o', fillstyle = 'none', *args, **kwargs)
         plt.xlabel("Microwave Power (dBm)")
         plt.ylabel("DNP Enhancement")
+
+        if xlim != []:
+            plt.xlim(xlim[0], xlim[1])
+
+        # if showPar == True:
+
+    elif data.attrs["experiment_type"] == "inversion_recovery":
+        plt.plot(data.coords["t1"], data.values, marker = 'o', fillstyle = 'none', *args, **kwargs)
+
+        plt.xlabel("Evolution Time T1 (s)")
+        plt.ylabel("NMR Amplitude [a.u.]")
 
         if xlim != []:
             plt.xlim(xlim[0], xlim[1])

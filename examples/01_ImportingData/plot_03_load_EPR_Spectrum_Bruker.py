@@ -57,7 +57,7 @@ data_proc = dnp.remove_background(data, dim="B0")
 # -------------------
 # To show a list of attributes with the EPR spectrum
 
-dnp.dnplabplot(data_proc, xlim=[344, 354], title="EPR Spectrum", showPar=True)
+dnp.fancy_plot(data_proc, xlim=[344, 354], title="EPR Spectrum", showPar=True)
 dnp.plt.show()
 
 

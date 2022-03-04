@@ -52,7 +52,7 @@ data = dnp.autophase(data, force_positive=True)
 # %%
 # To plot the NMR spectrum simply use the following command. By default, only the real part of the NMR spectrum is shown.
 
-dnp.dnplabplot(data)
+dnp.fancy_plot(data)
 dnp.plt.show()
 
 # %%
@@ -63,7 +63,7 @@ dnp.plt.show()
 
 sampleTag = "ODNP Experiment of 10 mM TEMPO in Water"
 
-dnp.dnplabplot(data, xlim=[-100, 100], title=sampleTag, showPar=True)
+dnp.fancy_plot(data, xlim=[-100, 100], title=sampleTag, showPar=True)
 dnp.plt.show()
 
 # %%
