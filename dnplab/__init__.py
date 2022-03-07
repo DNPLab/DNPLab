@@ -1,3 +1,5 @@
+"""DNPLab - Bringing the Power of Python to DNP-NMR Spectroscopy"""
+
 from .core.data import DNPData
 from .core.ufunc import *
 from .core.util import *
