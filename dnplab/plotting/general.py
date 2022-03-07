@@ -156,7 +156,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         coord = data.coords[dim]
         data.unfold(dim)
 
-        plt.plot(coord, data.values.real, marker = 'o', fillstyle = 'none', *args, **kwargs)
+        plt.plot(coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs)
         plt.xlabel("Microwave Power (dBm)")
         plt.ylabel("DNP Enhancement")
 
@@ -166,7 +166,14 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         # if showPar == True:
 
     elif data.attrs["experiment_type"] == "inversion_recovery":
-        plt.plot(data.coords["t1"], data.values, marker = 'o', fillstyle = 'none', *args, **kwargs)
+        plt.plot(
+            data.coords["t1"],
+            data.values,
+            marker="o",
+            fillstyle="none",
+            *args,
+            **kwargs
+        )
 
         plt.xlabel("Evolution Time T1 (s)")
         plt.ylabel("NMR Amplitude [a.u.]")
