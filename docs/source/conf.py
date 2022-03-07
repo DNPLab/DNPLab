@@ -24,25 +24,25 @@ print(sys.path)
 
 # -- Project information -----------------------------------------------------
 
-project = u"DNPLab"
-copyright = u"2022, DNPLab"
-author = u"DNPLab Team"
+project = "DNPLab"
+copyright = "2022, DNPLab"
+author = "DNPLab Team"
 
 from datetime import datetime
 
-date = datetime.now().strftime(u"%m/%d/%Y, %H:%M:%S")
+date = datetime.now().strftime("%m/%d/%Y, %H:%M:%S")
 
 # The short X.Y version
-version_file = '../../dnplab/version.py'
-with open(version_file, 'r') as f:
+version_file = "../../dnplab/version.py"
+with open(version_file, "r") as f:
     version_code = f.read()
 exec(version_code)
 version = __version__
 release = __version__
 
-print(u"Build Time: " + date)
-print(u"Version: " + version)
-print(u"Release: " + release)
+print("Build Time: " + date)
+print("Version: " + version)
+print("Release: " + release)
 
 
 rst_epilog_list = [
@@ -67,8 +67,8 @@ def make_rst_epilog(rst_epilog_list):
 rst_epilog = make_rst_epilog(rst_epilog_list)
 
 # Add links from linkList.rst
-with open('_static/linkList.rst') as f:
-     rst_epilog += f.read()
+with open("_static/linkList.rst") as f:
+    rst_epilog += f.read()
 
 # rst_epilog = """
 # .. |psf| replace:: Python Software Foundation
@@ -94,7 +94,7 @@ extensions = [
 
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
 
-autodoc_member_order = 'alphabetical'
+autodoc_member_order = "alphabetical"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -113,12 +113,12 @@ master_doc = "index"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = u"Python"
+language = "Python"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'links.rst']
+exclude_patterns = ["_build", "links.rst"]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
@@ -127,11 +127,11 @@ pygments_style = None
 from sphinx_gallery.sorting import FileNameSortKey
 
 sphinx_gallery_conf = {
-    "examples_dirs": "../../examples",                  # path to your example scripts
-    "gallery_dirs": "auto_examples",                    # path to where to save gallery generated output
+    "examples_dirs": "../../examples",  # path to your example scripts
+    "gallery_dirs": "auto_examples",  # path to where to save gallery generated output
     "remove_config_comments": True,
-    "within_subsection_order": FileNameSortKey,         # Sort by file name
-    "run_stale_examples": True,                         # Force sphinx to rebuild example. Set to False to only run examples that have changed
+    "within_subsection_order": FileNameSortKey,  # Sort by file name
+    "run_stale_examples": True,  # Force sphinx to rebuild example. Set to False to only run examples that have changed
 }
 
 
@@ -141,7 +141,7 @@ sphinx_gallery_conf = {
 # a list of builtin themes.
 #
 # html_theme = 'alabaster'
-html_theme = 'sphinx_rtd_theme'
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -149,20 +149,20 @@ html_theme = 'sphinx_rtd_theme'
 #
 # html_theme_options = {}
 html_theme_options = {
-#     'analytics_id': 'G-XXXXXXXXXX',  #  Provided by Google in your dashboard
-#     'analytics_anonymize_ip': False,
-#     'prev_next_buttons_location': 'bottom',
-#     'style_external_links': False,
-#     'vcs_pageview_mode': '',
-#     'style_nav_header_background': 'white',
-    'logo_only': True,
-    'display_version': False,
+    #     'analytics_id': 'G-XXXXXXXXXX',  #  Provided by Google in your dashboard
+    #     'analytics_anonymize_ip': False,
+    #     'prev_next_buttons_location': 'bottom',
+    #     'style_external_links': False,
+    #     'vcs_pageview_mode': '',
+    #     'style_nav_header_background': 'white',
+    "logo_only": True,
+    "display_version": False,
     # TOC options
-    'sticky_navigation': False,
-    'collapse_navigation': True,
-    'navigation_depth': 4
-#     'includehidden': True,
-#     'titles_only': False
+    "sticky_navigation": False,
+    "collapse_navigation": True,
+    "navigation_depth": 4
+    #     'includehidden': True,
+    #     'titles_only': False
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -216,7 +216,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "dnpLab.tex", u"DNPLab Documentation", u"Timothy Keller", "manual"),
+    (master_doc, "dnpLab.tex", "DNPLab Documentation", "Timothy Keller", "manual"),
 ]
 
 
@@ -224,7 +224,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "DNPlab", u"DNPLab Documentation", [author], 1)]
+man_pages = [(master_doc, "DNPlab", "DNPLab Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------------
@@ -236,7 +236,7 @@ texinfo_documents = [
     (
         master_doc,
         "DNPLab",
-        u"DNPLab Documentation",
+        "DNPLab Documentation",
         author,
         "DNPLab",
         "Bringing the Power of Python to DNP-NMR Spectroscopy",

@@ -44,6 +44,7 @@ def integrate(data, dim="f2", regions=None):
     """
 
     data = data.copy()
+    data.attrs["experiment_type"] = "integrals"
 
     index = data.index(dim)
     if regions == None:
