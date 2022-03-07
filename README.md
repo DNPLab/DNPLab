@@ -43,4 +43,4 @@ Find the online documentation at: http://docs.dnplab.net
 
 # Developement 
 
-  - Clone the git repository from https://github.com/DNPLab/dnpLab
+  - Clone the git repository from https://github.com/DNPLab/dnplab

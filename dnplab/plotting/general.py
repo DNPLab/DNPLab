@@ -61,4 +61,130 @@ def plot(data, *args, **kwargs):
     data.fold()
 
 
-show = plt.show
+def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
+    """Streamline Plot function for dnpdata objects
+
+    This function creates streamlined plots for NMR and EPR spectra. The type of the spectrum is detected from the attribute "experiment_type" of the dnpdata object. Currently the following types are implemented: nmr_spectrum, epr_spectrum, enhancements_P, and inversion_recovery.
+
+    Args:
+        data (dnpdata): dnpdata object with values to plot
+        xlim: list of limit values for plotting function
+        title: string containing plot title
+        showPar: boolean, toggle whether to show experiment parameters
+
+    Returns:
+        Returns formated matplotlib plot.
+
+    Example::
+
+        # Simply just plotting the dnpdata object
+        dnp.fancy_plot(data)
+
+        # Plot EPR spectrum from 344 mT to 354 mT, show experimental parameters
+        dnp.fancy_plot(data, xlim=[344, 354], title="EPR Spectrum", showPar=True)
+
+    """
+
+    if "dim" in kwargs:
+        dim = kwargs.pop("dim")
+    else:
+        dim = data.dims[0]
+
+    plt.grid(True)
+    plt.title(title)
+
+    if data.attrs["experiment_type"] == "nmr_spectrum":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        plt.plot(coord, data.values.real, *args, **kwargs)
+        plt.xlabel("Chemical Shift $\delta$ (ppm)")
+        plt.ylabel("NMR Signal Intensity (a.u.)")
+
+        plt.xlim(max(coord), min(coord))
+
+        if xlim != []:
+
+            plt.xlim(xlim[1], xlim[0])
+
+        if showPar == True:
+
+            parameterString = "Freq: " + str(round(data.attrs["nmr_frequency"], 4))
+
+            box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
+            xmin, xmax, ymin, ymax = plt.axis()
+
+            plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
+
+    elif data.attrs["experiment_type"] == "epr_spectrum":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        plt.plot(coord, data.values.real, *args, **kwargs)
+        plt.xlabel("Magnetic Field $B_{0}$ (mT)")
+        plt.ylabel("EPR Signal Intensity (a.u.)")
+
+        if xlim != []:
+            plt.xlim(xlim[0], xlim[1])
+
+        if showPar == True:
+            SW = coord[-1] - coord[0]
+
+            parameterString = (
+                "MF: "
+                + str(round(data.attrs["frequency"], 4))
+                + "\nMP: "
+                + str(round(data.attrs["power"], 3))
+                + "\nCF: "
+                + str(round(data.attrs["center_field"] / 10, 2))
+                + "\nSW: "
+                + str(round(SW, 2))
+                + "\nMA: "
+                + str(round(data.attrs["modulation_amplitude"], 2))
+                + "\nNS: "
+                + str(data.attrs["nscans"])
+                + "\nTM: "
+                + str(round(data.attrs["temperature"], 1))
+            )
+
+            box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
+            xmin, xmax, ymin, ymax = plt.axis()
+
+            plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
+
+    elif data.attrs["experiment_type"] == "enhancements_P":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        plt.plot(coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs)
+        plt.xlabel("Microwave Power (dBm)")
+        plt.ylabel("DNP Enhancement")
+
+        if xlim != []:
+            plt.xlim(xlim[0], xlim[1])
+
+        # if showPar == True:
+
+    elif data.attrs["experiment_type"] == "inversion_recovery":
+        plt.plot(
+            data.coords["t1"],
+            data.values,
+            marker="o",
+            fillstyle="none",
+            *args,
+            **kwargs
+        )
+
+        plt.xlabel("Evolution Time T1 (s)")
+        plt.ylabel("NMR Amplitude [a.u.]")
+
+        if xlim != []:
+            plt.xlim(xlim[0], xlim[1])
+
+        # if showPar == True:
+
+    else:
+
+        plot(data)
+
+    data.fold()
