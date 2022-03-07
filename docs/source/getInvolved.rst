@@ -2,8 +2,6 @@
 Get Involved
 ============
 
-Coming soon.
+DNPLab is a collaborative project created by |B12TLink|, the |HanLabLink|, and the |FranckLabLink|.
 
-.. This part should contain how we code.
-.. What type of documentation is required for new functions/modules/etc.
-.. That are we using to check the code.
+If you like to get involved reach out to the DNPLab at info@bridge12.
