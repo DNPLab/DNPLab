@@ -73,8 +73,9 @@ def apodize(data, dim="t2", kind="exponential", **kwargs):
 
     proc_parameters = {
         "kind": kind,
-        "args": kwargs,
     }
+    for key in kwargs:
+        proc_parameters[key] = kwargs[key]
     proc_attr_name = "window"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
