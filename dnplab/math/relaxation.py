@@ -96,6 +96,23 @@ def buildup_function(p, E_max, p_half):
 
     return 1 + E_max * p / (p_half + p)
 
+def ksigma_smax(p, E_max, p_half):
+    """Calculate asymptotic buildup curve
+
+    .. math::
+        f(p) = E_{max} * p / (p_{1/2} + p)
+
+    Args:
+        p (array): power series
+        E_max (float): maximum enhancement
+        p_half (float): power at half saturation
+
+    Returns:
+        ndarray: buildup curve
+    """
+
+    return E_max * p / (p_half + p)
+
 def logistic(x, c, x0, L, k):
     """Calculate asymptotic buildup curve
 
