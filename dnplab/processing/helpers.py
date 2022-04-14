@@ -81,7 +81,7 @@ def signal_to_noise():
 
 
 def smooth(data, dim="t2", window_length=11, polyorder=3):
-    '''Apply Savitzky Golay Smoothing
+    """Apply Savitzky Golay Smoothing
 
     Args:
         data (DNPData): Data object
@@ -91,7 +91,7 @@ def smooth(data, dim="t2", window_length=11, polyorder=3):
 
     Returns:
         DNPData: Data with Savitzky Golay smoothing applied
-    '''
+    """
     out = data.copy()
 
     out.unfold(dim)
