@@ -81,6 +81,17 @@ def signal_to_noise():
 
 
 def smooth(data, dim="t2", window_length=11, polyorder=3):
+    '''Apply Savitzky Golay Smoothing
+
+    Args:
+        data (DNPData): Data object
+        dim (str): Dimension to perform smoothing
+        window_length (int): Length of window (number of coefficients)
+        polyorder (int): Polynomial order to fit samples
+
+    Returns:
+        DNPData: Data with Savitzky Golay smoothing applied
+    '''
     out = data.copy()
 
     out.unfold(dim)
@@ -96,7 +107,7 @@ def left_shift(data, dim="t2", shift_points=0):
     """Remove points from the left of data
 
     Args:
-        all_data (dnpdata, dict): Data container for data
+        data (dnpdata): Data container for data
 
     +---------------+------+---------+--------------------------------------------------+
     | parameter     | type | default | description                                      |
