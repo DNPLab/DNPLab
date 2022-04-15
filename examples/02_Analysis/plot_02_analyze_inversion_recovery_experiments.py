@@ -53,3 +53,22 @@ integrals.attrs["experiment_type"] = "inversion_recovery"
 
 dnp.fancy_plot(integrals)
 dnp.plt.show()
+
+initial_guess = (2., -4000, 4000) # initial guess for: T1, M_0, M_inf
+
+out = dnp.fit(dnp.math.relaxation.t1, integrals, dim = 't1', p0 = initial_guess)
+
+fit = out['fit']
+popt = out['popt']
+err = out['err']
+
+dnp.fancy_plot(integrals)
+dnp.plot(fit, '-')
+print(popt)
+T1 = popt['popt',0]
+M_0 = popt['popt',1]
+M_inf = popt['popt',2]
+
+print(T1.values)
+
+dnp.plt.show()
