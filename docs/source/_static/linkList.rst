@@ -2,6 +2,11 @@
 
 .. -------------------------- Unsorted Links --------------------------
 
+.. |GMRFunctionMatlab| raw:: html
+
+   <a href="https://www.mathworks.com/matlabcentral/fileexchange/12078-gmr-m-nmr-mri-properties" target="_blank">Mirko Hovrat</a>
+
+
 .. |MITLicense| raw:: html
 
    <a href="https://en.wikipedia.org/wiki/MIT_License" target="_blank">MIT License</a>

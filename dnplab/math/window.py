@@ -63,11 +63,7 @@ def hann(x):
     Returns:
         ndarray: hann window function
     """
-
-    if type(x) == int:
-        N = x
-    else:
-        N = len(x)
+    N = _handle_array(x)
 
     return 0.5 + 0.5 * np.cos(1.0 * np.pi * np.arange(N) / (N - 1))
 
@@ -111,10 +107,7 @@ def hamming(x):
     Returns:
         ndarray: hamming window function
     """
-    if type(x) == int:
-        N = x
-    else:
-        N = len(x)
+    N = _handle_array(x)
 
     return 0.53836 + 0.46164 * np.cos(1.0 * np.pi * np.arange(N) / (N - 1))
 
@@ -161,9 +154,6 @@ def sin2(x):
     Returns:
         array: sin-squared window function
     """
-    if type(x) == int:
-        N = x
-    else:
-        N = len(x)
+    N = _handle_array(x)
 
     return np.cos((-0.5 * np.pi * np.arange(N) / (N - 1)) + np.pi) ** 2
