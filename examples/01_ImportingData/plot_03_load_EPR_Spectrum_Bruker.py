@@ -40,9 +40,9 @@ dnp.fancy_plot(data_proc, xlim=[344, 354], title="EPR Spectrum")
 # The ''fancy_plot'' function is very helpful to create simple plots. For more complicated figures the matplotlib functions can be used. Note, that the plotting functions of the matplotlib package are already loaded into the DNPLab environment.
 
 dnp.plt.figure()
-dnp.plt.plot(data.coords["B0"], data.values.real, label="Background Correction")
+dnp.plt.plot(data.coords["B0"], data.values.real, label="No Background Correction")
 dnp.plt.plot(
-    data_proc.coords["B0"], data_proc.values.real, label="No Background Correction"
+    data_proc.coords["B0"], data_proc.values.real, label="Background Correction"
 )
 dnp.plt.xlabel("Magnetic Field (mT)")
 dnp.plt.ylabel("EPR Signal Intensity (a.u.)")
