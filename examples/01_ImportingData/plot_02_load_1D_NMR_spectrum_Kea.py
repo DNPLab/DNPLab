@@ -63,7 +63,7 @@ dnp.plt.show()
 # Next plot both spectra in the same figure
 
 dnp.plt.figure()
-dnp.fancy_plot(data_on, xlim=[-30, 30])
-dnp.fancy_plot(data_off, xlim=[-30, 30])
-dnp.plt.title(sampleTag)
+dnp.fancy_plot(data_on, xlim=[-20, 20])
+dnp.fancy_plot(data_off*50, xlim=[-20, 20])
+dnp.plt.title(sampleTag + ", MW ON/OFF(*50)")
 dnp.plt.show()
