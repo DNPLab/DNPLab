@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import interpolate
 from scipy import optimize
+import warnings
 
 
 def calculate_smax(spin_C=False):
@@ -10,14 +11,21 @@ def calculate_smax(spin_C=False):
         \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
 
     Args:
-        spin_C (float): unpaired spin concentration in units of uM
+        spin_C (float): unpaired spin concentration in units of Molar
 
     Returns:
         smax (float): maximal saturation factor
 
     """
 
-    return 1 - (2 / (3 + (3 * (spin_C * 1e-6 * 198.7))))
+    if spin_c > 5.0:
+        warnings.warn('Spin concentration will be interpreted as uM. Please give concentration in units of Molar. All units should be SI base units, other units will be depreciated in the future.')
+
+        return 1 - (2 / (3 + (3 * (spin_C * 1e-6 * 198.7))))
+    else:
+        return 1 - (2 / (3 + (3 * (spin_C * 198.7))))
+
+
 
 
 def interpolate_T1(
