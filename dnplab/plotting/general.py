@@ -168,7 +168,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     elif data.attrs["experiment_type"] == "inversion_recovery":
         plt.plot(
             data.coords["t1"],
-            data.values,
+            data.values.real,
             marker="o",
             fillstyle="none",
             *args,
