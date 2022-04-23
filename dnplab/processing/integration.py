@@ -51,9 +51,9 @@ def integrate(data, dim="f2", regions=None, error_regions=None):
         data.values = np.trapz(data.values, data.coords[dim], axis=index)
         data.coords.pop(dim)
 
-        if error_regions == None:
-            data.error = np.zeros(data.shape)
-            print("add errors")
+        # if error_regions == None:
+        #     data.error = np.zeros(data.shape)
+        #     print("add errors")
 
         # else:
         #     signal = max(data.values)
