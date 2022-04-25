@@ -668,7 +668,7 @@ class ABCData(object):
         """Align two data objects for numerical operations
 
         Args:
-            b: Ojbect to align with self
+            b: Object to align with self
 
         Returns:
             tuple: self and b aligned data objects
