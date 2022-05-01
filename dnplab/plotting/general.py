@@ -17,6 +17,7 @@ plt.rcParams["axes.prop_cycle"] = plt.cycler(
 
 show = plt.show
 
+
 def plot(data, *args, **kwargs):
     """Plot function for dnpdata object
 
@@ -91,7 +92,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         warn("experiment_type not defined in data.attrs, falling back to plot function")
         plot(data, *args, **kwargs)
         return
-    elif data.attrs['experiment_type'] == None:
+    elif data.attrs["experiment_type"] == None:
         warn("experiment_type is None, falling back to plot function")
         plot(data, *args, **kwargs)
         return
