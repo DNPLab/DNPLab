@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from warnings import warn
 
 from ..core.data import DNPData
 
@@ -14,6 +15,7 @@ plt.rcParams["axes.prop_cycle"] = plt.cycler(
     color=[orange, dark_green, light_green, dark_grey, light_grey]
 )
 
+show = plt.show
 
 def plot(data, *args, **kwargs):
     """Plot function for dnpdata object
@@ -84,6 +86,15 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         dnp.fancy_plot(data, xlim=[344, 354], title="EPR Spectrum", showPar=True)
 
     """
+
+    if "experiment_type" not in data.attrs:
+        warn("experiment_type not defined in data.attrs, falling back to plot function")
+        plot(data, *args, **kwargs)
+        return
+    elif data.attrs['experiment_type'] == None:
+        warn("experiment_type is None, falling back to plot function")
+        plot(data, *args, **kwargs)
+        return
 
     if "dim" in kwargs:
         dim = kwargs.pop("dim")
