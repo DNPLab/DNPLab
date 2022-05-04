@@ -96,6 +96,7 @@ def buildup_function(p, E_max, p_half):
 
     return 1 + E_max * p / (p_half + p)
 
+
 def ksigma_smax(p, E_max, p_half):
     """Calculate asymptotic buildup curve
 
@@ -113,11 +114,12 @@ def ksigma_smax(p, E_max, p_half):
 
     return E_max * p / (p_half + p)
 
+
 def logistic(x, c, x0, L, k):
     """Calculate asymptotic buildup curve
 
     .. math::
-        f(p) = 
+        f(p) =
 
     Args:
         x (array): x values
@@ -130,4 +132,4 @@ def logistic(x, c, x0, L, k):
         ndarray: buildup curve
     """
 
-    return c + L / (1. + np.exp(-1.*k*(x - x0)))
+    return c + L / (1.0 + np.exp(-1.0 * k * (x - x0)))

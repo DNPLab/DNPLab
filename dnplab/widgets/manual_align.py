@@ -8,7 +8,7 @@ def manual_align(data, dim):
     """Manually align spectra"""
 
     coord = data.coords[dim]
-    max_index = int(data.size / (coord.size**2.0))
+    max_index = int(data.size / (coord.size ** 2.0))
 
     fig, ax = plt.subplots()
     plt.subplots_adjust(left=0.25, bottom=0.25)
