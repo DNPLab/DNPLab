@@ -89,6 +89,21 @@ _dspfvs_table_13 = {
     96: 2.995,
 }
 
+_required_params = {'acqus':
+    [
+        "SW_h",
+        "RG",
+        "DECIM",
+        "DSPFIRM",
+        "DSPFVS",
+        "BYTORDA",
+        "TD",
+        "SFO1",
+    ],
+    'acqu2s' : ['TD', 'SW_h'],
+    'acqu3s' : ['TD', 'SW_h'],
+
+    }
 
 def find_group_delay(attrs_dict):
     """
@@ -102,8 +117,11 @@ def find_group_delay(attrs_dict):
     """
 
     group_delay = 0
-    if attrs_dict["DSPFIRM"] != 0 and "GRPDLY" in attrs_dict.keys():
+    if attrs_dict["DSPFVS"] >= 13 and "GRPDLY" in attrs_dict.keys():
         group_delay = attrs_dict["GRPDLY"]
+        if group_delay > 0:
+            return group_delay
+
     elif attrs_dict["DECIM"] == 1.0:
         pass
     else:
@@ -123,7 +141,7 @@ def find_group_delay(attrs_dict):
     return group_delay
 
 
-def import_topspin(path, phase_cycle=[0, 90, 180, 270]):
+def import_topspin(path, verbose = False):
     """
     Import topspin data and return dnpdata object
 
@@ -134,19 +152,95 @@ def import_topspin(path, phase_cycle=[0, 90, 180, 270]):
     Returns:
         dnpdata: topspin data
     """
-    dir_list = os.listdir(path)
+    dir_list = os.listdir(path) # All files and folders in directory
+    if verbose:
+        print(dir_list)
 
-    if "fid" in dir_list and "ser" not in dir_list:
-        data = load_fid_ser(path, dtype="fid", phase_cycle=phase_cycle)
-    elif "ser" in dir_list:
-        data = load_fid_ser(path, dtype="ser", phase_cycle=phase_cycle)
+    # Load Acquisition Parameters
+    acqus_params = load_acqu(os.path.join(path,'acqus'), verbose = verbose)
+
+    dims = ['t2'] # this may cause issues if the first dimension is not the direct time dimension
+
+    if 'fid' in dir_list:
+        bin_filename = 'fid'
     else:
-        raise ValueError("Could Not Identify Data Type in File")
+        bin_filename = 'ser'
 
-    return data
+    if verbose:
+        print('Binary File:', bin_filename)
+
+    if acqus_params["BYTORDA"] == 0:
+        endian = "<"
+    else:
+        endian = ">"
+
+    if verbose:
+        print('endian', endian)
+
+    raw = load_bin(os.path.join(path,bin_filename), dtype = endian + 'i4')
+
+    # Is data always complex?
+    data = raw[0::2] + 1j * raw[1::2]  # convert to complex
+
+    group_delay = find_group_delay(acqus_params)
+    group_delay = int(np.ceil(group_delay))
+
+#    t2 = 1.0 / acqus_params["SW_h"] * np.arange(0, int(acqus_params["TD"] / 2) - group_delay)
+    t2 = 1.0 / acqus_params["SW_h"] * np.arange(0, int(acqus_params["TD"] / 2))
+
+    coords = [t2]
+
+    if 'acqu2s' in dir_list:
+        acqu2s_params = load_acqu(os.path.join(path,'acqu2s'), verbose = verbose)
+        dims.append('t1')
+        t1 = 1.0 / acqu2s_params["SW_h"] * np.arange(0, int(acqu2s_params["TD"]))
+        coords.append(t1)
+
+    if 'acqu3s' in dir_list:
+        acqu3s_params = load_acqu(os.path.join(path,'acqu3s'), required_params = required_params['acqu3s'], verbose = verbose)
+        dims.append('t3')
+        t3 = 1.0 / acqu3s_params["SW_h"] * np.arange(0, int(acqu3s_params["TD"]))
+        coords.append(t3)
 
 
-def load_acqu_proc(path="1", param_filename="acqus", proc_num=1):
+    coords = coords[::-1]
+    dims = dims[::-1]
+    new_shape = [len(x) for x in coords]
+#    new_shape = new_shape[::-1]
+
+    #reshape data
+    data = data.reshape(new_shape)
+    print('length of data', len(data))
+
+    print('length of t2', len(t2))
+
+    #handle group delay
+
+    # create data object
+    topspin_data = DNPData(data, dims, coords, attrs = acqus_params) 
+    topspin_data.reorder(['t2'])
+    topspin_data = topspin_data['t2',slice(group_delay, -1)]
+    print(group_delay)
+
+    return topspin_data
+
+
+
+#    if dtype == "fid":
+#        raw = np.fromfile(os.path.join(path, "fid"), dtype=endian + "i4")
+#    else:
+#        raw = np.fromfile(os.path.join(path, "ser"), dtype=endian + "i4")
+
+#    if "fid" in dir_list and "ser" not in dir_list:
+#        data = load_fid_ser(path, dtype="fid", phase_cycle=phase_cycle)
+#    elif "ser" in dir_list:
+#        data = load_fid_ser(path, dtype="ser", phase_cycle=phase_cycle)
+#    else:
+#        raise ValueError("Could Not Identify Data Type in File")
+
+#    return data
+
+def load_acqu(path, required_params = None, verbose = False):
     """
     Import topspin acqu or proc files
 
@@ -159,69 +253,75 @@ def load_acqu_proc(path="1", param_filename="acqus", proc_num=1):
         dict: Dictionary of acqusition parameters
     """
 
-    if "proc" in param_filename:
-        path_filename = os.path.join(path, "pdata", str(proc_num), param_filename)
+    raw_params = load_topspin_jcamp_dx(path, verbose = verbose)
+
+    if required_params is not None:
+        acqus_params = {}
+        for key in required_params:
+            acqus_params[key] = raw_params[key]
     else:
-        path_filename = os.path.join(path, param_filename)
+        acqus_params = raw_params
 
-    # Import parameters
-    with open(path_filename, "r") as f:
-        raw_params = f.read()
+    return acqus_params
 
-    # Split parameters by line
-    lines = raw_params.strip("\n").split("\n")
-    attrs_dict = {}
-
-    # Parse Parameters
-    for line in lines:
-        if line[0:3] == "##$":
-            line_split = line[3:].split("= ")
-            try:
-                attrs_dict[line_split[0]] = float(line_split[1])
-            except:
-                attrs_dict[line_split[0]] = line_split[1]
-            # if line_split[0] in ["TD", "NS"]:
-            # print(line_split[0] + ": " + str(attrs_dict[line_split[0]]))
-
-    needed_params = [
-        "SW_h",
-        "RG",
-        "DECIM",
-        "DSPFIRM",
-        "DSPFVS",
-        "BYTORDA",
-        "TD",
-        "SFO1",
-    ]
-    needed_params_2 = ["SW_h", "TD", "SFO1"]
-    if param_filename in ["acqu", "acqus"]:
-        if not all(
-            map(
-                attrs_dict.keys().__contains__,
-                needed_params,
-            )
-        ):
-            raise KeyError(
-                "Unable to find all needed fields in the " + param_filename + " file"
-            )
-        else:
-            attrs_dict = {x: attrs_dict[x] for x in needed_params}
-
-    elif param_filename in ["acqu2", "acqu2s"]:
-        if not all(map(attrs_dict.keys().__contains__, needed_params_2)):
-            raise KeyError(
-                "Unable to find all needed fields in the " + param_filename + " file"
-            )
-        else:
-            attrs_dict = {x + "_2": attrs_dict[x] for x in needed_params_2}
-
-    elif param_filename in ["acqu3", "acqu3s"]:
-        if not all(map(attrs_dict.keys().__contains__, needed_params_2)):
-            raise KeyError(
-                "Unable to find all needed fields in the " + param_filename + " file"
-            )
-        else:
-            attrs_dict = {x + "_3": attrs_dict[x] for x in needed_params_2}
+#    # Import parameters
+#    with open(path, "r") as f:
+#        raw_params = f.read()
+#
+#    # Split parameters by line
+#    lines = raw_params.strip("\n").split("\n")
+#    attrs_dict = {}
+#
+#    # Parse Parameters
+#    for line in lines:
+#        if line[0:3] == "##$":
+#            line_split = line[3:].split("= ")
+#            try:
+#                attrs_dict[line_split[0]] = float(line_split[1])
+#            except:
+#                attrs_dict[line_split[0]] = line_split[1]
+#            # if line_split[0] in ["TD", "NS"]:
+#            # print(line_split[0] + ": " + str(attrs_dict[line_split[0]]))
+#
+#    needed_params = [
+#        "SW_h",
+#        "RG",
+#        "DECIM",
+#        "DSPFIRM",
+#        "DSPFVS",
+#        "BYTORDA",
+#        "TD",
+#        "SFO1",
+#    ]
+#    needed_params_2 = ["SW_h", "TD", "SFO1"]
+#    if param_filename in ["acqu", "acqus"]:
+#        if not all(
+#            map(
+#                attrs_dict.keys().__contains__,
+#                needed_params,
+#            )
+#        ):
+#            raise KeyError(
+#                "Unable to find all needed fields in the " + param_filename + " file"
+#            )
+#        else:
+#            attrs_dict = {x: attrs_dict[x] for x in needed_params}
+#
+#    elif param_filename in ["acqu2", "acqu2s"]:
+#        if not all(map(attrs_dict.keys().__contains__, needed_params_2)):
+#            raise KeyError(
+#                "Unable to find all needed fields in the " + param_filename + " file"
+#            )
+#        else:
+#            attrs_dict = {x + "_2": attrs_dict[x] for x in needed_params_2}
+#
+#    elif param_filename in ["acqu3", "acqu3s"]:
+#        if not all(map(attrs_dict.keys().__contains__, needed_params_2)):
+#            raise KeyError(
+#                "Unable to find all needed fields in the " + param_filename + " file"
+#            )
+#        else:
+#            attrs_dict = {x + "_3": attrs_dict[x] for x in needed_params_2}
 
     return attrs_dict
 
@@ -390,7 +490,23 @@ def topspin_vdlist(path):
     return vdlist
 
 
+# Legacy import ser
 def load_ser(path, dtype=">i4"):
+    """Import Topspin Ser file
+
+    Args:
+        path (str): Directory of data
+        dtype (str): data format for import
+
+    returns:
+        raw (np.ndarray): Data from ser file
+    """
+
+    raw = np.fromfile(os.path.join(path), dtype=dtype)
+
+    return raw
+
+def load_bin(path, dtype=">i4"):
     """Import Topspin Ser file
 
     Args:
@@ -428,7 +544,7 @@ def load_title(path="1", title_path=os.path.join("pdata", "1"), title_filename="
     return title
 
 
-def topspin_jcamp_dx(path):
+def load_topspin_jcamp_dx(path, verbose = False):
     """
     Return the contents of topspin JCAMP-DX file as dictionary
 
