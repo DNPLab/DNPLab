@@ -83,7 +83,7 @@ def buildup_function(p, E_max, p_half):
     """Calculate asymptotic buildup curve
 
     .. math::
-        f(p) = E_{max} * p / (p_{1/2} + p)
+        f(p) = 1 + E_{max} * p / (p_{1/2} + p)
 
     Args:
         p (array): power series
@@ -95,3 +95,41 @@ def buildup_function(p, E_max, p_half):
     """
 
     return 1 + E_max * p / (p_half + p)
+
+
+def ksigma_smax(p, E_max, p_half):
+    """Calculate asymptotic buildup curve
+
+    .. math::
+        f(p) = E_{max} * p / (p_{1/2} + p)
+
+    Args:
+        p (array): power series
+        E_max (float): maximum enhancement
+        p_half (float): power at half saturation
+
+    Returns:
+        ndarray: buildup curve
+    """
+
+    return E_max * p / (p_half + p)
+
+
+def logistic(x, c, x0, L, k):
+    """Calculate asymptotic buildup curve
+
+    .. math::
+        f(p) =
+
+    Args:
+        x (array): x values
+        c (float): offset
+        x0 (float): x-value of sigmoid's midpoint
+        L (float): maximum value
+        k (float): logistic growth steepness
+
+    Returns:
+        ndarray: buildup curve
+    """
+
+    return c + L / (1.0 + np.exp(-1.0 * k * (x - x0)))
