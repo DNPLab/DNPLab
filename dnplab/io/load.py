@@ -4,7 +4,7 @@ from . import *
 from ..core.util import concat
 
 
-def load(path, data_type=None, dim=None, coord=None, *args, **kwargs):
+def load(path, data_type=None, dim=None, coord=None, verbose=False, *args, **kwargs):
     """Import data from different spectrometer formats
 
     Args:
@@ -25,16 +25,18 @@ def load(path, data_type=None, dim=None, coord=None, *args, **kwargs):
         if dim is None:
             dim = "unnamed"
         for filename in path:
-            data = load_file(filename, data_type=data_type, *args, **kwargs)
+            data = load_file(
+                filename, data_type=data_type, verbose=verbose, *args, **kwargs
+            )
             data_list.append(data)
 
         return concat(data_list, dim=dim, coord=coord)
 
     else:
-        return load_file(path, data_type=data_type, *args, **kwargs)
+        return load_file(path, data_type=data_type, verbose=verbose, *args, **kwargs)
 
 
-def load_file(path, data_type=None, *args, **kwargs):
+def load_file(path, data_type=None, verbose=False, *args, **kwargs):
     """Import data from different spectrometer formats
 
     Args:
@@ -50,7 +52,7 @@ def load_file(path, data_type=None, *args, **kwargs):
         path = path + os.sep
 
     if data_type == None:
-        data_type = autodetect(path)
+        data_type = autodetect(path, verbose=verbose)
 
     if data_type == "prospa":
         return prospa.import_prospa(path, *args, **kwargs)
@@ -96,41 +98,56 @@ def load_file(path, data_type=None, *args, **kwargs):
 
 
 # TODO rename to detect_file_format
-def autodetect(test_path):
+def autodetect(test_path, verbose=False):
 
+    if verbose == True:
+        print("current directory:", os.getcwd())
+        print("data path:", test_path)
+        abs_path = os.path.abspath(test_path)
+        print("absolute path:", abs_path)
+
+    # Remove trailing separator
     if test_path[-1] == os.sep:
         test_path = test_path[:-1]
+        if verbose:
+            print("removed trailing separator:", os.sep)
 
     path_exten = os.path.splitext(test_path)[1]
+    if path_exten != "" and verbose:
+        print("Extension:", path_exten)
+
     if path_exten == ".DSC" or path_exten == ".DTA" or path_exten == ".YGF":
-        type = "xepr"
+        spectrometer_format = "xepr"
     elif path_exten in [".par", ".spc"]:
-        type = "winepr"
+        spectrometer_format = "winepr"
     elif path_exten in [".d01", ".exp"]:
-        type = "specman"
+        spectrometer_format = "specman"
     elif path_exten == ".jdf":
-        type = "delta"
+        spectrometer_format = "delta"
     elif (
         os.path.isdir(test_path)
-        and "pdata" in os.listdir(test_path)
-        and "acqus" in os.listdir(test_path)
+        and ("fid" in os.listdir(test_path) or "ser" in os.listdir(test_path))
+        #        and ("acqu" in os.listdir(test_path) or "acqus" in os.listdir)
     ):
-        type = "topspin"
+        spectrometer_format = "topspin"
     elif os.path.isdir(test_path) and path_exten == ".fid":
-        type = "vnmrj"
+        spectrometer_format = "vnmrj"
     elif path_exten in [".1d", ".2d", ".3d", ".4d"]:
-        type = "prospa"
+        spectrometer_format = "prospa"
     elif (
         os.path.isdir(test_path)
         and "acqu.par" in os.listdir(test_path)
         and "data.csv" in os.listdir(test_path)
     ):
-        type = "prospa"
+        spectrometer_format = "prospa"
     elif path_exten == ".h5":
-        type = "h5"
+        spectrometer_format = "h5"
     else:
         raise TypeError(
             "No data type given and autodetect failed to detect format, please specify a format"
         )
 
-    return type
+    if verbose:
+        print("Spectrometer Format:", spectrometer_format)
+
+    return spectrometer_format
