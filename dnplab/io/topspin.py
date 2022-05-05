@@ -190,7 +190,7 @@ def import_topspin(path, verbose = False):
 
     topspin_major_version = int(acqus_params['TopSpin'].split('.')[0])
 
-    # this is incorrect
+    # Is this incorrect?
     # Most topspin data I've seen is i4, however, later versions seem to have i8
     # float is also possible 
     if topspin_major_version >= 3:
@@ -216,9 +216,11 @@ def import_topspin(path, verbose = False):
     group_delay = find_group_delay(acqus_params)
     if verbose:
         print('group delay', group_delay)
-    group_delay = int(np.ceil(group_delay))
+
+    group_delay = int(np.floor(group_delay)) # should this be floor or ceil?
 
 #    t2 = 1.0 / acqus_params["SW_h"] * np.arange(0, int(acqus_params["TD"] / 2) - group_delay)
+    # why is dividing by 2 required?
     t2 = 1.0 / acqus_params["SW_h"] * np.arange(0, int(acqus_params["TD"] / 2))
 
     coords = [t2]
