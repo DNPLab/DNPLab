@@ -126,8 +126,8 @@ def autodetect(test_path, verbose=False):
         spectrometer_format = "delta"
     elif (
         os.path.isdir(test_path)
-        and ("fid" in os.listdir(test_path) or "ser" in os.listdir(test_path))
-        #        and ("acqu" in os.listdir(test_path) or "acqus" in os.listdir)
+#        and ("fid" in os.listdir(test_path) or "ser" in os.listdir(test_path))
+                and ("acqu" in os.listdir(test_path) or "acqus" in os.listdir(test_path))
     ):
         spectrometer_format = "topspin"
     elif os.path.isdir(test_path) and path_exten == ".fid":

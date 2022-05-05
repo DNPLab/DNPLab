@@ -188,6 +188,8 @@ def import_topspin(path, verbose = False):
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(acqus_params)
+    if verbose:
+        print('group delay', group_delay)
     group_delay = int(np.ceil(group_delay))
 
 #    t2 = 1.0 / acqus_params["SW_h"] * np.arange(0, int(acqus_params["TD"] / 2) - group_delay)
@@ -202,22 +204,29 @@ def import_topspin(path, verbose = False):
             print('Loading acqu2s')
 #        acqu2s_params = load_acqu(os.path.join(path,'acqu2s'), required_params = _required_params['acqu2s'], verbose = verbose)
         acqu2s_params = load_acqu(os.path.join(path,'acqu2s'), verbose = verbose)
-        dims.append('t1')
+#        dims.append('t1')
+        dims.insert(0, 't1')
         t1 = 1.0 / acqu2s_params["SW_h"] * np.arange(0, int(acqu2s_params["TD"]))
-        coords.append(t1)
+#        coords.append(t1)
+        coords.insert(0, t1)
 
     if 'acqu3s' in dir_list:
         if verbose:
             print('Loading acqu3s')
 #        acqu3s_params = load_acqu(os.path.join(path,'acqu3s'), required_params = _required_params['acqu3s'], verbose = verbose)
         acqu3s_params = load_acqu(os.path.join(path,'acqu3s'), verbose = verbose)
-        dims.append('t3')
+#        dims.append('t3')
+        dims.insert(1, 't3')
         t3 = 1.0 / acqu3s_params["SW_h"] * np.arange(0, int(acqu3s_params["TD"]))
-        coords.append(t3)
+#        coords.append(t3)
+        coords.insert(1, t3)
 
 
-    coords = coords[::-1]
-    dims = dims[::-1]
+
+#    coords = coords[::-1]
+#    coords = coords[(2,1,3)]
+#    dims = dims[::-1]
+#    dims = dims[(2,1,3)]
     new_shape = [len(x) for x in coords]
 #    new_shape = new_shape[::-1]
 
@@ -227,13 +236,18 @@ def import_topspin(path, verbose = False):
 
     print('length of t2', len(t2))
 
-    #handle group delay
+
 
     # create data object
     topspin_data = DNPData(data, dims, coords, attrs = acqus_params) 
     topspin_data.reorder(['t2'])
+
+    # Handle group delay
     topspin_data = topspin_data['t2',slice(group_delay, -1)]
-    print(group_delay)
+
+    # Add NMR Frequency to attrs
+    topspin_data.attrs["nmr_frequency"] = acqus_params["SFO1"] * 1e6
+#    print(group_delay)
 
     return topspin_data
 
@@ -253,6 +267,50 @@ def import_topspin(path, verbose = False):
 
 #    return data
 
+def load_pdata(path, verbose = False):
+    '''
+    '''
+
+    # Directory
+    dir_list = os.listdir(path) # All files and folders in directory
+    if verbose:
+        print('Files in directory:')
+        for each in dir_list:
+            print(' ', each)
+
+    proc_params = load_acqu(os.path.join(path, 'procs'), verbose = verbose)
+
+    if proc_params["BYTORDP"] == 0:
+        endian = "<"
+    else:
+        endian = ">"
+
+    if verbose:
+        print('endian', endian)
+
+    real_raw = load_bin(os.path.join(path, '1r'), dtype = endian + 'i4')
+    imag_raw = load_bin(os.path.join(path, '1i'), dtype = endian + 'i4')
+
+    SW = proc_params['SW_p']
+    offset = proc_params['OFFSET'] # Reference Offset in ppm 
+    td_eff = proc_params['TDeff']
+    SI = proc_params['SI'] # What does SI stand for?
+    spectrometer_frequency = proc_params['SF'] # spectrometer frequency in MHz
+    phase_0 = proc_params['PHC0'] # Phase correction, zeroth order phase
+    phase_1 = proc_params['PHC1'] # Phase correction, first order phase
+
+
+    f2 = -1*SW * np.linspace(0, 1, num = SI, endpoint = False) / spectrometer_frequency + offset
+
+    raw = real_raw + 1j*imag_raw
+
+    data = DNPData(raw, ['f2'], [f2], attrs = proc_params)
+    data.attrs['nmr_frequency'] = spectrometer_frequency
+    data.attrs['phase_0'] = phase_0
+    data.attrs['phase_1'] = phase_1
+
+    return data
+
 def load_acqu(path, required_params = None, verbose = False):
     """
     Import topspin acqu or proc files
@@ -266,7 +324,7 @@ def load_acqu(path, required_params = None, verbose = False):
         dict: Dictionary of acqusition parameters
     """
 
-    raw_params = load_topspin_jcamp_dx(path, verbose = verbose)
+    raw_params = load_topspin_jcamp_dx(path, verbose = False)
 
     if required_params is not None:
         acqus_params = {}
