@@ -116,6 +116,7 @@ def find_group_delay(attrs_dict):
         float: Group delay. Number of points FID is shifted by DSP. The ceiling of this number (group delay rounded up) is the number of points should be removed from the start of the FID.
     """
 
+    # This must be revisited
     group_delay = 0
     if attrs_dict["DSPFVS"] >= 13 and "GRPDLY" in attrs_dict.keys():
         group_delay = attrs_dict["GRPDLY"]
@@ -154,9 +155,13 @@ def import_topspin(path, verbose = False):
     """
     dir_list = os.listdir(path) # All files and folders in directory
     if verbose:
-        print(dir_list)
+        print('Files in directory:')
+        for each in dir_list:
+            print(' ', each)
 
     # Load Acquisition Parameters
+    if verbose:
+        print('Loading acqus')
     acqus_params = load_acqu(os.path.join(path,'acqus'), verbose = verbose)
 
     dims = ['t2'] # this may cause issues if the first dimension is not the direct time dimension
@@ -190,14 +195,22 @@ def import_topspin(path, verbose = False):
 
     coords = [t2]
 
+
+    # This will not work for vdlist data
     if 'acqu2s' in dir_list:
+        if verbose:
+            print('Loading acqu2s')
+#        acqu2s_params = load_acqu(os.path.join(path,'acqu2s'), required_params = _required_params['acqu2s'], verbose = verbose)
         acqu2s_params = load_acqu(os.path.join(path,'acqu2s'), verbose = verbose)
         dims.append('t1')
         t1 = 1.0 / acqu2s_params["SW_h"] * np.arange(0, int(acqu2s_params["TD"]))
         coords.append(t1)
 
     if 'acqu3s' in dir_list:
-        acqu3s_params = load_acqu(os.path.join(path,'acqu3s'), required_params = required_params['acqu3s'], verbose = verbose)
+        if verbose:
+            print('Loading acqu3s')
+#        acqu3s_params = load_acqu(os.path.join(path,'acqu3s'), required_params = _required_params['acqu3s'], verbose = verbose)
+        acqu3s_params = load_acqu(os.path.join(path,'acqu3s'), verbose = verbose)
         dims.append('t3')
         t3 = 1.0 / acqu3s_params["SW_h"] * np.arange(0, int(acqu3s_params["TD"]))
         coords.append(t3)
@@ -559,6 +572,8 @@ def load_topspin_jcamp_dx(path, verbose = False):
 
     with open(path, "r") as f:
         for line in f:
+            if verbose:
+                print(line)
             line = line.rstrip()
 
             if line[0:3] == "##$":
@@ -577,18 +592,25 @@ def load_topspin_jcamp_dx(path, verbose = False):
                     array = []
                     if same_line_array != "":
                         same_line_array = same_line_array.split(" ")
-                        same_line_array = [
-                            float(x) if "." in x else int(x) for x in same_line_array
-                        ]
+
+                        try:
+                            same_line_array = [
+                                float(x) if "." in x else int(x) for x in same_line_array
+                            ]
+                        except:
+                            pass # Needed in case where "<>" found in some arrays
 
                         array += same_line_array
 
                     while len(array) < array_size:
                         array_line = f.readline().rstrip().split(" ")
 
-                        array_line = [
-                            float(x) if "." in x else int(x) for x in array_line
-                        ]
+                        try:
+                            array_line = [
+                                float(x) if "." in x else int(x) for x in array_line
+                            ]
+                        except:
+                            pass # Needed in case where "<>" found in some arrays
 
                         array += array_line
 

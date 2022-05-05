@@ -58,7 +58,7 @@ def load_file(path, data_type=None, verbose=False, *args, **kwargs):
         return prospa.import_prospa(path, *args, **kwargs)
 
     elif data_type == "topspin":
-        return topspin.import_topspin(path, *args, **kwargs)
+        return topspin.import_topspin(path, verbose = verbose, *args, **kwargs)
 
     elif data_type == "topspin dir":
         return topspin.import_topspin_dir(path, *args, **kwargs)
