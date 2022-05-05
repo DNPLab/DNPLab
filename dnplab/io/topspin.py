@@ -182,7 +182,29 @@ def import_topspin(path, verbose = False):
     if verbose:
         print('endian', endian)
 
-    raw = load_bin(os.path.join(path,bin_filename), dtype = endian + 'i4')
+#    if acqus_proc['DTYPA'] == 0:
+#        data_type = 'i4'
+#    elif acqus_proc['DTYPA'] == 2:
+#        data_type = 'f4'
+
+
+    topspin_version = int(acqus_params['TopSpin'].split('.')[0])
+
+    # this is incorrect
+    # Most topspin data I've seen is i4, however, later versions seem to have i8
+    # float is also possible 
+    if topspin_version >= 2:
+        if acqus_params['DTYPA'] == 0:
+            data_type = 'i8'
+        elif acqus_params['DTYPA'] == 2:
+            data_type = 'f8'
+    else:
+        data_type = 'i8'
+
+    if verbose:
+        print('data type:', data_type)
+
+    raw = load_bin(os.path.join(path,bin_filename), dtype = endian + data_type)
 
     # Is data always complex?
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
@@ -397,6 +419,7 @@ def load_acqu(path, required_params = None, verbose = False):
     return attrs_dict
 
 
+# Legacy
 def load_fid_ser(path, dtype="fid", phase_cycle=None):
     """
     Import topspin fid or ser file
@@ -634,6 +657,7 @@ def load_topspin_jcamp_dx(path, verbose = False):
                 print(line)
             line = line.rstrip()
 
+
             if line[0:3] == "##$":
                 key, value = tuple(line[3:].split("= ", 1))
 
@@ -705,6 +729,11 @@ def load_topspin_jcamp_dx(path, verbose = False):
                     attrs[key] = value
 
             elif line[0:2] == "##":
+                # Extract Title and TopSpin Version, needed for data type determination
+                if 'TopSpin' in line:
+                    version = line.split('TopSpin')[-1].strip()
+                    print('TopSpin Version:', repr(version))
+                    attrs['TopSpin'] = version
                 try:
                     key, value = tuple(line[2:].split("= ", 1))
                 except:
