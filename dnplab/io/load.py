@@ -60,6 +60,10 @@ def load_file(path, data_type=None, verbose=False, *args, **kwargs):
     elif data_type == "topspin":
         return topspin.import_topspin(path, verbose = verbose, *args, **kwargs)
 
+    elif data_type == "topspin pdata":
+        # import_topspin should also handle this type, this is a workaround
+        return topspin.load_pdata(path, verbose = verbose, *args, **kwargs)
+
     elif data_type == "topspin dir":
         return topspin.import_topspin_dir(path, *args, **kwargs)
 
@@ -130,6 +134,11 @@ def autodetect(test_path, verbose=False):
                 and ("acqu" in os.listdir(test_path) or "acqus" in os.listdir(test_path))
     ):
         spectrometer_format = "topspin"
+    elif (
+        os.path.isdir(test_path)
+                and ("proc" in os.listdir(test_path) or "procss" in os.listdir(test_path))
+    ):
+        spectrometer_format = "topspin pdata"
     elif os.path.isdir(test_path) and path_exten == ".fid":
         spectrometer_format = "vnmrj"
     elif path_exten in [".1d", ".2d", ".3d", ".4d"]:
