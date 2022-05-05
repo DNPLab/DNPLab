@@ -188,18 +188,22 @@ def import_topspin(path, verbose = False):
 #        data_type = 'f4'
 
 
-    topspin_version = int(acqus_params['TopSpin'].split('.')[0])
+    topspin_major_version = int(acqus_params['TopSpin'].split('.')[0])
 
     # this is incorrect
     # Most topspin data I've seen is i4, however, later versions seem to have i8
     # float is also possible 
-    if topspin_version >= 2:
-        if acqus_params['DTYPA'] == 0:
-            data_type = 'i8'
-        elif acqus_params['DTYPA'] == 2:
-            data_type = 'f8'
+    if topspin_major_version >= 3:
+        data_bytes = 8
     else:
-        data_type = 'i8'
+        data_bytes = 4
+
+    if acqus_params['DTYPA'] == 0:
+            data_type = 'i'
+    elif acqus_params['DTYPA'] == 2:
+            data_type = 'f'
+
+    data_type = data_type + str(data_bytes)
 
     if verbose:
         print('data type:', data_type)
@@ -730,8 +734,10 @@ def load_topspin_jcamp_dx(path, verbose = False):
 
             elif line[0:2] == "##":
                 # Extract Title and TopSpin Version, needed for data type determination
-                if 'TopSpin' in line:
-                    version = line.split('TopSpin')[-1].strip()
+                if 'TOPSPIN' in line.upper():
+                    version = line.upper().split('TOPSPIN')[-1]
+                    version = version.replace('VERSION', '')
+                    version = version.strip()
                     print('TopSpin Version:', repr(version))
                     attrs['TopSpin'] = version
                 try:
