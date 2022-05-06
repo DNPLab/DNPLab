@@ -59,6 +59,8 @@ def autophase(
         dnpdata: Autophased data, including attrs "phase0" for order="zero", and "phase1" if order="first"
 
     """
+
+    data = data.copy()
     if reference_slice == 0:
         raise ValueError(
             "please use indices from 1 to number of slices, i.e. use 1 instead of 0"
@@ -169,7 +171,8 @@ def autophase(
         raise TypeError("Invalid order or order & phase pair")
 
     if force_positive:
-        data.values = np.absolute(data.values)
+        if np.sum(data.values) < 0:
+            data.values *= -1
 
     proc_parameters = {
         "method": method,
