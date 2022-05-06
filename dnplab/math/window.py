@@ -47,7 +47,7 @@ def gaussian(x, lw):
     Returns:
         array: gaussian window function
     """
-    return np.exp((lw * x) ** 2)
+    return np.exp(-1*(lw * x) ** 2)
 
 
 def hann(x):
