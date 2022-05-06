@@ -14,7 +14,15 @@ _windows = {
 
 
 def apodize(data, dim="t2", kind="exponential", **kwargs):
-    r"""Apply Apodization to data down given dimension
+    r"""Apply Apodization to data along a given dimension
+
+    Args:
+        data (DNPData): Data object
+        dim (str): Dimension to perform apodization (should be a time domain)
+        kind (str): Specify window function
+
+    Returns:
+        DNPData: Apodized data, including pricessing attribut "window"
 
     .. math::
 
@@ -39,21 +47,6 @@ def apodize(data, dim="t2", kind="exponential", **kwargs):
                f1(t)   &=  \exp(-t * \pi * \mathrm{linewidth[0]}) &
 
                f2(t)   &=  \exp((t - T) * \pi * \mathrm{linewidth[1]}) &
-
-
-    Args:
-        data (dnpdata, dict): data container
-
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | parameter       | type                    | default       | description                                       |
-    +=================+=========================+===============+===================================================+
-    | dim             | str                     | 't2'          | Dimension to apply exponential apodization        |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | kind            | str                     | 'exponential' | type of apodization                               |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-
-    Returns:
-        dnpdata: data object with window function applied, including attr "window"
     """
 
     data = data.copy()
