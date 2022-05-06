@@ -183,7 +183,7 @@ def import_topspin(path, verbose = False):
         print('endian', endian)
 
 
-    topspin_major_version = int(acqus_params['TopSpin'].split('.')[0])
+    topspin_major_version = int(acqus_params['topspin'].split('.')[0])
 
     # Is this incorrect?
     # Most topspin data I've seen is i4, however, later versions seem to have i8
@@ -637,12 +637,10 @@ def load_topspin_jcamp_dx(path, verbose = False):
 
             elif line[0:2] == "##":
                 # Extract Title and TopSpin Version, needed for data type determination
-                if 'TOPSPIN' in line.upper():
-                    version = line.upper().split('TOPSPIN')[-1]
-                    version = version.replace('VERSION', '')
-                    version = version.strip()
-                    print('TopSpin Version:', repr(version))
-                    attrs['TopSpin'] = version
+#                if 'TOPSPIN' in line.upper():
+                if 'TITLE' in line:
+                    version = line.split(' ')[-1]
+                    attrs['topspin'] = version
                 try:
                     key, value = tuple(line[2:].split("= ", 1))
                 except:
