@@ -47,7 +47,8 @@ def gaussian(x, lw):
     Returns:
         array: gaussian window function
     """
-    return np.exp(-1*(lw * x) ** 2)
+    sigma = lw / (2.*np.sqrt(2.*np.log(2.))) # convert FWHM to standard deviation
+    return np.exp(-1*(x ** 2.) / (2. * sigma**2.))
 
 
 def hann(x):
