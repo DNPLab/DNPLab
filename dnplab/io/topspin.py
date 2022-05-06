@@ -218,7 +218,7 @@ def import_topspin(path, verbose=False):
     # why is dividing by 2 required?
     t2 = 1.0 / acqus_params["SW_h"] * np.arange(0, int(acqus_params["TD"] / 2))
     if verbose:
-        print('points in FID:', acqus_params['TD']/2)
+        print("points in FID:", acqus_params["TD"] / 2)
 
     coords = [t2]
 
@@ -240,10 +240,10 @@ def import_topspin(path, verbose=False):
         t3 = 1.0 / acqu3s_params["SW_h"] * np.arange(0, int(acqu3s_params["TD"]))
         coords.insert(1, t3)
 
-    new_shape = [len(coords[ix]) if dims[ix] != 't2' else -1 for ix in range(len(dims))]
+    new_shape = [len(coords[ix]) if dims[ix] != "t2" else -1 for ix in range(len(dims))]
     if verbose:
-        print('Raw Data Shape:', np.shape(data))
-        print('reshaping data to:', new_shape)
+        print("Raw Data Shape:", np.shape(data))
+        print("reshaping data to:", new_shape)
 
     # reshape data
     data = data.reshape(new_shape)
