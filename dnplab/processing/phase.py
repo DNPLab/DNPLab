@@ -215,7 +215,7 @@ def phase_cycle(data, dim, receiver_phase):
     reshape_size = [1 for k in data.dims]
     reshape_size[index] = len(data.coords[dim])
 
-    data *= np.exp(1j * (np.pi / 2.0) * receiver_phase.reshape(reshape_size))
+    data *= np.exp(-1j * (np.pi / 2.0) * receiver_phase.reshape(reshape_size))
 
     proc_attr_name = "phasecycle"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
