@@ -79,7 +79,7 @@ def fourier_transform(
             )
         else:
             nmr_frequency = data.attrs["nmr_frequency"]
-            f /= nmr_frequency / 1.0e6 # updated
+            f /= nmr_frequency / 1.0e6  # updated
 
     data.values = np.fft.fft(data.values, n=n_pts, axis=index)
 
@@ -150,7 +150,7 @@ def inverse_fourier_transform(
             )
         else:
             nmr_frequency = data.attrs["nmr_frequency"]
-            df /= 1 / (nmr_frequency / 1.0e6) # updated
+            df /= 1 / (nmr_frequency / 1.0e6)  # updated
 
     n_pts = zero_fill_factor * len(data.coords[dim])
     t = (1.0 / (n_pts * df)) * np.r_[0:n_pts]

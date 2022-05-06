@@ -58,11 +58,11 @@ def load_file(path, data_type=None, verbose=False, *args, **kwargs):
         return prospa.import_prospa(path, *args, **kwargs)
 
     elif data_type == "topspin":
-        return topspin.import_topspin(path, verbose = verbose, *args, **kwargs)
+        return topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
 
     elif data_type == "topspin pdata":
         # import_topspin should also handle this type, this is a workaround
-        return topspin.load_pdata(path, verbose = verbose, *args, **kwargs)
+        return topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
 
     elif data_type == "topspin dir":
         return topspin.import_topspin_dir(path, *args, **kwargs)
@@ -130,13 +130,12 @@ def autodetect(test_path, verbose=False):
         spectrometer_format = "delta"
     elif (
         os.path.isdir(test_path)
-#        and ("fid" in os.listdir(test_path) or "ser" in os.listdir(test_path))
-                and ("acqu" in os.listdir(test_path) or "acqus" in os.listdir(test_path))
+        #        and ("fid" in os.listdir(test_path) or "ser" in os.listdir(test_path))
+        and ("acqu" in os.listdir(test_path) or "acqus" in os.listdir(test_path))
     ):
         spectrometer_format = "topspin"
-    elif (
-        os.path.isdir(test_path)
-                and ("proc" in os.listdir(test_path) or "procss" in os.listdir(test_path))
+    elif os.path.isdir(test_path) and (
+        "proc" in os.listdir(test_path) or "procss" in os.listdir(test_path)
     ):
         spectrometer_format = "topspin pdata"
     elif os.path.isdir(test_path) and path_exten == ".fid":

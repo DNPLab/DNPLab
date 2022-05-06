@@ -89,8 +89,8 @@ _dspfvs_table_13 = {
     96: 2.995,
 }
 
-_required_params = {'acqus':
-    [
+_required_params = {
+    "acqus": [
         "SW_h",
         "RG",
         "DECIM",
@@ -100,10 +100,10 @@ _required_params = {'acqus':
         "TD",
         "SFO1",
     ],
-    'acqu2s' : ['TD', 'SW_h'],
-    'acqu3s' : ['TD', 'SW_h'],
+    "acqu2s": ["TD", "SW_h"],
+    "acqu3s": ["TD", "SW_h"],
+}
 
-    }
 
 def find_group_delay(attrs_dict):
     """
@@ -142,7 +142,7 @@ def find_group_delay(attrs_dict):
     return group_delay
 
 
-def import_topspin(path, verbose = False):
+def import_topspin(path, verbose=False):
     """
     Import topspin data and return dnpdata object
 
@@ -153,26 +153,28 @@ def import_topspin(path, verbose = False):
     Returns:
         dnpdata: topspin data
     """
-    dir_list = os.listdir(path) # All files and folders in directory
+    dir_list = os.listdir(path)  # All files and folders in directory
     if verbose:
-        print('Files in directory:')
+        print("Files in directory:")
         for each in dir_list:
-            print(' ', each)
+            print(" ", each)
 
     # Load Acquisition Parameters
     if verbose:
-        print('Loading acqus')
-    acqus_params = load_acqu(os.path.join(path,'acqus'), verbose = verbose)
+        print("Loading acqus")
+    acqus_params = load_acqu(os.path.join(path, "acqus"), verbose=verbose)
 
-    dims = ['t2'] # this may cause issues if the first dimension is not the direct time dimension
+    dims = [
+        "t2"
+    ]  # this may cause issues if the first dimension is not the direct time dimension
 
-    if 'fid' in dir_list:
-        bin_filename = 'fid'
+    if "fid" in dir_list:
+        bin_filename = "fid"
     else:
-        bin_filename = 'ser'
+        bin_filename = "ser"
 
     if verbose:
-        print('Binary File:', bin_filename)
+        print("Binary File:", bin_filename)
 
     if acqus_params["BYTORDA"] == 0:
         endian = "<"
@@ -180,77 +182,73 @@ def import_topspin(path, verbose = False):
         endian = ">"
 
     if verbose:
-        print('endian', endian)
+        print("endian", endian)
 
-
-    topspin_major_version = int(acqus_params['topspin'].split('.')[0])
+    topspin_major_version = int(acqus_params["topspin"].split(".")[0])
 
     # Is this incorrect?
     # Most topspin data I've seen is i4, however, later versions seem to have i8
-    # float is also possible 
+    # float is also possible
     if topspin_major_version >= 4:
         data_bytes = 8
     else:
         data_bytes = 4
 
-    if acqus_params['DTYPA'] == 0:
-            data_type = 'i'
-    elif acqus_params['DTYPA'] == 2:
-            data_type = 'f'
+    if acqus_params["DTYPA"] == 0:
+        data_type = "i"
+    elif acqus_params["DTYPA"] == 2:
+        data_type = "f"
 
     data_type = data_type + str(data_bytes)
 
     if verbose:
-        print('data type:', data_type)
+        print("data type:", data_type)
 
-    raw = load_bin(os.path.join(path,bin_filename), dtype = endian + data_type)
+    raw = load_bin(os.path.join(path, bin_filename), dtype=endian + data_type)
 
     # Is data always complex?
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(acqus_params)
     if verbose:
-        print('group delay', group_delay)
+        print("group delay", group_delay)
 
-    group_delay = int(np.floor(group_delay)) # should this be floor or ceil?
+    group_delay = int(np.floor(group_delay))  # should this be floor or ceil?
 
     # why is dividing by 2 required?
     t2 = 1.0 / acqus_params["SW_h"] * np.arange(0, int(acqus_params["TD"] / 2))
 
     coords = [t2]
 
-
     # This will not work for vdlist data
-    if 'acqu2s' in dir_list:
+    if "acqu2s" in dir_list:
         if verbose:
-            print('Loading acqu2s')
-        acqu2s_params = load_acqu(os.path.join(path,'acqu2s'), verbose = verbose)
-        dims.insert(0, 't1')
+            print("Loading acqu2s")
+        acqu2s_params = load_acqu(os.path.join(path, "acqu2s"), verbose=verbose)
+        dims.insert(0, "t1")
         t1 = 1.0 / acqu2s_params["SW_h"] * np.arange(0, int(acqu2s_params["TD"]))
         coords.insert(0, t1)
 
     # 3d data must be tested
-    if 'acqu3s' in dir_list:
+    if "acqu3s" in dir_list:
         if verbose:
-            print('Loading acqu3s')
-        acqu3s_params = load_acqu(os.path.join(path,'acqu3s'), verbose = verbose)
-        dims.insert(1, 't3')
+            print("Loading acqu3s")
+        acqu3s_params = load_acqu(os.path.join(path, "acqu3s"), verbose=verbose)
+        dims.insert(1, "t3")
         t3 = 1.0 / acqu3s_params["SW_h"] * np.arange(0, int(acqu3s_params["TD"]))
         coords.insert(1, t3)
 
-
-
     new_shape = [len(x) for x in coords]
 
-    #reshape data
+    # reshape data
     data = data.reshape(new_shape)
 
     # create data object
-    topspin_data = DNPData(data, dims, coords, attrs = acqus_params) 
-    topspin_data.reorder(['t2'])
+    topspin_data = DNPData(data, dims, coords, attrs=acqus_params)
+    topspin_data.reorder(["t2"])
 
     # Handle group delay
-    topspin_data = topspin_data['t2',slice(group_delay, -1)]
+    topspin_data = topspin_data["t2", slice(group_delay, -1)]
 
     # Add NMR Frequency to attrs
     topspin_data.attrs["nmr_frequency"] = acqus_params["SFO1"] * 1e6
@@ -258,18 +256,17 @@ def import_topspin(path, verbose = False):
     return topspin_data
 
 
-def load_pdata(path, verbose = False):
-    '''
-    '''
+def load_pdata(path, verbose=False):
+    """ """
 
     # Directory
-    dir_list = os.listdir(path) # All files and folders in directory
+    dir_list = os.listdir(path)  # All files and folders in directory
     if verbose:
-        print('Files in directory:')
+        print("Files in directory:")
         for each in dir_list:
-            print(' ', each)
+            print(" ", each)
 
-    proc_params = load_acqu(os.path.join(path, 'procs'), verbose = verbose)
+    proc_params = load_acqu(os.path.join(path, "procs"), verbose=verbose)
 
     if proc_params["BYTORDP"] == 0:
         endian = "<"
@@ -277,32 +274,35 @@ def load_pdata(path, verbose = False):
         endian = ">"
 
     if verbose:
-        print('endian', endian)
+        print("endian", endian)
 
-    real_raw = load_bin(os.path.join(path, '1r'), dtype = endian + 'i4')
-    imag_raw = load_bin(os.path.join(path, '1i'), dtype = endian + 'i4')
+    real_raw = load_bin(os.path.join(path, "1r"), dtype=endian + "i4")
+    imag_raw = load_bin(os.path.join(path, "1i"), dtype=endian + "i4")
 
-    SW = proc_params['SW_p']
-    offset = proc_params['OFFSET'] # Reference Offset in ppm 
-    td_eff = proc_params['TDeff']
-    SI = proc_params['SI'] # What does SI stand for?
-    spectrometer_frequency = proc_params['SF'] # spectrometer frequency in MHz
-    phase_0 = proc_params['PHC0'] # Phase correction, zeroth order phase
-    phase_1 = proc_params['PHC1'] # Phase correction, first order phase
+    SW = proc_params["SW_p"]
+    offset = proc_params["OFFSET"]  # Reference Offset in ppm
+    td_eff = proc_params["TDeff"]
+    SI = proc_params["SI"]  # What does SI stand for?
+    spectrometer_frequency = proc_params["SF"]  # spectrometer frequency in MHz
+    phase_0 = proc_params["PHC0"]  # Phase correction, zeroth order phase
+    phase_1 = proc_params["PHC1"]  # Phase correction, first order phase
 
+    f2 = (
+        -1 * SW * np.linspace(0, 1, num=SI, endpoint=False) / spectrometer_frequency
+        + offset
+    )
 
-    f2 = -1*SW * np.linspace(0, 1, num = SI, endpoint = False) / spectrometer_frequency + offset
+    raw = real_raw + 1j * imag_raw
 
-    raw = real_raw + 1j*imag_raw
-
-    data = DNPData(raw, ['f2'], [f2], attrs = proc_params)
-    data.attrs['nmr_frequency'] = spectrometer_frequency
-    data.attrs['phase_0'] = phase_0
-    data.attrs['phase_1'] = phase_1
+    data = DNPData(raw, ["f2"], [f2], attrs=proc_params)
+    data.attrs["nmr_frequency"] = spectrometer_frequency
+    data.attrs["phase_0"] = phase_0
+    data.attrs["phase_1"] = phase_1
 
     return data
 
-def load_acqu(path, required_params = None, verbose = False):
+
+def load_acqu(path, required_params=None, verbose=False):
     """
     Import topspin acqu or proc files
 
@@ -315,7 +315,7 @@ def load_acqu(path, required_params = None, verbose = False):
         dict: Dictionary of acqusition parameters
     """
 
-    raw_params = load_topspin_jcamp_dx(path, verbose = False)
+    raw_params = load_topspin_jcamp_dx(path, verbose=False)
 
     if required_params is not None:
         acqus_params = {}
@@ -325,6 +325,7 @@ def load_acqu(path, required_params = None, verbose = False):
         acqus_params = raw_params
 
     return acqus_params
+
 
 # Legacy
 def load_fid_ser(path, dtype="fid", phase_cycle=None):
@@ -507,6 +508,7 @@ def load_ser(path, dtype=">i4"):
 
     return raw
 
+
 def load_bin(path, dtype=">i4"):
     """Import Topspin Ser file
 
@@ -545,7 +547,7 @@ def load_title(path="1", title_path=os.path.join("pdata", "1"), title_filename="
     return title
 
 
-def load_topspin_jcamp_dx(path, verbose = False):
+def load_topspin_jcamp_dx(path, verbose=False):
     """
     Return the contents of topspin JCAMP-DX file as dictionary
 
@@ -563,7 +565,6 @@ def load_topspin_jcamp_dx(path, verbose = False):
             if verbose:
                 print(line)
             line = line.rstrip()
-
 
             if line[0:3] == "##$":
                 key, value = tuple(line[3:].split("= ", 1))
@@ -584,10 +585,11 @@ def load_topspin_jcamp_dx(path, verbose = False):
 
                         try:
                             same_line_array = [
-                                float(x) if "." in x else int(x) for x in same_line_array
+                                float(x) if "." in x else int(x)
+                                for x in same_line_array
                             ]
                         except:
-                            pass # Needed in case where "<>" found in some arrays
+                            pass  # Needed in case where "<>" found in some arrays
 
                         array += same_line_array
 
@@ -599,7 +601,7 @@ def load_topspin_jcamp_dx(path, verbose = False):
                                 float(x) if "." in x else int(x) for x in array_line
                             ]
                         except:
-                            pass # Needed in case where "<>" found in some arrays
+                            pass  # Needed in case where "<>" found in some arrays
 
                         array += array_line
 
@@ -637,10 +639,10 @@ def load_topspin_jcamp_dx(path, verbose = False):
 
             elif line[0:2] == "##":
                 # Extract Title and TopSpin Version, needed for data type determination
-#                if 'TOPSPIN' in line.upper():
-                if 'TITLE' in line:
-                    version = line.split(' ')[-1]
-                    attrs['topspin'] = version
+                #                if 'TOPSPIN' in line.upper():
+                if "TITLE" in line:
+                    version = line.split(" ")[-1]
+                    attrs["topspin"] = version
                 try:
                     key, value = tuple(line[2:].split("= ", 1))
                 except:
