@@ -64,7 +64,7 @@ data_10 = dnp.autophase(data_10, method="manual", phase= 175 * dnp.constants.pi 
 
 
 
-data_gauss = dnp.apodize(data_raw, lw=50)
+data_gauss = dnp.apodize(data_raw, kind="gaussian", lw=10)
 data_gauss = dnp.fourier_transform(data_gauss)
 
 ref = 3.55
