@@ -15,6 +15,8 @@ This example how to use the apodization (windowing functions) in DNPLab.
 import dnplab as dnp
 import matplotlib.pylab as plt
 
+import numpy as np
+
 # data = dnp.load("../../data/topspin/1")
 data_raw = dnp.load("../../data/prospa/toluene_10mM_Tempone/41/data.1d")
 data_raw.attrs["experiment_type"] = "nmr_spectrum"
@@ -38,7 +40,7 @@ data.coords["f2"] = coord + ref
 # %%
 # Or by using the autophase function to automatically search for and apply the best phase angle
 
-data = dnp.autophase(data, method="manual", phase= 175 * dnp.constants.pi / 180)
+data = dnp.autophase(data, method="manual", phase=175 * dnp.constants.pi / 180)
 # dnp.fancy_plot(data, xlim = [-15, 25])
 # dnp.plt.show()
 
@@ -46,22 +48,13 @@ data = dnp.autophase(data, method="manual", phase= 175 * dnp.constants.pi / 180)
 # %%
 # To change the linewidth to 10 Hz do this
 
-data_10 = dnp.apodize(data_raw, lw=50)
-data_10 = dnp.fourier_transform(data_10)
+data_exp = dnp.apodize(data_raw, kind="exponential",lw=10)
+data_exp = dnp.fourier_transform(data_exp)
 
 ref = 3.55
-coord = data_10.coords["f2"]
-data_10.coords["f2"] = coord + ref
-
-data_10 = dnp.autophase(data_10, method="manual", phase= 175 * dnp.constants.pi / 180)
-# dnp.fancy_plot(data_10, xlim = [-15, 25])
-# dnp.plt.show()
-
-
-
-
-
-
+coord = data_exp.coords["f2"]
+data_exp.coords["f2"] = coord + ref
+data_exp = dnp.autophase(data_exp, method="manual", phase=175 * dnp.constants.pi / 180)
 
 
 data_gauss = dnp.apodize(data_raw, kind="gaussian", lw=10)
@@ -70,12 +63,31 @@ data_gauss = dnp.fourier_transform(data_gauss)
 ref = 3.55
 coord = data_gauss.coords["f2"]
 data_gauss.coords["f2"] = coord + ref
+data_gauss = dnp.autophase(
+    data_gauss, method="manual", phase=175 * dnp.constants.pi / 180
+)
 
-data_gauss = dnp.autophase(data_gauss, method="manual", phase= 175 * dnp.constants.pi / 180)
-dnp.fancy_plot(data_gauss, xlim = [-15, 25])
+data_gauss.values = data_gauss.values + 1000
+
+# dnp.fancy_plot(data_exp, xlim=[-15, 25], label="Exponential")
+# dnp.fancy_plot(data_gauss, xlim=[-15, 25], label="Gaussian")
+# dnp.plt.legend()
+
+# dnp.plt.show()
+
+
+
+
+x = np.linspace(0,100,100)
+lw = 10
+
+y_exp = dnp.window.exponential(x,lw)
+y_gauss = dnp.window.gaussian(x,lw)
+
+dnp.plt.plot(x,y_exp,label = "Exponential")
+dnp.plt.plot(x,y_gauss,label="Gaussian")
+dnp.plt.legend()
 dnp.plt.show()
-
-
 
 
 
