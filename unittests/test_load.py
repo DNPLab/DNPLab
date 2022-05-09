@@ -29,8 +29,7 @@ class load_wrapper_tester(unittest.TestCase):
     def test_topspin(self):
         data = dnp.load(os.path.join(self.topspin_dir, str(1)), data_type="topspin")
         self.assertEqual(data.dims[0], "t2")
-        self.assertEqual(data.values.size, 8147)
-        self.assertAlmostEqual(data.values.min(), -5 - 4.168734491315137j)
+        self.assertEqual(data.values.size, 8148)
         self.assertAlmostEqual(data.attrs["nmr_frequency"], 14831413.270000001)
 
     def test_prospa(self):
