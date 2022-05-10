@@ -31,7 +31,7 @@ def exponential(x, lw):
     Returns:
         array: exponential window function
     """
-    return np.exp(-1.0 * (x - x[0]) * lw)
+    return np.exp(-np.pi * (x - x[0]) * lw)
 
 
 def gaussian(x, lw):
