@@ -49,9 +49,8 @@ def gaussian(x, lw):
     """
     sigma = lw / (
         2.0 * np.sqrt(2.0 * np.log(2.0))
-
     )  # convert FWHM to standard deviation
-    return np.exp(-1 * 2. * np.pi**2. * (x**2.0) * (sigma**2.0))
+    return np.exp(-1 * 2.0 * np.pi**2.0 * (x**2.0) * (sigma**2.0))
 
 
 def hann(x):
