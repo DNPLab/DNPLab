@@ -87,7 +87,9 @@ def import_delta_data(path, params):
 
     params["nmr_frequency"] = [
         unpack(">d", file_contents[1064 + ix : 1072 + ix])[0] for ix in range(0, 64, 8)
-    ][0]
+    ][
+        0
+    ] * 1e6  # convert from MHz to Hz, is this always in Hz?
     axes_units = [
         unpack(">B", file_contents[32 + ix : 33 + ix])[0] for ix in range(1, 16, 2)
     ][:num_dims]

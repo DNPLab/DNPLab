@@ -101,5 +101,6 @@ def import_tnmr_data(path):
     abscissa = np.array(range(0, len(data)))
 
     dims = ["t2"]
+    coords = [abscissa]
 
-    return data, dims, list(abscissa)
+    return data, dims, coords

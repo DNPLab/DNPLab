@@ -59,6 +59,8 @@ def autophase(
         dnpdata: Autophased data, including attrs "phase0" for order="zero", and "phase1" if order="first"
 
     """
+
+    data = data.copy()
     if reference_slice == 0:
         raise ValueError(
             "please use indices from 1 to number of slices, i.e. use 1 instead of 0"
@@ -169,7 +171,8 @@ def autophase(
         raise TypeError("Invalid order or order & phase pair")
 
     if force_positive:
-        data.values = np.absolute(data.values)
+        if np.sum(data.values) < 0:
+            data.values *= -1
 
     proc_parameters = {
         "method": method,
@@ -215,7 +218,7 @@ def phase_cycle(data, dim, receiver_phase):
     reshape_size = [1 for k in data.dims]
     reshape_size[index] = len(data.coords[dim])
 
-    data *= np.exp(1j * (np.pi / 2.0) * receiver_phase.reshape(reshape_size))
+    data *= np.exp(-1j * (np.pi / 2.0) * receiver_phase.reshape(reshape_size))
 
     proc_attr_name = "phasecycle"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
