@@ -82,8 +82,8 @@ class vnmrj_import_tester(unittest.TestCase):
                 ],
             )
             self.assertAlmostEqual(data.attrs["nmr_frequency"], 14244283.4231)
-        self.assertAlmostEqual(datas[0].values[365], (-20378767 - 2734659j))
-        self.assertAlmostEqual(datas[1].values[365], (-950662 + 138458j))
+        self.assertAlmostEqual(datas[0].values[365], (-20378767 + 2734659j))
+        self.assertAlmostEqual(datas[1].values[365], (-950662 - 138458j))
 
     def test_import_vnmrj_2d(self):
         datas = [dnp.load(path=path, data_type="vnmrj") for path in self.test_data2Ds]
@@ -91,7 +91,7 @@ class vnmrj_import_tester(unittest.TestCase):
             self.assertEqual(data.values.shape, (131072, 5))
             self.assertEqual(data.dims, ["t2", "t1"])
             self.assertAlmostEqual(data.attrs["nmr_frequency"], 14244283.4231)
-        self.assertAlmostEqual(datas[0].values[365, 3], (-1263136 + 1063328.5j))
+        self.assertAlmostEqual(datas[0].values[365, 3], (-1263136 - 1063328.5j))
 
 
 class specman_import_tester(unittest.TestCase):

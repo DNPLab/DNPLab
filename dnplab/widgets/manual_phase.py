@@ -41,7 +41,7 @@ def manual_phase(data, dim="f2"):
             line.set_ydata(y_data)
             min_y_data = min(min_y_data, np.min(y_data))
             max_y_data = max(max_y_data, np.max(y_data))
-        ax.set_ylim(min_y_data - margin, max_y_data + margin)
+        #        ax.set_ylim(min_y_data - margin, max_y_data + margin)
         fig.canvas.draw_idle()
 
     sphase.on_changed(update)

@@ -31,7 +31,7 @@ def exponential(x, lw):
     Returns:
         array: exponential window function
     """
-    return np.exp(-1.0 * (x - x[0]) * lw)
+    return np.exp(-np.pi * (x - x[0]) * lw)
 
 
 def gaussian(x, lw):
@@ -50,7 +50,7 @@ def gaussian(x, lw):
     sigma = lw / (
         2.0 * np.sqrt(2.0 * np.log(2.0))
     )  # convert FWHM to standard deviation
-    return np.exp(-1 * (x**2.0) / (2.0 * sigma**2.0))
+    return np.exp(-1 * 2.0 * np.pi**2.0 * (x**2.0) * (sigma**2.0))
 
 
 def hann(x):
