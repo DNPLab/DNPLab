@@ -145,7 +145,7 @@ def import_nd(path):
         elif dataType == 501:  # complex
             raw_data = unpack("<%if" % (xDim * yDim * zDim * qDim * 2), raw)
             data = np.array(raw_data)
-            data = data[0::2] + 1j * data[1::2]
+            data = data[0::2] - 1j * data[1::2]
         elif dataType == 502:  # double
             raw_data = unpack("<%id" % (xDim * yDim * zDim * qDim), raw)
             data = np.array(raw_data)
@@ -159,7 +159,7 @@ def import_nd(path):
             raw_data = np.array(raw_data)
             x = raw_data[0:xDim]
             data = raw_data[xDim:]
-            data = data[0::2] + 1j * data[1::2]
+            data = data[0::2] - 1j * data[1::2]
         else:
             raise ValueError("Data %i type not recognized" % dataType)
 
