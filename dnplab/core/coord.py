@@ -167,10 +167,12 @@ class Coords(object):
 
         # New indices for dims
         new_order = [dims.index(dim) for dim in self.dims]
+        permutation_order = [self.dims.index(dim) for dim in dims]
 
         self.dims = dims
 
-        self.coords = [self.coords[x] for x in new_order]
+#        self.coords = [self.coords[x] for x in new_order]
+        self.coords = [self.coords[x] for x in permutation_order]
 
     def pop(self, dim):
         index = self.index(dim)

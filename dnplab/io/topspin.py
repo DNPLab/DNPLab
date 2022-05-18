@@ -207,7 +207,7 @@ def import_topspin(path, verbose=False):
     raw = load_bin(os.path.join(path, bin_filename), dtype=endian + data_type)
 
     # Is data always complex?
-    data = raw[0::2] + 1j * raw[1::2]  # convert to complex
+    values = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(acqus_params)
     if verbose:
@@ -242,21 +242,23 @@ def import_topspin(path, verbose=False):
 
     new_shape = [len(coords[ix]) if dims[ix] != "t2" else -1 for ix in range(len(dims))]
     if verbose:
-        print("Raw Data Shape:", np.shape(data))
+        print("Raw Data Shape:", np.shape(values))
         print("reshaping data to:", new_shape)
 
-    # reshape data
-    data = data.reshape(new_shape)
+    # reshape values
+    values = values.reshape(new_shape)
 
     # create data object
-    topspin_data = DNPData(data, dims, coords, attrs=acqus_params)
-    topspin_data.reorder(["t2"])
+    topspin_data = DNPData(values, dims, coords, attrs=acqus_params)
 
     # Handle group delay
     topspin_data = topspin_data["t2", slice(group_delay, int(acqus_params["TD"] / 2))]
 
     # Add NMR Frequency to attrs
     topspin_data.attrs["nmr_frequency"] = acqus_params["SFO1"] * 1e6
+
+    # reorder so that 't2' is first
+    topspin_data.reorder(["t2"])
 
     return topspin_data
 

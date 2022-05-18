@@ -559,12 +559,20 @@ class ABCData(object):
         # Add original dims to end, remove duplicates
         dims = list(OrderedDict.fromkeys(dims + self.dims))
 
+#        print('original dims', self.dims)
+#        print('new order of dims', dims)
+
         new_order = [dims.index(dim) for dim in self.dims]
+        permutation_order = [self.dims.index(dim) for dim in dims]
+#        print('New Order', new_order)
+#        print('Permutation Order', permutation_order)
 
         self.coords.reorder(dims)
+#        print(self.coords)
 
         # Transpose values
-        self.values = np.transpose(self.values, new_order)
+#        self.values = np.transpose(self.values, new_order)
+        self.values = np.transpose(self.values, permutation_order)
 
     def __str__(self):
         return "values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}".format(
