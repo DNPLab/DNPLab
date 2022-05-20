@@ -101,7 +101,7 @@ def import_fid(path, filename="fid"):
 
             else:
                 blockData = np.array(unpack(">%ii" % (npts), blockDataString))
-            data = blockData[0::2] + 1j * blockData[1::2]
+            data = blockData[0::2] - 1j * blockData[1::2]  # minus sign for VNMRJ data
             dataList.append(data)
         dataArray = np.array(dataList).T
 
