@@ -12,6 +12,7 @@ This example how to use the apodization (windowing functions) in DNPLab.
 # %%
 # First we have to prepare the Python environment by importing DNPLab and load an example spectrum.
 
+from matplotlib.pyplot import title
 import dnplab as dnp
 import matplotlib.pylab as plt
 
@@ -48,7 +49,9 @@ data = dnp.autophase(data, method="manual", phase=175 * dnp.constants.pi / 180)
 # %%
 # To change the linewidth to 10 Hz do this
 
-data_exp = dnp.apodize(data_raw, kind="exponential",lw=10)
+linewidth = 5
+
+data_exp = dnp.apodize(data_raw, kind="exponential",lw = linewidth)
 data_exp = dnp.fourier_transform(data_exp)
 
 ref = 3.55
@@ -57,7 +60,7 @@ data_exp.coords["f2"] = coord + ref
 data_exp = dnp.autophase(data_exp, method="manual", phase=175 * dnp.constants.pi / 180)
 
 
-data_gauss = dnp.apodize(data_raw, kind="gaussian", lw=10)
+data_gauss = dnp.apodize(data_raw, kind="gaussian", lw = linewidth)
 data_gauss = dnp.fourier_transform(data_gauss)
 
 ref = 3.55
@@ -69,25 +72,26 @@ data_gauss = dnp.autophase(
 
 data_gauss.values = data_gauss.values + 1000
 
-# dnp.fancy_plot(data_exp, xlim=[-15, 25], label="Exponential")
-# dnp.fancy_plot(data_gauss, xlim=[-15, 25], label="Gaussian")
-# dnp.plt.legend()
-
-# dnp.plt.show()
-
-
-
-
-x = np.linspace(0,100,100)
-lw = 10
-
-y_exp = dnp.window.exponential(x,lw)
-y_gauss = dnp.window.gaussian(x,lw)
-
-dnp.plt.plot(x,y_exp,label = "Exponential")
-dnp.plt.plot(x,y_gauss,label="Gaussian")
+dnp.fancy_plot(data_exp, xlim=[-15, 25], label="5 Hz (exponential)")
+dnp.fancy_plot(data_gauss, xlim=[-15, 25], label="5 Hz (gaussian)")
+dnp.plt.title("10 mM TEMPO in Toluene, 30 dBm")
 dnp.plt.legend()
+
 dnp.plt.show()
+
+
+
+
+# x = np.linspace(0,1,100)
+# lw = 5
+
+# y_exp = dnp.window.exponential(x,lw)
+# y_gauss = dnp.window.gaussian(x,lw)
+
+# dnp.plt.plot(x,y_exp,label = "Exponential")
+# dnp.plt.plot(x,y_gauss,label="Gaussian")
+# dnp.plt.legend()
+# dnp.plt.show()
 
 
 
