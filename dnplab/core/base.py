@@ -13,7 +13,16 @@ _nddata_core_version = "1.0"
 
 
 class ABCData(object):
-    """nddata class"""
+    """N-Dimensional Data Object
+    
+    Attributes:
+        values (numpy.ndarray): Data values in 
+        dims (list): List of strings giving dimension labels
+        coords (Coords): Collection of numpy.ndarrays defining the axes
+        attrs (dict): dictionary of parameters
+        error (numpy.ndarray): If not None, error for values which are propagated during mathematical operations
+        proc_attrs (list): List of processing steps 
+    """
 
     __array_priority__ = 1000  # radd, rsub, ... should return nddata object
 
@@ -360,7 +369,14 @@ class ABCData(object):
         self._values = np.moveaxis(self._values, range(len(sorted_order)), sorted_order)
 
     def index(self, dim):
-        """Find index of given dimension name"""
+        """Find index of given dimension name
+
+        Args:
+            dim (str): Name of dimension to index
+
+        Returns:
+            int: Index value of dim
+        """
         if dim in self.dims:
             return self.coords.index(dim)
         else:
@@ -548,7 +564,12 @@ class ABCData(object):
             raise ValueError("Dimension name %s is not in dims" % dim)
 
     def reorder(self, dims):
-        """Reorder dimensions"""
+        """Reorder dimensions
+
+        Args:
+            dims (list): List of strings in new order
+        
+        """
 
         if not self._check_dims(dims):
             raise TypeError("New dims must be list of str with no duplicates")
@@ -656,14 +677,21 @@ class ABCData(object):
 
     @property
     def shape(self):
+        """tuple: Shape of values"""
         return self.values.shape
 
     @property
     def dtype(self):
+        """type: Values type"""
         return self.values.dtype
 
     def sum(self, dim):
-        """Perform sum down given dimension"""
+        """Perform sum down given dimension
+
+        Args:
+            dim (str): Dimension to perform sum down
+        
+        """
         a = self.copy()
         index = a.index(dim)
         a.values = a.values.sum(index)
@@ -807,23 +835,32 @@ class ABCData(object):
 
     @property
     def real(self):
+        """DNPData: DNPData with real part of values"""
         a = self.copy()
         a.values = np.real(a.values)
         return a
 
     @property
     def imag(self):
+        """DNPData: DNPData with imaginary part of values"""
         a = self.copy()
         a.values = np.imag(a.values)
         return a
 
     @property
     def abs(self):
+        """DNPData: DNPData with absolute part of values"""
         a = self.copy()
         a.values = np.abs(a.values)
         return a
 
     def concatenate(self, b, dim):
+        """Concatenate DNPData objects
+
+        Args:
+            b (DNPData): Data object to append to current data object
+            dim (str): dimension to concatenate along
+        """
 
         if not dim in b.dims:
             raise ValueError("dim does not exist")
@@ -844,11 +881,22 @@ class ABCData(object):
         )
 
     def new_dim(self, dim, coord):
+        """Add new dimension with length 1
+        
+        Args:
+            dim (str): Name of new dimension
+            coord (int, float): New coord
+        """
         self.coords.append(dim, np.r_[coord])
         self.values = np.expand_dims(self.values, -1)
 
     def maximum(self, dim):
-        """Return max for given dim"""
+        """Return max for given dim
+
+        Args:
+            dim (str): Dimension to take maximum along
+        
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
@@ -858,7 +906,11 @@ class ABCData(object):
         return a
 
     def argmax(self, dim):
-        """Return argmax for given dim"""
+        """Return value of coord at values maximum for given dim
+        
+        Args:
+            dim (str): Dimension to perform operation along
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
@@ -868,7 +920,11 @@ class ABCData(object):
         return a
 
     def argmax_index(self, dim):
-        """Return index of argmax for given dim"""
+        """Return index of coord at values maximum for given dim
+        
+        Args:
+            dim (str): Dimension to perform operation along
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
@@ -878,7 +934,11 @@ class ABCData(object):
         return a
 
     def minimum(self, dim):
-        """Return min for given dim"""
+        """Return min for given dim
+        
+        Args:
+            dim (str): Dimension to perform operation along
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
@@ -888,7 +948,11 @@ class ABCData(object):
         return a
 
     def argmin(self, dim):
-        """Return argmin for given dim"""
+        """Return value of coord at values minimum for given dim
+
+        Args:
+            dim (str): Dimension to perform operation along
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
@@ -898,7 +962,11 @@ class ABCData(object):
         return a
 
     def argmin_index(self, dim):
-        """Return index of argmin for given dim"""
+        """Return index of coord at values minimum for given dim
+        
+        Args:
+            dim (str): Dimension to perform operation along
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
@@ -909,10 +977,16 @@ class ABCData(object):
 
     @property
     def ndim(self):
+        """str: Number of dimensions"""
         return self.values.ndim
 
     def unfold(self, dim):
-        """Unfold ND data to 2d data"""
+        """Unfold ND data to 2d data
+
+        Args:
+            dim (str): Dimension to make first (length N), all other dimensions unfolded so that values has shape (N x M)
+        
+        """
 
         folded_order = self.dims  # Original order of dims
         self.reorder([dim])  # Move dim to first dimension
