@@ -11,7 +11,7 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
 
     Args:
         path (str): Path to data
-        parameters_filename (str): 
+        parameters_filename (str):
         experiment (str): Prospa experiment, used when calculating coords from parameters
         verbose (bool): If true, prints additional information for troubleshooting
 
@@ -69,6 +69,7 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
 
     return kea_data
 
+
 # Depreciated
 def import_prospa_dir(path, exp_list=None):
     """Import directory of prospa experiments
@@ -79,7 +80,7 @@ def import_prospa_dir(path, exp_list=None):
 
     Returns:
         dict: Dictionary of DNPData objects
-    
+
     """
 
     dirs = [x for x in os.listdir(path) if os.path.isdir(os.path.join(path, x))]

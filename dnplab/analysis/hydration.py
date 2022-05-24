@@ -5,7 +5,7 @@ import warnings
 
 
 def calculate_smax(spin_C=False):
-    r"""Returns maximal saturation factor. 
+    r"""Returns maximal saturation factor.
 
     Args:
         spin_C (float): unpaired spin concentration in units of Molar

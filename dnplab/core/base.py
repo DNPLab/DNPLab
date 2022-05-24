@@ -14,14 +14,14 @@ _nddata_core_version = "1.0"
 
 class ABCData(object):
     """N-Dimensional Data Object
-    
+
     Attributes:
-        values (numpy.ndarray): Data values in 
+        values (numpy.ndarray): Data values in
         dims (list): List of strings giving dimension labels
         coords (Coords): Collection of numpy.ndarrays defining the axes
         attrs (dict): dictionary of parameters
         error (numpy.ndarray): If not None, error for values which are propagated during mathematical operations
-        proc_attrs (list): List of processing steps 
+        proc_attrs (list): List of processing steps
     """
 
     __array_priority__ = 1000  # radd, rsub, ... should return nddata object
@@ -568,7 +568,7 @@ class ABCData(object):
 
         Args:
             dims (list): List of strings in new order
-        
+
         """
 
         if not self._check_dims(dims):
@@ -690,7 +690,7 @@ class ABCData(object):
 
         Args:
             dim (str): Dimension to perform sum down
-        
+
         """
         a = self.copy()
         index = a.index(dim)
@@ -882,7 +882,7 @@ class ABCData(object):
 
     def new_dim(self, dim, coord):
         """Add new dimension with length 1
-        
+
         Args:
             dim (str): Name of new dimension
             coord (int, float): New coord
@@ -895,7 +895,7 @@ class ABCData(object):
 
         Args:
             dim (str): Dimension to take maximum along
-        
+
         """
         a = self.copy()
         index = a.dims.index(dim)
@@ -907,7 +907,7 @@ class ABCData(object):
 
     def argmax(self, dim):
         """Return value of coord at values maximum for given dim
-        
+
         Args:
             dim (str): Dimension to perform operation along
         """
@@ -921,7 +921,7 @@ class ABCData(object):
 
     def argmax_index(self, dim):
         """Return index of coord at values maximum for given dim
-        
+
         Args:
             dim (str): Dimension to perform operation along
         """
@@ -935,7 +935,7 @@ class ABCData(object):
 
     def minimum(self, dim):
         """Return min for given dim
-        
+
         Args:
             dim (str): Dimension to perform operation along
         """
@@ -963,7 +963,7 @@ class ABCData(object):
 
     def argmin_index(self, dim):
         """Return index of coord at values minimum for given dim
-        
+
         Args:
             dim (str): Dimension to perform operation along
         """
@@ -985,7 +985,7 @@ class ABCData(object):
 
         Args:
             dim (str): Dimension to make first (length N), all other dimensions unfolded so that values has shape (N x M)
-        
+
         """
 
         folded_order = self.dims  # Original order of dims

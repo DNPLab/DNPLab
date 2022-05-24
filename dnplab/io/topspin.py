@@ -266,11 +266,11 @@ def import_topspin(path, verbose=False):
 # Load topspin should also handle this
 def load_pdata(path, verbose=False):
     """Import prospa processed data
-    
+
     Args:
         path (str): Directory of pdata
         verbose (bool): If true, print output for troubleshooting
-    
+
     Returns:
         DNPData: Topspin processed data
     """
@@ -356,7 +356,11 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
         dnpdata: Topspin data
     """
 
-    warn('This function is deprecated, use load_topspin instead', DeprecationWarning, stacklevel=2)
+    warn(
+        "This function is deprecated, use load_topspin instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     if isinstance(phase_cycle, list):
         for indx, x in enumerate(phase_cycle):
@@ -521,7 +525,11 @@ def load_ser(path, dtype=">i4"):
     returns:
         raw (np.ndarray): Data from ser file
     """
-    warn('This function is deprecated, use load_bin instead', DeprecationWarning, stacklevel=2)
+    warn(
+        "This function is deprecated, use load_bin instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     raw = np.fromfile(os.path.join(path), dtype=dtype)
 
