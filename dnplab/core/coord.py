@@ -171,7 +171,7 @@ class Coords(object):
 
         self.dims = dims
 
-#        self.coords = [self.coords[x] for x in new_order]
+        #        self.coords = [self.coords[x] for x in new_order]
         self.coords = [self.coords[x] for x in permutation_order]
 
     def pop(self, dim):
