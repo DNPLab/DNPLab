@@ -48,12 +48,12 @@ def interpolate_T1(
         T1_powers (numpy.array): The microwave powers of the T1s to interpolate
         T1_array (numpy.array): The original T1s
         interpolate_method (str): "second_order" or "linear"
-        spin_C (float): unpaired electron spin concentration in uM
+        spin_C (float): unpaired electron spin concentration in M
         T10 (float): T1 measured with unpaired electrons
         T100 (float): T1 measured without unpaired electrons
         delta_T1_water (optional) (float): change in T1 of water at max microwave power
         T1_water (optional) (float): T1 of pure water
-        macro_C (optional) (float): concentration of macromolecule in uM
+        macro_C (optional) (float): concentration of macromolecule in M
 
     Returns:
         interpolated_T1 (numpy.array): Array of T1 values same shape as E_powers and E_array
@@ -61,11 +61,22 @@ def interpolate_T1(
     T1 data is interpolated using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
     """
 
+    if spin_C > 10.0:
+        warnings.warn(
+            "Spin concentration will be interpreted as uM. Please give concentration in units of Molar. All units should be SI base units, other units will be depreciated in the future."
+        )
+        spin_C = spin_C / 1e6
+
+
     # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
     if interpolate_method == "second_order":
-        spin_C = spin_C / 1e6
+        #spin_C = spin_C / 1e6
         if macro_C:
-            macro_C = macro_C / 1e6
+            if macro_C > 10.0:
+                warnings.warn(
+                    "Macromolecule concentration will be interpreted as uM. Please give concentration in units of Molar. All units should be SI base units, other units will be depreciated in the future."
+                )
+                macro_C = macro_C / 1e6
         else:
             macro_C = spin_C
 
@@ -441,8 +452,15 @@ def odnp(inputs={}, constants={}):
                 "'T1_array' must be equal in length to 'E_array'. Otherwise give 'T1_powers' equal in length to 'T1_array' to interpolate."
             )
 
+    #ksigma_array = (1 - inputs["E_array"]) / (
+    #    inputs["spin_C"] * 1e-6 * omega_ratio * T1p
+    #)
+    if inputs["spin_C"] > 10.:
+        warnings.warn("Spin concentration should be given in units of Molar. Units will be interpreted as uM, but in the future this will be removed.")
+        inputs["spin_C"] *= 1e-6
+
     ksigma_array = (1 - inputs["E_array"]) / (
-        inputs["spin_C"] * 1e-6 * omega_ratio * T1p
+        inputs["spin_C"] * omega_ratio * T1p
     )
     # (Eq. 41) this calculates the array of ksigma*s(p) from the enhancement array,
     # dividing by the T1 array for the "corrected" analysis
@@ -453,7 +471,7 @@ def odnp(inputs={}, constants={}):
     # fit to the right side of Eq. 42 to get (ksigma*smax) and half of the E_power at s_max, called p_12 here
 
     krho = ((1 / inputs["T10"]) - (1 / inputs["T100"])) / (
-        inputs["spin_C"] * 1e-6
+        inputs["spin_C"]
     )  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
 
     coupling_factor = ksigma / krho  # coupling factor, unitless
