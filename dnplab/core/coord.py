@@ -8,6 +8,12 @@ from copy import deepcopy
 
 class Coords(object):
     def __init__(self, dims, coords):
+        '''Object for storing axes information
+        
+        Attributes:
+            dims (list): List of strings labeling dimensions
+            coords (list): List of arrays for axes
+        '''
         # super(Coords, self).__init__()
 
         if not isinstance(dims, list):
