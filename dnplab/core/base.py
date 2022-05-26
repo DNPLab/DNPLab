@@ -6,10 +6,14 @@ from copy import deepcopy
 from collections import OrderedDict
 from .coord import Coords
 
+from ..version import __version__
+
+version = __version__
+
 
 _numerical_types = (np.ndarray, int, float, complex, np.complex64)
 
-_nddata_core_version = "1.0"
+#_nddata_core_version = "1.0"
 
 
 class ABCData(object):
@@ -30,7 +34,7 @@ class ABCData(object):
         self, values=np.r_[[]], dims=[], coords=[], attrs={}, error=None, **kwargs
     ):
 
-        self._nddata_core_version = _nddata_core_version
+        self.version = version
 
         # if values is list, convert to numpy array
         if isinstance(values, list):
