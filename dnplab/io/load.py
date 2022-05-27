@@ -8,8 +8,13 @@ def load(path, data_type=None, dim=None, coord=None, verbose=False, *args, **kwa
     """Import data from different spectrometer formats
 
     Args:
-        path (str): Path to data directory or file
+        path (str, list): Path to data directory or list of directories
         data_type (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+        dim (str): If giving directories as list, name of dimension to concatenate data along
+        coord (numpy.ndarray): If giving directories as list, coordinates of new dimension
+        verbose (bool): If true, print debugging output
+        args: Args passed to spectrometer specific import function
+        kwargs: Key word args passed to spectrometer specific import function
 
     Returns:
         data (dnpData): Data object
@@ -42,6 +47,9 @@ def load_file(path, data_type=None, verbose=False, *args, **kwargs):
     Args:
         path (str): Path to data directory or file
         data_type (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+        verbose (bool): If true, print additional debug outputs
+        args: Arguments passed to spectrometer specific import function
+        kwargs: Key word arguments passed to spectrometer specific import function
 
     Returns:
         data (dnpData): Data object
@@ -103,6 +111,16 @@ def load_file(path, data_type=None, verbose=False, *args, **kwargs):
 
 # TODO rename to detect_file_format
 def autodetect(test_path, verbose=False):
+    """Automatically detect spectrometer format
+
+    Args:
+        test_path (str): Test directory
+        verbose (bool): If true, print output for debugging
+
+    Returns:
+        str: Spectrometer type as string
+
+    """
 
     if verbose == True:
         print("current directory:", os.getcwd())
