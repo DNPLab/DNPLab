@@ -18,6 +18,22 @@ def autophase(
 ):
     """Automatically phase correct data, or apply manual phase correction
 
+    Args:
+        data (DNPData): Data object to autophase
+        dim (str): Dimension to autophase
+        method (str): Autophase method, "search" by default
+        reference_range:
+        pts_lim:
+        order:
+        pivot:
+        delta:
+        phase:
+        reference_slice:
+        force_positive:
+
+    Returns:
+        DNPData: Autophased data, including attrs "phase0" for order="zero", and "phase1" if order="first"
+
     .. math::
 
         \mathrm{data}         &= \exp(-1j * \mathrm{phase}) &
@@ -29,34 +45,6 @@ def autophase(
         phased\_real          &= \mathrm{data.real} * \exp(-1j * \mathrm{phase}) &
 
         phased\_imag          &= \mathrm{data.imag} * \exp(-1j * \mathrm{phase}) &
-
-    Args:
-        all_data (dnpdata_collection, dnpdata): Data object to autophase
-
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | parameter       | type          | default       | description                                       |
-    +=================+===============+===============+===================================================+
-    | method          | str           | 'search'      | method of searching for the best phase            |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | reference_range | list or tuple | None          | data window to use for phase calculation          |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | pts_lim         | int or None   | None          | specify the max points used in phase search       |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | order           | str           | 'zero'        | order of phase correction                         |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | pivot           | int           | 0             | pivot point for first order correction            |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | delta           | float or int  | 0             | total change in phase magnitude for first order   |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | phase           | float or int  | 0             | manual phase correction in radians                |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | reference_slice | int, or None  | None          | slice of 2D data used to define the phase         |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | force_positive  | boolean       | False         | force the entire spectrum to positive magnitude   |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-
-    Returns:
-        dnpdata: Autophased data, including attrs "phase0" for order="zero", and "phase1" if order="first"
 
     """
 
@@ -190,7 +178,7 @@ def autophase(
 
 
 def phase_cycle(data, dim, receiver_phase):
-    """Phase cycle
+    """Apply phase cycle to data
 
     Args:
         all_data (dnpdata_collection, dnpdata): data to process

@@ -1,5 +1,6 @@
 import numpy as np
 import re
+from warnings import warn
 
 from .. import DNPData
 
@@ -106,8 +107,7 @@ _required_params = {
 
 
 def find_group_delay(attrs_dict):
-    """
-    Determine group delay from tables
+    """Determine group delay from tables
 
     Args:
         attrs_dict (dict): dictionary of topspin acquisition parameters
@@ -142,9 +142,9 @@ def find_group_delay(attrs_dict):
     return group_delay
 
 
+# This function does too much, should be broken into smaller functions
 def import_topspin(path, verbose=False):
-    """
-    Import topspin data and return dnpdata object
+    """Import topspin data and return dnpdata object
 
     Args:
         path (str): Directory of data
@@ -207,7 +207,7 @@ def import_topspin(path, verbose=False):
     raw = load_bin(os.path.join(path, bin_filename), dtype=endian + data_type)
 
     # Is data always complex?
-    data = raw[0::2] + 1j * raw[1::2]  # convert to complex
+    values = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(acqus_params)
     if verbose:
@@ -242,15 +242,14 @@ def import_topspin(path, verbose=False):
 
     new_shape = [len(coords[ix]) if dims[ix] != "t2" else -1 for ix in range(len(dims))]
     if verbose:
-        print("Raw Data Shape:", np.shape(data))
+        print("Raw Data Shape:", np.shape(values))
         print("reshaping data to:", new_shape)
 
-    # reshape data
-    data = data.reshape(new_shape)
+    # reshape values
+    values = values.reshape(new_shape)
 
     # create data object
-    topspin_data = DNPData(data, dims, coords, attrs=acqus_params)
-    topspin_data.reorder(["t2"])
+    topspin_data = DNPData(values, dims, coords, attrs=acqus_params)
 
     # Handle group delay
     topspin_data = topspin_data["t2", slice(group_delay, int(acqus_params["TD"] / 2))]
@@ -258,11 +257,23 @@ def import_topspin(path, verbose=False):
     # Add NMR Frequency to attrs
     topspin_data.attrs["nmr_frequency"] = acqus_params["SFO1"] * 1e6
 
+    # reorder so that 't2' is first
+    topspin_data.reorder(["t2"])
+
     return topspin_data
 
 
+# Load topspin should also handle this
 def load_pdata(path, verbose=False):
-    """ """
+    """Import prospa processed data
+
+    Args:
+        path (str): Directory of pdata
+        verbose (bool): If true, print output for troubleshooting
+
+    Returns:
+        DNPData: Topspin processed data
+    """
 
     # Directory
     dir_list = os.listdir(path)  # All files and folders in directory
@@ -307,14 +318,14 @@ def load_pdata(path, verbose=False):
     return data
 
 
+# Is this function obsolete?
 def load_acqu(path, required_params=None, verbose=False):
-    """
-    Import topspin acqu or proc files
+    """Import topspin acqu or proc files
 
     Args:
         path (str): directory of acqu or proc file
-        param_filename (str): parameters filename
-        proc_num (int): number of the folder inside the pdata folder
+        required_params (list): Only return parameters given
+        verbose (bool): If true, print output for troubleshooting
 
     Returns:
         dict: Dictionary of acqusition parameters
@@ -334,8 +345,7 @@ def load_acqu(path, required_params=None, verbose=False):
 
 # Legacy
 def load_fid_ser(path, dtype="fid", phase_cycle=None):
-    """
-    Import topspin fid or ser file
+    """Depreciated. Used import_topspin instead. Import topspin fid or ser file
 
     Args:
         path (str): Directory of data
@@ -345,6 +355,13 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
     Returns:
         dnpdata: Topspin data
     """
+
+    warn(
+        "This function is deprecated, use load_topspin instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     if isinstance(phase_cycle, list):
         for indx, x in enumerate(phase_cycle):
             if x in [0, 360, 720, 1080]:
@@ -359,7 +376,7 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
     dir_list = os.listdir(path)
 
     attrs_dict_list = [
-        load_acqu_proc(path, x) for x in ["acqus", "acqu2s", "acqu3s"] if x in dir_list
+        load_acqu(path, x) for x in ["acqus", "acqu2s", "acqu3s"] if x in dir_list
     ]
     attrs_dict = {}
     for a in attrs_dict_list:
@@ -499,7 +516,7 @@ def topspin_vdlist(path):
 
 # Legacy import ser
 def load_ser(path, dtype=">i4"):
-    """Import Topspin Ser file
+    """Depreciated. Use load bin. Import Topspin Ser file
 
     Args:
         path (str): Directory of data
@@ -508,6 +525,11 @@ def load_ser(path, dtype=">i4"):
     returns:
         raw (np.ndarray): Data from ser file
     """
+    warn(
+        "This function is deprecated, use load_bin instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     raw = np.fromfile(os.path.join(path), dtype=dtype)
 
@@ -531,8 +553,7 @@ def load_bin(path, dtype=">i4"):
 
 
 def load_title(path="1", title_path=os.path.join("pdata", "1"), title_filename="title"):
-    """
-    Import Topspin Experiment Title File
+    """Import Topspin Experiment Title File
 
     Args:
         path (str): Directory of title
@@ -553,14 +574,14 @@ def load_title(path="1", title_path=os.path.join("pdata", "1"), title_filename="
 
 
 def load_topspin_jcamp_dx(path, verbose=False):
-    """
-    Return the contents of topspin JCAMP-DX file as dictionary
+    """Return the contents of topspin JCAMP-DX file as dictionary
 
     Args:
-        path: Path to file
+        path (str): Path to file
+        verbose (bool): If true, print output for troubleshooting
 
     Returns:
-        dict: Dictionary of JCAMP-DX file
+        dict: Dictionary of JCAMP-DX file parameters
     """
 
     attrs = {}

@@ -55,8 +55,7 @@ int_params = [
 
 
 def import_winepr(path):
-    """
-    Import Bruker par/spc data and return DNPData object
+    """Import Bruker par/spc data and return DNPData object
 
     Args:
         path (str) : Path to either .par or .spc file
@@ -83,8 +82,7 @@ def import_winepr(path):
 
 
 def load_par(path):
-    """
-    Import contents of .par file
+    """Import contents of .par file
 
     Args:
         path (str) : Path to .par file
@@ -126,8 +124,7 @@ def load_par(path):
 
 
 def load_spc(path, params):
-    """
-    Import data and axes of .spc file
+    """Import data and axes of .spc file
 
     Args:
         path (str) : Path to .spc file

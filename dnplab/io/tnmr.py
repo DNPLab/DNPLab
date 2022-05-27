@@ -5,8 +5,7 @@ import re
 
 
 def import_tnmr(path):
-    """
-    Import tnmr data and return DNPData object
+    """Import tnmr data and return DNPData object
 
     Args:
         path (str) : Path to .jdf file
@@ -24,8 +23,7 @@ def import_tnmr(path):
 
 
 def import_tnmr_pars(path):
-    """
-    Import parameter fields of tnmr data
+    """Import parameter fields of tnmr data
 
     Args:
         path (str) : Path to .tnt file
@@ -43,8 +41,7 @@ def import_tnmr_pars(path):
 
 
 def import_tnmr_data(path):
-    """
-    Import spectrum or spectra of tnmr data
+    """Import spectrum or spectra of tnmr data
 
     Args:
         path (str) : Path to .tnt file

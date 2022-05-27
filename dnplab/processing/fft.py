@@ -27,29 +27,18 @@ def fourier_transform(
 ):
     """Perform Fourier Transform down dim dimension given in proc_parameters
 
-    .. Note::
-        Assumes dt = t[1] - t[0]
-
-    .. math::
-
-
     Args:
-        all_data (dnpdata, dict): Data container
-
-    +------------------+------+-----------+--------------------------------------------------+
-    | parameter        | type | default   | description                                      |
-    +==================+======+===========+==================================================+
-    | dim              | str  | 't2'      | dimension to Fourier transform                   |
-    +------------------+------+-----------+--------------------------------------------------+
-    | zero_fill_factor | int  | 2         | factor to increase dim with zeros                |
-    +------------------+------+-----------+--------------------------------------------------+
-    | shift            | bool | True      | Perform fftshift to set zero frequency to center |
-    +------------------+------+-----------+--------------------------------------------------+
-    | convert_to_ppm   | bool | True      | Convert dim from Hz to ppm                       |
-    +------------------+------+-----------+--------------------------------------------------+
+        data (DNPData): Data object
+        dim (str): Dimension to Fourier Transform, "t2" by default
+        zero_fill_factor (int): Increases the number of points in Fourier transformed dimension by this factor with zero filling, 1 by default
+        shift (bool): Apply fftshift to the Fourier transformed data, placing zero frequency at center of dimension
+        convert_to_ppm (bool): If true, convert Fourier transformed axis to ppm units by using the "nmr_frequency" in attrs
 
     Returns:
         dnpdata: data object after FT
+
+    .. Note::
+        Assumes dt = t[1] - t[0]
     """
 
     # handle zero_fill_factor
@@ -106,26 +95,18 @@ def inverse_fourier_transform(
 ):
     """Perform Fourier Transform down dim dimension given in proc_parameters
 
-    .. Note::
-        Assumes dt = t[1] - t[0]
-
     Args:
-        all_data (dnpdata, dict): Data container
-
-    +------------------+------+-----------+--------------------------------------------------+
-    | parameter        | type | default   | description                                      |
-    +==================+======+===========+==================================================+
-    | dim              | str  | 't2'      | dimension to Fourier transform                   |
-    +------------------+------+-----------+--------------------------------------------------+
-    | zero_fill_factor | int  | 2         | factor to increase dim with zeros                |
-    +------------------+------+-----------+--------------------------------------------------+
-    | shift            | bool | True      | Perform fftshift to set zero frequency to center |
-    +------------------+------+-----------+--------------------------------------------------+
-    | convert_from_ppm | bool | True      | Convert dim from Hz to ppm                       |
-    +------------------+------+-----------+--------------------------------------------------+
+        data (DNPData): Data object
+        dim (str): Dimension to inverse Fourier transform, "f2" by default
+        zero_fill_factor (int): Increases the number of points in inverse Fourier transformed dimension by this factor with zero filling, 1 by default
+        shift (bool): Apply fftshift to the inverse Fourier transformed data, placing zero frequency at center of dimension
+        convert_from_ppm (bool): If true, convert Fourier transformed axis from ppm units by using the "nmr_frequency" in attrs
 
     Returns:
-        dnpdata: data object after inverse FT
+        dnpdata: data object after IFT
+
+    .. Note::
+        Assumes dt = f[1] - f[0]
     """
 
     # handle zero_fill_factor
@@ -171,4 +152,5 @@ def inverse_fourier_transform(
 
 
 def zero_fill():
+    """Zero fill data, Not Implemented"""
     return NotImplemented
