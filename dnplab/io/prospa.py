@@ -80,7 +80,6 @@ def import_prospa_dir(path, exp_list=None):
 
     Returns:
         dict: Dictionary of DNPData objects
-
     """
 
     dirs = [x for x in os.listdir(path) if os.path.isdir(os.path.join(path, x))]

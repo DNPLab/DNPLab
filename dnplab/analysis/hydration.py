@@ -67,10 +67,9 @@ def interpolate_T1(
         )
         spin_C = spin_C / 1e6
 
-
     # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
     if interpolate_method == "second_order":
-        #spin_C = spin_C / 1e6
+        # spin_C = spin_C / 1e6
         if macro_C:
             if macro_C > 10.0:
                 warnings.warn(
@@ -452,16 +451,16 @@ def odnp(inputs={}, constants={}):
                 "'T1_array' must be equal in length to 'E_array'. Otherwise give 'T1_powers' equal in length to 'T1_array' to interpolate."
             )
 
-    #ksigma_array = (1 - inputs["E_array"]) / (
+    # ksigma_array = (1 - inputs["E_array"]) / (
     #    inputs["spin_C"] * 1e-6 * omega_ratio * T1p
-    #)
-    if inputs["spin_C"] > 10.:
-        warnings.warn("Spin concentration should be given in units of Molar. Units will be interpreted as uM, but in the future this will be removed.")
+    # )
+    if inputs["spin_C"] > 10.0:
+        warnings.warn(
+            "Spin concentration should be given in units of Molar. Units will be interpreted as uM, but in the future this will be removed."
+        )
         inputs["spin_C"] *= 1e-6
 
-    ksigma_array = (1 - inputs["E_array"]) / (
-        inputs["spin_C"] * omega_ratio * T1p
-    )
+    ksigma_array = (1 - inputs["E_array"]) / (inputs["spin_C"] * omega_ratio * T1p)
     # (Eq. 41) this calculates the array of ksigma*s(p) from the enhancement array,
     # dividing by the T1 array for the "corrected" analysis
 

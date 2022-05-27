@@ -127,9 +127,6 @@ def logistic(x, c, x0, L, k):
 
     Returns:
         ndarray: buildup curve
-
-    .. math::
-        f(p) =
     """
 
     # return c + L / (1.0 + np.exp(-1.0 * k * (x - x0)))

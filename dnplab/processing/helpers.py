@@ -10,28 +10,13 @@ import dnplab as dnp
 def calculate_enhancement(integrals, off_spectrum_index=0, return_complex_values=False):
     """Calculate enhancement of a power series. Needs integrals as input
 
+    Args:
+        integrals (DNPData):
+        off_spectrum_index (int):
+        return_complex_values (bool):
 
-
-    #     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    #     | parameter        | type                       | default     | description                                                          |
-    #     +==================+============================+=============+======================================================================+
-    #     | off_spectrum     | int or dnpdata             | 1           | slice of 2D data to be used as p = 0 spectrum, or dnpdata            |
-    #     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    #     | on_spectra       | str or dnpdata             | "all"       | "all"  unless dnpdata given                                          |
-    #     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    #     | integrate_center | str, int, list, or ndarray | 0           | "max", center of integration window, or index used to find amplitude |
-    #     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    #     | integrate_width  | str, int, list, or ndarray | "full"      | "full" or width of integration window                                |
-    #     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    #     | method           | str                        | "integrate" | either "integrate" or "ampltiude"                                    |
-    #     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    #     | dim              | str                        | "f2"        | dimension to integrate down or search down for max                   |
-    #     +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-
-
-        Args:
-        Returns:
-
+    Returns:
+        enhancements (DNPData): Enhancement values
     """
 
     enhancements = integrals.copy()

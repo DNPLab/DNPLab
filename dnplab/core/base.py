@@ -13,7 +13,7 @@ version = __version__
 
 _numerical_types = (np.ndarray, int, float, complex, np.complex64)
 
-#_nddata_core_version = "1.0"
+# _nddata_core_version = "1.0"
 
 
 class ABCData(object):
