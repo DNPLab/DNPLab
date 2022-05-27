@@ -23,6 +23,7 @@ def fit(
         data (DNPData): Data for fit
         dim (str): Dimension to perform fit along
         p0 (tuple): Initial guess for fit
+        kwargs: Additional parameters for scipy.curve_fit
 
     Returns:
         out (dict): Dictionary of fit, fitting parameters, and error

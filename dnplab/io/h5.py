@@ -165,7 +165,12 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
 
 
 def write_dict(dnpDataGroup, dnpDataObject):
-    """Writes dictionary to h5 file"""
+    """Writes dictionary to h5 file
+
+    Args:
+        dnpDataGroup (h5py.Group): h5 group to write attrs dictionary
+        dnpDataObject (DNPData): DNPData object to write
+    """
     #    dnpDataGroup.attrs['dnplab_version'] = dnpDataObject.version
     dnpDataGroup.attrs["dnplab_data_type"] = "dict"
     #    dnpDataGroup.attrs['dnplab_version'] = dnpDataObject.version

@@ -5,10 +5,7 @@ import warnings
 
 
 def calculate_smax(spin_C=False):
-    """Returns maximal saturation factor according to: M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
-
-    .. math::
-        \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
+    r"""Returns maximal saturation factor.
 
     Args:
         spin_C (float): unpaired spin concentration in units of Molar
@@ -16,6 +13,10 @@ def calculate_smax(spin_C=False):
     Returns:
         smax (float): maximal saturation factor
 
+    .. math::
+        \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
+
+    M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
     """
 
     if spin_C > 5.0:
@@ -40,30 +41,41 @@ def interpolate_T1(
     T10=2.0,
     T100=2.5,
 ):
-    """Returns interpolated T1 data using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
+    """Returns interpolated T1 data.
 
     Args:
         E_powers (numpy.array): The microwave powers at which to evaluate
         T1_powers (numpy.array): The microwave powers of the T1s to interpolate
         T1_array (numpy.array): The original T1s
         interpolate_method (str): "second_order" or "linear"
-        spin_C (float): unpaired electron spin concentration in uM
+        spin_C (float): unpaired electron spin concentration in M
         T10 (float): T1 measured with unpaired electrons
         T100 (float): T1 measured without unpaired electrons
         delta_T1_water (optional) (float): change in T1 of water at max microwave power
         T1_water (optional) (float): T1 of pure water
-        macro_C (optional) (float): concentration of macromolecule in uM
+        macro_C (optional) (float): concentration of macromolecule in M
 
     Returns:
         interpolated_T1 (numpy.array): Array of T1 values same shape as E_powers and E_array
 
+    T1 data is interpolated using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
     """
+
+    if spin_C > 10.0:
+        warnings.warn(
+            "Spin concentration will be interpreted as uM. Please give concentration in units of Molar. All units should be SI base units, other units will be depreciated in the future."
+        )
+        spin_C = spin_C / 1e6
 
     # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
     if interpolate_method == "second_order":
-        spin_C = spin_C / 1e6
+        # spin_C = spin_C / 1e6
         if macro_C:
-            macro_C = macro_C / 1e6
+            if macro_C > 10.0:
+                warnings.warn(
+                    "Macromolecule concentration will be interpreted as uM. Please give concentration in units of Molar. All units should be SI base units, other units will be depreciated in the future."
+                )
+                macro_C = macro_C / 1e6
         else:
             macro_C = spin_C
 
@@ -109,8 +121,6 @@ def interpolate_T1(
 def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
     """Function to calcualte ksig array for any given ksigma and p_12
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         powers (numpy.array): Array of powers
         ksigma_smax (float): product of ksigma and smax
@@ -119,6 +129,7 @@ def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
     Returns:
         ksig_fit (numpy.array): calculated ksigma array
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # Right side of Eq. 42. This function should fit to ksig_sp
@@ -130,8 +141,6 @@ def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
 def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
     """Get ksigma and E_power at half max of ksig
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         ksig (numpy.array): Array of ksigmas
         powers (numpy.array): Array of E_powers
@@ -141,6 +150,7 @@ def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
         ksigma_stdd (float): standard deviation in ksigma
         p_12 (float): power at half max for ksigma fit
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # curve fitting
@@ -170,8 +180,6 @@ def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
 def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
     """Returns coupling_factor for any given tcorr
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         tcorr (float): translational diffusion correlation time
         omega_e (float): electron gyromagnetic ratio
@@ -180,6 +188,7 @@ def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
     Returns:
         xi (float): coupling factor
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # Using Franck et al. PNMRS (2013)
@@ -208,8 +217,6 @@ def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
 def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
     """Returns translational correlation time (tcorr) in pico second
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         coupling_factor (float): coupling factor
         omega_e (float): electron gyromagnetic ratio
@@ -218,6 +225,7 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
     Returns:
         t_corr (float): tcorr, translational diffusion correlation time in pico second
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # root finding
@@ -230,7 +238,7 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
     )
 
     if not result.converged:
-        raise FitError("Could not find tcorr")
+        raise ValueError("Could not find tcorr")
 
     t_corr = result.root
     return t_corr
@@ -247,8 +255,6 @@ def calculate_uncorrected_Ep(
 ):
     """Function for E(p) for any given xi and p_12
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         uncorrected_xi (float): uncorrected coupling factor
         p_12_unc (float): power at half max for uncorrected_xi fit
@@ -262,6 +268,7 @@ def calculate_uncorrected_Ep(
     Returns:
         Ep_fit (numpy.array): uncorrected Enhancement curve
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # Right side of Eq. 42. This function should fit to ksig_sp
@@ -284,8 +291,6 @@ def _residual_Ep(
 ):
     """Function for residuals between E(p) for any given xi and p_12 and the experimental E_array
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         x (list): [uncorrected coupling factor, power at half max for uncorrected_xi fit]
         E_array (numpy.array): Array of enhancements
@@ -298,6 +303,7 @@ def _residual_Ep(
     Returns:
         Ep_fit (numpy.array): uncorrected enhancement curve
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     return E_array - calculate_uncorrected_Ep(
@@ -321,8 +327,6 @@ def calculate_uncorrected_xi(
 ):
     """Get coupling_factor and E_power at half saturation
 
-    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         E_array (numpy.array): Array of enhancements
         E_powers (numpy.array): Array of powers
@@ -335,6 +339,7 @@ def calculate_uncorrected_xi(
         uncorrected_xi (float): uncorrected coupling factor
         p_12_unc (float): power at half max for uncorrected_xi fit
 
+    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # least-squares fitting.
@@ -347,7 +352,7 @@ def calculate_uncorrected_xi(
         method="lm",
     )
     if not results.success:
-        raise FitError("Could not fit Ep")
+        raise ValueError("Could not fit Ep")
     assert results.x[0] > 0, "Unexpected coupling_factor value: %d < 0" % results.x[0]
 
     uncorrected_xi = results.x[0]
@@ -359,12 +364,6 @@ def calculate_uncorrected_xi(
 def odnp(inputs={}, constants={}):
     """Function for performing ODNP calculations
 
-    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-    http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
-
-    J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
-    https://doi.org/10.1016/bs.mie.2018.09.024
-
     Args:
         inputs (dict)                   : keys and values described in example above
         constants (optional) (dict)     : keys and values described in example above
@@ -372,6 +371,11 @@ def odnp(inputs={}, constants={}):
     Returns:
         hydration_results (dict)        : keys and values described in table above
 
+    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+    http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
+
+    J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
+    https://doi.org/10.1016/bs.mie.2018.09.024
     """
 
     if not inputs:
@@ -447,9 +451,16 @@ def odnp(inputs={}, constants={}):
                 "'T1_array' must be equal in length to 'E_array'. Otherwise give 'T1_powers' equal in length to 'T1_array' to interpolate."
             )
 
-    ksigma_array = (1 - inputs["E_array"]) / (
-        inputs["spin_C"] * 1e-6 * omega_ratio * T1p
-    )
+    # ksigma_array = (1 - inputs["E_array"]) / (
+    #    inputs["spin_C"] * 1e-6 * omega_ratio * T1p
+    # )
+    if inputs["spin_C"] > 10.0:
+        warnings.warn(
+            "Spin concentration should be given in units of Molar. Units will be interpreted as uM, but in the future this will be removed."
+        )
+        inputs["spin_C"] *= 1e-6
+
+    ksigma_array = (1 - inputs["E_array"]) / (inputs["spin_C"] * omega_ratio * T1p)
     # (Eq. 41) this calculates the array of ksigma*s(p) from the enhancement array,
     # dividing by the T1 array for the "corrected" analysis
 
@@ -459,7 +470,7 @@ def odnp(inputs={}, constants={}):
     # fit to the right side of Eq. 42 to get (ksigma*smax) and half of the E_power at s_max, called p_12 here
 
     krho = ((1 / inputs["T10"]) - (1 / inputs["T100"])) / (
-        inputs["spin_C"] * 1e-6
+        inputs["spin_C"]
     )  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
 
     coupling_factor = ksigma / krho  # coupling factor, unitless
@@ -529,14 +540,8 @@ def odnp(inputs={}, constants={}):
 def hydration(workspace):
     """Function for calculating hydration quantities
 
-    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-    http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
-
-    J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
-    https://doi.org/10.1016/bs.mie.2018.09.024
-
     Args:
-        workspace (dnpdata_collection): workspace or dictionary with 'hydration_inputs', see above
+        workspace (dict): workspace or dictionary with 'hydration_inputs', see above
 
     Returns:
         results (dict)                : 'hydration_results' dictionary, see above
@@ -544,6 +549,11 @@ def hydration(workspace):
     Raises:
         TypeError: If 'hydration_inputs' dictionary is missing
 
+    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+    http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
+
+    J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
+    https://doi.org/10.1016/bs.mie.2018.09.024
     """
 
     if "hydration_inputs" in workspace.keys():

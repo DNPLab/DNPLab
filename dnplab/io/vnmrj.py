@@ -13,8 +13,7 @@ blockHeader_fmt = ">hhhhlffff"
 
 
 def array_coords(attrs):
-    """
-    Return array dimension coords from parameters dictionary
+    """Return array dimension coords from parameters dictionary
 
     Args:
         attrs (dict): Dictionary of procpar parameters
@@ -109,8 +108,7 @@ def import_fid(path, filename="fid"):
 
 
 def import_procpar(path, filename="procpar"):
-    """
-    Import VnmrJ procpar parameters file
+    """Import VnmrJ procpar parameters file
 
     Args:
         path (str): Directory of file
@@ -187,8 +185,7 @@ def import_procpar(path, filename="procpar"):
 
 
 def import_vnmrj(path, fidFilename="fid", paramFilename="procpar"):
-    """
-    Import VnmrJ Data
+    """Import VnmrJ Data
 
     Args:
         path(str): path to experiment folder
