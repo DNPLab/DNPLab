@@ -4,8 +4,7 @@ from .. import DNPData
 
 
 def import_delta(path):
-    """
-    Import Delta data and return DNPData object
+    """Import Delta data and return DNPData object
 
     Args:
         path (str) : Path to .jdf file
@@ -23,8 +22,7 @@ def import_delta(path):
 
 
 def import_delta_pars(path):
-    """
-    Import parameter fields of Delta data
+    """Import parameter fields of Delta data
 
     Args:
         path (str) : Path to .jdf file
@@ -60,8 +58,7 @@ def import_delta_pars(path):
 
 
 def import_delta_data(path, params):
-    """
-    Import spectrum or spectra of Delta data
+    """Import spectrum or spectra of Delta data
 
     Args:
         path (str) : Path to .jdf file
