@@ -16,14 +16,89 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # %%
+# Example Data
+# ------------
+enhancements = np.array(
+    [
+        0.57794113752189,
+        -0.4688718613022250,
+        -0.5464528159680670,
+        -1.0725090541762200,
+        -1.4141203961920700,
+        -1.695789643686440,
+        -1.771840068080760,
+        -1.8420812985152700,
+        -1.97571340381877,
+        -2.091405209753480,
+        -2.1860546327712800,
+        -2.280712535872610,
+        -2.4709892163826400,
+        -2.5184316153191200,
+        -2.556110148443770,
+        -2.576413132701720,
+        -2.675593912859120,
+        -2.8153300703866400,
+        -2.897475156648710,
+        -3.0042154567120800,
+        -3.087886507216510,
+    ]
+)
+
+enhancement_powers = np.array(
+    [
+        0.0006454923080882520,
+        0.004277023425898170,
+        0.004719543572446050,
+        0.00909714298712173,
+        0.01344187403986090,
+        0.01896059941058610,
+        0.02101937603827090,
+        0.022335737104727900,
+        0.026029715703921800,
+        0.02917012237740640,
+        0.0338523245243911,
+        0.03820738749745440,
+        0.04733370907740660,
+        0.05269608016472140,
+        0.053790874615060400,
+        0.05697639350179900,
+        0.06435487925718170,
+        0.07909179437004270,
+        0.08958910066880800,
+        0.1051813598911370,
+        0.11617812912435900,
+    ]
+)
+
+T1s = np.array(
+    [
+        2.020153734009,
+        2.276836030132750,
+        2.3708172489377400,
+        2.4428968088189100,
+        2.5709096032675700,
+    ]
+)
+
+T1_powers = np.array(
+    [
+        0.000589495934876689,
+        0.024242327290569100,
+        0.054429505156431400,
+        0.0862844940360515,
+        0.11617812912435900,
+    ]
+)
+
+# %%
 # Setup your data dictionary
 # --------------------------
 
 data = {
-    "E_array": np.array(),  # numpy array of signal enhancements
-    "E_powers": np.array(),  # numpy array of microwave power levels used to collect enhancements
-    "T1_array": np.array(),  # numpy array of T1 measurements in seconds
-    "T1_powers": np.array(),  # numpy array of microwave power levels used to collect T1s
+    "E_array": enhancements,  # numpy array of signal enhancements
+    "E_powers": enhancement_powers,  # numpy array of microwave power levels used to collect enhancements
+    "T1_array": T1s,  # numpy array of T1 measurements in seconds
+    "T1_powers": T1_powers,  # numpy array of microwave power levels used to collect T1s
     "T10": 2.0,  # T1 measured with microwave power = 0
     "T100": 2.5,  # T1 measured for sample without unpaired spin and microwave power = 0
     "spin_C": 100e-6,  # spin concentration in M
@@ -33,8 +108,8 @@ data = {
 }
 
 # %%
-# Standard constants
-# ------------------
+# Optional - adjust constants
+# ---------------------------
 # In general the constants used in the calculations are kept the same as those found in literature. You may update these values if you wish but this is rarely necessary and will make direct comparisons with most existing literature invalid.
 
 standard_constants = {
@@ -47,9 +122,7 @@ standard_constants = {
 }
 
 # %%
-# Constants used in 2nd order T1 interpolation
-# --------------------------------------------
-# It is typically unnecessary to adjust these constants. Explanation can be found in the SI of https://doi.org/10.1021/jacs.1c11342
+# It is typically unnecessary to adjust the constants used in 2nd order interpolation but they are adjustable. Explanation can be found in the SI of https://doi.org/10.1021/jacs.1c11342
 
 interpolation_constants = {
     "delta_T1_water": 1,  # change in water proton T1 due to microwaves
@@ -58,7 +131,8 @@ interpolation_constants = {
 }
 
 # %%
-# combine the dictionaries of standard and additional constants into one,
+# Combine any dictionaries of constants into one with something like,
+
 constants = {**standard_constants, **interpolation_constants}
 
 # %%
@@ -84,5 +158,6 @@ print(results.keys())
 plt.figure()
 plt.plot(data["E_powers"], results["ksigma_array"], "o", label="Data")
 plt.plot(data["E_powers"], results["ksigma_fit"], label="Fit")
+plt.grid()
 plt.legend()
 plt.show()
