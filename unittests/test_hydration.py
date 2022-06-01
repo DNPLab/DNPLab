@@ -82,7 +82,7 @@ class TestHydration(unittest.TestCase):
             "E_powers": TESTSET["E_power"],
             "T1_array": TESTSET["T1"],
             "T1_powers": TESTSET["T1_power"],
-            "magnetic_field": 348.5,
+            "magnetic_field": 0.3485,
             "spin_C": 125e-6,
             "T10": 2.0,
             "T100": 2.5,
@@ -94,7 +94,7 @@ class TestHydration(unittest.TestCase):
             "ksigma_bulk": 95.4,
             "krho_bulk": 353.4,
             "klow_bulk": 366,
-            "tcorr_bulk": 54,
+            "tcorr_bulk": 54e-12,
             "D_H2O": 2.3e-9,
             "D_SL": 4.1e-10,
             "delta_T1_water": False,
@@ -136,5 +136,5 @@ class TestHydration(unittest.TestCase):
 
         self.assertAlmostEqual(result["ksigma"], 20.17803815171555, places=6)
         self.assertAlmostEqual(result["klow"], 1286.2512443126634, places=6)
-        self.assertAlmostEqual(result["tcorr"], 485.8952027395348, places=6)
+        self.assertAlmostEqual(result["tcorr"], 485.8952027395348e-12, places=6)
         self.assertAlmostEqual(result["Dlocal"], 3.01176054373284e-10, places=6)

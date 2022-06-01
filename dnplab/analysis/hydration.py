@@ -363,7 +363,7 @@ def hydration(data={}, constants={}):
         "ksigma_bulk": 95.4,
         "krho_bulk": 353.4,
         "klow_bulk": 366,
-        "tcorr_bulk": 54,
+        "tcorr_bulk": 54e-12,
         "D_H2O": 2.3e-9,
         "D_SL": 4.1e-10,
         "delta_T1_water": False,
@@ -396,12 +396,12 @@ def hydration(data={}, constants={}):
             "'smax_model' must be 'tethered', 'free', or a float between 0 and 1"
         )
 
-    omega_e = (1.76085963023e-1) * (data["magnetic_field"] / 1000)
+    omega_e = 1.76085963023e-1 * data["magnetic_field"]
     # gamma_e in 1/ps for the tcorr unit, then correct by magnetic_field in T.
     # gamma_e is from NIST. The magnetic_field cancels in the following omega_ratio but you
     # need these individually for the spectral density functions later.
 
-    omega_H = (2.6752218744e-4) * (data["magnetic_field"] / 1000)
+    omega_H = 2.6752218744e-4 * data["magnetic_field"]
     # gamma_H in 1/ps for the tcorr unit, then correct by magnetic_field in T.
     # gamma_H is from NIST. The magnetic_field cancels in the following omega_ratio but you
     # need these individually for the spectral density functions later.
@@ -452,6 +452,7 @@ def hydration(data={}, constants={}):
     # optimizes the value of tcorr in the calculation of coupling_factor, the correct tcorr
     # is the one for which the calculation of coupling_factor from the spectral density
     # functions matches the coupling_factor found experimentally. tcorr unit is ps
+    tcorr *= 1e-12
 
     Dlocal = (odnp_constants["tcorr_bulk"] / tcorr) * (
         odnp_constants["D_H2O"] + odnp_constants["D_SL"]

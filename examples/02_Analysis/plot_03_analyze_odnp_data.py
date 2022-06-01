@@ -27,7 +27,7 @@ data = {
     "T10": 2.0,  # T1 measured with microwave power = 0
     "T100": 2.5,  # T1 measured for sample without unpaired spin and microwave power = 0
     "spin_C": 100e-6,  # spin concentration in M
-    "magnetic_field": 350,  # magnetic field in mT
+    "magnetic_field": 0.35,  # magnetic field in T
     "smax_model": "tethered",  # choice of smax model or direct input of smax value
     "interpolate_method": "second_order",  # choice of interpolation method
 }
@@ -41,7 +41,7 @@ standard_constants = {
     "ksigma_bulk": 95.4,  # bulk ksigma value
     "krho_bulk": 353.4,  # bulk krho value
     "klow_bulk": 366,  # bulk klow value
-    "tcorr_bulk": 54,  # bulk tcorr value
+    "tcorr_bulk": 54e-12,  # bulk tcorr value in seconds
     "D_H2O": 2.3e-9,  # bulk water diffusivity
     "D_SL": 4.1e-10,  # diffusivity of spin probe in bulk water
 }
