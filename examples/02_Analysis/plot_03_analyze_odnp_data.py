@@ -9,8 +9,8 @@ Analyze ODNP Data
 This example demonstrates how to use the hydration module to analyze ODNP data.
 """
 # %%
-# Import the hydration module
-# ---------------------------
+# Imports
+# -------
 import dnplab
 import numpy as np
 import matplotlib.pyplot as plt
@@ -49,7 +49,7 @@ standard_constants = {
 # %%
 # Constants used in 2nd order T1 interpolation
 # --------------------------------------------
-# It is typically unnecessary to adjust these constants. Look at the SI of https://doi.org/10.1021/jacs.1c11342 for explanation.
+# It is typically unnecessary to adjust these constants. Explanation can be found in the SI of https://doi.org/10.1021/jacs.1c11342
 
 interpolation_constants = {
     "delta_T1_water": 1,  # change in water proton T1 due to microwaves
@@ -64,7 +64,7 @@ constants = {**standard_constants, **interpolation_constants}
 # %%
 # Calculate results
 # -----------------
-# If any adjustments are made to the constants, pass both dictionaries to hydration.odnp to return a dictionary of results,
+# If any adjustments are made to the constants, pass both dictionaries to dnplab.hydration to return a dictionary of results,
 
 results = dnplab.hydration(data, constants)
 
