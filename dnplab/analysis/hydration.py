@@ -1,7 +1,6 @@
 import numpy as np
 from scipy import interpolate
 from scipy import optimize
-import warnings
 
 
 def calculate_smax(spin_C=False):
@@ -19,14 +18,7 @@ def calculate_smax(spin_C=False):
     M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
     """
 
-    if spin_C > 5.0:
-        warnings.warn(
-            "Spin concentration will be interpreted as uM. Please give concentration in units of Molar. All units should be SI base units, other units will be depreciated in the future."
-        )
-
-        return 1 - (2 / (3 + (3 * (spin_C * 1e-6 * 198.7))))
-    else:
-        return 1 - (2 / (3 + (3 * (spin_C * 198.7))))
+    return 1 - (2 / (3 + (3 * (spin_C * 198.7))))
 
 
 def interpolate_T1(
@@ -61,22 +53,9 @@ def interpolate_T1(
     T1 data is interpolated using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
     """
 
-    if spin_C > 10.0:
-        warnings.warn(
-            "Spin concentration will be interpreted as uM. Please give concentration in units of Molar. All units should be SI base units, other units will be depreciated in the future."
-        )
-        spin_C = spin_C / 1e6
-
     # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
     if interpolate_method == "second_order":
-        # spin_C = spin_C / 1e6
-        if macro_C:
-            if macro_C > 10.0:
-                warnings.warn(
-                    "Macromolecule concentration will be interpreted as uM. Please give concentration in units of Molar. All units should be SI base units, other units will be depreciated in the future."
-                )
-                macro_C = macro_C / 1e6
-        else:
+        if not macro_C:
             macro_C = spin_C
 
         if not delta_T1_water:
@@ -199,12 +178,12 @@ def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
 
     # (Eq. 2)
     Jdiff = (1 + (zdiff / 4)) / (
-        1 + zdiff + ((4 * (zdiff**2)) / 9) + ((zdiff**3) / 9)
+        1 + zdiff + ((4 * (zdiff ** 2)) / 9) + ((zdiff ** 3) / 9)
     )
 
-    Jsum = (1 + (zsum / 4)) / (1 + zsum + ((4 * (zsum**2)) / 9) + ((zsum**3) / 9))
+    Jsum = (1 + (zsum / 4)) / (1 + zsum + ((4 * (zsum ** 2)) / 9) + ((zsum ** 3) / 9))
 
-    JH = (1 + (zH / 4)) / (1 + zH + ((4 * (zH**2)) / 9) + ((zH**3) / 9))
+    JH = (1 + (zH / 4)) / (1 + zH + ((4 * (zH ** 2)) / 9) + ((zH ** 3) / 9))
 
     # (Eq. 23) calculation of coupling_factor from the spectral density functions
     xi = ((6 * np.real(Jdiff)) - np.real(Jsum)) / (
@@ -361,15 +340,15 @@ def calculate_uncorrected_xi(
     return uncorrected_xi, p_12_unc
 
 
-def odnp(inputs={}, constants={}):
+def odnp(data={}, constants={}):
     """Function for performing ODNP calculations
 
     Args:
-        inputs (dict)                   : keys and values described in example above
-        constants (optional) (dict)     : keys and values described in example above
+        data (dict)                   : keys and values described in example
+        constants (dict)              : (optional) keys and values described in example
 
     Returns:
-        hydration_results (dict)        : keys and values described in table above
+        odnp_results (dict)           : keys and values described in example
 
     J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
@@ -378,10 +357,10 @@ def odnp(inputs={}, constants={}):
     https://doi.org/10.1016/bs.mie.2018.09.024
     """
 
-    if not inputs:
-        raise ValueError("Please supply a valid inputs dictionary")
+    if not data:
+        raise ValueError("Please supply a valid data dictionary, see example")
 
-    odnp_constants = {
+    standard_constants = {
         "ksigma_bulk": 95.4,
         "krho_bulk": 353.4,
         "klow_bulk": 366,
@@ -394,35 +373,38 @@ def odnp(inputs={}, constants={}):
     }
     # these constants have been compiled from the various ODNP literature
 
-    if constants:
-        for ky in odnp_constants.keys():
-            if ky in constants.keys():
-                odnp_constants[ky] = constants[ky]
+    odnp_constants = {**standard_constants, **constants}
 
-    if inputs["smax_model"] == "tethered":
+    if data["smax_model"] == "tethered":
         # Option 1, tether spin label
         s_max = 1  # (section 2.2) maximal saturation factor
 
-    elif inputs["smax_model"] == "free":
+    elif data["smax_model"] == "free":
         # Option 2, free spin probe
-        s_max = calculate_smax(inputs["spin_C"])  # from:
+        s_max = calculate_smax(data["spin_C"])  # from:
         # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
         # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
 
-    if isinstance(inputs["smax_model"], (int, float)):
+    elif isinstance(data["smax_model"], float):
         # Option 3, manual input of smax
-        if not (inputs["smax_model"] <= 1 and inputs["smax_model"] > 0):
-            raise ValueError("smax must be a number between 0 and 1")
-        s_max = inputs["smax_model"]
+        if not (data["smax_model"] <= 1 and data["smax_model"] > 0):
+            raise ValueError(
+                "if given directly, smax must be type float between 0 and 1"
+            )
+        s_max = data["smax_model"]
+    else:
+        raise ValueError(
+            "'smax_model' must be 'tethered', 'free', or a float between 0 and 1"
+        )
 
-    omega_e = (1.76085963023e-1) * (inputs["field"] / 1000)
-    # gamma_e in 1/ps for the tcorr unit, then correct by field in T.
-    # gamma_e is from NIST. The field cancels in the following omega_ratio but you
+    omega_e = (1.76085963023e-1) * (data["magnetic_field"] / 1000)
+    # gamma_e in 1/ps for the tcorr unit, then correct by magnetic_field in T.
+    # gamma_e is from NIST. The magnetic_field cancels in the following omega_ratio but you
     # need these individually for the spectral density functions later.
 
-    omega_H = (2.6752218744e-4) * (inputs["field"] / 1000)
-    # gamma_H in 1/ps for the tcorr unit, then correct by field in T.
-    # gamma_H is from NIST. The field cancels in the following omega_ratio but you
+    omega_H = (2.6752218744e-4) * (data["magnetic_field"] / 1000)
+    # gamma_H in 1/ps for the tcorr unit, then correct by magnetic_field in T.
+    # gamma_H is from NIST. The magnetic_field cancels in the following omega_ratio but you
     # need these individually for the spectral density functions later.
 
     omega_ratio = (omega_e / (2 * np.pi)) / (omega_H / (2 * np.pi))
@@ -430,47 +412,38 @@ def odnp(inputs={}, constants={}):
     # frequency units in order to correspond to S_0/I_0, this is also ~= to the
     # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
 
-    if "T1_powers" in inputs.keys():
+    if "T1_powers" in data.keys():
         T1p = interpolate_T1(
-            E_powers=inputs["E_powers"],
-            T1_powers=inputs["T1_powers"],
-            T1_array=inputs["T1_array"],
-            interpolate_method=inputs["interpolate_method"],
+            E_powers=data["E_powers"],
+            T1_powers=data["T1_powers"],
+            T1_array=data["T1_array"],
+            interpolate_method=data["interpolate_method"],
             delta_T1_water=odnp_constants["delta_T1_water"],
             T1_water=odnp_constants["T1_water"],
             macro_C=odnp_constants["macro_C"],
-            spin_C=inputs["spin_C"],
-            T10=inputs["T10"],
-            T100=inputs["T100"],
+            spin_C=data["spin_C"],
+            T10=data["T10"],
+            T100=data["T100"],
         )
     else:
-        if len(inputs["T1_array"]) == len(inputs["E_array"]):
-            T1p = inputs["T1_array"]
+        if len(data["T1_array"]) == len(data["E_array"]):
+            T1p = data["T1_array"]
         else:
             raise ValueError(
-                "'T1_array' must be equal in length to 'E_array'. Otherwise give 'T1_powers' equal in length to 'T1_array' to interpolate."
+                "'T1_array' must be equal in length to 'E_array'. Otherwise give 'T1_powers' equal in length to 'T1_array' in order to interpolate."
             )
 
-    # ksigma_array = (1 - inputs["E_array"]) / (
-    #    inputs["spin_C"] * 1e-6 * omega_ratio * T1p
-    # )
-    if inputs["spin_C"] > 10.0:
-        warnings.warn(
-            "Spin concentration should be given in units of Molar. Units will be interpreted as uM, but in the future this will be removed."
-        )
-        inputs["spin_C"] *= 1e-6
-
-    ksigma_array = (1 - inputs["E_array"]) / (inputs["spin_C"] * omega_ratio * T1p)
+    ksigma_array = (1 - data["E_array"]) / (data["spin_C"] * omega_ratio * T1p)
     # (Eq. 41) this calculates the array of ksigma*s(p) from the enhancement array,
     # dividing by the T1 array for the "corrected" analysis
 
     ksigma, ksigma_stdd, ksigma_fit = calculate_ksigma(
-        ksigma_array, inputs["E_powers"], s_max
+        ksigma_array, data["E_powers"], s_max
     )
     # fit to the right side of Eq. 42 to get (ksigma*smax) and half of the E_power at s_max, called p_12 here
 
-    krho = ((1 / inputs["T10"]) - (1 / inputs["T100"])) / (
-        inputs["spin_C"]
+    krho = ((1 / data["T10"]) - (1 / data["T100"])) / (
+        data["spin_C"]
     )  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
 
     coupling_factor = ksigma / krho  # coupling factor, unitless
@@ -497,10 +470,10 @@ def odnp(inputs={}, constants={}):
     # Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023.
 
     xi_unc, p_12_unc = calculate_uncorrected_xi(
-        inputs["E_array"],
-        inputs["E_powers"],
-        inputs["T10"],
-        inputs["T100"],
+        data["E_array"],
+        data["E_powers"],
+        data["T10"],
+        data["T100"],
         omega_ratio,
         s_max,
     )
@@ -509,9 +482,9 @@ def odnp(inputs={}, constants={}):
     uncorrected_Ep = calculate_uncorrected_Ep(
         xi_unc,
         p_12_unc,
-        inputs["E_powers"],
-        inputs["T10"],
-        inputs["T100"],
+        data["E_powers"],
+        data["T10"],
+        data["T100"],
         omega_ratio,
         s_max,
     )
@@ -535,53 +508,3 @@ def odnp(inputs={}, constants={}):
         "tcorr_bulk_ratio": tcorr / odnp_constants["tcorr_bulk"],
         "Dlocal": Dlocal,
     }
-
-
-def hydration(workspace):
-    """Function for calculating hydration quantities
-
-    Args:
-        workspace (dict): workspace or dictionary with 'hydration_inputs', see above
-
-    Returns:
-        results (dict)                : 'hydration_results' dictionary, see above
-
-    Raises:
-        TypeError: If 'hydration_inputs' dictionary is missing
-
-    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-    http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
-
-    J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
-    https://doi.org/10.1016/bs.mie.2018.09.024
-    """
-
-    if "hydration_inputs" in workspace.keys():
-
-        odnp_constants = {
-            "ksigma_bulk": 95.4,
-            "krho_bulk": 353.4,
-            "klow_bulk": 366,
-            "tcorr_bulk": 54,
-            "D_H2O": 2.3e-9,
-            "D_SL": 4.1e-10,
-            "delta_T1_water": False,
-            "T1_water": False,
-            "macro_C": False,
-        }
-
-        if "hydration_constants" in workspace.keys():
-            for ky in odnp_constants.keys():
-                if ky in workspace["hydration_constants"].keys():
-                    odnp_constants[ky] = workspace["hydration_constants"][ky]
-
-        odnp_inputs = workspace["hydration_inputs"]
-
-        results = odnp(odnp_inputs, odnp_constants)
-
-        workspace["hydration_results"] = results
-
-        return results
-
-    else:
-        raise TypeError("the 'hydration_inputs' dictionary is missing!")
