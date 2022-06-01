@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import interpolate
 from scipy import optimize
 
 
@@ -340,7 +339,7 @@ def calculate_uncorrected_xi(
     return uncorrected_xi, p_12_unc
 
 
-def odnp(data={}, constants={}):
+def hydration(data={}, constants={}):
     """Function for performing ODNP calculations
 
     Args:

@@ -12,7 +12,7 @@ This example demonstrates how to use the hydration module to analyze ODNP data.
 # Import the hydration module
 # ---------------------------
 import dnplab
-import numpy
+import numpy as np
 import matplotlib.pyplot as plt
 
 # %%
@@ -20,13 +20,13 @@ import matplotlib.pyplot as plt
 # --------------------------
 
 data = {
-    "E_array": Enhancements,  # numpy array of signal enhancements
-    "E_powers": Enhancement_powers,  # numpy array of microwave power levels used to collect enhancements
-    "T1_array": T1s,  # numpy array of T1 measurements in seconds
-    "T1_powers": T1_powers,  # numpy array of microwave power levels used to collect T1s
+    "E_array": np.array(),  # numpy array of signal enhancements
+    "E_powers": np.array(),  # numpy array of microwave power levels used to collect enhancements
+    "T1_array": np.array(),  # numpy array of T1 measurements in seconds
+    "T1_powers": np.array(),  # numpy array of microwave power levels used to collect T1s
     "T10": 2.0,  # T1 measured with microwave power = 0
     "T100": 2.5,  # T1 measured for sample without unpaired spin and microwave power = 0
-    "spin_C": 100,  # spin concentration in M
+    "spin_C": 100e-6,  # spin concentration in M
     "magnetic_field": 350,  # magnetic field in mT
     "smax_model": "tethered",  # choice of smax model or direct input of smax value
     "interpolate_method": "second_order",  # choice of interpolation method
@@ -54,7 +54,7 @@ standard_constants = {
 interpolation_constants = {
     "delta_T1_water": 1,  # change in water proton T1 due to microwaves
     "T1_water": 2.5,  # T1 of bulk water protons
-    "macro_C": 1e-3,  # concentration of macromolecule in M
+    "macro_C": 100e-6,  # concentration of macromolecule in M
 }
 
 # %%
@@ -66,12 +66,12 @@ constants = {**standard_constants, **interpolation_constants}
 # -----------------
 # If any adjustments are made to the constants, pass both dictionaries to hydration.odnp to return a dictionary of results,
 
-results = dnplab.analysis.hydration.odnp(data, constants)
+results = dnplab.hydration(data, constants)
 
 # %%
 # If no adjustments are made to the constants you can skip the creation of the constants dictionary and pass just the data dictionary alone,
 
-results = dnplab.analysis.hydration.odnp(data)
+results = dnplab.hydration(data)
 
 # %%
 # Print a list of the calculated arrays and values,
