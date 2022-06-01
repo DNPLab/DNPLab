@@ -82,7 +82,7 @@ class TestHydration(unittest.TestCase):
             "E_powers": TESTSET["E_power"],
             "T1_array": TESTSET["T1"],
             "T1_powers": TESTSET["T1_power"],
-            "field": 348.5,
+            "magnetic_field": 348.5,
             "spin_C": 125e-6,
             "T10": 2.0,
             "T100": 2.5,
