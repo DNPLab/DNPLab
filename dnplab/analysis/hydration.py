@@ -222,7 +222,7 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
         raise ValueError("Could not find tcorr")
 
     tcorr = result.root
-    return tcorr
+    return tcorr * 1e-12
 
 
 def calculate_uncorrected_Ep(
@@ -500,7 +500,6 @@ def hydration(data={}, constants={}):
     # optimizes the value of tcorr in the calculation of coupling_factor, the correct tcorr
     # is the one for which the calculation of coupling_factor from the spectral density
     # functions matches the coupling_factor found experimentally. tcorr unit is ps
-    tcorr *= 1e-12
 
     Dlocal = (odnp_constants["tcorr_bulk"] / tcorr) * (
         odnp_constants["D_H2O"] + odnp_constants["D_SL"]
