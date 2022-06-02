@@ -9,6 +9,12 @@ Analyze ODNP Data
 This example demonstrates how to use the hydration module to analyze ODNP data.
 """
 # %%
+# References
+# ----------
+# It is helpful to be familiar with at least http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 and
+# https://doi.org/10.1016/bs.mie.2018.09.024 before setting the parameters and performing calculations.
+
+# %%
 # Imports
 # -------
 import dnplab
@@ -91,18 +97,18 @@ T1_powers = np.array(
 )
 
 # %%
-# Setup your data dictionary
-# --------------------------
+# Set up your data dictionary
+# ---------------------------
 
 data = {
-    "E_array": enhancements,  # numpy array of signal enhancements
+    "E_array": enhancements,  # numpy array of signal enhancements (unitless)
     "E_powers": enhancement_powers,  # numpy array of microwave power levels used to collect enhancements
-    "T1_array": T1s,  # numpy array of T1 measurements in seconds
+    "T1_array": T1s,  # numpy array of T1 measurements (s)
     "T1_powers": T1_powers,  # numpy array of microwave power levels used to collect T1s
-    "T10": 2.0,  # T1 measured with microwave power = 0
-    "T100": 2.5,  # T1 measured for sample without unpaired spin and microwave power = 0
-    "spin_C": 100e-6,  # spin concentration in M
-    "magnetic_field": 0.35,  # magnetic field in T
+    "T10": 2.0,  # T1 measured with microwave power = 0 (s)
+    "T100": 2.5,  # T1 measured for sample without unpaired spin and microwave power = 0 (s)
+    "spin_C": 100e-6,  # spin concentration (M)
+    "magnetic_field": 0.35,  # magnetic field (T)
     "smax_model": "tethered",  # choice of smax model or direct input of smax value
     "interpolate_method": "second_order",  # choice of interpolation method
 }
@@ -110,54 +116,83 @@ data = {
 # %%
 # Optional - adjust constants
 # ---------------------------
-# In general the constants used in the calculations are kept the same as those found in literature. You may update these values if you wish but this is rarely necessary and will make direct comparisons with most existing literature invalid.
+# In general the constants used in the calculations are kept the same as those found in literature.
+# You may update these values if you wish but this is rarely necessary and will make direct comparisons with most
+# existing literature invalid.
 
 standard_constants = {
-    "ksigma_bulk": 95.4,  # bulk ksigma value
-    "krho_bulk": 353.4,  # bulk krho value
-    "klow_bulk": 366,  # bulk klow value
-    "tcorr_bulk": 54e-12,  # bulk tcorr value in seconds
-    "D_H2O": 2.3e-9,  # bulk water diffusivity
-    "D_SL": 4.1e-10,  # diffusivity of spin probe in bulk water
+    "ksigma_bulk": 95.4,  # bulk ksigma value (s^-1 * M^-1)
+    "krho_bulk": 353.4,  # bulk krho value (s^-1 * M^-1)
+    "klow_bulk": 366,  # bulk klow value (s^-1 * M^-1)
+    "tcorr_bulk": 54e-12,  # bulk tcorr value (s)
+    "D_H2O": 2.3e-9,  # bulk water diffusivity (m^2 / s)
+    "D_SL": 4.1e-10,  # diffusivity of spin probe in bulk water (m^2 / s)
 }
 
 # %%
-# It is typically unnecessary to adjust the constants used in 2nd order interpolation but they are adjustable. Explanation can be found in the SI of https://doi.org/10.1021/jacs.1c11342
+# It is typically unnecessary to adjust the constants used in 2nd order interpolation, although they are adjustable
+# if necessary. Explanation can be found in the SI of https://doi.org/10.1021/jacs.1c11342
 
 interpolation_constants = {
-    "delta_T1_water": 1,  # change in water proton T1 due to microwaves
-    "T1_water": 2.5,  # T1 of bulk water protons
-    "macro_C": 100e-6,  # concentration of macromolecule in M
+    "delta_T1_water": 1,  # change in water proton T1 due to microwaves (s)
+    "T1_water": 2.5,  # T1 of bulk water protons (s)
+    "macro_C": 100e-6,  # concentration (M)
 }
 
 # %%
-# Combine any dictionaries of constants into one with something like,
+# Combine any dictionaries of constants into one dictionary with something like,
 
 constants = {**standard_constants, **interpolation_constants}
 
 # %%
 # Calculate results
 # -----------------
-# If any adjustments are made to the constants, pass both dictionaries to dnplab.hydration to return a dictionary of results,
+# If any adjustments are made to the constants, pass both dictionaries to ``dnplab.hydration``,
 
 results = dnplab.hydration(data, constants)
 
 # %%
-# If no adjustments are made to the constants you can skip the creation of the constants dictionary and pass just the data dictionary alone,
+# If no adjustments are made to the constants you can skip the creation of the constants dictionary and pass just the
+# data dictionary alone,
 
 results = dnplab.hydration(data)
 
 # %%
-# Print a list of the calculated arrays and values,
+# The contents of the calculated results are as follows,
 
-print(results.keys())
+results_contents = {
+    "uncorrected_Ep": np.array,  # fit to enhancement profile using the "uncorrected model" (unitless)
+    "uncorrected_xi": float,  # coupling factor calculated from the "uncorrected" fit (unitless)
+    "interpolated_T1": np.array,  # array of T1s obtained from interpolation (s)
+    "ksigma_array": np.array,  # array of ksigma calculated using the enhancement and T1 data (s^-1 * M^-1)
+    "ksigma_fit": np.array,  # fit to ksigma_array (s^-1 * M^-1)
+    "ksigma": float,  # (s^-1 * M^-1)
+    "ksigma_stdd": float,  # standard deviation in ksigma (s^-1 * M^-1)
+    "ksigma_bulk_ratio": float,  # ratio ksigma / ksigma_bulk (unitless)
+    "krho": float,  # (s^-1 * M^-1)
+    "krho_bulk_ratio": float,  # ratio krho / krho_bulk (unitless)
+    "klow": float,  # (s^-1 * M^-1)
+    "klow_bulk_ratio": float,  # ratio klow / klow_bulk (unitless)
+    "coupling_factor": float,  # coupling factor from spectral density function (unitless)
+    "tcorr": float,  # translational correlation time (s)
+    "tcorr_bulk_ratio": float,  # ratio tcorr / tcorr_bulk (unitless)
+    "Dlocal": float,  # local diffusivity (m^2 / s)
+}
+
 
 # %%
-# Plot the k_sigma array and fit, for example,
+# Plot the ``'ksigma_array'`` and ``'ksigma_fit'``, for example.
 
 plt.figure()
 plt.plot(data["E_powers"], results["ksigma_array"], "o", label="Data")
 plt.plot(data["E_powers"], results["ksigma_fit"], label="Fit")
 plt.grid()
+plt.xlabel("microwave power")
+plt.ylabel("$\kappa_\sigma$")
+plt.title("$\kappa_\sigma$ vs. microwave power")
 plt.legend()
 plt.show()
+
+# %%
+# Note: for a MATLAB app that includes an interactive parameter tuning tool - where the effects of parameters on the
+# calculations can be visualized - please visit: https://www.mathworks.com/matlabcentral/fileexchange/73293-xodnp
