@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import optimize
+import warnings
 
 
 def calculate_smax(spin_C=False):
@@ -155,14 +156,11 @@ def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
     return ksigma, ksigma_stdd, ksigma_fit
 
 
-def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
+def calculate_xi(tcorr=54e-12, omega_e=0.0614, omega_H=9.3231e-05):
     """Returns coupling_factor for any given tcorr
 
-    .. note::
-        This function accepts tcorr in picoseconds rather than seconds since this works better for scipy.optimize.root_scalar
-
     Args:
-        tcorr (float): translational diffusion correlation time (picoseconds)
+        tcorr (float): translational diffusion correlation time (s)
         omega_e (float): electron gyromagnetic ratio
         omega_H (float): proton gyromagnetic ratio
 
@@ -173,6 +171,8 @@ def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
     """
 
     # Using Franck et al. PNMRS (2013)
+    if tcorr < 0.1:
+        tcorr *= 1e12
 
     zdiff = np.sqrt(1j * (omega_e - omega_H) * tcorr)
     zsum = np.sqrt(1j * (omega_e + omega_H) * tcorr)
@@ -198,16 +198,13 @@ def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
 def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
     """Returns translational correlation time (tcorr) in pico second
 
-    .. note::
-        This function returns tcorr in picoseconds rather than seconds since this works better for scipy.optimize.root_scalar
-
     Args:
         coupling_factor (float): coupling factor
         omega_e (float): electron gyromagnetic ratio
         omega_H (float): proton gyromagnetic ratio
 
     Returns:
-        tcorr (float): translational diffusion correlation time (picoseconds)
+        tcorr (float): translational diffusion correlation time (s)
 
     J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
@@ -225,7 +222,7 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
         raise ValueError("Could not find tcorr")
 
     tcorr = result.root
-    return tcorr
+    return tcorr * 1e-12
 
 
 def calculate_uncorrected_Ep(
@@ -364,6 +361,51 @@ def hydration(data={}, constants={}):
 
     if not data:
         raise ValueError("Please supply a valid data dictionary, see example")
+
+    if "hydration_inputs" in data.keys():
+        warnings.warn(
+            "The workspace concept is depreciated, see the example in the docs for the new syntax"
+        )
+        _data = data["hydration_inputs"]
+        if "hydration_constants" in data.keys():
+            constants = data["hydration_constants"]
+        data = _data
+
+    if "tcorr_bulk" in constants.keys() and constants["tcorr_bulk"] > 0.1:
+        warnings.warn(
+            "tcorr_bulk should be given in seconds, support for picoseconds will be removed in a future release"
+        )
+        constants["tcorr_bulk"] *= 1e-12
+
+    if "macro_C" in constants.keys() and constants["macro_C"] > 0.1:
+        warnings.warn(
+            "macro_C should be given in molar, support for micromolar will be removed in a future release"
+        )
+        constants["macro_C"] *= 1e-6
+
+    if data["spin_C"] > 0.1:
+        warnings.warn(
+            "spin_C should be given in molar, support for micromolar will be removed in a future release"
+        )
+        data["spin_C"] *= 1e-6
+
+    if "field" in data.keys():
+        warnings.warn(
+            "keyword 'field' is depreciated, please use 'magnetic_field' from now on"
+        )
+        if "magnetic_field" in data.keys():
+            warnings.warn(
+                "you supplied both 'field' and 'magnetic_field', only 'magnetic_field' will be used"
+            )
+        else:
+            data["magnetic_field"] = data["field"]
+        data.pop("field")
+
+    if data["magnetic_field"] > 3:
+        warnings.warn(
+            "magnetic_field should be given in T, support for mT will be removed in a future release"
+        )
+        data["magnetic_field"] *= 1e-3
 
     standard_constants = {
         "ksigma_bulk": 95.4,
