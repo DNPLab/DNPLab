@@ -6,10 +6,10 @@ def calculate_smax(spin_C=False):
     r"""Returns maximal saturation factor.
 
     Args:
-        spin_C (float): unpaired spin concentration in units of Molar
+        spin_C (float): unpaired spin concentration (M)
 
     Returns:
-        smax (float): maximal saturation factor
+        smax (float): maximal saturation factor (unitless)
 
     .. math::
         \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
@@ -37,14 +37,14 @@ def interpolate_T1(
     Args:
         E_powers (numpy.array): The microwave powers at which to evaluate
         T1_powers (numpy.array): The microwave powers of the T1s to interpolate
-        T1_array (numpy.array): The original T1s
+        T1_array (numpy.array): The original T1s (s)
         interpolate_method (str): "second_order" or "linear"
-        spin_C (float): unpaired electron spin concentration in M
-        T10 (float): T1 measured with unpaired electrons
-        T100 (float): T1 measured without unpaired electrons
-        delta_T1_water (optional) (float): change in T1 of water at max microwave power
-        T1_water (optional) (float): T1 of pure water
-        macro_C (optional) (float): concentration of macromolecule in M
+        spin_C (float): unpaired electron spin concentration (M)
+        T10 (float): T1 measured with unpaired electrons (s)
+        T100 (float): T1 measured without unpaired electrons (s)
+        delta_T1_water (optional) (float): change in T1 of water at max microwave power (s)
+        T1_water (optional) (float): T1 of pure water (s)
+        macro_C (optional) (float): concentration of macromolecule (M)
 
     Returns:
         interpolated_T1 (numpy.array): Array of T1 values same shape as E_powers and E_array
@@ -101,7 +101,7 @@ def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
 
     Args:
         powers (numpy.array): Array of powers
-        ksigma_smax (float): product of ksigma and smax
+        ksigma_smax (float): product of ksigma and smax (s^-1 * M^-1)
         p_12 (float): power at half max for ksigma fit
 
     Returns:
@@ -158,8 +158,11 @@ def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
 def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
     """Returns coupling_factor for any given tcorr
 
+    .. note::
+        This function accepts tcorr in picoseconds rather than seconds since this works better for scipy.optimize.root_scalar
+
     Args:
-        tcorr (float): translational diffusion correlation time
+        tcorr (float): translational diffusion correlation time (picoseconds)
         omega_e (float): electron gyromagnetic ratio
         omega_H (float): proton gyromagnetic ratio
 
@@ -195,13 +198,16 @@ def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
 def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
     """Returns translational correlation time (tcorr) in pico second
 
+    .. note::
+        This function returns tcorr in picoseconds rather than seconds since this works better for scipy.optimize.root_scalar
+
     Args:
         coupling_factor (float): coupling factor
         omega_e (float): electron gyromagnetic ratio
         omega_H (float): proton gyromagnetic ratio
 
     Returns:
-        t_corr (float): tcorr, translational diffusion correlation time in pico second
+        tcorr (float): translational diffusion correlation time (picoseconds)
 
     J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
@@ -209,7 +215,7 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
     # root finding
     # see https://docs.scipy.org/doc/scipy/reference/optimize.html
     result = optimize.root_scalar(
-        lambda tcorr: calculate_xi(tcorr, omega_e=omega_e, omega_H=omega_H)
+        lambda t_corr: calculate_xi(t_corr, omega_e=omega_e, omega_H=omega_H)
         - coupling_factor,
         method="brentq",
         bracket=[1, 1e5],
@@ -218,8 +224,8 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
     if not result.converged:
         raise ValueError("Could not find tcorr")
 
-    t_corr = result.root
-    return t_corr
+    tcorr = result.root
+    return tcorr
 
 
 def calculate_uncorrected_Ep(
@@ -238,13 +244,13 @@ def calculate_uncorrected_Ep(
         p_12_unc (float): power at half max for uncorrected_xi fit
         E_array (numpy.array): Array of enhancements
         E_powers (numpy.array): Array of E_powers
-        T10 (float): T1(0), proton T1 with microwave power=0
-        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0
+        T10 (float): T1(0), proton T1 with microwave power=0 (s)
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
         omega_ratio (float): ratio of electron & proton gyromagnetic ratios
         smax (float): maximal saturation factor
 
     Returns:
-        Ep_fit (numpy.array): uncorrected Enhancement curve
+        Ep_fit (numpy.array): uncorrected enhancement curve
 
     J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
@@ -273,8 +279,8 @@ def _residual_Ep(
         x (list): [uncorrected coupling factor, power at half max for uncorrected_xi fit]
         E_array (numpy.array): Array of enhancements
         E_powers (numpy.array): Array of E_power
-        T10 (float): T1(0), proton T1 with microwave power=0
-        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0
+        T10 (float): T1(0), proton T1 with microwave power=0 (s)
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
         omega_ratio (float): ratio of electron & proton gyromagnetic ratios
         smax (float): maximal saturation factor
 
@@ -308,8 +314,8 @@ def calculate_uncorrected_xi(
     Args:
         E_array (numpy.array): Array of enhancements
         E_powers (numpy.array): Array of powers
-        T10 (float): T1(0), proton T1 with microwave power=0
-        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0
+        T10 (float): T1(0), proton T1 with microwave power=0 (s)
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
         omega_ratio (float): ratio of electron & proton gyromagnetic ratios
         smax (float): maximal saturation factor
 
@@ -343,11 +349,11 @@ def hydration(data={}, constants={}):
     """Function for performing ODNP calculations
 
     Args:
-        data (dict)                   : keys and values described in example
-        constants (dict)              : (optional) keys and values described in example
+        data (dict)                   : keys and values are described in the example
+        constants (dict)              : (optional) keys and values are described in the example
 
     Returns:
-        odnp_results (dict)           : keys and values described in example
+        (dict)                        : keys and values are described in the example
 
     J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
@@ -488,7 +494,7 @@ def hydration(data={}, constants={}):
         omega_ratio,
         s_max,
     )
-    # (Eqs. 7 and 44) this calculates the "uncorrected" enhnacement array using xi_unc
+    # (Eqs. 7 and 44) this calculates the "uncorrected" enhancement array using xi_unc
 
     return {
         "uncorrected_Ep": uncorrected_Ep,

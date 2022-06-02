@@ -174,7 +174,7 @@ results_contents = {
     "klow": float,  # (s^-1 * M^-1)
     "klow_bulk_ratio": float,  # ratio klow / klow_bulk (unitless)
     "coupling_factor": float,  # coupling factor from spectral density function (unitless)
-    "tcorr": float,  # translational correlation time (s)
+    "tcorr": float,  # translational diffusion correlation time (s)
     "tcorr_bulk_ratio": float,  # ratio tcorr / tcorr_bulk (unitless)
     "Dlocal": float,  # local diffusivity (m^2 / s)
 }
