@@ -222,7 +222,7 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
         raise ValueError("Could not find tcorr")
 
     tcorr = result.root
-    return tcorr * 1e-12
+    return tcorr
 
 
 def calculate_uncorrected_Ep(
