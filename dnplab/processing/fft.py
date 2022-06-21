@@ -36,6 +36,19 @@ def fourier_transform(
 
     Returns:
         dnpdata: data object after FT
+    
+    Examples:
+        Example for constructing a DNPData object and performing Fourier transform
+
+        >>> x = np.r_[0:1:2048j]
+        >>> y = np.exp(1j*2*np.pi*300*x) * np.exp(-5*x)
+        >>> data = dnp.DNPData(y, ['t2'], [x])
+        >>> data.attrs['nmr_frequency'] = 300e6
+        >>> data = dnp.fourier_transform(data)
+        >>> figure()
+        >>> dnp.plot(data)
+        >>> xlabel('f2 (ppm)')
+        >>> dnp.show()
 
     .. Note::
         Assumes dt = t[1] - t[0]
