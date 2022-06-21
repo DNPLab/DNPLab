@@ -25,18 +25,24 @@ def manual_phase(data, dim="f2"):
 
     axcolor = "lightgoldenrodyellow"
     axphase = plt.axes([0.15, 0.1, 0.65, 0.03], facecolor=axcolor)
+    axphase1 = plt.axes([0.15, 0.15, 0.65, 0.03], facecolor=axcolor)
 
     sphase = Slider(
-        axphase, "phase (deg)", -180, 180, valinit=init_phase, valstep=delta_phase
+        axphase, "Zeroth (deg)", -180, 180, valinit=init_phase, valstep=delta_phase
+    )
+
+    sphase1 = Slider(
+        axphase1, "First (deg)", -180, 180, valinit=init_phase, valstep=delta_phase
     )
 
     def update(val):
         phase = sphase.val
+        phase1 = sphase1.val
         margin = 0
         min_y_data = 0
         max_y_data = 0
         for ix, line in enumerate(l):
-            y_data = np.real(np.exp(-1j * np.pi * phase / 180.0) * values[:, ix])
+            y_data = np.real(np.exp(-1j * np.pi * phase / 180.0) * np.exp(-1j * np.pi * phase1 * coord / 180) * values[:, ix])
             margin = max(0.1 * (np.max(y_data) - np.min(y_data)), margin)
             line.set_ydata(y_data)
             min_y_data = min(min_y_data, np.min(y_data))
@@ -45,6 +51,7 @@ def manual_phase(data, dim="f2"):
         fig.canvas.draw_idle()
 
     sphase.on_changed(update)
+    sphase1.on_changed(update)
 
     resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
     reset_button = Button(resetax, "Reset", color=axcolor, hovercolor="0.975")
@@ -55,8 +62,12 @@ def manual_phase(data, dim="f2"):
     minus_90 = plt.axes([0.4, 0.025, 0.1, 0.04])
     minus_90_button = Button(minus_90, "-90", color=axcolor, hovercolor="0.975")
 
+    rescale_yaxis = plt.axes([0.2, 0.025, 0.1, 0.04])
+    rescale_yaxis_button = Button(rescale_yaxis, "Rescale", color=axcolor, hovercolor="0.975")
+
     def reset(event):
         sphase.reset()
+        sphase1.reset()
 
     def plus_90_phase(event):
         new_phase = ((sphase.val + 270) % 360) - 180
@@ -65,19 +76,26 @@ def manual_phase(data, dim="f2"):
     def minus_90_phase(event):
         new_phase = ((sphase.val + 90) % 360) - 180
         sphase.set_val(new_phase)
+    
+    def rescale(event):
+        ax.relim()
+        ax.autoscale_view()
 
     reset_button.on_clicked(reset)
     plus_90_button.on_clicked(plus_90_phase)
     minus_90_button.on_clicked(minus_90_phase)
+    rescale_yaxis_button.on_clicked(rescale)
 
     plt.show()
     manual_phase = sphase.val
+    manual_phase1 = sphase1.val
 
     data *= np.exp(-1j * np.pi * manual_phase / 180.0)
 
     proc_attr_name = "manualphase"
-    proc_parameters = {"phase": manual_phase}
+    proc_parameters = {"phase": manual_phase, "phase1": manual_phase1}
     data.add_proc_attrs(proc_attr_name, proc_parameters)
     data.attrs["phase0"] = manual_phase
+    data.attrs["phase1"] = manual_phase1
 
     return data
