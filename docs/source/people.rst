@@ -11,7 +11,7 @@ Currently active authors and contributors:
 
 * Timothy Keller (|B12TLink|)
 * Thorsten Maly (|B12TLink|, |thmalyTwitter|)
-* Tom Casey
+* Thomas Casey (|tcaseyLink|)
 * John Franck (|FranckLabLink|)
 * Yen-Chun Huang (|B12TLink|)
 * Thomas Webber (|HanLabLink|)

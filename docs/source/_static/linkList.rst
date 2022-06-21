@@ -76,3 +76,8 @@
 
    <a href="https://han.chem.ucsb.edu/" target="_blank"> Han Lab</a>
 
+
+.. |tcaseyLink| raw:: html
+
+   <a href="https://www.linkedin.com/in/thcasey3/" target="_blank"> LinkedIn</a>
+
