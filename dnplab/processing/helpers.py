@@ -37,7 +37,7 @@ def calculate_enhancement(integrals, off_spectrum_index=0, return_complex_values
             enhancements.values / enhancements.values[off_spectrum_index]
         )
 
-    elif integrals.dim[0] == "B0":
+    elif integrals.dims[0] == "B0":
 
         enhancements.attrs["experiment_type"] = "enhancements_B0"
         print("This is a DNP enhancement profile. Not implemented yet.")
