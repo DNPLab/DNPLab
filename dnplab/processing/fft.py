@@ -36,7 +36,7 @@ def fourier_transform(
 
     Returns:
         dnpdata: data object after FT
-    
+
     Examples:
         Example for constructing a DNPData object and performing Fourier transform
 
