@@ -37,7 +37,7 @@ def calculate_enhancement(integrals, off_spectrum_index=0, return_complex_values
             enhancements.values / enhancements.values[off_spectrum_index]
         )
 
-    elif integrals.dim[0] == "B0":
+    elif integrals.dims[0] == "B0":
 
         enhancements.attrs["experiment_type"] = "enhancements_B0"
         print("This is a DNP enhancement profile. Not implemented yet.")
@@ -93,14 +93,8 @@ def left_shift(data, dim="t2", shift_points=0):
 
     Args:
         data (dnpdata): Data container for data
-
-    +---------------+------+---------+--------------------------------------------------+
-    | parameter     | type | default | description                                      |
-    +===============+======+=========+==================================================+
-    | dim           | str  | "t2"    | dimension to shift                               |
-    +---------------+------+---------+--------------------------------------------------+
-    | shift_points  | int  | 0       | Number of points to remove from left of data     |
-    +---------------+------+---------+--------------------------------------------------+
+        dim (str): Name of dimension to left shift, default is "t2"
+        shift_points (int): Number of points to left shift, default is 0.
 
     Returns:
         dnpdata: data object with left-shifted data
