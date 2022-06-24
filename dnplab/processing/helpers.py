@@ -93,14 +93,8 @@ def left_shift(data, dim="t2", shift_points=0):
 
     Args:
         data (dnpdata): Data container for data
-
-    +---------------+------+---------+--------------------------------------------------+
-    | parameter     | type | default | description                                      |
-    +===============+======+=========+==================================================+
-    | dim           | str  | "t2"    | dimension to shift                               |
-    +---------------+------+---------+--------------------------------------------------+
-    | shift_points  | int  | 0       | Number of points to remove from left of data     |
-    +---------------+------+---------+--------------------------------------------------+
+        dim (str): Name of dimension to left shift, default is "t2"
+        shift_points (int): Number of points to left shift, default is 0.
 
     Returns:
         dnpdata: data object with left-shifted data
