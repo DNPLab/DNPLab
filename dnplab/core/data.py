@@ -28,9 +28,10 @@ class DNPData(ABCData):
         dims (list): List of axes labels for data
         attrs (dict): Dictionary of parameters for data
 
+
     """
 
-    def __init__(self, values=np.r_[[]], dims=[], coords=[], attrs={}, procList=[]):
+    def __init__(self, values=np.r_[[]], dims=[], coords=[], attrs={}, proc_attrs=None):
         """
         DNPData Class __init__ method
 
@@ -46,7 +47,10 @@ class DNPData(ABCData):
 
         super().__init__(values, dims, coords, attrs)
         self.version = version
-        self.proc_attrs = []
+        if proc_attrs is not None:
+            self.proc_attrs = proc_attrs
+        else:
+            self.proc_attrs = []
         self.max_print_attrs = 5
         self.print_values = False
 
@@ -120,7 +124,7 @@ class DNPData(ABCData):
         Stamp processing step to DNPData object
 
         Args:
-            proc_attr_name (str): Name of processing step (e.g. "fourier_transform"
+            proc_attr_name (str): Name of processing step (e.g. "fourier_transform")
             proc_dict (dict): Dictionary of processing parameters for this processing step.
         """
         if not isinstance(proc_attr_name, str):
@@ -215,5 +219,5 @@ class DNPData(ABCData):
             coords=self.coords._coords,
             dims=self.dims,
             attrs=self.attrs,
-            procList=self.proc_attrs,
+            proc_attrs=self.proc_attrs,
         )

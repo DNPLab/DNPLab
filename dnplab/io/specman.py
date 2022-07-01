@@ -4,8 +4,7 @@ from .. import DNPData
 
 
 def import_specman(path):
-    """
-    Import specman data and return DNPData object
+    """Import specman data and return DNPData object
 
     Args:
         path (str) : Path to either .d01 or .exp file
@@ -33,8 +32,7 @@ def import_specman(path):
 
 
 def load_specman_exp(path):
-    """
-    Import parameter fields of specman data
+    """Import parameter fields of specman data
 
     Args:
         path (str) : Path to either .d01 or .exp file
@@ -65,8 +63,7 @@ def load_specman_exp(path):
 
 
 def load_specman_d01(path, params):
-    """
-    Import spectrum or spectra of specman data
+    """Import spectrum or spectra of specman data
 
     Args:
         path (str) : Path to either .d01 or .exp file

@@ -21,24 +21,21 @@ def _handle_array(x):
 def exponential(x, lw):
     """Calculate exponential window function
 
-    .. math::
-        f(x) =  e^{-2t * lw}
-
     Args:
         x (array_like): Vector of points
         lw (int or float): linewidth
 
     Returns:
         array: exponential window function
+
+    .. math::
+        f(x) =  e^{-2t * lw}
     """
-    return np.exp(-1.0 * (x - x[0]) * lw)
+    return np.exp(-np.pi * (x - x[0]) * lw)
 
 
 def gaussian(x, lw):
     r"""Calculate gaussian window function
-
-    .. math::
-        \mathrm{gaussian} = e^{(\sigma * x^{2})}
 
     Args:
         x (array_like): vector of points
@@ -46,15 +43,18 @@ def gaussian(x, lw):
 
     Returns:
         array: gaussian window function
+
+    .. math::
+        \mathrm{gaussian} = e^{(\sigma * x^{2})}
     """
-    return np.exp((lw * x) ** 2)
+    sigma = lw / (
+        2.0 * np.sqrt(2.0 * np.log(2.0))
+    )  # convert FWHM to standard deviation
+    return np.exp(-1 * 2.0 * np.pi**2.0 * (x**2.0) * (sigma**2.0))
 
 
 def hann(x):
     r"""Calculate hann window function
-
-    .. math::
-        \mathrm{han} = 0.5 + 0.5\cos(\pi * n / (N-1))
 
     Args:
         x (array_like): vector of points
@@ -62,6 +62,9 @@ def hann(x):
 
     Returns:
         ndarray: hann window function
+
+    .. math::
+        \mathrm{han} = 0.5 + 0.5\cos(\pi * n / (N-1))
     """
     N = _handle_array(x)
 
@@ -71,20 +74,19 @@ def hann(x):
 def traf(x, lw):
     r"""Calculate traf window function
 
-    .. math::
-        \mathrm{traf}  &=  (f1 * (f1 + f2)) / (f1^{2} + f2^{2}) &
-
-               f1(t)   &=  \exp(-t * \pi * \mathrm{linewidth[0]}) &
-
-               f2(t)   &=  \exp((t - T) * \pi * \mathrm{linewidth[1]}) &
-
-
     Args:
         x (array_like): vector of points
         lw (str): linewidth of traficant window
 
     Returns:
         ndarray: traf window function
+
+    .. math::
+        \mathrm{traf}  &=  (f1 * (f1 + f2)) / (f1^{2} + f2^{2}) &
+
+               f1(t)   &=  \exp(-t * \pi * \mathrm{linewidth[0]}) &
+
+               f2(t)   &=  \exp((t - T) * \pi * \mathrm{linewidth[1]}) &
     """
     T2 = 1.0 / (np.pi * lw)
     t = x
@@ -97,15 +99,15 @@ def traf(x, lw):
 def hamming(x):
     r"""Calculate hamming window function
 
-    .. math::
-        \mathrm{hamming} = 0.53836 + 0.46164\cos(\pi * n / (N-1))
-
     Args:
         x (array_like): vector of points
         N(int): number of points to return in window function
 
     Returns:
         ndarray: hamming window function
+
+    .. math::
+        \mathrm{hamming} = 0.53836 + 0.46164\cos(\pi * n / (N-1))
     """
     N = _handle_array(x)
 
@@ -116,14 +118,6 @@ def hamming(x):
 def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
     r"""Calculate lorentz-gauss window function
 
-    .. math::
-        \mathrm{lorentz\_gauss} &=  \exp(L -  G^{2}) &
-
-           L(t)    &=  \pi * \mathrm{linewidth[0]} * t &
-
-           G(t)    &=  0.6\pi * \mathrm{linewidth[1]} * (\mathrm{gaussian\_max} * (N - 1) - t) &
-
-
     Args:
         x (array_like): vector of points
         N(int): number of points to return in window function
@@ -133,6 +127,13 @@ def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
 
     Returns:
         array: gauss_lorentz window function
+
+    .. math::
+        \mathrm{lorentz\_gauss} &=  \exp(L -  G^{2}) &
+
+           L(t)    &=  \pi * \mathrm{linewidth[0]} * t &
+
+           G(t)    &=  0.6\pi * \mathrm{linewidth[1]} * (\mathrm{gaussian\_max} * (N - 1) - t) &
     """
 
     N = len(x)
@@ -144,15 +145,15 @@ def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
 def sin2(x):
     r"""Calculate sin-squared window function
 
-    .. math::
-        \sin^{2}  =  \cos((-0.5\pi * n / (N - 1)) + \pi)^{2}
-
     Args:
         x (array_like): vector of points
         N(int): number of points to return in window function
 
     Returns:
         array: sin-squared window function
+
+    .. math::
+        \sin^{2}  =  \cos((-0.5\pi * n / (N - 1)) + \pi)^{2}
     """
     N = _handle_array(x)
 

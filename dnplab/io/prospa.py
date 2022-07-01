@@ -7,12 +7,12 @@ import glob
 
 
 def import_prospa(path, parameters_filename=None, experiment=None, verbose=False):
-    """
-    Import Kea data
+    """Import Kea data
 
     Args:
         path (str): Path to data
-        num (int): Experiment number
+        parameters_filename (str):
+        experiment (str): Prospa experiment, used when calculating coords from parameters
         verbose (bool): If true, prints additional information for troubleshooting
 
     Returns:
@@ -70,8 +70,17 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
     return kea_data
 
 
+# Depreciated
 def import_prospa_dir(path, exp_list=None):
-    """Import directory of prospa experiments"""
+    """Import directory of prospa experiments
+
+    Args:
+        path (str): Directory of all data
+        exp_list (list): List of directorys to include
+
+    Returns:
+        dict: Dictionary of DNPData objects
+    """
 
     dirs = [x for x in os.listdir(path) if os.path.isdir(os.path.join(path, x))]
 
@@ -91,8 +100,7 @@ def import_prospa_dir(path, exp_list=None):
 
 
 def import_nd(path):
-    """
-    Import Kea 1d, 2d, 3d, 4d files
+    """Import Kea binary 1d, 2d, 3d, 4d files
 
     Args:
         path (str): Path to file
@@ -145,7 +153,7 @@ def import_nd(path):
         elif dataType == 501:  # complex
             raw_data = unpack("<%if" % (xDim * yDim * zDim * qDim * 2), raw)
             data = np.array(raw_data)
-            data = data[0::2] + 1j * data[1::2]
+            data = data[0::2] - 1j * data[1::2]
         elif dataType == 502:  # double
             raw_data = unpack("<%id" % (xDim * yDim * zDim * qDim), raw)
             data = np.array(raw_data)
@@ -159,7 +167,7 @@ def import_nd(path):
             raw_data = np.array(raw_data)
             x = raw_data[0:xDim]
             data = raw_data[xDim:]
-            data = data[0::2] + 1j * data[1::2]
+            data = data[0::2] - 1j * data[1::2]
         else:
             raise ValueError("Data %i type not recognized" % dataType)
 
@@ -172,8 +180,7 @@ def import_nd(path):
 
 
 def import_par(path):
-    """
-    Import Kea parameters .par file
+    """Import Kea parameters .par file
 
     Args:
         path (str): Path to parameters file
@@ -210,8 +217,7 @@ def import_par(path):
 
 
 def import_csv(path, return_raw=False, is_complex=True):
-    """
-    Import Kea csv file
+    """Import Kea csv file
 
     Args:
         path (str): Path to csv file

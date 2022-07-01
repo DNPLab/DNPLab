@@ -24,6 +24,15 @@ def apodize(data, dim="t2", kind="exponential", **kwargs):
     Returns:
         DNPData: Apodized data, including pricessing attribut "window"
 
+    Args:
+        data (DNPData): Data object
+        dim (str): Dimension to apply apodization along, "t2" by default
+        kind (str): Type of apodization, "exponential" by default
+        kwargs: Arguments to be passed to apodization function
+
+    Returns:
+        DNPData: data object with window function applied, including attr "window"
+
     .. math::
 
         \mathrm{exponential}    &=  \exp(-2t * \mathrm{linewidth}) &

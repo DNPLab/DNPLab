@@ -12,3 +12,4 @@ from . import power
 from . import cnsi
 from . import vna
 from . import tnmr
+from . import random
