@@ -557,7 +557,7 @@ def hydration(data={}, constants={}):
     }
 
 
-def hydrtaion_module(data):
+def hydration_module(data):
     """
     Perform smax, ksig, krho, coupling factor, leakage factor calcaultion
 
