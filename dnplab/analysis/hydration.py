@@ -1,7 +1,8 @@
 import numpy as np
 from scipy import optimize
 import warnings
-
+from ..io import load
+from ..io import save
 
 def calculate_smax(spin_C=False):
     r"""Returns maximal saturation factor.
@@ -556,6 +557,34 @@ def hydration(data={}, constants={}):
         "Dlocal": Dlocal,
     }
 
+def hydration_analysis(path, save = False, print = True):
+    """
+    Perform hydration analysis and return leakage factor, coupling factor, ksigma, krho, etc.
+
+    Args:
+        path (str): the path to h5 file that contains a dictionary
+        save (binary): True for saving new h5 file
+        print (binary): True for print hydration analysis results
+
+    Returns:
+        Hydration Analysis results
+
+    ..Math::
+    
+        see examples of each hydration function 
+    """
+
+    hydration_info = load(path)
+
+    check_list = ['odnp_enhancements', 'enhancements_fit_coefficients', 'ondp_ir_coefficients', 'ir_coefficients']
+    for key in check_list:
+        if key not in hydration_info:
+            raise ValueError(
+                "key: %s is missing, please specify the type of radical" % key
+            )
+    
+    return print('Hello')
+    
 
 def hydration_module(data):
     """
@@ -693,3 +722,106 @@ def hydration_module(data):
     hydration_dict["temp_corr_emax"] = [temp_corr_emax, temp_corr_emax_err]
 
     return hydration_dict
+
+
+#### Working on------------------YH-------------------------------------------------
+
+def hydration_analysis(path, save = False, show_result = True):
+    """
+    Perform hydration analysis and return leakage factor, coupling factor, ksigma, krho, etc.
+
+    Args:
+        path (str): the path to h5 file that contains a dictionary
+        save (binary): True for saving new h5 file
+        print (binary): True for print hydration analysis results
+
+    Returns:
+        Hydration Analysis results
+
+    ..Math::
+    
+        see examples of each hydration function 
+    """
+    
+    hydration_info = dnp.load(path)
+
+    check_list = ['odnp_enhancements', 'odnp_fit_coefficients', 'odnp_ir_coefficients', 'ir_coefficients']
+    for key in check_list:
+        if key not in hydration_info:
+            raise ValueError('key: %s is missing, please specify the type of radical' % key)
+
+    # find t1 fit curve coeffificent and error
+    t1_coefficients = t1_fit_coefficients(hydration_info)
+    t1n0 = t1_coefficients.values[:, 1]
+    t1n0_err = t1_coefficients.values[:, 2]
+    hydration_info['t1_coefficients'] = t1_coefficients
+
+    # calcualte coupling factor f
+    f = calc_f(hydration_info)
+    hydration_info['leakage_factor'] = f
+
+    return print('Hello')
+
+def t1_fit_coefficients(hydration_info):
+    """
+    Fit t1 vs. Power curve and return t1 at the power of 0
+
+    Args:
+        hydration_info (dict)
+
+    Returns:
+        t1_coeffificents (dnpdata object)
+    """
+    key = 'odnp_ir_coefficients'
+    if key not in hydration_info:
+        raise ValueError('key: %s is missing, please specify the type of radical' % key)
+    else:
+        temp = hydration_info['odnp_ir_coefficients'].copy()
+        power_array = temp.coords['Power']
+        t1_list = temp.values[0]
+        coeff, cov = np.polyfit(power_array, t1_list, 1, cov = True)
+        coeff = coeff.T
+        coeff_shape = np.shape(coeff)
+        number_of_integrals = coeff_shape[0]
+        err_list = []
+        for index, cov_matrix in enumerate(cov):
+            err = np.sqrt(np.diag(cov[:, index]))[index]
+            err_list.append([err])
+        coeff = np.append(coeff, err_list, axis = 1)
+        coeffficients = dnp.DNPData(coeff, dims = ['integrals', 'coefficients'], coords = [[0,1,2]]*number_of_integrals)
+        coeffficients.attrs = temp.attrs
+    return coeffficients
+
+
+def calc_f(hydration_info):
+    """
+    Calculating leakage factor and its error
+
+    Args:
+        hydration_info (dict)
+    
+    Returns:
+        f (dnpdata object)
+    """
+    check_list = ['t1_coefficients', 'ir_coefficients']
+    for key in check_list:
+        if key not in hydration_info:
+            raise ValueError('key: %s is missing, please specify the type of radical' % key)
+    
+    t1n0 = hydration_info['t1_coefficients'].values[:, 1]
+    t10n = hydration_info['ir_coefficients'].values[0]    
+
+    t1n0_err = hydration_info['t1_coefficients'].values[:, 2]
+    if 'ir_errors' not in hydration_info:
+        t10n_err = np.zeros(np.size(t10n))
+        print('t10 does not have errors, assigning 0 to all errors')
+    else:
+        t10n_err = hydration_info['ir_errors'].values[0] 
+    
+    f_list = [[1 - x/y, (1 - x/y) * np.sqrt((x_err/x)**2 + (y_err/y)**2)] for x,x_err,y,y_err in zip(t1n0, t1n0_err, t10n, t10n_err)]
+
+    f_shape = np.shape(f_list)[0]
+
+    f = dnp.DNPData(f_list, dims = ['integrals', 'leakage_factor'], coords = [[0,1]]*f_shape)
+
+    return f
