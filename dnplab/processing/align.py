@@ -14,7 +14,7 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
 
     Returns:
         dnpdata: Aligned data in container
-    
+
     Examples:
 
         >>> import numpy as np
