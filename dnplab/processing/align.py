@@ -12,8 +12,24 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         center (float) : range center
         width (float) : range width
 
-    returns:
+    Returns:
         dnpdata: Aligned data in container
+
+    Examples:
+
+        >>> import numpy as np
+        >>> from matplotlib.pylab import *
+        >>> import dnplab as dnp
+        >>> x = np.r_[-10:10:100j]
+        >>> y = np.r_[0,1,2]
+        >>> values = dnp.math.lineshape.lorentzian(x.reshape(-1,1),y.reshape(1,-1),1)
+        >>> data = dnp.DNPData(values, ['f2','sample'], [x, y])
+        >>> figure('Before Alignment')
+        >>> dnp.plot(data)
+        >>> data_aligned = dnp.ndalign(data)
+        >>> figure('After Alignment')
+        >>> dnp.plot(data_aligned)
+        >>> show()
     """
 
     proc_parameters = {"dim": dim}
@@ -90,7 +106,7 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
 
 
 def align(data, dim="f2", dim2=None, center=None, width=None):
-    """Alignment of NMR spectra down given dimension or dimensions
+    """DEPRECIATED. Please use ndalign instead. Alignment of NMR spectra down given dimension or dimensions
 
     Args:
         all_data (object) : dnpdata object
@@ -99,7 +115,7 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
         center (float) : range center
         width (float) : range width
 
-    returns:
+    Returns:
         dnpdata: Aligned data in container
     """
 

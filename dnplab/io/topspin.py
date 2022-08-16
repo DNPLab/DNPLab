@@ -236,9 +236,9 @@ def import_topspin(path, verbose=False):
         if verbose:
             print("Loading acqu3s")
         acqu3s_params = load_acqu(os.path.join(path, "acqu3s"), verbose=verbose)
-        dims.insert(1, "t3")
+        dims.insert(0, "t3")
         t3 = 1.0 / acqu3s_params["SW_h"] * np.arange(0, int(acqu3s_params["TD"]))
-        coords.insert(1, t3)
+        coords.insert(0, t3)
 
     new_shape = [len(coords[ix]) if dims[ix] != "t2" else -1 for ix in range(len(dims))]
     if verbose:
