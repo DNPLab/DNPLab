@@ -1,8 +1,11 @@
 import numpy as np
 from scipy import optimize
 import warnings
-from ..io import load
-from ..io import save
+from ..io.load import load
+from ..io.save import save
+from ..core.data import DNPData
+from ..fitting.general import *
+from ..math import * 
 
 def calculate_smax(spin_C=False):
     r"""Returns maximal saturation factor.
@@ -575,7 +578,7 @@ def hydration_analysis(path, save_file = False, show_result = True):
         see examples of each hydration function 
     """
     
-    hydration_info = dnp.load(path)
+    hydration_info = load(path)
 
     check_list = ['odnp_enhancements', 'odnp_fit_coefficients', 'odnp_ir_coefficients', 'ir_coefficients']
     for key in check_list:
@@ -601,7 +604,6 @@ def hydration_analysis(path, save_file = False, show_result = True):
 
     # calculate krho
     krho = calc_krho(t1_coefficients, hydration_info['ir_coefficients'], radical_concentration, hydration_info['ir_errors'])
-    print(krho)
     hydration_info['krho'] = krho
 
     # calculate xi_smax
@@ -622,7 +624,7 @@ def hydration_analysis(path, save_file = False, show_result = True):
         print('No smax exists')
     
     if save_file == True: 
-        dnp.save(hydration_info, path, overwrite = True)
+        save(hydration_info, path, overwrite = True)
 
     return hydration_info
 
@@ -655,7 +657,7 @@ def t1_fit_coefficients(data):
             err_list.append([err])
 
         coeff = np.append(coeff, err_list, axis = 1)
-        coeffficients = dnp.DNPData(coeff, dims = ['integrals', 'coefficients'], coords = [[0,1,2]]*number_of_integrals)
+        coeffficients = DNPData(coeff, dims = ['integrals', 'coefficients'], coords = [[0,1,2]]*number_of_integrals)
         coeffficients.attrs = temp.attrs
         coeffficients.attrs['hydration_name'] = 't1_vs_power_coefficients'
     return coeffficients
@@ -697,7 +699,7 @@ def calc_f(t1_coefficients_data, ir_coefficients_data, ir_errors_data = None):
 
     f_shape = np.shape(f_list)[0]
 
-    f = dnp.DNPData(f_list, dims = ['integrals', 'leakage_factor'], coords = [[0,1]]*f_shape)
+    f = DNPData(f_list, dims = ['integrals', 'leakage_factor'], coords = [[0,1]]*f_shape)
     f.attrs = t1_coefficients_data.attrs
     f.attrs['hydration_name'] = 'leakage_factor'
 
@@ -732,13 +734,13 @@ def calc_ksigma_smax(odnp_enhancements_data, t1_coefficients_data, radical_conce
         temp.values[:, index] /= t1_func(temp.coords['Power'])
 
     ksig_sp = temp / (radical_concentration * 659.33)
-    out = dnp.fit(dnp.relaxation.ksigma_smax, ksig_sp, dim = 'Power', p0 = (35, 0))
-    fit = out['fit']
+    out = fit(relaxation.ksigma_smax, ksig_sp, dim = 'Power', p0 = (35, 0))
+    _fit = out['fit']
     ksig_sp_coefficients = out['popt'].copy()
-    ksig_sp_coefficients.attrs = fit.attrs
+    ksig_sp_coefficients.attrs = _fit.attrs
     ksig_sp_coefficients.attrs['hydration_name'] = 'ksigma_sp_coefficients'
     ksig_sp_errors = out['err'].copy()
-    ksig_sp_errors.attrs = fit.attrs
+    ksig_sp_errors.attrs = _fit.attrs
     ksig_sp_errors.rename('popt', 'err')
     ksig_sp_errors.attrs['hydration_name'] = 'ksigma_sp_errors'
     
@@ -784,7 +786,7 @@ def calc_krho(t1_coefficients_data, ir_coefficients_data, radical_concentration,
     krho_list = [[(x**-1 - y**-1)/c, np.sqrt((x_err/x**2)**2 + (y_err/y**2)**2)/c] for x,x_err,y,y_err in zip(t1n0, t1n0_err, t10n, t10n_err)]
     krho_shape = np.shape(krho_list)[0]
 
-    krho = dnp.DNPData(krho_list, dims = ['integrals', 'krho'], coords = [[0,1]]*krho_shape)
+    krho = DNPData(krho_list, dims = ['integrals', 'krho'], coords = [[0,1]]*krho_shape)
     krho.attrs = t1_coefficients.attrs
     krho.attrs['hydration_name'] = 'krho'
 
@@ -821,7 +823,7 @@ def calc_xi_smax(ksigma_sp_coefficients_data, ksigma_sp_errors_data, krho_data):
     xi_smax_list = [[x/y, x/y * np.sqrt((x_err/x)**2 + (y_err/y)**2)] for x, x_err, y, y_err in zip(ksig_smax, ksig_smax_err, krho, krho_err)]
 
     xi_smax_shape = np.shape(xi_smax_list)[0]
-    xi_smax = dnp.DNPData(xi_smax_list, dims = ['integrals', 'xi_smax'], coords = [[0,1]]*xi_smax_shape)
+    xi_smax = DNPData(xi_smax_list, dims = ['integrals', 'xi_smax'], coords = [[0,1]]*xi_smax_shape)
     xi_smax.attrs = ksigma_sp_coefficients_data.attrs
     xi_smax.attrs['hydration_name'] = 'xi_smax'
     return xi_smax
