@@ -1,8 +1,11 @@
 import numpy as np
 from scipy import optimize
 import warnings
-from ..io import load
-from ..io import save
+from ..io.load import load
+from ..io.save import save
+from ..core.data import DNPData
+from ..fitting.general import *
+from ..math import * 
 
 def calculate_smax(spin_C=False):
     r"""Returns maximal saturation factor.
@@ -557,176 +560,9 @@ def hydration(data={}, constants={}):
         "Dlocal": Dlocal,
     }
 
-def hydration_analysis(path, save = False, print = True):
-    """
-    Perform hydration analysis and return leakage factor, coupling factor, ksigma, krho, etc.
-
-    Args:
-        path (str): the path to h5 file that contains a dictionary
-        save (binary): True for saving new h5 file
-        print (binary): True for print hydration analysis results
-
-    Returns:
-        Hydration Analysis results
-
-    ..Math::
-    
-        see examples of each hydration function 
-    """
-
-    hydration_info = load(path)
-
-    check_list = ['odnp_enhancements', 'enhancements_fit_coefficients', 'ondp_ir_coefficients', 'ir_coefficients']
-    for key in check_list:
-        if key not in hydration_info:
-            raise ValueError(
-                "key: %s is missing, please specify the type of radical" % key
-            )
-    
-    return print('Hello')
-    
-
-def hydration_module(data):
-    """
-    Perform smax, ksig, krho, coupling factor, leakage factor calcaultion
-
-    Args:
-        data (Dict): Dictionary of:
-            radical_type (str): type of radical, 14N or 15N
-            radical_conc (int): concentration of radical, unit: M
-            t1n0 (list): [t1 at power of 0, error]
-            t10n (list): [t10, error]
-            ksig_smax (list): [k_sigma*s_max, error]
-
-    Returns:
-        hydration_dict: Dictionary of the input data and:
-            ksig (list): [k_sigma, error]
-            krho (list): [k_rho, error]
-            leakage_factor (list): [leakage_factor, error]
-            coupling_factor (list): [coupling_factor, error]
-            temp_corr_emax (list): [temperature corrected enhancements maximum, error]
-
-    .. math::
-
-        smax = 1 - 2 / (3 + 3 * b)
-            15N:
-                b = radical_conc * 198.7
-            14N:
-                radical_conc = 1e-3
-                b = 0.087
-
-        k_sigma = k_sigma_s_max / smax
-        k_sigma_err = k_sigma_s_max_error / smax
-
-        k_rho = (t1n0 ^ -1 - t10n ^ -1) / radical_conc
-        k_rho_err = ((t1n0_err / (t1n0 ** 2)) ** 2 +  (t10n_err / (t10n ** 2)) ** 2) ** (1 / 2)
-
-        leakage_factor = t1n0 / t10n
-        leakage_factor_err = leakage_factor * ((t1n0_err / t1n0) ** 2 +  (t10n_err / t10n) ** 2) ** (1 / 2)
-
-        coupling_factor = k_sigma / k_rho
-        coupling_factor_err = coupling_factor * ((k_sigma_err / k_sigma) ** 2 +  (k_rho_err / k_rho) ** 2) ** (1 / 2)
-
-        temp_corr_emax = 1 - k_sigma_s_max * c * t1n0 * 659.33
-        temp_corr_emax_err = temp_corr_emax * ((k_sigma_err / k_sigma) ** 2 +  (t1n0_err / t1n0) ** 2) ** (1 / 2)
-
-    Reference:
-        [1] 10.1016/j.pnmrs.2013.06.001
-        [2] 10.1063/1.1669760
-        [3] Wikipedia: 'Propagation of uncertainty'
-        https://en.wikipedia.org/wiki/Propagation_of_uncertainty
-
-    Note:
-        Assume error is 0 if not given
-
-    """
-    hydration_dict = data.copy()
-    key_radical = ["radical_type", "radical_conc"]
-    for key in key_radical:
-        if key not in hydration_dict:
-            raise ValueError(
-                "key: %s is missing, please specify the type of radical" % key
-            )
-    key_list = ["t1n0", "t10n", "ksig_smax"]
-    for key in key_list:
-        if key in hydration_dict:
-            if isinstance(hydration_dict[key], list):
-                if len(hydration_dict[key]) == 1:
-                    print("%s has no error" % key)
-                    hydration_dict[key].append(0)
-                elif len(hydration_dict[key]) > 2 or len(hydration_dict[key]) < 1:
-                    raise ValueError(
-                        "%s should be a integral or a list with the length of either 2 or 1"
-                        % key
-                    )
-
-            else:
-                if isinstance(hydration_dict[key], str):
-                    raise TypeError(
-                        "%s should be a integral or a list with the length of either 2 or 1"
-                        % key
-                    )
-                else:
-                    hydration_dict[key] = [hydration_dict[key], 0]
-                    print("%s has no error" % key)
-
-    if hydration_dict["radical_type"] == "15N":
-        smax = 1 - 2 / (3 + 3 * hydration_dict["radical_conc"] * 198.7)
-    elif (
-        hydration_dict["radical_type"] == "14N"
-        and hydration_dict["radical_conc"] == 1e-3
-    ):
-        smax = 1 - 2 / (3 + 3 * 0.087)
-    else:
-        raise TypeError("Only 15N or 14N with 1 mM raical is supported at this time")
-
-    hydration_dict["smax"] = smax
-
-    ksig = hydration_dict["ksig_smax"][0] / smax
-    ksig_err = hydration_dict["ksig_smax"][1] / smax
-    hydration_dict["ksig"] = [ksig, ksig_err]
-
-    krho = (
-        1 / hydration_dict["t1n0"][0] - 1 / hydration_dict["t10n"][0]
-    ) / hydration_dict["radical_conc"]
-    krho_err = np.sqrt(
-        (hydration_dict["t1n0"][1] / hydration_dict["t1n0"][0] ** 2) ** 2
-        + (hydration_dict["t10n"][1] / hydration_dict["t10n"][0] ** 2) ** 2
-    )
-    hydration_dict["krho"] = [krho, krho_err]
-
-    leakage_factor = hydration_dict["t1n0"][0] / hydration_dict["t10n"][0]
-    leakage_factor_err = leakage_factor * np.sqrt(
-        (hydration_dict["t1n0"][1] / hydration_dict["t1n0"][0]) ** 2
-        + (hydration_dict["t10n"][1] / hydration_dict["t10n"][0]) ** 2
-    )
-    hydration_dict["leakage_factor"] = [leakage_factor, leakage_factor_err]
-
-    coupling_factor = ksig / krho
-    coupling_factor_err = coupling_factor * np.sqrt(
-        (ksig_err / ksig) ** 2 + (krho_err / krho) ** 2
-    )
-    hydration_dict["coupling_factor"] = [coupling_factor, coupling_factor_err]
-
-    temp_corr_emax = (
-        1
-        - hydration_dict["ksig_smax"][0]
-        * hydration_dict["radical_conc"]
-        * hydration_dict["t1n0"][0]
-        * 659.33
-    )
-    temp_corr_emax_err = temp_corr_emax * np.sqrt(
-        (hydration_dict["ksig_smax"][1] / hydration_dict["ksig_smax"][0]) ** 2
-        + (hydration_dict["t1n0"][1] / hydration_dict["t1n0"][0]) ** 2
-    )
-    hydration_dict["temp_corr_emax"] = [temp_corr_emax, temp_corr_emax_err]
-
-    return hydration_dict
-
-
 #### Working on------------------YH-------------------------------------------------
 
-def hydration_analysis(path, save = False, show_result = True):
+def hydration_analysis(path, save_file = False, show_result = True):
     """
     Perform hydration analysis and return leakage factor, coupling factor, ksigma, krho, etc.
 
@@ -736,47 +572,79 @@ def hydration_analysis(path, save = False, show_result = True):
         print (binary): True for print hydration analysis results
 
     Returns:
-        Hydration Analysis results
+        (dict): the hydration analysis result
 
     ..Math::
-    
         see examples of each hydration function 
     """
     
-    hydration_info = dnp.load(path)
+    hydration_info = load(path)
 
     check_list = ['odnp_enhancements', 'odnp_fit_coefficients', 'odnp_ir_coefficients', 'ir_coefficients']
     for key in check_list:
         if key not in hydration_info:
             raise ValueError('key: %s is missing, please specify the type of radical' % key)
-
+    radical_concentration = hydration_info['experiment_details']['radical_concentration']
     # find t1 fit curve coeffificent and error
-    t1_coefficients = t1_fit_coefficients(hydration_info)
+    t1_coefficients = t1_fit_coefficients(hydration_info['odnp_ir_coefficients'])
     t1n0 = t1_coefficients.values[:, 1]
     t1n0_err = t1_coefficients.values[:, 2]
     hydration_info['t1_coefficients'] = t1_coefficients
 
     # calcualte coupling factor f
-    f = calc_f(hydration_info)
+    if 'ir_errors' not in hydration_info:
+        hydration_info['ir_errors'] = None
+    f = calc_f(hydration_info['t1_coefficients'], hydration_info['ir_coefficients'], hydration_info['ir_errors'])
     hydration_info['leakage_factor'] = f
 
-    return print('Hello')
+    # calculate ksigma_smax
+    ksig_sp_coefficients, ksig_sp_errors = calc_ksigma_smax(hydration_info['odnp_enhancements'], t1_coefficients, radical_concentration)
+    hydration_info['ksigma_sp_coefficients'] = ksig_sp_coefficients
+    hydration_info['ksigma_sp_errors'] = ksig_sp_errors
 
-def t1_fit_coefficients(hydration_info):
+    # calculate krho
+    krho = calc_krho(t1_coefficients, hydration_info['ir_coefficients'], radical_concentration, hydration_info['ir_errors'])
+    hydration_info['krho'] = krho
+
+    # calculate xi_smax
+    xi_smax = calc_xi_smax(ksig_sp_coefficients, ksig_sp_errors, krho)
+    hydration_info['xi_smax'] = xi_smax
+
+    # if smax exists
+    if 'smax' in hydration_info['experiment_details']:
+        smax = hydration_info['experiment_details']['smax']
+        xi = xi_smax / smax
+        hydration_info['xi'] = xi
+        ksig_sp_coefficients['popt', 0]/= smax
+        hydration_info['ksig_sp_coefficients'] = ksig_sp_coefficients
+        ksig_sp_errors['err', 0]/= smax
+        hydration_info['ksig_sp_errors'] = ksig_sp_errors
+    
+    else:
+        print('No smax exists')
+    
+    if save_file == True: 
+        save(hydration_info, path, overwrite = True)
+
+    return hydration_info
+
+def t1_fit_coefficients(data):
     """
     Fit t1 vs. Power curve and return t1 at the power of 0
 
     Args:
-        hydration_info (dict)
+        odnp_ir_coefficients (dnpdata object), includes dims 'popt' and 'Power'
 
     Returns:
         t1_coeffificents (dnpdata object)
+
+    Methods:
+        1d polynomials fitting
     """
-    key = 'odnp_ir_coefficients'
-    if key not in hydration_info:
-        raise ValueError('key: %s is missing, please specify the type of radical' % key)
+    if 'popt' not in data.dims or 'Power' not in data.dims:
+        raise ValueError('The input data is not supported')
     else:
-        temp = hydration_info['odnp_ir_coefficients'].copy()
+        temp = data.copy()
         power_array = temp.coords['Power']
         t1_list = temp.values[0]
         coeff, cov = np.polyfit(power_array, t1_list, 1, cov = True)
@@ -787,41 +655,175 @@ def t1_fit_coefficients(hydration_info):
         for index, cov_matrix in enumerate(cov):
             err = np.sqrt(np.diag(cov[:, index]))[index]
             err_list.append([err])
+
         coeff = np.append(coeff, err_list, axis = 1)
-        coeffficients = dnp.DNPData(coeff, dims = ['integrals', 'coefficients'], coords = [[0,1,2]]*number_of_integrals)
+        coeffficients = DNPData(coeff, dims = ['integrals', 'coefficients'], coords = [[0,1,2]]*number_of_integrals)
         coeffficients.attrs = temp.attrs
+        coeffficients.attrs['hydration_name'] = 't1_vs_power_coefficients'
     return coeffficients
 
 
-def calc_f(hydration_info):
+def calc_f(t1_coefficients_data, ir_coefficients_data, ir_errors_data = None):
     """
     Calculating leakage factor and its error
 
     Args:
-        hydration_info (dict)
-    
+        t1_cofficients_data (dnpdata object), includes t1 at the power of 0 and its error
+        ir_coefficients_data (dnpdata object), t10 
+        ir_errors_data (dnpdata object), t10 error
     Returns:
         f (dnpdata object)
-    """
-    check_list = ['t1_coefficients', 'ir_coefficients']
-    for key in check_list:
-        if key not in hydration_info:
-            raise ValueError('key: %s is missing, please specify the type of radical' % key)
-    
-    t1n0 = hydration_info['t1_coefficients'].values[:, 1]
-    t10n = hydration_info['ir_coefficients'].values[0]    
 
-    t1n0_err = hydration_info['t1_coefficients'].values[:, 2]
-    if 'ir_errors' not in hydration_info:
+    ..math::
+        f = t1n0 / t10n
+        f_err = leakage_factor * ((t1n0_err / t1n0) ** 2 +  (t10n_err / t10n) ** 2) ** (1 / 2)
+    
+    Reference:
+    [1] 10.1016/j.pnmrs.2013.06.001
+    [2] Wikipedia: 'Propagation of uncertainty'
+    https://en.wikipedia.org/wiki/Propagation_of_uncertainty
+
+    """
+    
+    t1n0 = t1_coefficients_data.values[:, 1]
+    t10n = ir_coefficients_data.values[0]    
+
+    t1n0_err = t1_coefficients_data.values[:, 2]
+    if ir_errors_data == None:
         t10n_err = np.zeros(np.size(t10n))
         print('t10 does not have errors, assigning 0 to all errors')
     else:
-        t10n_err = hydration_info['ir_errors'].values[0] 
+        t10n_err = ir_errors_data.values[0] 
     
     f_list = [[1 - x/y, (1 - x/y) * np.sqrt((x_err/x)**2 + (y_err/y)**2)] for x,x_err,y,y_err in zip(t1n0, t1n0_err, t10n, t10n_err)]
 
     f_shape = np.shape(f_list)[0]
 
-    f = dnp.DNPData(f_list, dims = ['integrals', 'leakage_factor'], coords = [[0,1]]*f_shape)
+    f = DNPData(f_list, dims = ['integrals', 'leakage_factor'], coords = [[0,1]]*f_shape)
+    f.attrs = t1_coefficients_data.attrs
+    f.attrs['hydration_name'] = 'leakage_factor'
 
     return f
+
+def calc_ksigma_smax(odnp_enhancements_data, t1_coefficients_data, radical_concentration):
+    """
+    Calculatiing ksigma smax and its error
+
+    Args:
+        odnp_enhancements_data (dnpdata object): includes enhancements vs. power data
+        t1_coefficients_data (dnpdata object): includes t1 at the power of 0 and its error
+        radical_concentration (float): radical concentration, unit M
+
+    Returns:
+        ksig_smax (dnpdata object)
+
+    ..math::
+        ksigma_smax = lim (p > inf) ((1-enhancements_max)/(radical_concentration*t1(p > inf)) * (omega_H/omega_E)) 
+        where, omega_E/omgea_H = 659.33
+
+    Reference:    
+    [1] 10.1016/j.pnmrs.2013.06.001
+    """
+
+    odnp_enhancements = odnp_enhancements_data.copy()
+    temp = 1 - odnp_enhancements
+    t1_coefficients = t1_coefficients_data.copy() 
+    for index in temp.coords['integrals']:
+        fit_coefficients = t1_coefficients.values[index][0:2]
+        t1_func = np.poly1d(fit_coefficients)
+        temp.values[:, index] /= t1_func(temp.coords['Power'])
+
+    ksig_sp = temp / (radical_concentration * 659.33)
+    out = fit(relaxation.ksigma_smax, ksig_sp, dim = 'Power', p0 = (35, 0))
+    _fit = out['fit']
+    ksig_sp_coefficients = out['popt'].copy()
+    ksig_sp_coefficients.attrs = _fit.attrs
+    ksig_sp_coefficients.attrs['hydration_name'] = 'ksigma_sp_coefficients'
+    ksig_sp_errors = out['err'].copy()
+    ksig_sp_errors.attrs = _fit.attrs
+    ksig_sp_errors.rename('popt', 'err')
+    ksig_sp_errors.attrs['hydration_name'] = 'ksigma_sp_errors'
+    
+    return ksig_sp_coefficients, ksig_sp_errors
+
+def calc_krho(t1_coefficients_data, ir_coefficients_data, radical_concentration, ir_errors_data = None):
+    """
+    Calculating k rho and its error
+
+    Args:
+        t1_cofficients_data (dnpdata object), includes t1 at the power of 0 and its error
+        ir_coefficients_data (dnpdata object), includes t10 and its error
+        radical_concentration (float): radical concentration, unit M
+
+    Returns:
+        krho (dnpdata object)
+
+    ..math::
+        krho = (t1n0 ^ -1 - t10n ^ -1) / radical_conc
+        krho_err = ((t1n0_err / (t1n0 ** 2)) ** 2 +  (t10n_err / (t10n ** 2)) ** 2) ** (1 / 2)
+
+    
+    Reference:
+    [1] 10.1016/j.pnmrs.2013.06.001
+    [2] Wikipedia: 'Propagation of uncertainty'
+    https://en.wikipedia.org/wiki/Propagation_of_uncertainty
+
+    """
+
+    c = radical_concentration
+    t1_coefficients = t1_coefficients_data.copy()
+    ir_coefficients = ir_coefficients_data.copy()
+    t1n0 = t1_coefficients.values[:, 1]
+    t10n = ir_coefficients.values[0] 
+    t1n0_err = t1_coefficients.values[:, 2]
+
+    if ir_errors_data == None:
+        t10n_err = np.zeros(np.size(t10n))
+        print('t10 does not have errors, assigning 0 to all errors')
+    else:
+        t10n_err = ir_errors_data.values[0] 
+
+    krho_list = [[(x**-1 - y**-1)/c, np.sqrt((x_err/x**2)**2 + (y_err/y**2)**2)/c] for x,x_err,y,y_err in zip(t1n0, t1n0_err, t10n, t10n_err)]
+    krho_shape = np.shape(krho_list)[0]
+
+    krho = DNPData(krho_list, dims = ['integrals', 'krho'], coords = [[0,1]]*krho_shape)
+    krho.attrs = t1_coefficients.attrs
+    krho.attrs['hydration_name'] = 'krho'
+
+    return krho
+
+def calc_xi_smax(ksigma_sp_coefficients_data, ksigma_sp_errors_data, krho_data):
+    """
+    Calculating xi smax and its error
+
+    Args:
+        ksigma_sp_coefficients_data (dnpdata object), includes ksigma_smax
+        ksigma_sp_errors_data (dnpdata object), includes ksigma_smax error
+        krho_data (dnpdata object): includes krho and its error
+
+    Returns:
+        xi_smax (dnpdata object)
+
+    ..math::
+
+        xi_smax = ksigma_smax / krho
+        xi_smax_err = xi_smax * ((ksigma_smax_err / ksigma_smax) ** 2 +  (krho_err / krho) ** 2) ** (1 / 2)
+
+    Reference:
+        [1] 10.1016/j.pnmrs.2013.06.001
+        [2] Wikipedia: 'Propagation of uncertainty'
+        https://en.wikipedia.org/wiki/Propagation_of_uncertainty
+    """
+
+    ksig_smax = ksigma_sp_coefficients_data.values[0, :]
+    ksig_smax_err = ksigma_sp_errors_data.values[0, :]
+    krho = krho_data.values[:, 0]
+    krho_err = krho_data.values[:, 1]
+    
+    xi_smax_list = [[x/y, x/y * np.sqrt((x_err/x)**2 + (y_err/y)**2)] for x, x_err, y, y_err in zip(ksig_smax, ksig_smax_err, krho, krho_err)]
+
+    xi_smax_shape = np.shape(xi_smax_list)[0]
+    xi_smax = DNPData(xi_smax_list, dims = ['integrals', 'xi_smax'], coords = [[0,1]]*xi_smax_shape)
+    xi_smax.attrs = ksigma_sp_coefficients_data.attrs
+    xi_smax.attrs['hydration_name'] = 'xi_smax'
+    return xi_smax
