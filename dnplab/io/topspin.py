@@ -143,12 +143,13 @@ def find_group_delay(attrs_dict):
 
 
 # This function does too much, should be broken into smaller functions
-def import_topspin(path, verbose=False):
+def import_topspin(path, assign_vdlist = False, verbose=False):
     """Import topspin data and return dnpdata object
 
     Args:
         path (str): Directory of data
-        phase_cycle (list): list of phases used for phase cycling (deg, multiples of 90)
+        assign_vdlist: False, or the name of dimension to assign topspin vdlist
+        verbose (bool): Print additional output for troubleshooting
 
     Returns:
         dnpdata: topspin data
@@ -248,6 +249,17 @@ def import_topspin(path, verbose=False):
     if verbose:
         print("Raw Data Shape:", np.shape(values))
         print("reshaping data to:", new_shape)
+
+    if assign_vdlist:
+        if verbose:
+            print('Assigning vdlist to %s dim' %assign_vdlist)
+        vdlist = topspin_vdlist(path)
+        if assign_vdlist in dims:
+            index = dims.index(assign_vdlist)
+            coords[index] = vdlist
+
+        else:
+            raise ValueError('Could not identify dimension to assign vdlist')
 
     # reshape values
     values = values.reshape(new_shape)
