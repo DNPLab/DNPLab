@@ -19,8 +19,14 @@ import numpy as np
 import dnplab as dnp
 
 file_name_path = "../../data/topspin/304"
-data = dnp.load(file_name_path)
-data.attrs["experiment_type"] = "nmr_spectrum"
+data = dnp.load(file_name_path, verbose=True)
+
+
+values = dnp.io.topspin.topspin_vdlist(file_name_path)
+data.coords['t1'] = values
+
+
+# data.attrs["experiment_type"] = "nmr_spectrum"
 
 # %%
 # Next, we process the FIDs to obtain the frequency domain NMR spectrum
@@ -28,10 +34,10 @@ data.attrs["experiment_type"] = "nmr_spectrum"
 # data = dnp.remove_background(data)
 
 # dnp.remove_background(data)
-data = dnp.apodize(data, lw=100)
-data = dnp.fourier_transform(data)
+# data = dnp.apodize(data, lw=100)
+# data = dnp.fourier_transform(data)
 
-data = dnp.autophase(data, method="manual", phase=90)
+# data = dnp.autophase(data, method="manual", phase=90)
 
 # dnp.fancy_plot(data, xlim=[-50, 80], title="Inversion Recovery")
 # dnp.plt.show()
@@ -56,7 +62,7 @@ data = dnp.autophase(data, method="manual", phase=90)
 
 # dnp.plt.figure()
 # dnp.waterfall(data, dx = 50, dy = 100000)
-# # dnp.plt.plot(data.values[:,7].real)
+# dnp.plt.plot(data.values[:,7].real)
 # dnp.plt.show()
 # #
 
@@ -65,16 +71,16 @@ data = dnp.autophase(data, method="manual", phase=90)
 # dnp.plt.plot(data.values[:, 1].real)
 # dnp.plt.show()
 
-integrals = dnp.integrate(data)
+# integrals = dnp.integrate(data)
 
 # print(integrals.values[:,0].real )
 # print(integrals)
 
 
-integrals.attrs["experiment_type"] = "inversion_recovery"
+# integrals.attrs["experiment_type"] = "inversion_recovery"
 
-dnp.fancy_plot(integrals)
-dnp.plt.show()
+# dnp.fancy_plot(integrals)
+# dnp.plt.show()
 
 # initial_guess = (2., -4000, 4000) # initial guess for: T1, M_0, M_inf
 
