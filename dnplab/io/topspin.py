@@ -143,7 +143,7 @@ def find_group_delay(attrs_dict):
 
 
 # This function does too much, should be broken into smaller functions
-def import_topspin(path, assign_vdlist = False, verbose=False):
+def import_topspin(path, assign_vdlist=False, verbose=False):
     """Import topspin data and return dnpdata object
 
     Args:
@@ -222,7 +222,7 @@ def import_topspin(path, assign_vdlist = False, verbose=False):
         print("points in FID:", acqus_params["TD"] / 2)
 
     # Handle t2 group delay
-    #t2 = t2[slice(group_delay, int(acqus_params["TD"] / 2))] # Alternative method
+    # t2 = t2[slice(group_delay, int(acqus_params["TD"] / 2))] # Alternative method
     t2 = t2[group_delay:]
 
     coords = [t2]
@@ -252,20 +252,20 @@ def import_topspin(path, assign_vdlist = False, verbose=False):
 
     if assign_vdlist:
         if verbose:
-            print('Assigning vdlist to %s dim' %assign_vdlist)
+            print("Assigning vdlist to %s dim" % assign_vdlist)
         vdlist = topspin_vdlist(path)
         if assign_vdlist in dims:
             index = dims.index(assign_vdlist)
             coords[index] = vdlist
 
         else:
-            raise ValueError('Could not identify dimension to assign vdlist')
+            raise ValueError("Could not identify dimension to assign vdlist")
 
     # reshape values
     values = values.reshape(new_shape)
 
     # Handle group delay
-    values = values[...,slice(group_delay, int(acqus_params["TD"] / 2))]
+    values = values[..., slice(group_delay, int(acqus_params["TD"] / 2))]
 
     # create data object
     topspin_data = DNPData(values, dims, coords, attrs=acqus_params)
