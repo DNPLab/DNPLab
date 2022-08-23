@@ -220,6 +220,10 @@ def import_topspin(path, verbose=False):
     if verbose:
         print("points in FID:", acqus_params["TD"] / 2)
 
+    # Handle t2 group delay
+    #t2 = t2[slice(group_delay, int(acqus_params["TD"] / 2))] # Alternative method
+    t2 = t2[group_delay:]
+
     coords = [t2]
 
     # This will not work for vdlist data
@@ -248,11 +252,11 @@ def import_topspin(path, verbose=False):
     # reshape values
     values = values.reshape(new_shape)
 
+    # Handle group delay
+    values = values[...,slice(group_delay, int(acqus_params["TD"] / 2))]
+
     # create data object
     topspin_data = DNPData(values, dims, coords, attrs=acqus_params)
-
-    # Handle group delay
-    topspin_data = topspin_data["t2", slice(group_delay, int(acqus_params["TD"] / 2))]
 
     # Add NMR Frequency to attrs
     topspin_data.attrs["nmr_frequency"] = acqus_params["SFO1"] * 1e6
