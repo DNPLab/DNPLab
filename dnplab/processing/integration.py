@@ -15,6 +15,23 @@ def cumulative_integrate(data, dim="f2", regions=None):
 
     Returns:
         data: cumulative sum of data
+
+    Examples:
+        Example showing cumulative integration of lorentzian function
+
+        >>> import numpy as np
+        >>> from matplotlib.pylab import *
+        >>> import dnplab as dnp
+        >>> x = np.r_[-10:10:1000j]
+        >>> y = dnp.math.lineshape.lorentzian(x,0,1)
+        >>> data = dnp.DNPData(y, ['f2'], [x])
+        >>> data_int = dnp.cumulative_integrate(data)
+        >>> figure()
+        >>> dnp.plot(data)
+        >>> dnp.plot(data_int)
+        >>> show()
+
+
     """
 
     data = data.copy()

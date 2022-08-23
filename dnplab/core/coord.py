@@ -8,6 +8,12 @@ from copy import deepcopy
 
 class Coords(object):
     def __init__(self, dims, coords):
+        """Object for storing axes information
+
+        Attributes:
+            dims (list): List of strings labeling dimensions
+            coords (list): List of arrays for axes
+        """
         # super(Coords, self).__init__()
 
         if not isinstance(dims, list):
@@ -167,10 +173,12 @@ class Coords(object):
 
         # New indices for dims
         new_order = [dims.index(dim) for dim in self.dims]
+        permutation_order = [self.dims.index(dim) for dim in dims]
 
         self.dims = dims
 
-        self.coords = [self.coords[x] for x in new_order]
+        #        self.coords = [self.coords[x] for x in new_order]
+        self.coords = [self.coords[x] for x in permutation_order]
 
     def pop(self, dim):
         index = self.index(dim)

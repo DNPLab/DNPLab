@@ -18,6 +18,22 @@ def autophase(
 ):
     """Automatically phase correct data, or apply manual phase correction
 
+    Args:
+        data (DNPData): Data object to autophase
+        dim (str): Dimension to autophase
+        method (str): Autophase method, "search" by default
+        reference_range:
+        pts_lim:
+        order:
+        pivot:
+        delta:
+        phase:
+        reference_slice:
+        force_positive:
+
+    Returns:
+        DNPData: Autophased data, including attrs "phase0" for order="zero", and "phase1" if order="first"
+
     .. math::
 
         \mathrm{data}         &= \exp(-1j * \mathrm{phase}) &
@@ -30,35 +46,9 @@ def autophase(
 
         phased\_imag          &= \mathrm{data.imag} * \exp(-1j * \mathrm{phase}) &
 
-    Args:
-        all_data (dnpdata_collection, dnpdata): Data object to autophase
-
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | parameter       | type          | default       | description                                       |
-    +=================+===============+===============+===================================================+
-    | method          | str           | 'search'      | method of searching for the best phase            |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | reference_range | list or tuple | None          | data window to use for phase calculation          |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | pts_lim         | int or None   | None          | specify the max points used in phase search       |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | order           | str           | 'zero'        | order of phase correction                         |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | pivot           | int           | 0             | pivot point for first order correction            |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | delta           | float or int  | 0             | total change in phase magnitude for first order   |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | phase           | float or int  | 0             | manual phase correction in radians                |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | reference_slice | int, or None  | None          | slice of 2D data used to define the phase         |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-    | force_positive  | boolean       | False         | force the entire spectrum to positive magnitude   |
-    +-----------------+---------------+---------------+---------------------------------------------------+
-
-    Returns:
-        dnpdata: Autophased data, including attrs "phase0" for order="zero", and "phase1" if order="first"
-
     """
+
+    data = data.copy()
     if reference_slice == 0:
         raise ValueError(
             "please use indices from 1 to number of slices, i.e. use 1 instead of 0"
@@ -169,7 +159,8 @@ def autophase(
         raise TypeError("Invalid order or order & phase pair")
 
     if force_positive:
-        data.values = np.absolute(data.values)
+        if np.sum(data.values) < 0:
+            data.values *= -1
 
     proc_parameters = {
         "method": method,
@@ -187,7 +178,7 @@ def autophase(
 
 
 def phase_cycle(data, dim, receiver_phase):
-    """Phase cycle
+    """Apply phase cycle to data
 
     Args:
         all_data (dnpdata_collection, dnpdata): data to process
@@ -215,7 +206,7 @@ def phase_cycle(data, dim, receiver_phase):
     reshape_size = [1 for k in data.dims]
     reshape_size[index] = len(data.coords[dim])
 
-    data *= np.exp(1j * (np.pi / 2.0) * receiver_phase.reshape(reshape_size))
+    data *= np.exp(-1j * (np.pi / 2.0) * receiver_phase.reshape(reshape_size))
 
     proc_attr_name = "phasecycle"
     data.add_proc_attrs(proc_attr_name, proc_parameters)

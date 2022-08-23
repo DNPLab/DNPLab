@@ -1,23 +1,24 @@
 import numpy as np
-from scipy import interpolate
 from scipy import optimize
+import warnings
 
 
 def calculate_smax(spin_C=False):
-    """Returns maximal saturation factor according to: M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
+    r"""Returns maximal saturation factor.
+
+    Args:
+        spin_C (float): unpaired spin concentration (M)
+
+    Returns:
+        smax (float): maximal saturation factor (unitless)
 
     .. math::
         \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
 
-    Args:
-        spin_C (float): unpaired spin concentration in units of uM
-
-    Returns:
-        smax (float): maximal saturation factor
-
+    M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
     """
 
-    return 1 - (2 / (3 + (3 * (spin_C * 1e-6 * 198.7))))
+    return 1 - (2 / (3 + (3 * (spin_C * 198.7))))
 
 
 def interpolate_T1(
@@ -32,31 +33,29 @@ def interpolate_T1(
     T10=2.0,
     T100=2.5,
 ):
-    """Returns interpolated T1 data using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
+    """Returns interpolated T1 data.
 
     Args:
         E_powers (numpy.array): The microwave powers at which to evaluate
         T1_powers (numpy.array): The microwave powers of the T1s to interpolate
-        T1_array (numpy.array): The original T1s
+        T1_array (numpy.array): The original T1s (s)
         interpolate_method (str): "second_order" or "linear"
-        spin_C (float): unpaired electron spin concentration in uM
-        T10 (float): T1 measured with unpaired electrons
-        T100 (float): T1 measured without unpaired electrons
-        delta_T1_water (optional) (float): change in T1 of water at max microwave power
-        T1_water (optional) (float): T1 of pure water
-        macro_C (optional) (float): concentration of macromolecule in uM
+        spin_C (float): unpaired electron spin concentration (M)
+        T10 (float): T1 measured with unpaired electrons (s)
+        T100 (float): T1 measured without unpaired electrons (s)
+        delta_T1_water (optional) (float): change in T1 of water at max microwave power (s)
+        T1_water (optional) (float): T1 of pure water (s)
+        macro_C (optional) (float): concentration of macromolecule (M)
 
     Returns:
         interpolated_T1 (numpy.array): Array of T1 values same shape as E_powers and E_array
 
+    T1 data is interpolated using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
     """
 
     # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
     if interpolate_method == "second_order":
-        spin_C = spin_C / 1e6
-        if macro_C:
-            macro_C = macro_C / 1e6
-        else:
+        if not macro_C:
             macro_C = spin_C
 
         if not delta_T1_water:
@@ -101,16 +100,15 @@ def interpolate_T1(
 def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
     """Function to calcualte ksig array for any given ksigma and p_12
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         powers (numpy.array): Array of powers
-        ksigma_smax (float): product of ksigma and smax
+        ksigma_smax (float): product of ksigma and smax (s^-1 * M^-1)
         p_12 (float): power at half max for ksigma fit
 
     Returns:
         ksig_fit (numpy.array): calculated ksigma array
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # Right side of Eq. 42. This function should fit to ksig_sp
@@ -122,8 +120,6 @@ def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
 def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
     """Get ksigma and E_power at half max of ksig
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         ksig (numpy.array): Array of ksigmas
         powers (numpy.array): Array of E_powers
@@ -133,6 +129,7 @@ def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
         ksigma_stdd (float): standard deviation in ksigma
         p_12 (float): power at half max for ksigma fit
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # curve fitting
@@ -159,22 +156,23 @@ def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
     return ksigma, ksigma_stdd, ksigma_fit
 
 
-def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
+def calculate_xi(tcorr=54e-12, omega_e=0.0614, omega_H=9.3231e-05):
     """Returns coupling_factor for any given tcorr
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
-        tcorr (float): translational diffusion correlation time
+        tcorr (float): translational diffusion correlation time (s)
         omega_e (float): electron gyromagnetic ratio
         omega_H (float): proton gyromagnetic ratio
 
     Returns:
         xi (float): coupling factor
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # Using Franck et al. PNMRS (2013)
+    if tcorr < 0.1:
+        tcorr *= 1e12
 
     zdiff = np.sqrt(1j * (omega_e - omega_H) * tcorr)
     zsum = np.sqrt(1j * (omega_e + omega_H) * tcorr)
@@ -200,32 +198,31 @@ def calculate_xi(tcorr=54, omega_e=0.0614, omega_H=9.3231e-05):
 def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
     """Returns translational correlation time (tcorr) in pico second
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         coupling_factor (float): coupling factor
         omega_e (float): electron gyromagnetic ratio
         omega_H (float): proton gyromagnetic ratio
 
     Returns:
-        t_corr (float): tcorr, translational diffusion correlation time in pico second
+        tcorr (float): translational diffusion correlation time (s)
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # root finding
     # see https://docs.scipy.org/doc/scipy/reference/optimize.html
     result = optimize.root_scalar(
-        lambda tcorr: calculate_xi(tcorr, omega_e=omega_e, omega_H=omega_H)
+        lambda t_corr: calculate_xi(t_corr, omega_e=omega_e, omega_H=omega_H)
         - coupling_factor,
         method="brentq",
         bracket=[1, 1e5],
     )
 
     if not result.converged:
-        raise FitError("Could not find tcorr")
+        raise ValueError("Could not find tcorr")
 
-    t_corr = result.root
-    return t_corr
+    tcorr = result.root
+    return tcorr * 1e-12
 
 
 def calculate_uncorrected_Ep(
@@ -239,21 +236,20 @@ def calculate_uncorrected_Ep(
 ):
     """Function for E(p) for any given xi and p_12
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         uncorrected_xi (float): uncorrected coupling factor
         p_12_unc (float): power at half max for uncorrected_xi fit
         E_array (numpy.array): Array of enhancements
         E_powers (numpy.array): Array of E_powers
-        T10 (float): T1(0), proton T1 with microwave power=0
-        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0
+        T10 (float): T1(0), proton T1 with microwave power=0 (s)
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
         omega_ratio (float): ratio of electron & proton gyromagnetic ratios
         smax (float): maximal saturation factor
 
     Returns:
-        Ep_fit (numpy.array): uncorrected Enhancement curve
+        Ep_fit (numpy.array): uncorrected enhancement curve
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # Right side of Eq. 42. This function should fit to ksig_sp
@@ -276,20 +272,19 @@ def _residual_Ep(
 ):
     """Function for residuals between E(p) for any given xi and p_12 and the experimental E_array
 
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         x (list): [uncorrected coupling factor, power at half max for uncorrected_xi fit]
         E_array (numpy.array): Array of enhancements
         E_powers (numpy.array): Array of E_power
-        T10 (float): T1(0), proton T1 with microwave power=0
-        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0
+        T10 (float): T1(0), proton T1 with microwave power=0 (s)
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
         omega_ratio (float): ratio of electron & proton gyromagnetic ratios
         smax (float): maximal saturation factor
 
     Returns:
         Ep_fit (numpy.array): uncorrected enhancement curve
 
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     return E_array - calculate_uncorrected_Ep(
@@ -313,13 +308,11 @@ def calculate_uncorrected_xi(
 ):
     """Get coupling_factor and E_power at half saturation
 
-    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-
     Args:
         E_array (numpy.array): Array of enhancements
         E_powers (numpy.array): Array of powers
-        T10 (float): T1(0), proton T1 with microwave power=0
-        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0
+        T10 (float): T1(0), proton T1 with microwave power=0 (s)
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
         omega_ratio (float): ratio of electron & proton gyromagnetic ratios
         smax (float): maximal saturation factor
 
@@ -327,6 +320,7 @@ def calculate_uncorrected_xi(
         uncorrected_xi (float): uncorrected coupling factor
         p_12_unc (float): power at half max for uncorrected_xi fit
 
+    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # least-squares fitting.
@@ -339,7 +333,7 @@ def calculate_uncorrected_xi(
         method="lm",
     )
     if not results.success:
-        raise FitError("Could not fit Ep")
+        raise ValueError("Could not fit Ep")
     assert results.x[0] > 0, "Unexpected coupling_factor value: %d < 0" % results.x[0]
 
     uncorrected_xi = results.x[0]
@@ -348,32 +342,76 @@ def calculate_uncorrected_xi(
     return uncorrected_xi, p_12_unc
 
 
-def odnp(inputs={}, constants={}):
+def hydration(data={}, constants={}):
     """Function for performing ODNP calculations
+
+    Args:
+        data (dict)                   : keys and values are described in the example
+        constants (dict)              : (optional) keys and values are described in the example
+
+    Returns:
+        (dict)                        : keys and values are described in the example
 
     J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
 
     J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
     https://doi.org/10.1016/bs.mie.2018.09.024
-
-    Args:
-        inputs (dict)                   : keys and values described in example above
-        constants (optional) (dict)     : keys and values described in example above
-
-    Returns:
-        hydration_results (dict)        : keys and values described in table above
-
     """
 
-    if not inputs:
-        raise ValueError("Please supply a valid inputs dictionary")
+    if not data:
+        raise ValueError("Please supply a valid data dictionary, see example")
 
-    odnp_constants = {
+    if "hydration_inputs" in data.keys():
+        warnings.warn(
+            "The workspace concept is depreciated, see the example in the docs for the new syntax"
+        )
+        _data = data["hydration_inputs"]
+        if "hydration_constants" in data.keys():
+            constants = data["hydration_constants"]
+        data = _data
+
+    if "tcorr_bulk" in constants.keys() and constants["tcorr_bulk"] > 0.1:
+        warnings.warn(
+            "tcorr_bulk should be given in seconds, support for picoseconds will be removed in a future release"
+        )
+        constants["tcorr_bulk"] *= 1e-12
+
+    if "macro_C" in constants.keys() and constants["macro_C"] > 0.1:
+        warnings.warn(
+            "macro_C should be given in molar, support for micromolar will be removed in a future release"
+        )
+        constants["macro_C"] *= 1e-6
+
+    if data["spin_C"] > 0.1:
+        warnings.warn(
+            "spin_C should be given in molar, support for micromolar will be removed in a future release"
+        )
+        data["spin_C"] *= 1e-6
+
+    if "field" in data.keys():
+        warnings.warn(
+            "keyword 'field' is depreciated, please use 'magnetic_field' from now on"
+        )
+        if "magnetic_field" in data.keys():
+            warnings.warn(
+                "you supplied both 'field' and 'magnetic_field', only 'magnetic_field' will be used"
+            )
+        else:
+            data["magnetic_field"] = data["field"]
+        data.pop("field")
+
+    if data["magnetic_field"] > 3:
+        warnings.warn(
+            "magnetic_field should be given in T, support for mT will be removed in a future release"
+        )
+        data["magnetic_field"] *= 1e-3
+
+    standard_constants = {
         "ksigma_bulk": 95.4,
         "krho_bulk": 353.4,
         "klow_bulk": 366,
-        "tcorr_bulk": 54,
+        "tcorr_bulk": 54e-12,
         "D_H2O": 2.3e-9,
         "D_SL": 4.1e-10,
         "delta_T1_water": False,
@@ -382,35 +420,38 @@ def odnp(inputs={}, constants={}):
     }
     # these constants have been compiled from the various ODNP literature
 
-    if constants:
-        for ky in odnp_constants.keys():
-            if ky in constants.keys():
-                odnp_constants[ky] = constants[ky]
+    odnp_constants = {**standard_constants, **constants}
 
-    if inputs["smax_model"] == "tethered":
+    if data["smax_model"] == "tethered":
         # Option 1, tether spin label
         s_max = 1  # (section 2.2) maximal saturation factor
 
-    elif inputs["smax_model"] == "free":
+    elif data["smax_model"] == "free":
         # Option 2, free spin probe
-        s_max = calculate_smax(inputs["spin_C"])  # from:
+        s_max = calculate_smax(data["spin_C"])  # from:
         # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
         # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
 
-    if isinstance(inputs["smax_model"], (int, float)):
+    elif isinstance(data["smax_model"], float):
         # Option 3, manual input of smax
-        if not (inputs["smax_model"] <= 1 and inputs["smax_model"] > 0):
-            raise ValueError("smax must be a number between 0 and 1")
-        s_max = inputs["smax_model"]
+        if not (data["smax_model"] <= 1 and data["smax_model"] > 0):
+            raise ValueError(
+                "if given directly, smax must be type float between 0 and 1"
+            )
+        s_max = data["smax_model"]
+    else:
+        raise ValueError(
+            "'smax_model' must be 'tethered', 'free', or a float between 0 and 1"
+        )
 
-    omega_e = (1.76085963023e-1) * (inputs["field"] / 1000)
-    # gamma_e in 1/ps for the tcorr unit, then correct by field in T.
-    # gamma_e is from NIST. The field cancels in the following omega_ratio but you
+    omega_e = 1.76085963023e-1 * data["magnetic_field"]
+    # gamma_e in 1/ps for the tcorr unit, then correct by magnetic_field in T.
+    # gamma_e is from NIST. The magnetic_field cancels in the following omega_ratio but you
     # need these individually for the spectral density functions later.
 
-    omega_H = (2.6752218744e-4) * (inputs["field"] / 1000)
-    # gamma_H in 1/ps for the tcorr unit, then correct by field in T.
-    # gamma_H is from NIST. The field cancels in the following omega_ratio but you
+    omega_H = 2.6752218744e-4 * data["magnetic_field"]
+    # gamma_H in 1/ps for the tcorr unit, then correct by magnetic_field in T.
+    # gamma_H is from NIST. The magnetic_field cancels in the following omega_ratio but you
     # need these individually for the spectral density functions later.
 
     omega_ratio = (omega_e / (2 * np.pi)) / (omega_H / (2 * np.pi))
@@ -418,40 +459,38 @@ def odnp(inputs={}, constants={}):
     # frequency units in order to correspond to S_0/I_0, this is also ~= to the
     # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
 
-    if "T1_powers" in inputs.keys():
+    if "T1_powers" in data.keys():
         T1p = interpolate_T1(
-            E_powers=inputs["E_powers"],
-            T1_powers=inputs["T1_powers"],
-            T1_array=inputs["T1_array"],
-            interpolate_method=inputs["interpolate_method"],
+            E_powers=data["E_powers"],
+            T1_powers=data["T1_powers"],
+            T1_array=data["T1_array"],
+            interpolate_method=data["interpolate_method"],
             delta_T1_water=odnp_constants["delta_T1_water"],
             T1_water=odnp_constants["T1_water"],
             macro_C=odnp_constants["macro_C"],
-            spin_C=inputs["spin_C"],
-            T10=inputs["T10"],
-            T100=inputs["T100"],
+            spin_C=data["spin_C"],
+            T10=data["T10"],
+            T100=data["T100"],
         )
     else:
-        if len(inputs["T1_array"]) == len(inputs["E_array"]):
-            T1p = inputs["T1_array"]
+        if len(data["T1_array"]) == len(data["E_array"]):
+            T1p = data["T1_array"]
         else:
             raise ValueError(
-                "'T1_array' must be equal in length to 'E_array'. Otherwise give 'T1_powers' equal in length to 'T1_array' to interpolate."
+                "'T1_array' must be equal in length to 'E_array'. Otherwise give 'T1_powers' equal in length to 'T1_array' in order to interpolate."
             )
 
-    ksigma_array = (1 - inputs["E_array"]) / (
-        inputs["spin_C"] * 1e-6 * omega_ratio * T1p
-    )
+    ksigma_array = (1 - data["E_array"]) / (data["spin_C"] * omega_ratio * T1p)
     # (Eq. 41) this calculates the array of ksigma*s(p) from the enhancement array,
     # dividing by the T1 array for the "corrected" analysis
 
     ksigma, ksigma_stdd, ksigma_fit = calculate_ksigma(
-        ksigma_array, inputs["E_powers"], s_max
+        ksigma_array, data["E_powers"], s_max
     )
     # fit to the right side of Eq. 42 to get (ksigma*smax) and half of the E_power at s_max, called p_12 here
 
-    krho = ((1 / inputs["T10"]) - (1 / inputs["T100"])) / (
-        inputs["spin_C"] * 1e-6
+    krho = ((1 / data["T10"]) - (1 / data["T100"])) / (
+        data["spin_C"]
     )  # (Eq. 36) "self" relaxivity, unit is s^-1 M^-1
 
     coupling_factor = ksigma / krho  # coupling factor, unitless
@@ -478,10 +517,10 @@ def odnp(inputs={}, constants={}):
     # Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023.
 
     xi_unc, p_12_unc = calculate_uncorrected_xi(
-        inputs["E_array"],
-        inputs["E_powers"],
-        inputs["T10"],
-        inputs["T100"],
+        data["E_array"],
+        data["E_powers"],
+        data["T10"],
+        data["T100"],
         omega_ratio,
         s_max,
     )
@@ -490,13 +529,13 @@ def odnp(inputs={}, constants={}):
     uncorrected_Ep = calculate_uncorrected_Ep(
         xi_unc,
         p_12_unc,
-        inputs["E_powers"],
-        inputs["T10"],
-        inputs["T100"],
+        data["E_powers"],
+        data["T10"],
+        data["T100"],
         omega_ratio,
         s_max,
     )
-    # (Eqs. 7 and 44) this calculates the "uncorrected" enhnacement array using xi_unc
+    # (Eqs. 7 and 44) this calculates the "uncorrected" enhancement array using xi_unc
 
     return {
         "uncorrected_Ep": uncorrected_Ep,
@@ -516,54 +555,3 @@ def odnp(inputs={}, constants={}):
         "tcorr_bulk_ratio": tcorr / odnp_constants["tcorr_bulk"],
         "Dlocal": Dlocal,
     }
-
-
-def hydration(workspace):
-    """Function for calculating hydration quantities
-
-    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-    http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
-
-    J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
-    https://doi.org/10.1016/bs.mie.2018.09.024
-
-    Args:
-        workspace (dnpdata_collection): workspace or dictionary with 'hydration_inputs', see above
-
-    Returns:
-        results (dict)                : 'hydration_results' dictionary, see above
-
-    Raises:
-        TypeError: If 'hydration_inputs' dictionary is missing
-
-    """
-
-    if "hydration_inputs" in workspace.keys():
-
-        odnp_constants = {
-            "ksigma_bulk": 95.4,
-            "krho_bulk": 353.4,
-            "klow_bulk": 366,
-            "tcorr_bulk": 54,
-            "D_H2O": 2.3e-9,
-            "D_SL": 4.1e-10,
-            "delta_T1_water": False,
-            "T1_water": False,
-            "macro_C": False,
-        }
-
-        if "hydration_constants" in workspace.keys():
-            for ky in odnp_constants.keys():
-                if ky in workspace["hydration_constants"].keys():
-                    odnp_constants[ky] = workspace["hydration_constants"][ky]
-
-        odnp_inputs = workspace["hydration_inputs"]
-
-        results = odnp(odnp_inputs, odnp_constants)
-
-        workspace["hydration_results"] = results
-
-        return results
-
-    else:
-        raise TypeError("the 'hydration_inputs' dictionary is missing!")

@@ -3,8 +3,15 @@ from scipy.io import loadmat
 
 
 def import_power(path, filename=""):
-    """
-    import powers file
+    """import powers file
+
+    Args:
+        path (str): Directory of powers
+        filename (str): filename of powers if given
+
+    Returns:
+        t (numpy.ndarray): Array of time points
+        p (numpy.ndarray): Array of powers
     """
     fullPath = path + filename
 
@@ -26,8 +33,16 @@ def import_power(path, filename=""):
 
 
 def chop_power(t, p, threshold=0.1):
-    """
-    Use Derivative to chop Powers
+    """Use Derivative to chop Powers
+
+    Args:
+        t (numpy.ndarray): Array of time points
+        p (numpy.ndarray): Array of powers
+        threshold (float): Threshold to chop powers
+
+    Returns:
+        averageTimeArray: Array of average time values
+        averagePowerArray: Array of average power values
     """
 
     diffPower = np.diff(p)
@@ -67,9 +82,16 @@ def chop_power(t, p, threshold=0.1):
 
 
 def assign_power(dataDict, expNumList, powersList):
-    """
-    Given a dictionary of dnpData objects with key being folder string,
+    """Given a dictionary of dnpData objects with key being folder string,
     return the data with power values assigned to a new axis dimension
+
+    Args:
+        dataDict (dict): dictionary of data objects
+        expNumList (list): List of experiment numbers
+        powersList (list): List of powers
+
+    Returns:
+        DNPData: Data object with powers
     """
 
     doInitialize = True
