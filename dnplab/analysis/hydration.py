@@ -561,7 +561,6 @@ def hydration(data={}, constants={}):
     }
 
 #### Working on------------------YH-------------------------------------------------
-
 def hydration_analysis(path, save_file = False, show_result = True):
     """
     Perform hydration analysis and return leakage factor, coupling factor, ksigma, krho, etc.
@@ -584,7 +583,7 @@ def hydration_analysis(path, save_file = False, show_result = True):
     for key in check_list:
         if key not in hydration_info:
             raise ValueError('key: %s is missing, please specify the type of radical' % key)
-    radical_concentration = hydration_info['experiment_details']['radical_concentration']
+    radical_concentration = hydration_info['sample_information']['radical_concentration']
     # find t1 fit curve coeffificent and error
     t1_coefficients = t1_fit_coefficients(hydration_info['odnp_ir_coefficients'])
     t1n0 = t1_coefficients.values[:, 1]
@@ -595,12 +594,13 @@ def hydration_analysis(path, save_file = False, show_result = True):
     if 'ir_errors' not in hydration_info:
         hydration_info['ir_errors'] = None
     f = calc_f(hydration_info['t1_coefficients'], hydration_info['ir_coefficients'], hydration_info['ir_errors'])
-    hydration_info['leakage_factor'] = f
+    hydration_info['f'] = f
 
     # calculate ksigma_smax
-    ksig_sp_coefficients, ksig_sp_errors = calc_ksigma_smax(hydration_info['odnp_enhancements'], t1_coefficients, radical_concentration)
+    ksig_sp_coefficients, ksig_sp_errors, ksig_smax = calc_ksigma_smax(hydration_info['odnp_enhancements'], t1_coefficients, radical_concentration)
     hydration_info['ksigma_sp_coefficients'] = ksig_sp_coefficients
     hydration_info['ksigma_sp_errors'] = ksig_sp_errors
+    hydration_info['ksigma_smax'] = ksig_smax
 
     # calculate krho
     krho = calc_krho(t1_coefficients, hydration_info['ir_coefficients'], radical_concentration, hydration_info['ir_errors'])
@@ -611,14 +611,10 @@ def hydration_analysis(path, save_file = False, show_result = True):
     hydration_info['xi_smax'] = xi_smax
 
     # if smax exists
-    if 'smax' in hydration_info['experiment_details']:
-        smax = hydration_info['experiment_details']['smax']
-        xi = xi_smax / smax
-        hydration_info['xi'] = xi
-        ksig_sp_coefficients['popt', 0]/= smax
-        hydration_info['ksig_sp_coefficients'] = ksig_sp_coefficients
-        ksig_sp_errors['err', 0]/= smax
-        hydration_info['ksig_sp_errors'] = ksig_sp_errors
+    if 'smax' in hydration_info['sample_information']:
+        smax = hydration_info['sample_information']['smax']
+        hydration_info['xi'] = xi_smax / smax
+        hydration_info['ksigma'] = ksig_smax / smax
     
     else:
         print('No smax exists')
@@ -630,10 +626,10 @@ def hydration_analysis(path, save_file = False, show_result = True):
 
 def t1_fit_coefficients(data):
     """
-    Fit t1 vs. Power curve and return t1 at the power of 0
+    Fit t1 vs. power curve and return t1 at the power of 0
 
     Args:
-        odnp_ir_coefficients (dnpdata object), includes dims 'popt' and 'Power'
+        odnp_ir_coefficients (dnpdata object), includes dims 'popt' and 'power'
 
     Returns:
         t1_coeffificents (dnpdata object)
@@ -641,23 +637,40 @@ def t1_fit_coefficients(data):
     Methods:
         1d polynomials fitting
     """
-    if 'popt' not in data.dims or 'Power' not in data.dims:
+    if 'popt' not in data.dims or 'power' not in data.dims:
         raise ValueError('The input data is not supported')
     else:
         temp = data.copy()
-        power_array = temp.coords['Power']
-        t1_list = temp.values[0]
-        coeff, cov = np.polyfit(power_array, t1_list, 1, cov = True)
-        coeff = coeff.T
-        coeff_shape = np.shape(coeff)
-        number_of_integrals = coeff_shape[0]
+        power_array = temp.coords['power']
+        t1_list = temp.values[0].T
+        peak_number = 0
+        coeff_list = []
         err_list = []
-        for index, cov_matrix in enumerate(cov):
-            err = np.sqrt(np.diag(cov[:, index]))[index]
+        print(np.shape(t1_list)[0])
+        while peak_number <= np.shape(t1_list)[0] - 1:
+            print(power_array,  t1_list[0])
+            coeff, cov = np.polyfit(power_array, t1_list[peak_number], 1, cov = True)
+            coeff_list.append(coeff[0])
+            err = np.sqrt(np.diag(cov))[0]
             err_list.append([err])
+            peak_number += 1
+    
+        # coeff, cov = np.polyfit(power_array, t1_list.T, 1, cov = True)
+        # coeff_list = coeff_list
+        coeff_shape = np.shape(coeff_list)
+        number_of_integrals = coeff_shape[0]
+        # # err_list = []
+        # if len(np.shape(cov)) == 2: # one peak only
+        #     err = np.sqrt(np.diag(cov))
+        #     err_list = [err]
+            
+        # else: # mutiple peaks
+        #     for index, cov_matrix in enumerate(cov):
+        #         err = np.sqrt(np.diag(cov[:, index]))[index]
+        #         err_list.append([err])
 
-        coeff = np.append(coeff, err_list, axis = 1)
-        coeffficients = DNPData(coeff, dims = ['integrals', 'coefficients'], coords = [[0,1,2]]*number_of_integrals)
+        coeff_total = np.append(coeff_list, err_list, axis = 1)
+        coeffficients = DNPData(coeff_total, dims = ['integrals', 'coefficients'], coords = [[0,1,2]]*number_of_integrals)
         coeffficients.attrs = temp.attrs
         coeffficients.attrs['hydration_name'] = 't1_vs_power_coefficients'
     return coeffficients
@@ -731,10 +744,10 @@ def calc_ksigma_smax(odnp_enhancements_data, t1_coefficients_data, radical_conce
     for index in temp.coords['integrals']:
         fit_coefficients = t1_coefficients.values[index][0:2]
         t1_func = np.poly1d(fit_coefficients)
-        temp.values[:, index] /= t1_func(temp.coords['Power'])
+        temp.values[:, index] /= t1_func(temp.coords['power'])
 
     ksig_sp = temp / (radical_concentration * 659.33)
-    out = fit(relaxation.ksigma_smax, ksig_sp, dim = 'Power', p0 = (35, 0))
+    out = fit(relaxation.ksigma_smax, ksig_sp, dim = 'power', p0 = (35, 0))
     _fit = out['fit']
     ksig_sp_coefficients = out['popt'].copy()
     ksig_sp_coefficients.attrs = _fit.attrs
@@ -743,8 +756,13 @@ def calc_ksigma_smax(odnp_enhancements_data, t1_coefficients_data, radical_conce
     ksig_sp_errors.attrs = _fit.attrs
     ksig_sp_errors.rename('popt', 'err')
     ksig_sp_errors.attrs['hydration_name'] = 'ksigma_sp_errors'
+
+    ksig_smax_list = [[x, x_err] for x, x_err in zip(ksig_sp_coefficients.values[0], ksig_sp_errors.values[0])]
+    ksig_smax_shape = np.shape(ksig_smax_list)[0]
+
+    ksig_smax = DNPData(ksig_smax_list, dims = ['integrals', 'ksigma_smax'], coords = [[0,1]]*ksig_smax_shape)
     
-    return ksig_sp_coefficients, ksig_sp_errors
+    return ksig_sp_coefficients, ksig_sp_errors, ksig_smax
 
 def calc_krho(t1_coefficients_data, ir_coefficients_data, radical_concentration, ir_errors_data = None):
     """
