@@ -159,4 +159,4 @@ hydration_info['experiment_details'] = {'radical_concentration': 1e-3, 'sample':
 
 # %%
 # Saving h5 file
-# dnp.save('../../data/prospa/1mM_TEMPO_Water/h5/hydration_info.h5', overwrite = True)
+dnp.save(hydration_info, '../../data/prospa/1mM_TEMPO_Water/h5/hydration_info.h5', overwrite = True)
