@@ -40,6 +40,9 @@ def fourier_transform(
     Examples:
         Example for constructing a DNPData object and performing Fourier transform
 
+        >>> import numpy as np
+        >>> from matplotlib.scipy import *
+        >>> import dnplab as dnp
         >>> x = np.r_[0:1:2048j]
         >>> y = np.exp(1j*2*np.pi*300*x) * np.exp(-5*x)
         >>> data = dnp.DNPData(y, ['t2'], [x])
