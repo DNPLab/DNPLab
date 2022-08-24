@@ -19,7 +19,6 @@ This example demonstrates how to use the hydration module to analyze ODNP data.
 # -------
 import dnplab
 import numpy as np
-import matplotlib.pyplot as plt
 
 # %%
 # Example Data
@@ -182,16 +181,11 @@ results_contents = {
 
 # %%
 # Plot the ``'ksigma_array'`` and ``'ksigma_fit'``, for example.
+results.plot("ksigma")
 
-plt.figure()
-plt.plot(data["E_powers"], results["ksigma_array"], "o", label="Data")
-plt.plot(data["E_powers"], results["ksigma_fit"], label="Fit")
-plt.grid()
-plt.xlabel("microwave power")
-plt.ylabel("$\kappa_\sigma$")
-plt.title("$\kappa_\sigma$ vs. microwave power")
-plt.legend()
-plt.show()
+# %%
+# Return dictionary of results.
+dict_result = results.to_dict("results")
 
 # %%
 # Note: for a MATLAB app that includes an interactive parameter tuning tool - where the effects of parameters on the
