@@ -624,40 +624,6 @@ def hydration_analysis(path, save_file = False, show_result = True):
 
     return hydration_info
 
-# def t1_fit_coefficients(data):
-#     """
-#     Fit t1 vs. power curve and return t1 at the power of 0
-
-#     Args:
-#         odnp_ir_coefficients (dnpdata object), includes dims 'popt' and 'power'
-
-#     Returns:
-#         t1_coeffificents (dnpdata object)
-
-#     Methods:
-#         1d polynomials fitting
-#     """
-#     if 'popt' not in data.dims or 'power' not in data.dims:
-#         raise ValueError('The input data is not supported')
-#     else:
-#         temp = data.copy()
-#         power_array = temp.coords['power']
-#         t1_list = temp.values[0]
-#         coeff, cov = np.polyfit(power_array, t1_list, 1, cov = True)
-#         coeff = coeff.T
-#         coeff_shape = np.shape(coeff)
-#         number_of_integrals = coeff_shape[0]
-#         err_list = []
-#         for index, cov_matrix in enumerate(cov):
-#             err = np.sqrt(np.diag(cov[:, index]))[index]
-#             err_list.append([err])
-
-#         coeff = np.append(coeff, err_list, axis = 1)
-#         coeffficients = DNPData(coeff, dims = ['integrals', 'coefficients'], coords = [[0,1,2]]*number_of_integrals)
-#         coeffficients.attrs = temp.attrs
-#         coeffficients.attrs['hydration_name'] = 't1_vs_power_coefficients'
-#     return coeffficients
-
 def t1_fit_coefficients(data):
     """
     Fit t1 vs. power curve and return t1 at the power of 0
@@ -691,20 +657,8 @@ def t1_fit_coefficients(data):
             
             peak_number += 1
     
-        # coeff, cov = np.polyfit(power_array, t1_list.T, 1, cov = True)
-        # coeff_list = coeff_list
         coeff_shape = np.shape(coeff_total)
         number_of_integrals = coeff_shape[0]
-        # # err_list = []
-        # if len(np.shape(cov)) == 2: # one peak only
-        #     err = np.sqrt(np.diag(cov))
-        #     err_list = [err]
-            
-        # else: # mutiple peaks
-        #     for index, cov_matrix in enumerate(cov):
-        #         err = np.sqrt(np.diag(cov[:, index]))[index]
-        #         err_list.append([err])
-        # coeff_total = np.append(coeff_list, err_list, axis = 0)
         coeffficients = DNPData(coeff_total, dims = ['integrals', 'coefficients'], coords = [[0,1,2]]*number_of_integrals)
         coeffficients.attrs = temp.attrs
         coeffficients.attrs['hydration_name'] = 't1_vs_power_coefficients'
