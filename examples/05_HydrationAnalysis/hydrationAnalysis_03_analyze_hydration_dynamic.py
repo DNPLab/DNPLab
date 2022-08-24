@@ -42,5 +42,10 @@ sampleTag = '1 mM TEMPO in Water'
 
 # %%
 # Hydration Analysis
+# After you have all required DNPData objects in h5 file, the following function will analyze the data and return the hydration results
+# The updating to h5 file is not on by default
+# If you want to save the hydration analysis results to h5 file, make save_file True
 
 hydration_results = dnp.analysis.hydration.hydration_analysis('../../data/prospa/1mM_TEMPO_Water/h5/hydration_info.h5', save_file = False) # The function can read the h5 file and output the hydration analysis results
+
+# The hydration results will be shown automatically.
