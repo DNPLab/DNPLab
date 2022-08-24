@@ -613,8 +613,10 @@ def hydration_analysis(path, save_file = False, show_result = True):
     # if smax exists
     if 'smax' in hydration_info['sample_information']:
         smax = hydration_info['sample_information']['smax']
-        hydration_info['xi'] = xi_smax / smax
-        hydration_info['ksigma'] = ksig_smax / smax
+        xi = xi_smax / smax
+        hydration_info['xi'] = xi
+        ksig = ksig_smax / smax
+        hydration_info['ksigma'] = ksig
     
     else:
         print('No smax exists')
@@ -622,6 +624,21 @@ def hydration_analysis(path, save_file = False, show_result = True):
     if save_file == True: 
         save(hydration_info, path, overwrite = True)
 
+    if show_result == True:
+        for index, integrals in enumerate(hydration_info['odnp_enhancements'].coords['integrals']):
+            peak_number = index + 1
+            print('Peak NO.%i:' %peak_number)
+            print('T1 at 0 dBm: %0.03f +/- %0.03f s' %(t1n0[index], t1n0_err[index]))
+            print('Leakage Factor: %0.03f +/- %0.03f' %(f.values[index][0], f.values[index][1]))
+            print('ksigma_smax: %0.03f +/- %0.03f' %(ksig_smax.values[index][0], ksig_smax.values[index][1]))
+            if 'smax' in hydration_info['sample_information']:
+                print('ksigma: %0.03f +/- %0.03f' %(ksig.values[index][0], ksig.values[index][1]))
+            print('krho: %0.03f +/- %0.03f' %(krho.values[index][0], krho.values[index][1]))
+            print('Coupling Factor * smax: %0.03f +/- %0.03f' %(xi_smax.values[index][0], xi_smax.values[index][1]))
+            if 'smax' in hydration_info['sample_information']:
+                print('Coupling Factor: %0.03f +/- %0.03f' %(xi.values[index][0], xi.values[index][1]))
+            print('')
+            
     return hydration_info
 
 def t1_fit_coefficients(data):
