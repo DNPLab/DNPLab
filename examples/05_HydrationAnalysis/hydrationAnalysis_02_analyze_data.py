@@ -43,7 +43,7 @@ hydration_info = dnp.load('../../data/prospa/1mM_TEMPO_Water/h5/hydration_info.h
 # Analyze ODNP_enhanced NMR Spectra
 
 enh_data = hydration_info['odnp_proc'] # access the processed ODNP_enhanced NMR spectra
-enhancements = dnp.integrate(enh_data, dim = 'f2', regions = [(4.4, 4.8)]) # integrate spectra
+enhancements = dnp.integrate(enh_data, dim = 'f2', regions = [(2.0, 8.0)]) # integrate spectra
 enhancements.values /= enhancements.values[0] # Normalize the first enhancement to 1
 hydration_info['odnp_enhancements'] = enhancements # store enhancements in dictionary
 enh_out = dnp.fit(dnp.relaxation.buildup_function, enhancements, dim = 'power', p0 = (-40, 0.5)) # calculate the coefficients for enhancements fitting curve
@@ -71,7 +71,7 @@ dnp.plt.show()
 # Analyze ODNP_enhanced T1 Inversion Recovery Spectra
 
 t1_data = hydration_info['odnp_ir_proc'] # access the processed T1 Inversion Recovery spectra
-t1_integrals = dnp.integrate(t1_data, dim = 'f2', regions = [(4.4, 4.8)]) # integrate spectra
+t1_integrals = dnp.integrate(t1_data, dim = 'f2', regions = [(2.0, 8.0)]) # integrate spectra
 t1_integrals.values /= t1_integrals.values[-1] # Normalize the last integrals to 1
 hydration_info['t1_integrals'] = t1_integrals # store t1 integrals in dictionary
 t1_out = dnp.fit(dnp.relaxation.t1, t1_integrals, dim = 't1', p0 = (2, -1.5, 1)) # calculate the coefficients for building inversion recovery curve
@@ -98,7 +98,7 @@ dnp.plt.show()
 # Analyze T1 Inversion Recovery Spectra (No Radical)
 
 t10_data = hydration_info['ir_proc'] # access the processed T1 Inversion Recovery spectra
-t10_integrals = dnp.integrate(t10_data, dim = 'f2', regions = [(4.4, 4.8)]) # integrate spectra
+t10_integrals = dnp.integrate(t10_data, dim = 'f2', regions = [(2.0, 8.0)]) # integrate spectra
 t10_integrals.values /= t10_integrals.values[-1] # Normalize the last integrals to 1
 hydration_info['t10_integrals'] = t10_integrals # store t10 integrals in dictionary
 t10_out = dnp.fit(dnp.relaxation.t1, t10_integrals, dim = 't1', p0 = (2, -1.5, 1)) # calculate the coefficients for building inversion recovery curve

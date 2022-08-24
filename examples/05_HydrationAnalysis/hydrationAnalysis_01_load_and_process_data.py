@@ -155,7 +155,7 @@ dnp.plt.show()
 # To perform hydration analysis, radical concentration (M) is required in h5 file
 # Other experiment details are recommended added to the dictionary
 
-hydration_info['sample_information'] = {'radical_concentration': 1e-3, 'smax': 0.33, 'sample': '1 mM TEMPOL in MeCN/water, chi = 0.25'}
+hydration_info['sample_information'] = {'radical_concentration': 1e-3, 'smax': 0.39, 'sample': '1 mM TEMPOL in MeCN/water, chi = 0.25'}
 
 # %%
 # Saving h5 file
