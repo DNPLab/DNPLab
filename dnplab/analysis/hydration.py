@@ -5,7 +5,7 @@ import warnings
 
 
 class hydration:
-    """Function for performing ODNP calculations
+    """Class for performing ODNP calculations and plotting results
 
     Args:
         data (dict)                   : keys and values are described in the example
@@ -29,30 +29,49 @@ class hydration:
         for key, val in analysis.items():
             setattr(self, key, val)
 
-    def to_dict(self, which="results"):
+    def to_dict(self, which="calculations"):
+        r"""Return dictionary of data, constants, or calculations.
+
+        Args:
+            which (str): which collection to return, i.e. "data", "constants", or "calculations"
+
+        Returns:
+            (dict)     : dictionary of data, constants, or calculations
+
+        """
 
         if which == "data":
             return self.data
         elif which == "constants":
             return self.constants
-        elif which == "results":
+        elif which == "calculations":
             return {
                 key: val
                 for key, val in self.__dict__.items()
                 if key not in ["data", "constants"]
             }
 
-    def plot(self, key="ksigma"):
+    def plot(self, key="ksigma_fit"):
+        r"""Plot calculations or data.
+
+        Args:
+            key (str): key of data or calculation to plot
+
+        Returns:
+            raises plot
+
+        """
 
         plt.figure()
-        if key == "ksigma":
+        if key in ["ksigma_array", "ksigma_fit"]:
             plt.plot(self.data["E_powers"], self.ksigma_array, "o", label="Data")
             plt.plot(self.data["E_powers"], self.ksigma_fit, label="Fit")
             plt.xlabel("microwave power")
             plt.ylabel("$\kappa_\sigma$")
             plt.title("$\kappa_\sigma$ vs. microwave power")
-        elif key == "enhancement":
+        elif key in ["E_array", "uncorrected_Ep"]:
             plt.plot(self.data["E_powers"], self.data["E_array"], "o", label="Data")
+            plt.plot(self.data["E_powers"], self.uncorrected_Ep, label="E(p) Fit")
             plt.xlabel("microwave power")
             plt.ylabel("enhancement")
             plt.title("enhancement vs. microwave power")

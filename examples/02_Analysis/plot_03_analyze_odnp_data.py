@@ -159,7 +159,7 @@ results = dnplab.hydration(data)
 # %%
 # The contents of the calculated results are as follows,
 
-results_contents = {
+results_calculations_contents = {
     "uncorrected_Ep": np.array,  # fit to enhancement profile using the "uncorrected model" (unitless)
     "uncorrected_xi": float,  # coupling factor calculated from the "uncorrected" fit (unitless)
     "interpolated_T1": np.array,  # array of T1s obtained from interpolation (s)
@@ -181,11 +181,15 @@ results_contents = {
 
 # %%
 # Plot the ``'ksigma_array'`` and ``'ksigma_fit'``, for example.
-results.plot("ksigma")
+results.plot("ksigma_fit")
 
 # %%
-# Return dictionary of results.
-dict_result = results.to_dict("results")
+# Return dictionary of calculations.
+dict_of_calculations = results.to_dict("calculations")
+
+# %%
+# Return dictionary of constants used in calculations.
+dict_of_constants = results.to_dict("constants")
 
 # %%
 # Note: for a MATLAB app that includes an interactive parameter tuning tool - where the effects of parameters on the
