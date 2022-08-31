@@ -571,7 +571,7 @@ def hydration_analysis(path, save_file = False, show_result = True):
         print (binary): True for print hydration analysis results
 
     Returns:
-        (dict): the hydration analysis result
+        hydration_info(dict): DNPData objects and hydration analysis results (dict)
 
     ..Math::
         see examples of each hydration function 
@@ -593,8 +593,8 @@ def hydration_analysis(path, save_file = False, show_result = True):
     
     # find t1 fit curve coeffificent and error
     t1_coeff, t1_coeff_err = t1_fit_coefficients(hydration_info['odnp_ir_coefficients'])
-    t1n0 = t1_coeff[:,0][:]
-    t1n0_err = t1_coeff_err[:,0][:]
+    t1n0 = t1_coeff[:,1][:]
+    t1n0_err = t1_coeff_err[:,1][:]
     hydration_results['t1_coefficients'] = t1_coeff
     hydration_results['t1_coefficients_errors'] = t1_coeff_err
     hydration_results['t1n0'] = t1n0
@@ -654,6 +654,8 @@ def hydration_analysis(path, save_file = False, show_result = True):
             if 'smax' in hydration_info['sample_information']:
                 print('Coupling Factor: %0.03f +/- %0.03f' %(xi[index], xi_err[index]))
             print('')
+    
+    hydration_info['hydration_results'] = hydration_results
             
     return hydration_info
 
@@ -699,12 +701,13 @@ def calc_f(t1n0, t10n, t1n0_err = None, t10n_err = None):
 
     Args:
         t1n0: (numpy array) t1 at the power of 0
+        t10n: (numpy array) t10 (no radical)
         t1n0_err: (numpy array) the error of t1 at the power of 0
-        ir_coefficients_data: (dnpdata object), t10 
-        ir_errors_data: (dnpdata object), t10 error
+        t10n_err: (numpy array) errors of t10 (no radical)
+        
     Returns:
         f: (numpy array), leakage factor
-        f_err: (numpy array), leakage factor err
+        f_err: (numpy array), leakage factor errors
 
     ..math::
         f = t1n0 / t10n
@@ -717,7 +720,7 @@ def calc_f(t1n0, t10n, t1n0_err = None, t10n_err = None):
 
     """
 
-    if t1n0_err:
+    if t1n0_err == None:
         t1n0_err = np.zeros(np.size(t1n0))
         print('t1n0 does not have errors, assigning 0 to all errors')
         
@@ -781,12 +784,15 @@ def calc_krho(t1n0, t10n, radical_concentration, t1n0_err = None, t10n_err = Non
     Calculating k rho and its error
 
     Args:
-        t1_cofficients_data (dnpdata object), includes t1 at the power of 0 and its error
-        ir_coefficients_data (dnpdata object), includes t10 and its error
+        t1n0: (numpy array) t1 at the power of 0
+        t10n: (numpy array) t10 (no radical)
         radical_concentration (float): radical concentration, unit M
+        t1n0_err: (numpy array) the error of t1 at the power of 0
+        t10n_err: (numpy array) errors of t10 (no radical)
 
     Returns:
-        krho (dnpdata object)
+        krho: (numpy array): krho
+        krho_err: (numpy array): errors of krho
 
     ..math::
         krho = (t1n0 ^ -1 - t10n ^ -1) / radical_conc
@@ -802,7 +808,7 @@ def calc_krho(t1n0, t10n, radical_concentration, t1n0_err = None, t10n_err = Non
 
     c = radical_concentration
 
-    if t1n0_err:
+    if t1n0_err == None:
         t1n0_err = np.zeros(np.size(t1n0))
         print('t1n0 does not have errors, assigning 0 to all errors')
         
@@ -820,12 +826,14 @@ def calc_xi_smax(ksig_smax, krho, ksig_smax_err, krho_err):
     Calculating xi smax and its error
 
     Args:
-        ksigma_sp_coefficients_data (dnpdata object), includes ksigma_smax
-        ksigma_sp_errors_data (dnpdata object), includes ksigma_smax error
-        krho_data (dnpdata object): includes krho and its error
+        ksig_smax_array: (numpy array) ksigma*smax
+        krho: (numpy array): krho
+        ksig_smax_err_array: (numpy array) the errors of ksigma*smax
+        krho_err: (numpy array): errors of krho
 
     Returns:
-        xi_smax (dnpdata object)
+        xi_smax: (numpy array) coupling factor
+        xi_smax_err: (numpy array): coupling factor errors
 
     ..math::
 
@@ -837,8 +845,8 @@ def calc_xi_smax(ksig_smax, krho, ksig_smax_err, krho_err):
         [2] Wikipedia: 'Propagation of uncertainty'
         https://en.wikipedia.org/wiki/Propagation_of_uncertainty
     """
-
     
     xi_smax = [x/y for x,y in zip(ksig_smax, krho)]
     xi_smax_err = [x/y * np.sqrt((x_err/x)**2 + (y_err/y)**2) for x, x_err, y, y_err in zip(ksig_smax, ksig_smax_err, krho, krho_err)]
+    
     return np.array(xi_smax), np.array(xi_smax_err)
