@@ -28,6 +28,7 @@ The analysis results are DNPData objects and stored as a dictionary saved in a h
 
 # %%
 # First you need to prepare the Python environment by importing DNPLab. In this example we also have to imp, also numpy is imported. However, this is only necessary if you would like to access numpy functions and procedures directly.
+from random import sample
 import dnplab as dnp
 import numpy as np
 
@@ -37,7 +38,7 @@ sampleTag = '1 mM TEMPO in Water'
 # %%
 # Load h5 file and assign the dictionary to 'hydration_info'
 
-hydration_info = dnp.load('../../data/prospa/1mM_TEMPO_Water/h5/hydration_info.h5')
+hydration_info = dnp.load('../../data/h5/1mM_TEMPO_water_hydration_info.h5')
 
 # %%
 # Analyze ODNP_enhanced NMR Spectra
@@ -56,15 +57,15 @@ hydration_info['odnp_fit_errors'] = enh_errors # store errors in a dictionary
 # %%
 # Plot Enhancements vs. Microwave Power
 
-dnp.plt.figure()
-# dnp.fancy_plot(enh_fit, title = sampleTag)
+dnp.plt.figure('Enhancements vs. Power')
 dnp.plot(enhancements, ls = 'none', marker = 'o', color = '#F37021')
 dnp.plot(enh_fit, ls = '-', color = '#F37021', label = '$E_{max}$ = %0.03f +/- %0.03f' %(enh_coefficients.values[0], enh_errors.values[0]))
 dnp.plt.xlabel('Power (W)')
 dnp.plt.ylabel('Enhancements (a.u.)')
-dnp.plt.title('Enhancements vs. Power')
+dnp.plt.title('Enhancements vs. Power\n' + sampleTag)
 dnp.plt.grid(':')
 dnp.plt.legend()
+dnp.plt.tight_layout()
 dnp.plt.show()
 
 # %%
@@ -84,14 +85,15 @@ hydration_info['odnp_ir_errors'] = t1_errors # store errors in a dictionary
 # Plot T1 Inversion Recovery at Different Microwave Power
 
 for m, p in enumerate(t1_data.coords['power']):
-    dnp.plt.figure('Inversion Recovery, MW = %0.01f W' %p)
+    dnp.plt.figure('T1 Inversion Recovery, MW = %0.01f W' %p)
     dnp.plot(t1_integrals['power', m], ls = 'none', marker = 'o', color = '#F37021')
     dnp.plot(t1_fit['power', m], ls = '-', color = '#F37021', label = '$T_1$ = %0.03f +/- %0.03f s' %(t1_coefficients.values[0,m], t1_errors.values[0,m]))
     dnp.plt.xlabel('Time (s)')
     dnp.plt.ylabel('Signal (a.u.)')
-    dnp.plt.title('Inversion Recovery\nMW = %0.01f W' %p)
+    dnp.plt.title('T1 Inversion Recovery\nMW = %0.01f W\n%s' %(p,sampleTag))
     dnp.plt.grid(':')
     dnp.plt.legend()
+    dnp.plt.tight_layout()
 dnp.plt.show()
 
 # %%
@@ -111,16 +113,17 @@ hydration_info['ir_errors'] = t10_errors # store errors in a dictionary
 # %%
 # Plot T1 Inversion Recovery (No Radical)
 
-dnp.plt.figure()
+dnp.plt.figure('T10 Inversion Recovery')
 dnp.plot(t10_integrals, ls = 'none', marker = 'o', color = '#F37021')
 dnp.plot(t10_fit, ls = '-', color = '#F37021', label = '$T_1$ = %0.03f +/- %0.03f s' %(t10_coefficients.values[0], t10_errors.values[0]))
 dnp.plt.xlabel('Time (s)')
 dnp.plt.ylabel('Signal (a.u.)')
-dnp.plt.title('Inversion Recovery (No Radical)')
+dnp.plt.title('T10 Inversion Recovery')
 dnp.plt.grid(':')
 dnp.plt.legend()
+dnp.plt.tight_layout()
 dnp.plt.show()
 
 # %%
 # Saving h5 file
-dnp.save(hydration_info, '../../data/prospa/1mM_TEMPO_Water/h5/hydration_info.h5', overwrite = True)
+dnp.save(hydration_info, '../../data/h5/1mM_TEMPO_water_hydration_info.h5', overwrite = True)

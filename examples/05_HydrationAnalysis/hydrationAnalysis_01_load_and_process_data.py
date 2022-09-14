@@ -73,8 +73,9 @@ hydration_info['odnp_proc'] = enh_data # store processed dataset in dictionary
 # Plot processed ODNP_enhanced NMR Spectra
 
 enh_data.attrs['experiment_type'] = 'nmr_spectrum'
-dnp.plt.figure()
-dnp.fancy_plot(enh_data, xlim = [20, -10], title = sampleTag)
+dnp.plt.figure('ODNP_enhanced NMR Spectra')
+dnp.fancy_plot(enh_data, xlim = [20, -10], title = 'ODNP_enhanced NMR Spectra\n' + sampleTag)
+dnp.plt.tight_layout()
 dnp.plt.show()
 
 # %%
@@ -92,6 +93,7 @@ t1_power = np.r_[27., 30., 31.8] # dBm
 t1_power_w = 10.**(t1_power/10.)/1000. # W
 
 t1_data = dnp.load(t1_file, dim = 'power', coord = t1_power_w) # load raw data and create 'power' dimension
+hydration_info['odnp_ir_raw'] = t1_data # store raw data in dictionary
 t1_data = dnp.apodize(t1_data, dim = 't2', lw = 4.) # you can change apodize method and linewidth if necessary
 t1_data = dnp.fourier_transform(t1_data, dim = 't2') # fourier_transform
 t1_data = dnp.phase_cycle(t1_data, dim = 'Average', receiver_phase = [0,1,2,3]) # phase_cycle for Prospa dataset
@@ -112,14 +114,14 @@ hydration_info['odnp_ir_proc'] = t1_data # store processed dataset in dictionary
 # Plot processed ODNP_enhanced T1 Inversion Recovery Spectra
 
 for m, p in enumerate(t1_power_w):
-    dnp.plt.figure('Processing Result, MW = %0.01f' %p)
+    dnp.plt.figure('ODNP_enhanced T1 Inversion Recovery, MW = %0.01f' %p)
     dnp.plot(t1_data['power', m])
     dnp.plt.xlabel('Chemical Shift (ppm)')
     dnp.plt.ylabel('Signal (a.u.)')
-    dnp.plt.title('Results\nMW = %0.01f W' %p)
+    dnp.plt.title('ODNP Enhanced T1 Inversion Recovery\nMW = %0.01f W\n%s' %(p, sampleTag))
     dnp.plt.xlim(20.,-10.)
     dnp.plt.grid(':')
-    dnp.plt.title(sampleTag)
+    dnp.plt.tight_layout()
 dnp.plt.show()
 
 # %% 
@@ -129,6 +131,7 @@ dnp.plt.show()
 
 t10_file = '../../data/prospa/1mM_TEMPO_Water/T1-IR-FID_no_radical_20220429/1/data.3d' # path to file data.3d file directly
 t10_data = dnp.load(t10_file, dim = 'power', coord = t1_power_w) # load raw data and create 'power' dimension
+hydration_info['ir_raw'] = t10_data # store raw data in dictionary
 t10_data = dnp.apodize(t10_data, dim = 't2', lw = 4.) # you can change apodize method and linewidth if necessary
 t10_data = dnp.fourier_transform(t10_data, dim = 't2') # fourier_transform
 t10_data = dnp.phase_cycle(t10_data, dim = 'Average', receiver_phase = [0,1,2,3]) # phase_cycle for Prospa dataset
@@ -147,16 +150,17 @@ hydration_info['ir_proc'] = t10_data # store processed dataset in dictionary
 # %%
 # Plot processed T1 Inversion Recovery Spectrum
 t10_data.attrs['experiment_type'] = 'nmr_spectrum'
-dnp.plt.figure()
-dnp.fancy_plot(t10_data, xlim = [20, -10], title = sampleTag)
+dnp.plt.figure('T1 Inversion Recovery Spectrum')
+dnp.fancy_plot(t10_data, xlim = [20, -10], title = 'T10 Inversion Recovery Spectrum')
+dnp.plt.tight_layout()
 dnp.plt.show()
 
 # %% 
 # To perform hydration analysis, radical concentration (M) is required in h5 file
 # Other experiment details are recommended added to the dictionary
 
-hydration_info['sample_information'] = {'radical_concentration': 1e-3, 'smax': 0.39, 'sample': '1 mM TEMPOL in MeCN/water, chi = 0.25'}
+hydration_info['sample_information'] = {'radical_concentration': 1e-3, 'smax': 0.39, 'sample': '1 mM TEMPOL in water'}
 
 # %%
 # Saving h5 file
-dnp.save(hydration_info, '../../data/prospa/1mM_TEMPO_Water/h5/hydration_info.h5', overwrite = True)
+dnp.save(hydration_info, '../../data/h5/1mM_TEMPO_water_hydration_info.h5', overwrite = True)
