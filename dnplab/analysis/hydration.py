@@ -580,7 +580,7 @@ def hydration_analysis(path, save_file = False, show_result = True):
     hydration_info = load(path)
     hydration_results = {}
 
-    check_list = ['odnp_enhancements', 'odnp_fit_coefficients', 'odnp_ir_coefficients', 'ir_coefficients']
+    check_list = ['odnp_enhancements', 'odnp_fit_coefficients', 'odnp_ir_coefficients']
     for key in check_list:
         if key not in hydration_info:
             raise ValueError('key: %s is missing, please specify the type of radical' % key)
@@ -600,11 +600,6 @@ def hydration_analysis(path, save_file = False, show_result = True):
     hydration_results['t1n0'] = t1n0
     hydration_results['t1n0_errors'] = t1n0_err
 
-    # calcualte coupling factor f
-    f, f_err = calc_f(t1n0, t10n, t1n0_err, t10n_err)
-    hydration_results['leakage_factors'] = f
-    hydration_results['leakage_factor_errors'] = f_err
-
     # calculate ksigma_smax
     ksig_sp_coefficients, ksig_sp_errors, ksig_smax, ksig_smax_err = calc_ksigma_smax(hydration_info['odnp_enhancements'], t1_coeff, radical_concentration)
     hydration_info['ksigma_sp_coefficients'] = ksig_sp_coefficients
@@ -612,33 +607,39 @@ def hydration_analysis(path, save_file = False, show_result = True):
     hydration_results['ksigma_smax'] = ksig_smax
     hydration_results['ksigma_smax_errors'] = ksig_smax_err
 
-    # calculate krho
-    krho, krho_err = calc_krho(t1n0, t10n, radical_concentration, t1n0_err, t10n_err)
-    hydration_results['krho'] = krho
-    hydration_results['krho_errors'] = krho_err
-
-    # calculate xi_smax
-    xi_smax, xi_smax_err = calc_xi_smax(ksig_smax, krho, ksig_smax_err, krho_err)
-    hydration_results['coupling_factor_smax'] = xi_smax
-    hydration_results['coupling_factor_smax_errors'] = xi_smax_err
-
-    # if smax exists
-    if 'smax' in hydration_info['sample_information']:
-        smax = hydration_info['sample_information']['smax']
-        xi = xi_smax / smax
-        xi_err = xi_smax_err / smax
-        hydration_results['coupling_factor'] = xi
-        hydration_results['coupling_factor_errors'] = xi_err
-        ksig = ksig_smax / smax
-        ksig_err = ksig_smax_err / smax
-        hydration_results['ksigma'] = ksig
-        hydration_results['ksigma_errors'] = ksig_err
+    if 'ir_coefficients' not in hydration_info:
+        print('For leakage factor, krho and coupling factor calculation, please define t10 data in the dictionary')
     
     else:
-        print('No smax exists')
-    
-    if save_file == True: 
-        save(hydration_info, path, overwrite = True)
+        # calcualte coupling factor f
+        f, f_err = calc_f(t1n0, t10n, t1n0_err, t10n_err)
+        hydration_results['leakage_factors'] = f
+        hydration_results['leakage_factor_errors'] = f_err
+
+        # calculate krho
+        krho, krho_err = calc_krho(t1n0, t10n, radical_concentration, t1n0_err, t10n_err)
+        hydration_results['krho'] = krho
+        hydration_results['krho_errors'] = krho_err
+
+        # calculate xi_smax
+        xi_smax, xi_smax_err = calc_xi_smax(ksig_smax, krho, ksig_smax_err, krho_err)
+        hydration_results['coupling_factor_smax'] = xi_smax
+        hydration_results['coupling_factor_smax_errors'] = xi_smax_err
+
+        # if smax exists
+        if 'smax' in hydration_info['sample_information']:
+            smax = hydration_info['sample_information']['smax']
+            xi = xi_smax / smax
+            xi_err = xi_smax_err / smax
+            hydration_results['coupling_factor'] = xi
+            hydration_results['coupling_factor_errors'] = xi_err
+            ksig = ksig_smax / smax
+            ksig_err = ksig_smax_err / smax
+            hydration_results['ksigma'] = ksig
+            hydration_results['ksigma_errors'] = ksig_err
+        
+        else:
+            print('No smax exists')
 
     if show_result == True:
         for index, integrals in enumerate(hydration_info['odnp_enhancements'].coords['integrals']):
@@ -654,9 +655,12 @@ def hydration_analysis(path, save_file = False, show_result = True):
             if 'smax' in hydration_info['sample_information']:
                 print('Coupling Factor: %0.03f +/- %0.03f' %(xi[index], xi_err[index]))
             print('')
-    
+
     hydration_info['hydration_results'] = hydration_results
-            
+
+    if save_file == True: 
+        save(hydration_info, path, overwrite = True)
+                    
     return hydration_info
 
 def t1_fit_coefficients(data):
