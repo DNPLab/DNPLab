@@ -36,21 +36,21 @@ sampleTag = '1 mM TEMPO in Water'
 # In this example we use 1D NMR spectra acquired using Prospa. Example data is located in the data folder. 
 
 enh_file = [
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/1/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/2/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/3/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/4/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/5/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/6/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/7/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/8/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/9/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/10/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/11/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/12/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/13/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/14/data.2d',
-    '../../data/prospa/1mM_TEMPO_Water/1Pulse_20220516/15/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/1/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/2/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/3/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/4/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/5/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/6/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/7/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/8/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/9/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/10/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/11/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/12/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/13/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/14/data.2d',
+    '../../data/prospa/1mM_TEMPO_Water/1Pulse/15/data.2d',
 ]
 
 # Microwave Power for this sub_dataset
@@ -59,13 +59,13 @@ enh_power_w = 10.**(enh_power/10.)/1000. # W
 
 enh_data = dnp.load(enh_file, dim = 'power', coord = enh_power_w) # load raw data and create 'power' dimension
 hydration_info['odnp_raw'] = enh_data # store raw data in dictionary
-enh_data = dnp.apodize(enh_data, dim = 't2', lw = 4.) # you can change apodize method and linewidth if necessary
+enh_data = dnp.apodize(enh_data, dim = 't2', lw = 20.) # you can change apodize method and linewidth if necessary
 enh_data = dnp.fourier_transform(enh_data, dim = 't2') # fourier_transform
 enh_data = dnp.phase_cycle(enh_data, dim = 'Average', receiver_phase = [0,1,2,3]) # phase_cycle for Prospa dataset
 enh_data = dnp.ndalign(enh_data) # aligning spectra using correlation method
 enh_data = dnp.autophase(enh_data) # auto phase the spectra so that the signal is negative maximum
 
-enh_data = enh_data.sum('Average')/16. # averaging the 'Average' dimension
+enh_data = enh_data.sum('Average')/4. # averaging the 'Average' dimension
 enh_data.coords['f2'] -= enh_data.abs.argmax('f2').values[0] - 4.6 # moving the the maximum spectra to water's chemical reference 4.6 ppm
 hydration_info['odnp_proc'] = enh_data # store processed dataset in dictionary
 
@@ -83,9 +83,9 @@ dnp.plt.show()
 # --------------------------------------------------
 # The processing steps are similar with that of ODNP-enhanced NMR Experiment Data
 t1_file = [
-    '../../data/prospa/1mM_TEMPO_Water/T1-IR-FID_20220516/1/data.3d',
-    '../../data/prospa/1mM_TEMPO_Water/T1-IR-FID_20220516/2/data.3d',
-    '../../data/prospa/1mM_TEMPO_Water/T1-IR-FID_20220516/3/data.3d',
+    '../../data/prospa/1mM_TEMPO_Water/T1-IR-FID/1/data.3d',
+    '../../data/prospa/1mM_TEMPO_Water/T1-IR-FID/2/data.3d',
+    '../../data/prospa/1mM_TEMPO_Water/T1-IR-FID/3/data.3d',
 ]
 
 # Microwave Power for T1 Inversion Recovery Dataset
@@ -94,7 +94,7 @@ t1_power_w = 10.**(t1_power/10.)/1000. # W
 
 t1_data = dnp.load(t1_file, dim = 'power', coord = t1_power_w) # load raw data and create 'power' dimension
 hydration_info['odnp_ir_raw'] = t1_data # store raw data in dictionary
-t1_data = dnp.apodize(t1_data, dim = 't2', lw = 4.) # you can change apodize method and linewidth if necessary
+t1_data = dnp.apodize(t1_data, dim = 't2', lw = 20.) # you can change apodize method and linewidth if necessary
 t1_data = dnp.fourier_transform(t1_data, dim = 't2') # fourier_transform
 t1_data = dnp.phase_cycle(t1_data, dim = 'Average', receiver_phase = [0,1,2,3]) # phase_cycle for Prospa dataset
 t1_data = dnp.ndalign(t1_data) # aligning spectra using correlation method, the reference is optional
@@ -132,7 +132,7 @@ dnp.plt.show()
 t10_file = '../../data/prospa/1mM_TEMPO_Water/T1-IR-FID_no_radical_20220429/1/data.3d' # path to file data.3d file directly
 t10_data = dnp.load(t10_file, dim = 'power', coord = t1_power_w) # load raw data and create 'power' dimension
 hydration_info['ir_raw'] = t10_data # store raw data in dictionary
-t10_data = dnp.apodize(t10_data, dim = 't2', lw = 4.) # you can change apodize method and linewidth if necessary
+t10_data = dnp.apodize(t10_data, dim = 't2', lw = 20.) # you can change apodize method and linewidth if necessary
 t10_data = dnp.fourier_transform(t10_data, dim = 't2') # fourier_transform
 t10_data = dnp.phase_cycle(t10_data, dim = 'Average', receiver_phase = [0,1,2,3]) # phase_cycle for Prospa dataset
 t10_data = dnp.ndalign(t10_data)
