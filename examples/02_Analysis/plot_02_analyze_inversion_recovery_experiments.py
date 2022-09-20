@@ -15,23 +15,22 @@ This example demonstrates how to import TopSpin data from an inversion recovery 
 # from numpy import size
 
 import numpy as np
-
 import dnplab as dnp
 
 file_name_path = "../../data/topspin/304"
-data = dnp.load(file_name_path, verbose=True)
+data = dnp.load(file_name_path, assign_vdlist='t1')
+
+# data = dnp.load(file_name_path, verbose=True)
+# values = dnp.io.topspin.topspin_vdlist(file_name_path)
+# data.coords['t1'] = values
 
 
-values = dnp.io.topspin.topspin_vdlist(file_name_path)
-data.coords['t1'] = values
-
-
-# data.attrs["experiment_type"] = "nmr_spectrum"
+data.attrs["experiment_type"] = "nmr_spectrum"
 
 # %%
 # Next, we process the FIDs to obtain the frequency domain NMR spectrum
 
-# data = dnp.remove_background(data)
+data = dnp.remove_background(data)
 
 # dnp.remove_background(data)
 # data = dnp.apodize(data, lw=100)
