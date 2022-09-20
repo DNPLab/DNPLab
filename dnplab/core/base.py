@@ -350,11 +350,12 @@ class ABCData(object):
                 self.attrs[key] = b.attrs[key]
             else:
                 if not self.attrs[key] is b.attrs[key]:
-                    warnings.warn(
-                        "attrs in two dictionarys contain different values, leaving original value:\n{}:{}".format(
-                            key, self.attrs[key]
-                        )
-                    )
+                    pass
+                    # warnings.warn(
+                    #     "attrs in two dictionarys contain different values, leaving original value:\n{}:{}".format(
+                    #         key, self.attrs[key]
+                    #     )
+                    # )
 
     def __len__(self):
         """Returns len(values) the length of the first dimension in values"""
