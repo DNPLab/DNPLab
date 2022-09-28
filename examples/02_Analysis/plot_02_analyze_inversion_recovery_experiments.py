@@ -17,7 +17,7 @@ import numpy as np
 import dnplab as dnp
 
 file_name_path = "../../data/topspin/304"
-data = dnp.load(file_name_path, assign_vdlist='t1')
+data = dnp.load(file_name_path, assign_vdlist="t1")
 data.attrs["experiment_type"] = "nmr_spectrum"
 
 # %%
@@ -67,20 +67,20 @@ dnp.plt.show()
 # --------
 # To get the T1 value an inversion recovery function is fitted to the data sets. The fit requires an initial guess.
 
-initial_guess = (2.0, -4000, 4000)                                                  # initial guess for: T1, M_0, M_inf
-out = dnp.fit(dnp.math.relaxation.t1, integrals, dim = 't1', p0 = initial_guess)
+initial_guess = (2.0, -4000, 4000)  # initial guess for: T1, M_0, M_inf
+out = dnp.fit(dnp.math.relaxation.t1, integrals, dim="t1", p0=initial_guess)
 
-fit = out['fit']
-popt = out['popt']
-err = out['err']
+fit = out["fit"]
+popt = out["popt"]
+err = out["err"]
 
 dnp.fancy_plot(integrals, title="Inversion Recovery")
-dnp.plot(fit, '-')
+dnp.plot(fit, "-")
 dnp.plt.show()
 
-T1 = popt['popt',0]
-M_0 = popt['popt',1]
-M_inf = popt['popt',2]
+T1 = popt["popt", 0]
+M_0 = popt["popt", 1]
+M_inf = popt["popt", 2]
 
 print(T1.values)
 print(M_0.values)
