@@ -46,5 +46,6 @@ enhancements = dnp.calculate_enhancement(integrals)
 # ---------------------
 # Finally, we can plot the enhancement data versus the microwave power.
 
-dnp.fancy_plot(enhancements, title=sampleTag + ", ODNP Enhancements")
+dnp.fancy_plot(enhancements, title=sampleTag + ", ODNP Enhancements", label='MeCN')
+dnp.plt.legend()
 dnp.plt.show()
