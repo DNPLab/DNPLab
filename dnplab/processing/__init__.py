@@ -6,3 +6,4 @@ from .helpers import *
 from .integration import *
 from .offset import *
 from .phase import *
+from .conversion import *
