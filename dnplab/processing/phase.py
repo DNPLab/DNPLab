@@ -214,13 +214,28 @@ def phase_cycle(data, dim, receiver_phase):
     return data
 
 
-def p0_phase():
+def phase_p0():
     return NotImplemented
 
 
-def p1_phase():
+def phase_p1():
     return NotImplemented
 
 
-def phase():
-    return NotImplemented
+def phase(data, dim = "f2", p0 = 0.0, p1 = 0.0, pivot = None):
+
+    p0 = np.array(p0 * np.pi / 180.0)
+    p1 = np.array(p1 * np.pi / 180.0)
+
+    out = data.copy()
+    out.unfold(dim)
+    coord = out.coords[dim]
+
+    phase = np.exp(1.0j * (p0.reshape(1,-1) + (p1.reshape(1,-1) * np.arange(coord.size).reshape(-1,1) / coord.size)))
+
+    out *= phase
+
+    out.fold()
+
+
+    return out
