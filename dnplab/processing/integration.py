@@ -58,8 +58,15 @@ def integrate(data, dim="f2", regions=None):
 
     Returns:
         data: integrals of data
-    """
 
+    Examples:
+        Integrate single peak/region
+            data = dnp.integrate(data, regions=[(4, 5)])
+
+        Integrate two regions
+            data = dnp.integrate(data, regions=[(1.1, 2.1), (4.5, 4.9)])
+
+    """
     data = data.copy()
     data.attrs["experiment_type"] = "integrals"
 
