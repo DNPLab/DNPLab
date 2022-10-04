@@ -1,5 +1,6 @@
 import numpy as np
 from ..core.data import DNPData
+import warnings
 
 
 def ndalign(data, dim="f2", reference=None, center=None, width=None, average=None):
@@ -119,6 +120,9 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
         dnpdata: Aligned data in container
     """
 
+    warnings.warn(
+        "align is depreciated. Use ndalign instead. align will be removed after 01/01/2023"
+    )
     if len(np.shape(data.values)) > 3:
         raise ValueError("Greater than 3-dimensional data is currently not supported")
 
