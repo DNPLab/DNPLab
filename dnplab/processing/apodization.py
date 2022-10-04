@@ -14,7 +14,15 @@ _windows = {
 
 
 def apodize(data, dim="t2", kind="exponential", **kwargs):
-    r"""Apply Apodization to data down given dimension
+    r"""Apply Apodization to data along a given dimension
+
+    Args:
+        data (DNPData): Data object
+        dim (str): Dimension to perform apodization (should be a time domain)
+        kind (str): Specify window function
+
+    Returns:
+        DNPData: Apodized data, including pricessing attribut "window"
 
     Args:
         data (DNPData): Data object
