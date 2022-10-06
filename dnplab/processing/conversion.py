@@ -1,4 +1,5 @@
 import numpy as _np
+from ..constants.constants import *
 
 
 def dBm2w(power_in_dBm):
@@ -29,3 +30,41 @@ def w2dBm(power_in_W):
     power_in_dBm = 10.0 * _np.log10(1000 * power_in_W)
 
     return power_in_dBm
+
+
+def B2Hz(B, g=g_e):
+    """Convert magnetic field value to Hz
+
+    Convert a magnetic field value in (T) to a frequency given in (Hz)
+
+    Args:
+        B:   Magnetic field value in (T)
+        g:  g value. If no value is given g_free is used.
+
+    Returns:
+        single value or ndarray:     Magnetic field value in (Hz)
+
+    """
+
+    v = g * mu_B * B / (h)
+
+    return v
+
+
+def Hz2B(Hz, g=g_e):
+    """Convert frequency to magnetic field value
+
+    Convert a magnetic field value in (T) to a frequency given in (Hz)
+
+    Args:
+        B:   Magnetic field value in (T)
+        g:  g value. If no value is given g_free is used.
+
+    Returns:
+        single value or ndarray:     Magnetic field value in (T)
+
+    """
+
+    B = h * Hz / (g * mu_B)
+
+    return B
