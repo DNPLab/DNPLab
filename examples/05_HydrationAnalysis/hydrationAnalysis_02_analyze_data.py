@@ -49,6 +49,7 @@ enhancements.values /= enhancements.values[0] # Normalize the first enhancement 
 hydration_info['odnp_enhancements'] = enhancements # store enhancements in dictionary
 enh_out = dnp.fit(dnp.relaxation.buildup_function, enhancements, dim = 'power', p0 = (-40, 0.5)) # calculate the coefficients for enhancements fitting curve
 enh_fit = enh_out['fit'] # fitting curve
+enh_fit.attrs['experiment_type'] = 'enhancements_P' # define experiment type for plotting
 enh_coefficients = enh_out['popt'] # fitting coefficients, [E_max, p_1/2]
 enh_errors = enh_out['err'] # fitting errors, [E_max error, p_1/2 error]
 hydration_info['odnp_fit_coefficients'] = enh_coefficients # store coefficients in a dictionary
@@ -58,16 +59,9 @@ hydration_info['odnp_fit_errors'] = enh_errors # store errors in a dictionary
 # Plot Enhancements vs. Microwave Power
 
 dnp.plt.figure('Enhancements vs. Power')
-dnp.plot(enhancements, ls = 'none', marker = 'o', color = '#F37021')
-dnp.plot(enh_fit, ls = '-', color = '#F37021', label = '$E_{max}$ = %0.03f +/- %0.03f' %(enh_coefficients.values[0], enh_errors.values[0]))
-dnp.plt.xlabel('Power (W)')
-dnp.plt.ylabel('Enhancements (a.u.)')
-dnp.plt.title('Enhancements vs. Power\n' + sampleTag)
-dnp.plt.grid(':')
+dnp.fancy_plot(enh_fit,  title = 'Enhancements vs. Power\n' + sampleTag, label = '$E_{max}$ = %0.03f +/- %0.03f' %(enh_coefficients.values[0], enh_errors.values[0]))
 dnp.plt.legend()
-dnp.plt.tight_layout()
 dnp.plt.show()
-
 # %%
 # Analyze ODNP_enhanced T1 Inversion Recovery Spectra
 
@@ -77,6 +71,7 @@ t1_integrals.values /= t1_integrals.values[-1] # Normalize the last integrals to
 hydration_info['t1_integrals'] = t1_integrals # store t1 integrals in dictionary
 t1_out = dnp.fit(dnp.relaxation.t1, t1_integrals, dim = 't1', p0 = (2, -1.5, 1)) # calculate the coefficients for building inversion recovery curve
 t1_fit = t1_out['fit'] # fitting curve
+t1_fit.attrs['experiment_type'] = 'inversion_recovery' # define experiment type for plotting
 t1_coefficients = t1_out['popt'] # t1 inversion recovery coefficients, [T1, M_0, M_inf]
 t1_errors = t1_out['err'] # t1 inversion recovery errors, [T1 error, M_0 error, M_inf error]
 hydration_info['odnp_ir_coefficients'] = t1_coefficients # store coefficients in a dictionary
@@ -86,14 +81,8 @@ hydration_info['odnp_ir_errors'] = t1_errors # store errors in a dictionary
 
 for m, p in enumerate(t1_data.coords['power']):
     dnp.plt.figure('T1 Inversion Recovery, MW = %0.01f W' %p)
-    dnp.plot(t1_integrals['power', m], ls = 'none', marker = 'o', color = '#F37021')
-    dnp.plot(t1_fit['power', m], ls = '-', color = '#F37021', label = '$T_1$ = %0.03f +/- %0.03f s' %(t1_coefficients.values[0,m], t1_errors.values[0,m]))
-    dnp.plt.xlabel('Time (s)')
-    dnp.plt.ylabel('Signal (a.u.)')
-    dnp.plt.title('T1 Inversion Recovery\nMW = %0.01f W\n%s' %(p,sampleTag))
-    dnp.plt.grid(':')
+    dnp.fancy_plot(t1_fit['power', m].sum('power'), color = '#F37021', title = 'T1 Inversion Recovery, MW = %0.01f W\n%s' %(p,sampleTag), label = '$T_1$ = %0.03f +/- %0.03f s' %(t1_coefficients.values[0,m], t1_errors.values[0,m]))
     dnp.plt.legend()
-    dnp.plt.tight_layout()
 dnp.plt.show()
 
 # %%
@@ -105,6 +94,7 @@ t10_integrals.values /= t10_integrals.values[-1] # Normalize the last integrals 
 hydration_info['t10_integrals'] = t10_integrals # store t10 integrals in dictionary
 t10_out = dnp.fit(dnp.relaxation.t1, t10_integrals, dim = 't1', p0 = (2, -1.5, 1)) # calculate the coefficients for building inversion recovery curve
 t10_fit = t10_out['fit'] # fitting curve
+t10_fit.attrs['experiment_type'] = 'inversion_recovery' # define experiment type for plotting
 t10_coefficients = t10_out['popt'] # t10 inversion recovery coefficients, [T10, M_0, M_inf]
 t10_errors = t10_out['err'] # t10 inversion recovery errors, [T10 error, M_0 error, M_inf error]
 hydration_info['ir_coefficients'] = t10_coefficients # store coefficients in a dictionary
@@ -114,14 +104,8 @@ hydration_info['ir_errors'] = t10_errors # store errors in a dictionary
 # Plot T1 Inversion Recovery (No Radical)
 
 dnp.plt.figure('T10 Inversion Recovery')
-dnp.plot(t10_integrals, ls = 'none', marker = 'o', color = '#F37021')
-dnp.plot(t10_fit, ls = '-', color = '#F37021', label = '$T_1$ = %0.03f +/- %0.03f s' %(t10_coefficients.values[0], t10_errors.values[0]))
-dnp.plt.xlabel('Time (s)')
-dnp.plt.ylabel('Signal (a.u.)')
-dnp.plt.title('T10 Inversion Recovery')
-dnp.plt.grid(':')
+dnp.fancy_plot(t10_fit, color = '#F37021', title = 'T10 Inversion Recovery\n' + sampleTag, label = '$T_1$ = %0.03f +/- %0.03f s' %(t10_coefficients.values[0], t10_errors.values[0]))
 dnp.plt.legend()
-dnp.plt.tight_layout()
 dnp.plt.show()
 
 # %%
