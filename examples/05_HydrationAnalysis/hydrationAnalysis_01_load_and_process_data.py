@@ -113,15 +113,10 @@ hydration_info['odnp_ir_proc'] = t1_data # store processed dataset in dictionary
 # %%
 # Plot processed ODNP_enhanced T1 Inversion Recovery Spectra
 
+t1_data.attrs['experiment_type'] = 'nmr_spectrum'
 for m, p in enumerate(t1_power_w):
     dnp.plt.figure('ODNP_enhanced T1 Inversion Recovery, MW = %0.01f' %p)
-    dnp.plot(t1_data['power', m])
-    dnp.plt.xlabel('Chemical Shift (ppm)')
-    dnp.plt.ylabel('Signal (a.u.)')
-    dnp.plt.title('ODNP Enhanced T1 Inversion Recovery\nMW = %0.01f W\n%s' %(p, sampleTag))
-    dnp.plt.xlim(20.,-10.)
-    dnp.plt.grid(':')
-    dnp.plt.tight_layout()
+    dnp.fancy_plot(t1_data['power', m].sum('power'), xlim = [-10., 20.], title = 'ODNP Enhanced T1 Inversion Recovery, MW = %0.01f W\n%s' %(p, sampleTag))
 dnp.plt.show()
 
 # %% 
@@ -151,8 +146,7 @@ hydration_info['ir_proc'] = t10_data # store processed dataset in dictionary
 # Plot processed T1 Inversion Recovery Spectrum
 t10_data.attrs['experiment_type'] = 'nmr_spectrum'
 dnp.plt.figure('T1 Inversion Recovery Spectrum')
-dnp.fancy_plot(t10_data, xlim = [20, -10], title = 'T10 Inversion Recovery Spectrum')
-dnp.plt.tight_layout()
+dnp.fancy_plot(t10_data, xlim = [20, -10], title = 'T10 Inversion Recovery Spectrum\n' + sampleTag)
 dnp.plt.show()
 
 # %% 
