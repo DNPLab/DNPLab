@@ -70,10 +70,10 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     This function creates streamlined plots for NMR and EPR spectra. The type of the spectrum is detected from the attribute "experiment_type" of the dnpdata object. Currently the following types are implemented: nmr_spectrum, epr_spectrum, enhancements_P, and inversion_recovery.
 
     Args:
-        data (dnpdata): dnpdata object with values to plot
+        data (DNPData): dnpdata object with values to plot
         xlim: list of limit values for plotting function
-        title: string containing plot title
-        showPar: boolean, toggle whether to show experiment parameters
+        title (str): string containing plot title
+        showPar (boolean): boolean, toggle whether to show experiment parameters
 
     Returns:
         Returns formated matplotlib plot.
@@ -164,12 +164,25 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
 
-    elif data.attrs["experiment_type"] == "enhancements_P":
+    elif data.attrs["experiment_type"] == "enhancements_P" or data.attrs["experiment_type"] == "enhancements_PdBm":
         coord = data.coords[dim]
         data.unfold(dim)
 
         plt.plot(coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs)
         plt.xlabel("Microwave Power (dBm)")
+        plt.ylabel("DNP Enhancement")
+
+        if xlim != []:
+            plt.xlim(xlim[0], xlim[1])
+
+        # if showPar == True:
+
+    elif data.attrs["experiment_type"] == "enhancements_PmW":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        plt.plot(coord * 1e-3, data.values.real, marker="o", fillstyle="none", *args, **kwargs)
+        plt.xlabel("Microwave Power (mW)")
         plt.ylabel("DNP Enhancement")
 
         if xlim != []:
