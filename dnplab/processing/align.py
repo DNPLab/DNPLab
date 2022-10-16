@@ -122,7 +122,7 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
     warnings.warn(
         "This function is deprecated. Please use ndalign instead. align will be removed after 01/01/2023",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
 
     if len(np.shape(data.values)) > 3:

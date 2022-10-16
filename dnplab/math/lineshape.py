@@ -15,14 +15,14 @@ def voigtian(x, x0, sigma, gamma, integral=1.0):
     Returns:
         ndarray: Voigtian distribution
 
-    The Voigtian distribution is defined as: 
+    The Voigtian distribution is defined as:
 
     .. math::
-    
+
         f(x; x_0, \sigma, \gamma) = \frac{\operatorname{Re}[w(z)]}{\sigma \sqrt{2 \pi}}
 
     with
-    
+
     .. math::
         z = \frac{x + i\gamma}{\sigma \sqrt{2}}
 
@@ -47,7 +47,7 @@ def gaussian(x, x0, sigma, integral=1.0):
     The Gaussian distribution is defined as:
 
     .. math::
-    
+
         f(x; x_0, \sigma) = \frac{1}{\sigma \sqrt{2 \pi}} \exp{\left(\frac{(x-x_0)^2}{2 \sigma^2}\right)}
 
     """
