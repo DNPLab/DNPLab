@@ -23,7 +23,7 @@ def remove_background(data, dim="t2", deg=0, regions=None):
     fit = background(data, dim=dim, deg=deg, regions=regions)
     data = data - fit
 
-    proc_attr_name = "remove_backround"
+    proc_attr_name = "remove_background"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return data
