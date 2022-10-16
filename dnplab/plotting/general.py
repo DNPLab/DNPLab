@@ -164,7 +164,10 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
 
-    elif data.attrs["experiment_type"] == "enhancements_P" or data.attrs["experiment_type"] == "enhancements_PdBm":
+    elif (
+        data.attrs["experiment_type"] == "enhancements_P"
+        or data.attrs["experiment_type"] == "enhancements_PdBm"
+    ):
         coord = data.coords[dim]
         data.unfold(dim)
 
@@ -181,7 +184,14 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         coord = data.coords[dim]
         data.unfold(dim)
 
-        plt.plot(coord * 1e-3, data.values.real, marker="o", fillstyle="none", *args, **kwargs)
+        plt.plot(
+            coord * 1e-3,
+            data.values.real,
+            marker="o",
+            fillstyle="none",
+            *args,
+            **kwargs
+        )
         plt.xlabel("Microwave Power (W)")
         plt.ylabel("DNP Enhancement")
 
