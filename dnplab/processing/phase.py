@@ -222,7 +222,7 @@ def phase_p1():
     return NotImplemented
 
 
-def phase(data, dim = "f2", p0 = 0.0, p1 = 0.0, pivot = None):
+def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
 
     """Apply phase correction to DNPData object
 
@@ -245,7 +245,13 @@ def phase(data, dim = "f2", p0 = 0.0, p1 = 0.0, pivot = None):
     out.unfold(dim)
     coord = out.coords[dim]
 
-    phase = np.exp(1.0j * (p0.reshape(1,-1) + (p1.reshape(1,-1) * np.arange(coord.size).reshape(-1,1) / coord.size)))
+    phase = np.exp(
+        1.0j
+        * (
+            p0.reshape(1, -1)
+            + (p1.reshape(1, -1) * np.arange(coord.size).reshape(-1, 1) / coord.size)
+        )
+    )
 
     out *= phase
 
