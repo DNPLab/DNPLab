@@ -177,12 +177,12 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
         # if showPar == True:
 
-    elif data.attrs["experiment_type"] == "enhancements_PmW":
+    elif data.attrs["experiment_type"] == "enhancements_PW":
         coord = data.coords[dim]
         data.unfold(dim)
 
         plt.plot(coord * 1e-3, data.values.real, marker="o", fillstyle="none", *args, **kwargs)
-        plt.xlabel("Microwave Power (mW)")
+        plt.xlabel("Microwave Power (W)")
         plt.ylabel("DNP Enhancement")
 
         if xlim != []:
