@@ -14,7 +14,7 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         width (float) : range width
 
     Returns:
-        dnpdata: Aligned data in container
+        DNPData: Aligned data in container
 
     Examples:
 
@@ -107,7 +107,7 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
 
 
 def align(data, dim="f2", dim2=None, center=None, width=None):
-    """DEPRECIATED. Please use ndalign instead. Alignment of NMR spectra down given dimension or dimensions
+    """This function is deprecated and will be removed from future releases. Please use ndalign instead. Alignment of NMR spectra down given dimension or dimensions
 
     Args:
         all_data (object) : dnpdata object
@@ -119,10 +119,12 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
     Returns:
         dnpdata: Aligned data in container
     """
-
     warnings.warn(
-        "align is depreciated. Use ndalign instead. align will be removed after 01/01/2023"
+        "This function is deprecated. Please use ndalign instead. align will be removed after 01/01/2023",
+        DeprecationWarning,
+        stacklevel=2
     )
+
     if len(np.shape(data.values)) > 3:
         raise ValueError("Greater than 3-dimensional data is currently not supported")
 
