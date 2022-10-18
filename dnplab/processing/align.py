@@ -7,15 +7,15 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
     """Alignment of NMR spectra using FFT Cross Correlation
 
     Args:
-        all_data (object) : dnpdata object
-        dim (str) : dimension to align along
-        reference (numpy) : second dimension to align along
-        center (float) : range center
-        width (float) : range width
+        all_data (object) : DNPData object
+        dim (str) : Dimension to align along
+        reference (numpy) : Reference spectra for alignment
+        center (float) : Center of alignment range, by default entire range
+        width (float) : Width of alignment range, by default entire range
         average (int) : Number of averages to use for reference
 
     Returns:
-        DNPData: Aligned data in container
+        DNPData: Aligned data
 
     Examples:
 
