@@ -28,9 +28,7 @@ radicalProperties["bdpa"] = [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.
 
 
 def radical_properties(name):
-    """Return properties of different radicals. At the minimum the g value is returned. If available, large hyperfine couplings to a nucleus are returned. Add new properties or new radicals to mrProperties.py
-
-    Args:
+    """Return properties of different radicals. At the minimum the g value is returned. If available, large hyperfine couplings to a nucleus are returned. Add new properties or new radicals to radicalProperties.py
 
     +-----------+---------------------------------------------------------------+
     | arg       |  returns                                                      |
@@ -44,8 +42,18 @@ def radical_properties(name):
     | "bdpa"    | [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.0]]       |
     +-----------+---------------------------------------------------------------+
 
+    Args:
+        name (str): Name of the radical
+
     Returns:
-        principle g values and hyperfine coupling tensor
+        radicalProperties (dict): Principle g values and hyperfine coupling tensor
+
+    Examples:
+
+        Return g value of a free electron
+
+        >>> radical_properties("gfree")
+
     """
 
     name = name.lower()
