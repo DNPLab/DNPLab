@@ -76,7 +76,7 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
         radical (str): Radical name, see mrProperties.py for radicals that are currently implemented
         mwFrequency (float): Microwave frequency in (Hz)
         dnpNucleus (str): Nucleus for DNP-NMR experiments
-    
+
     Returns:
         Function returns a table of DNP parameters to the screen
 
