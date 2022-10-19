@@ -70,19 +70,23 @@ def radical_properties(name):
 
 
 def show_dnp_properties(radical, mwFrequency, dnpNucleus):
-    """Calculate DNP Properties
-
-    Currently only implemented for liquid state experiments
+    """Calculate DNP Properties for a given radical
 
     Args:
-        radical:        Radical name, see mrProperties.py
-        mwFrequency:    Microwave frequency in (Hz)
-        dnpNucleus:     Nucleus for DNP-NMR experiments
+        radical (str): Radical name, see mrProperties.py for radicals that are currently implemented
+        mwFrequency (float): Microwave frequency in (Hz)
+        dnpNucleus (str): Nucleus for DNP-NMR experiments
+    
+    Returns:
+        Function returns a table of DNP parameters to the screen
 
-    Example:
-        .. code-block:: python
+    Examples:
 
-            dnp.dnpTools.show_dnp_poperties('gfree', 9.45e9, '1H')
+        >>> dnp.show_dnp_poperties('gfree', 9.45e9, '1H')
+
+    .. Note:
+        This function is currently only implemented for liquid state experiments
+
     """
 
     # http://physics.nist.gov/constants
