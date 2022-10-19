@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import numpy as np
+import numpy as _np
 from warnings import warn
 
 from ..core.data import DNPData

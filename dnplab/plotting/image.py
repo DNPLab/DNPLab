@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import numpy as np
+import numpy as _np
 
 
 def imshow(data, *args, **kwargs):  # TODO: drop unused args and kwargs
@@ -28,10 +28,10 @@ def imshow(data, *args, **kwargs):  # TODO: drop unused args and kwargs
     x_coord = data.coords[dims[1]]
     y_coord = data.coords[dims[0]]
 
-    x_min = np.min(x_coord)
-    x_max = np.max(x_coord)
-    y_min = np.min(y_coord)
-    y_max = np.max(y_coord)
+    x_min = _np.min(x_coord)
+    x_max = _np.max(x_coord)
+    y_min = _np.min(y_coord)
+    y_max = _np.max(y_coord)
 
     plt.imshow(data.values, aspect="auto", extent=[x_min, x_max, y_max, y_min])
     plt.xlabel(dims[1])
