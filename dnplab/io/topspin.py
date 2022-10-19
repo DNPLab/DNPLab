@@ -361,7 +361,7 @@ def load_acqu(path, required_params=None, verbose=False):
 
 # Legacy
 def load_fid_ser(path, dtype="fid", phase_cycle=None):
-    """Depreciated. Used import_topspin instead. Import topspin fid or ser file
+    """This function is deprecated and will be removed from future releases. Please use import_topspin instead. Import topspin fid or ser file
 
     Args:
         path (str): Directory of data
@@ -373,7 +373,7 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
     """
 
     warn(
-        "This function is deprecated, use load_topspin instead",
+        "This function is deprecated. Please use load_topspin instead. load_fid_ser will be removed after 01/01/2023",
         DeprecationWarning,
         stacklevel=2,
     )
