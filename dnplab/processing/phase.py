@@ -229,17 +229,31 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
     Args:
         data (DNPData): Data object to phase
         dim (str): Dimension to phase
-        p0 (float): Zero order phase correction (degree)
-        p1 (float): First order phase correction (degree)
+        p0 (float, array): Zero order phase correction (degree)
+        p1 (float, array): First order phase correction (degree)
         picot (float): Pivot point for first order phase correction
 
     Returns:
-        DNPData: Phased data, including new attributes "p0", "p1", and "pivot"
+        data(DNPData): Phased data, including new attributes "p0", "p1", and "pivot"
+
+    Examples:
+
+        0th-order phase correction of 1D or 2D DNPData object. If the DNPData object has multiple 1D spectra the same phase p0 is applied to all spectra.
+
+        >>> data = dnp.phase(data,p0)
+
+        0th-order phase correction of all spectra of a 2D DNPData object using a (numpy) array p0 of phases:
+
+        >>> p0 = np.array([15, 15, 5, -5, 0])
+        >>> data = dnp.phase(data, p0)
+
+    .. Note::
+        A 2D DNPData object can either be phase using a single p0 (p1) value, or using an array of phases. When using an array, the size of the phase array has to be equal to the number of spectra to be phased.
 
     """
 
-    p0 = _np.array(p0 * _np.pi / 180.0)
-    p1 = _np.array(p1 * _np.pi / 180.0)
+    p0 = _np.array(p0 * _np.pi / 180.0)  # p0 in radians
+    p1 = _np.array(p1 * _np.pi / 180.0)  # p1 in radians
 
     out = data.copy()
     out.unfold(dim)
@@ -256,5 +270,14 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
     out *= phase
 
     out.fold()
+
+    proc_parameters = {
+        "p0": p0,
+        "p1": p1,
+        "pivot": pivot,
+    }
+
+    proc_attr_name = "phase_correction"
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return out
