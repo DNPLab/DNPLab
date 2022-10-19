@@ -6,21 +6,26 @@ def imshow(data, *args, **kwargs):  # TODO: drop unused args and kwargs
     """Image Plot for dnpdata object
 
     Args:
-        data (dnpdata): dnpdata object for image plot
+        data (DNPData): DNPData object for image plot
         args: args for matplotlib imshow function
         kwargs: kwargs for matplotlib imshow function
 
-    Example::
+    Returns:
+        Returns formated matplotlib plot.
 
-       # Plotting a dnpdata object
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.imshow(data)
-       dnp.dnpResults.plt.show()
+    Example:
 
-       # Plotting a workspace (dnpdata_collection)
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.imshow(ws['proc'])
-       dnp.dnpResults.plt.show()
+       Plotting a dnpdata object
+
+       >>> dnp.plt.figure()
+       >>> dnp.imshow(data)
+       >>> dnp.plt.show()
+
+       Plotting a workspace (dnpdata_collection)
+
+       >>> dnp.plt.figure()
+       >>> dnp.imshow(data)
+       >>> dnp.plt.show()
     """
 
     dims = data.dims

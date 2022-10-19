@@ -22,32 +22,33 @@ def plot(data, *args, **kwargs):
     """Plot function for dnpdata object
 
     Args:
-        data (dnpdata): dnpdata object for matplotlib plot function
+        data (DNPData): DNPData object for matplotlib plot function
         args: args for matplotlib plot function
         kwargs: kwargs for matplotlib plot function
 
-    Example::
+    Returns:
+        Returns formated matplotlib plot.
 
-       # Plotting a dnpdata object
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.plot(data)
-       dnp.dnpResults.plt.show()
+    Example:
 
-       # Plotting a workspace (dnpdata_collection)
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.plot(ws['proc'])
-       dnp.dnpResults.plt.show()
+       Plotting a DNPData object:
 
-       # Plotting two curves on the same figure
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.plot(ws['proc1'])
-       dnp.dnpResults.plot(ws['proc2'])
-       dnp.dnpResults.plt.show()
+       >>> dnp.plt.figure()
+       >>> dnp.plot(data)
+       >>> dnp.plt.show()
 
-       # Plotting with some custom parameters
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.plot(ws['proc'], 'k-', linewidth = 3.0, alpha = 0.5)
-       dnp.dnpResults.plt.show()
+       # Plotting two DNPData objects (data1 and data2) on the same figure:
+
+       >>> dnp.plt.figure()
+       >>> dnp.plot(data1)
+       >>> dnp.plot(data2)
+       >>> dnp.plt.show()
+
+       Plotting a DNPData object with some custom parameters:
+
+       >>> dnp.plt.figure()
+       >>> dnp.plot(data, 'k-', linewidth = 3.0, alpha = 0.5)
+       >>> dnp.plt.show()
 
     """
 
@@ -67,24 +68,26 @@ def plot(data, *args, **kwargs):
 def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     """Streamline Plot function for dnpdata objects
 
-    This function creates streamlined plots for NMR and EPR spectra. The type of the spectrum is detected from the attribute "experiment_type" of the dnpdata object. Currently the following types are implemented: nmr_spectrum, epr_spectrum, enhancements_P, and inversion_recovery.
+    This function creates streamlined plots for NMR and EPR spectra. The type of the spectrum is detected from the attribute "experiment_type" of the dnpdata object. Currently the following types are implemented: nmr_spectrum, epr_spectrum, enhancements_P, and inversion_recovery. The function will automatically format the plot according to the "experiment_type" attribute.
 
     Args:
-        data (DNPData): dnpdata object with values to plot
-        xlim: list of limit values for plotting function
-        title (str): string containing plot title
-        showPar (boolean): boolean, toggle whether to show experiment parameters
+        data (DNPData): DNPData object with values to plot
+        xlim (tuple): List of limit values for plotting function
+        title (str): Plot title
+        showPar (boolean): Toggle whether to show experiment parameters
 
     Returns:
         Returns formated matplotlib plot.
 
-    Example::
+    Example:
 
-        # Simply just plotting the dnpdata object
-        dnp.fancy_plot(data)
+        Simply just plotting the dnpdata object:
 
-        # Plot EPR spectrum from 344 mT to 354 mT, show experimental parameters
-        dnp.fancy_plot(data, xlim=[344, 354], title="EPR Spectrum", showPar=True)
+        >>> dnp.fancy_plot(data)
+
+        Plot EPR spectrum from 344 mT to 354 mT, show experimental parameters:
+
+        >>> dnp.fancy_plot(data, xlim=[344, 354], title="EPR Spectrum", showPar=True)
 
     """
 
