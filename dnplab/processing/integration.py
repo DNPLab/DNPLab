@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 from ..core.data import DNPData
 from ..core.util import concat
 
@@ -86,7 +86,7 @@ def integrate(data, dim="f2", regions=None):
         for region in regions:
             data_list.append(integrate(data[dim, region], dim))
 
-        x = np.array(list(range(len(data_list))))
+        x = _np.array(list(range(len(data_list))))
         dim_name = "integrals"
         data = concat(data_list, dim_name, coord=x)
 

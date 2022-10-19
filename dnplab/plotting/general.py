@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import numpy as np
+import numpy as _np
 from warnings import warn
 
 from ..core.data import DNPData
@@ -74,7 +74,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         data (DNPData): DNPData object with values to plot
         xlim (tuple): List of limit values for plotting function
         title (str): Plot title
-        showPar: Toggle whether to show experiment parameters
+        showPar (boolean): Toggle whether to show experiment parameters
 
     Returns:
         Returns formated matplotlib plot.
@@ -167,12 +167,35 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
 
-    elif data.attrs["experiment_type"] == "enhancements_P":
+    elif (
+        data.attrs["experiment_type"] == "enhancements_P"
+        or data.attrs["experiment_type"] == "enhancements_PdBm"
+    ):
         coord = data.coords[dim]
         data.unfold(dim)
 
         plt.plot(coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs)
         plt.xlabel("Microwave Power (dBm)")
+        plt.ylabel("DNP Enhancement")
+
+        if xlim != []:
+            plt.xlim(xlim[0], xlim[1])
+
+        # if showPar == True:
+
+    elif data.attrs["experiment_type"] == "enhancements_PW":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        plt.plot(
+            coord * 1e-3,
+            data.values.real,
+            marker="o",
+            fillstyle="none",
+            *args,
+            **kwargs
+        )
+        plt.xlabel("Microwave Power (W)")
         plt.ylabel("DNP Enhancement")
 
         if xlim != []:

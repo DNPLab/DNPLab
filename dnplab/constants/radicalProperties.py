@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 from . import mr_properties
 
 #######################################
@@ -99,22 +99,22 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     Alist = radicalProperties.get(radical)[2]
 
     # Get g-value
-    g = np.array(glist)
-    giso = np.sum(g) / g.size
+    g = _np.array(glist)
+    giso = _np.sum(g) / g.size
 
     B0 = mwFrequency * planck / giso / mub
 
     # Get hyperfine coupling and calculate isotropic value
-    A = np.array(Alist)
-    AisoMHz = np.sum(A) / A.size
+    A = _np.array(Alist)
+    AisoMHz = _np.sum(A) / A.size
 
     gmr_e = mr_properties("0e")
-    AisoT = AisoMHz / gmr_e / 2 / np.pi
+    AisoT = AisoMHz / gmr_e / 2 / _np.pi
 
     if nucleus != None:
         nucSpin = mr_properties(nucleus, "spin")
         n = 2 * nucSpin + 1
-        ms = np.linspace(-1.0 * nucSpin, nucSpin, int(n))
+        ms = _np.linspace(-1.0 * nucSpin, nucSpin, int(n))
         B = B0 + ms * AisoT
 
     else:
@@ -134,7 +134,7 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     for b in B:
         print("Transition: ", m)
         print("B                    (T) :  %6.4f" % b)
-        nmr = mr_properties("1H") * b * 10 / 2 / np.pi
+        nmr = mr_properties("1H") * b * 10 / 2 / _np.pi
         print("NMR Frequency      (MHz) :  %6.3f" % nmr)
         print("")
         m += 1
