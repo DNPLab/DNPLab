@@ -183,7 +183,9 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
                 else:
                     raise ValueError("selected range is not accpetale")
 
-                corrData = _np.correlate(_np.abs(rangeData), _np.abs(refData), mode="same")
+                corrData = _np.correlate(
+                    _np.abs(rangeData), _np.abs(refData), mode="same"
+                )
                 shiftIx = _np.argmax(corrData) - (
                     len(corrData) / 2
                 )  # subtract half length so spectrum is shifted relative to center, not edge

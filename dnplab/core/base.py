@@ -371,7 +371,9 @@ class ABCData(object):
         sorted_order = sorted(range(len(self.dims)), key=lambda x: self.dims[x])
 
         self.coords.reorder_index(sorted_order)
-        self._values = _np.moveaxis(self._values, range(len(sorted_order)), sorted_order)
+        self._values = _np.moveaxis(
+            self._values, range(len(sorted_order)), sorted_order
+        )
 
     def index(self, dim):
         """Find index of given dimension name

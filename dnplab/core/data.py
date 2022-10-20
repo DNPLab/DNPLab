@@ -31,7 +31,9 @@ class DNPData(ABCData):
 
     """
 
-    def __init__(self, values=_np.r_[[]], dims=[], coords=[], attrs={}, proc_attrs=None):
+    def __init__(
+        self, values=_np.r_[[]], dims=[], coords=[], attrs={}, proc_attrs=None
+    ):
         """
         DNPData Class __init__ method
 
@@ -142,7 +144,9 @@ class DNPData(ABCData):
             phase (float,int): phase of data calculated from sum of imaginary
                 divided by sum of real components
         """
-        return _np.arctan(_np.sum(_np.imag(self.values)) / _np.sum(_np.real(self.values)))
+        return _np.arctan(
+            _np.sum(_np.imag(self.values)) / _np.sum(_np.real(self.values))
+        )
 
     def squeeze(self):
         """

@@ -426,7 +426,11 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
     group_delay = find_group_delay(attrs_dict)
     group_delay = int(_np.ceil(group_delay))
 
-    t = 1.0 / attrs_dict["SW_h"] * _np.arange(0, int(attrs_dict["TD"] / 2) - group_delay)
+    t = (
+        1.0
+        / attrs_dict["SW_h"]
+        * _np.arange(0, int(attrs_dict["TD"] / 2) - group_delay)
+    )
 
     if "vdlist" in dir_list:
         important_params_dict.update({"VDLIST": topspin_vdlist(path)})
