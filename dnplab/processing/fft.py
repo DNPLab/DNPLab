@@ -40,18 +40,11 @@ def fourier_transform(
     Examples:
         Example for constructing a DNPData object and performing Fourier transform
 
-        >>> import numpy as np
-        >>> from matplotlib.scipy import *
-        >>> import dnplab as dnp
-        >>> x = np.r_[0:1:2048j]
-        >>> y = np.exp(1j*2*np.pi*300*x) * np.exp(-5*x)
-        >>> data = dnp.DNPData(y, ['t2'], [x])
-        >>> data.attrs['nmr_frequency'] = 300e6
         >>> data = dnp.fourier_transform(data)
-        >>> figure()
-        >>> dnp.plot(data)
-        >>> xlabel('f2 (ppm)')
-        >>> dnp.show()
+
+        Fourier transform down t1 dimension and zero fill to twice the original length
+
+        >>> data = dnp.fourier_transform(data, dim = "t1", zero_fill_factor = 2)
 
     .. Note::
         Assumes dt = t[1] - t[0]
