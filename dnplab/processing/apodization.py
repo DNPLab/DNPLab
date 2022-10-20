@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 
 from ..math import window
 
@@ -74,7 +74,7 @@ def apodize(data, dim="t2", kind="exponential", **kwargs):
     data_shape = data.shape
 
     new_shape = [1 if ix != index else data_shape[index] for ix in range(data.ndim)]
-    apwin = np.reshape(apwin, new_shape)
+    apwin = _np.reshape(apwin, new_shape)
 
     data *= apwin
 

@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
@@ -14,7 +14,7 @@ def manual_align(data, dim):
     plt.subplots_adjust(left=0.25, bottom=0.25)
     init_index = 0
     delta_index = 1
-    l = plt.plot(data.coords["f2"], np.real(data.values))
+    l = plt.plot(data.coords["f2"], _np.real(data.values))
     ax.margins(x=0)
 
     axcolor = "lightgoldenrodyellow"
@@ -33,7 +33,7 @@ def manual_align(data, dim):
         index = sindex.val
         ix = 0
         for line in l:
-            line.set_ydata(np.roll(data[dim, ix].values.ravel(), index * ix))
+            line.set_ydata(_np.roll(data[dim, ix].values.ravel(), index * ix))
             ix += 1
         fig.canvas.draw_idle()
 
@@ -65,7 +65,7 @@ def manual_align(data, dim):
     manual_index = sindex.val
 
     for ix, x in enumerate(data.coords[dim]):
-        data[dim, ix] = np.roll(data[dim, ix].values, manual_index * ix)
+        data[dim, ix] = _np.roll(data[dim, ix].values, manual_index * ix)
         ix += 1
 
     proc_parameters = {

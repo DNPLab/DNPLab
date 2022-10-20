@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 from ..core.data import DNPData
 import warnings
 
@@ -51,34 +51,34 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
     all_values = all_values.reshape(all_align_dim_length, -1)
     values = values.reshape(align_dim_length, -1)  # Reshape to 2d
 
-    new_shape = np.shape(values)
+    new_shape = _np.shape(values)
 
     dim2 = new_shape[1]
 
-    abs_values = np.abs(values)
+    abs_values = _np.abs(values)
 
     if reference is None:
-        reference = np.abs(values[:, -1])
+        reference = _np.abs(values[:, -1])
     elif isinstance(reference, DNPData):
-        reference = np.abs(reference.values)
+        reference = _np.abs(reference.values)
         if average != None:
-            reference = np.convolve(reference, np.ones(average), "same") / average
+            reference = _np.convolve(reference, _np.ones(average), "same") / average
 
-    ref_max_ix = np.argmax(reference)
+    ref_max_ix = _np.argmax(reference)
 
-    all_aligned_values = np.zeros_like(all_values)
+    all_aligned_values = _np.zeros_like(all_values)
 
     for ix in range(dim2):
         if average != None:
             abs_values[:, ix] = (
-                np.convolve(abs_values[:, ix], np.ones(average), "same") / average
+                _np.convolve(abs_values[:, ix], _np.ones(average), "same") / average
             )
-        cor = np.correlate(
+        cor = _np.correlate(
             abs_values[:, ix], reference, mode="same"
         )  # calculate cross-correlation
-        max_ix = np.argmax(cor)  # Maximum of cross correlation
+        max_ix = _np.argmax(cor)  # Maximum of cross correlation
         delta_max_ix = max_ix - ref_max_ix  # Calculate how many points to shift
-        all_aligned_values[:, ix] = np.roll(
+        all_aligned_values[:, ix] = _np.roll(
             all_values[:, ix], -1 * delta_max_ix
         )  # shift values
 
@@ -115,7 +115,7 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
         stacklevel=2,
     )
 
-    if len(np.shape(data.values)) > 3:
+    if len(_np.shape(data.values)) > 3:
         raise ValueError("Greater than 3-dimensional data is currently not supported")
 
     proc_parameters = {"dim": dim, "dim2": dim2}
@@ -158,11 +158,11 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
             else:
                 raise ValueError("selected range is not accpetale")
 
-            corrData = np.correlate(np.abs(rangeData), np.abs(refData), mode="same")
-            shiftIx = np.argmax(corrData) - (
+            corrData = _np.correlate(_np.abs(rangeData), _np.abs(refData), mode="same")
+            shiftIx = _np.argmax(corrData) - (
                 len(corrData) / 2
             )  # subtract half length so spectrum is shifted relative to center, not edge
-            shiftData = np.roll(tempData, -1 * int(np.round(shiftIx, 0)))
+            shiftData = _np.roll(tempData, -1 * int(_np.round(shiftIx, 0)))
             data.values[:, ix] = shiftData
     else:
 
@@ -183,11 +183,11 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
                 else:
                     raise ValueError("selected range is not accpetale")
 
-                corrData = np.correlate(np.abs(rangeData), np.abs(refData), mode="same")
-                shiftIx = np.argmax(corrData) - (
+                corrData = _np.correlate(_np.abs(rangeData), _np.abs(refData), mode="same")
+                shiftIx = _np.argmax(corrData) - (
                     len(corrData) / 2
                 )  # subtract half length so spectrum is shifted relative to center, not edge
-                shiftData = np.roll(tempData, -1 * int(np.round(shiftIx, 0)))
+                shiftData = _np.roll(tempData, -1 * int(_np.round(shiftIx, 0)))
                 data.values[:, ix2, ix1] = shiftData
 
     data.reorder(originalAxesOrder)
