@@ -7,30 +7,20 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
     """Alignment of NMR spectra using FFT Cross Correlation
 
     Args:
-        all_data (object) : dnpdata object
-        dim (str) : dimension to align along
-        reference (numpy) : second dimension to align along
-        center (float) : range center
-        width (float) : range width
+        all_data (object) : DNPData object
+        dim (str) : Dimension to align along
+        reference (numpy) : Reference spectra for alignment
+        center (float) : Center of alignment range, by default entire range
+        width (float) : Width of alignment range, by default entire range
+        average (int) : Number of averages to use for reference
 
     Returns:
-        dnpdata: Aligned data in container
+        DNPData: Aligned data
 
     Examples:
 
-        >>> import numpy as np
-        >>> from matplotlib.pylab import *
-        >>> import dnplab as dnp
-        >>> x = np.r_[-10:10:100j]
-        >>> y = np.r_[0,1,2]
-        >>> values = dnp.math.lineshape.lorentzian(x.reshape(-1,1),y.reshape(1,-1),1)
-        >>> data = dnp.DNPData(values, ['f2','sample'], [x, y])
-        >>> figure('Before Alignment')
-        >>> dnp.plot(data)
         >>> data_aligned = dnp.ndalign(data)
-        >>> figure('After Alignment')
-        >>> dnp.plot(data_aligned)
-        >>> show()
+        >>> data_aligned = dnp.ndalign(data, center = 10, width = 20)
     """
 
     proc_parameters = {"dim": dim}
@@ -48,7 +38,7 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         start = data.coords[dim][-1]
         stop = data.coords[dim][0]
     else:
-        raise ValueError("selected range is not accpetable")
+        raise ValueError("selected range is not acceptable")
 
     values = data[dim, (start, stop)].values
 
@@ -107,7 +97,7 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
 
 
 def align(data, dim="f2", dim2=None, center=None, width=None):
-    """DEPRECIATED. Please use ndalign instead. Alignment of NMR spectra down given dimension or dimensions
+    """This function is deprecated and will be removed from future releases. Please use ndalign instead. Alignment of NMR spectra down given dimension or dimensions
 
     Args:
         all_data (object) : dnpdata object
@@ -119,10 +109,12 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
     Returns:
         dnpdata: Aligned data in container
     """
-
     warnings.warn(
-        "align is depreciated. Use ndalign instead. align will be removed after 01/01/2023"
+        "This function is deprecated. Please use ndalign instead. align will be removed after 01/01/2023",
+        DeprecationWarning,
+        stacklevel=2,
     )
+
     if len(np.shape(data.values)) > 3:
         raise ValueError("Greater than 3-dimensional data is currently not supported")
 

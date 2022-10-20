@@ -28,9 +28,7 @@ radicalProperties["bdpa"] = [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.
 
 
 def radical_properties(name):
-    """Return properties of different radicals. At the minimum the g value is returned. If available, large hyperfine couplings to a nucleus are returned. Add new properties or new radicals to mrProperties.py
-
-    Args:
+    """Return properties of different radicals. At the minimum the g value is returned. If available, large hyperfine couplings to a nucleus are returned. Add new properties or new radicals to radicalProperties.py
 
     +-----------+---------------------------------------------------------------+
     | arg       |  returns                                                      |
@@ -44,8 +42,18 @@ def radical_properties(name):
     | "bdpa"    | [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.0]]       |
     +-----------+---------------------------------------------------------------+
 
+    Args:
+        name (str): Name of the radical
+
     Returns:
-        principle g values and hyperfine coupling tensor
+        radicalProperties (dict): Principle g values and hyperfine coupling tensor
+
+    Examples:
+
+        Return g value of a free electron
+
+        >>> radical_properties("gfree")
+
     """
 
     name = name.lower()
@@ -62,19 +70,23 @@ def radical_properties(name):
 
 
 def show_dnp_properties(radical, mwFrequency, dnpNucleus):
-    """Calculate DNP Properties
-
-    Currently only implemented for liquid state experiments
+    """Calculate DNP Properties for a given radical
 
     Args:
-        radical:        Radical name, see mrProperties.py
-        mwFrequency:    Microwave frequency in (Hz)
-        dnpNucleus:     Nucleus for DNP-NMR experiments
+        radical (str): Radical name, see mrProperties.py for radicals that are currently implemented
+        mwFrequency (float): Microwave frequency in (Hz)
+        dnpNucleus (str): Nucleus for DNP-NMR experiments
 
-    Example:
-        .. code-block:: python
+    Returns:
+        Function returns a table of DNP parameters to the screen
 
-            dnp.dnpTools.show_dnp_poperties('gfree', 9.45e9, '1H')
+    Examples:
+
+        >>> dnp.show_dnp_poperties('gfree', 9.45e9, '1H')
+
+    .. Note:
+        This function is currently only implemented for liquid state experiments
+
     """
 
     # http://physics.nist.gov/constants

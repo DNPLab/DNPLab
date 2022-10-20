@@ -15,11 +15,16 @@ def voigtian(x, x0, sigma, gamma, integral=1.0):
     Returns:
         ndarray: Voigtian distribution
 
-    :math:`f(x; x_0, \sigma, \gamma) = \frac{\operatorname{Re}[w(z)]}{\sigma \sqrt{2 \pi}}
+    The Voigtian distribution is defined as:
 
-    where,
+    .. math::
 
-    :math:`z = \frac{x + i\gamma}{\sigma \sqrt{2}}
+        f(x; x_0, \sigma, \gamma) = \frac{\operatorname{Re}[w(z)]}{\sigma \sqrt{2 \pi}}
+
+    with
+
+    .. math::
+        z = \frac{x + i\gamma}{\sigma \sqrt{2}}
 
     """
     z = ((x0 - x) + 1j * gamma) / (sigma * np.sqrt(2.0))
@@ -39,7 +44,12 @@ def gaussian(x, x0, sigma, integral=1.0):
     Returns:
         ndarray: Gaussian distribution
 
-    :math:`f(x; x_0, \sigma) = \frac{1}{\sigma \sqrt{2 \pi}} \exp{\left(\frac{(x-x_0)^2}{2 \sigma^2}\right)}
+    The Gaussian distribution is defined as:
+
+    .. math::
+
+        f(x; x_0, \sigma) = \frac{1}{\sigma \sqrt{2 \pi}} \exp{\left(\frac{(x-x_0)^2}{2 \sigma^2}\right)}
+
     """
     return (
         integral
@@ -60,7 +70,11 @@ def lorentzian(x, x0, gamma, integral=1.0):
     Returns:
         ndarray: Lorentzian distribution
 
-    f(x) = \frac{1}{\pi \gamma} \left[\frac{\gamma^2}{(x-x_0)^2 + \gamma^2}\right]
+    The Lorentzian distribution is defined as:
+
+    .. math::
+
+        f(x) = \frac{1}{\pi \gamma} \left[\frac{\gamma^2}{(x-x_0)^2 + \gamma^2}\right]
     """
     return (
         integral * (1.0 / (np.pi * gamma)) * gamma**2 / ((x - x0) ** 2 + gamma**2)
