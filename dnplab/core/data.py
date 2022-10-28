@@ -2,7 +2,7 @@
 DNPData object for storing N-dimensional data with coordinates
 """
 
-import numpy as np
+import numpy as _np
 
 from .base import ABCData
 from ..version import __version__
@@ -11,7 +11,7 @@ version = __version__
 
 core_attrs_list = ["nmr_frequency"]
 
-np.set_printoptions(threshold=15)
+_np.set_printoptions(threshold=15)
 
 
 class DNPData(ABCData):
@@ -31,7 +31,9 @@ class DNPData(ABCData):
 
     """
 
-    def __init__(self, values=np.r_[[]], dims=[], coords=[], attrs={}, proc_attrs=None):
+    def __init__(
+        self, values=_np.r_[[]], dims=[], coords=[], attrs={}, proc_attrs=None
+    ):
         """
         DNPData Class __init__ method
 
@@ -142,7 +144,9 @@ class DNPData(ABCData):
             phase (float,int): phase of data calculated from sum of imaginary
                 divided by sum of real components
         """
-        return np.arctan(np.sum(np.imag(self.values)) / np.sum(np.real(self.values)))
+        return _np.arctan(
+            _np.sum(_np.imag(self.values)) / _np.sum(_np.real(self.values))
+        )
 
     def squeeze(self):
         """
@@ -163,7 +167,7 @@ class DNPData(ABCData):
         for index_ix, index_value in enumerate(reverse_remove_axes):
             self.coords.pop(index_value)
             self.dims.pop(index_value)
-            self.values = np.squeeze(self.values)
+            self.values = _np.squeeze(self.values)
 
     def select(self, selection):
         """
@@ -193,14 +197,14 @@ class DNPData(ABCData):
         elif isinstance(selection, (list, tuple)) and all(
             [isinstance(x, (int, range)) for x in selection]
         ):
-            new_values = np.empty(shape=(self.shape[0],))
+            new_values = _np.empty(shape=(self.shape[0],))
             new_coords = []
             for x in selection:
                 if isinstance(x, int):
-                    new_values = np.vstack((new_values, self.values[:, x]))
+                    new_values = _np.vstack((new_values, self.values[:, x]))
                     new_coords = new_coords + [self.coords[self.dims[1]][x]]
                 elif isinstance(x, range):
-                    new_values = np.vstack(
+                    new_values = _np.vstack(
                         (new_values, self.values[:, x.start : x.stop].T)
                     )
                     new_coords = new_coords + [
@@ -208,7 +212,7 @@ class DNPData(ABCData):
                     ]
 
             self.values = new_values.T[:, 1:]
-            self.coords[self.dims[1]] = np.array(new_coords)
+            self.coords[self.dims[1]] = _np.array(new_coords)
         else:
             raise TypeError(
                 "Select using integer, range, or list/tuple of integers or ranges"

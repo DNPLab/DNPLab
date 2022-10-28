@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 import os
 import re
 import time
@@ -89,9 +89,9 @@ def get_powers(path, power_file, experiment_list):
             print("Extracted powers from " + power_file + ".mat file")
             openfile = loadmat(os.path.join(path, power_file + ".mat"))
             power = openfile.pop("powerlist")
-            power = np.array([x for i in power for x in i])
+            power = _np.array([x for i in power for x in i])
             exptime = openfile.pop("timelist")
-            exptime = np.array([x for i in exptime for x in i])
+            exptime = _np.array([x for i in exptime for x in i])
         elif os.path.isfile(os.path.join(path, power_file + ".csv")):
             print("Extracted powers from " + power_file + ".csv file")
             openfile = open(os.path.join(path, power_file + ".csv", "r"))
@@ -105,14 +105,14 @@ def get_powers(path, power_file, experiment_list):
                 exptime, power = line.split("\r")[0].split(",")
                 timeList.append(float(exptime))
                 powerList.append(float(power))
-            exptime = np.array(timeList)
-            power = np.array(powerList)
+            exptime = _np.array(timeList)
+            power = _np.array(powerList)
 
         step = exptime[1] - exptime[0]
         dp = []
         for i in range(len(power) - 1):
             dp.append((power[i + 1] - power[i]) / step)
-        dp = abs(np.array(dp))
+        dp = abs(_np.array(dp))
 
         timeBreak = []
         for i in range(len(dp)):
@@ -131,7 +131,7 @@ def get_powers(path, power_file, experiment_list):
             for k in range(0, len(exptime) - 1):
                 if start <= exptime[k] <= stop:
                     cutPower.append(power[k])
-            powers = round(np.average(cutPower), 3)
+            powers = round(_np.average(cutPower), 3)
             power_list.append(float(powers))
     except:
         raise ImportError("Unable to read the power file")
