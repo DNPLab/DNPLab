@@ -1,5 +1,5 @@
 from .data import DNPData
-import numpy as np
+import numpy as _np
 
 
 def concat(data_list, dim, coord=None):
@@ -31,12 +31,12 @@ def concat(data_list, dim, coord=None):
     coords = data_list[0].coords.coords
     attrs = data_list[0].attrs
 
-    values = np.stack(values_list, axis=-1)
+    values = _np.stack(values_list, axis=-1)
 
     dims.append(dim)
 
     if coord is None:
-        coords.append(np.arange(len(data_list)))
+        coords.append(_np.arange(len(data_list)))
     else:
         coords.append(coord)
 

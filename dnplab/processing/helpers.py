@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 from scipy.signal import savgol_filter
 
 from ..core.data import DNPData

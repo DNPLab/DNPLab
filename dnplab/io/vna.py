@@ -1,5 +1,5 @@
 # TODO: remove unused imports
-import numpy as np
+import numpy as _np
 import os
 import re
 from matplotlib.pylab import *

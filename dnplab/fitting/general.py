@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 from scipy.optimize import curve_fit
 from ..core.data import DNPData
 
@@ -11,7 +11,7 @@ def fit(
     sigma=None,
     absolute_sigma=False,
     check_finite=True,
-    bounds=(-1 * np.inf, np.inf),
+    bounds=(-1 * _np.inf, _np.inf),
     method=None,
     jac=None,
     **kwargs
@@ -56,14 +56,14 @@ def fit(
         fit.values[:, ix] = fit_values
         popt = out[0]
         pcov = out[1]
-        perr = np.sqrt(np.diag(pcov))
+        perr = _np.sqrt(_np.diag(pcov))
         popt_list.append(popt)
         perr_list.append(perr)
 
     p_shape = list(fit.attrs["folded_shape"])
     p_shape[0] = len(p0)
-    popt_array = np.array(popt_list).T.reshape(p_shape)
-    perr_array = np.array(perr_list).T.reshape(p_shape)
+    popt_array = _np.array(popt_list).T.reshape(p_shape)
+    perr_array = _np.array(perr_list).T.reshape(p_shape)
 
     fit.fold()
 
@@ -72,7 +72,7 @@ def fit(
 
     pcoords = list(fit.coords)
 
-    pcoords[0] = np.array(range(0, len(p0)))
+    pcoords[0] = _np.array(range(0, len(p0)))
 
     popt_data = DNPData(popt_array, pdims, pcoords)
     perr_data = DNPData(perr_array, pdims, pcoords)
