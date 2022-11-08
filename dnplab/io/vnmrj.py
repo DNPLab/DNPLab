@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 import os
 
 from .. import DNPData
@@ -30,7 +30,7 @@ def array_coords(attrs):
         array_stop = attrs["arraystop"]
 
         if array_dim != 1:
-            coord = np.r_[array_start : array_stop + array_delta : array_delta]
+            coord = _np.r_[array_start : array_stop + array_delta : array_delta]
             dim = "t1"
         else:
             coord = None
@@ -94,15 +94,15 @@ def import_fid(path, filename="fid"):
             blockDataString = f.read(tbytes)
 
             if isFloat:
-                blockData = np.array(
+                blockData = _np.array(
                     unpack(">%if" % (npts), blockDataString), dtype=complex
                 )
 
             else:
-                blockData = np.array(unpack(">%ii" % (npts), blockDataString))
+                blockData = _np.array(unpack(">%ii" % (npts), blockDataString))
             data = blockData[0::2] - 1j * blockData[1::2]  # minus sign for VNMRJ data
             dataList.append(data)
-        dataArray = np.array(dataList).T
+        dataArray = _np.array(dataList).T
 
     return dataArray
 
@@ -208,7 +208,7 @@ def import_vnmrj(path, fidFilename="fid", paramFilename="procpar"):
 
     dwellTime = 1.0 / sw
 
-    t = np.r_[0.0 : int(npts)] * dwellTime
+    t = _np.r_[0.0 : int(npts)] * dwellTime
     dims = ["t2"]
     coords = [t]
 

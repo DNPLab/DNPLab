@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 import os
 from .. import DNPData
 import warnings
@@ -136,10 +136,10 @@ def load_spc(path, params):
         dims (list) : dimension labels
     """
 
-    data_format = np.dtype(params["data_type"]).newbyteorder(params["endian"])
+    data_format = _np.dtype(params["data_type"]).newbyteorder(params["endian"])
     file_opened = open(path, "rb")
     file_bytes = file_opened.read()
-    spec = np.frombuffer(file_bytes, dtype=data_format)
+    spec = _np.frombuffer(file_bytes, dtype=data_format)
 
     params.pop("data_type", None)
     params.pop("endian", None)
@@ -153,7 +153,7 @@ def load_spc(path, params):
     if "center_field" not in params.keys() or "x_width" not in params.keys():
         if "sweep_start" in params.keys() and "sweep_extent" in params.keys():
             abscissa = [
-                np.linspace(
+                _np.linspace(
                     params["sweep_start"],
                     params["sweep_extent"],
                     params["x_points"],
@@ -164,7 +164,7 @@ def load_spc(path, params):
             abscissa = [range(params["x_points"])]
     elif "center_field" in params.keys() and "x_width" in params.keys():
         abscissa = [
-            np.linspace(
+            _np.linspace(
                 params["center_field"] - params["x_width"] / 2,
                 params["center_field"] + params["x_width"] / 2,
                 params["x_points"],
@@ -184,12 +184,12 @@ def load_spc(path, params):
         dims = ["t2"]
 
     if "y_points" in params.keys() and params["y_points"] != 1:
-        spec = np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
+        spec = _np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
         dims.append("t1")
 
         if "y_min" in params.keys() and "y_width" in params.keys():
             abscissa.append(
-                np.linspace(
+                _np.linspace(
                     params["y_min"],
                     params["y_min"] + params["y_width"],
                     params["y_points"],

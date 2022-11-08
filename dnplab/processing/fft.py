@@ -1,8 +1,6 @@
 from warnings import warn
-
 import re
-
-import numpy as np
+import numpy as _np
 
 __all__ = ["fourier_transform", "inverse_fourier_transform"]
 
@@ -66,7 +64,7 @@ def fourier_transform(
 
     dt = data.coords[dim][1] - data.coords[dim][0]
     n_pts = zero_fill_factor * len(data.coords[dim])
-    f = (1.0 / (n_pts * dt)) * np.r_[0:n_pts]
+    f = (1.0 / (n_pts * dt)) * _np.r_[0:n_pts]
     if shift == True:
         f -= 1.0 / (2 * dt)
 
@@ -79,10 +77,10 @@ def fourier_transform(
             nmr_frequency = data.attrs["nmr_frequency"]
             f /= nmr_frequency / 1.0e6  # updated
 
-    data.values = np.fft.fft(data.values, n=n_pts, axis=index)
+    data.values = _np.fft.fft(data.values, n=n_pts, axis=index)
 
     if shift:
-        data.values = np.fft.fftshift(data.values, axes=index)
+        data.values = _np.fft.fftshift(data.values, axes=index)
 
     data.coords[dim] = f
 
@@ -143,12 +141,12 @@ def inverse_fourier_transform(
             df /= 1 / (nmr_frequency / 1.0e6)  # updated
 
     n_pts = zero_fill_factor * len(data.coords[dim])
-    t = (1.0 / (n_pts * df)) * np.r_[0:n_pts]
+    t = (1.0 / (n_pts * df)) * _np.r_[0:n_pts]
 
     if shift:
-        data.values = np.fft.fftshift(data.values, axes=index)
+        data.values = _np.fft.fftshift(data.values, axes=index)
 
-    data.values = np.fft.ifft(data.values, n=n_pts, axis=index)
+    data.values = _np.fft.ifft(data.values, n=n_pts, axis=index)
     data.coords[dim] = t
 
     new_dim = rename_ft_dim(dim, "f", "t")

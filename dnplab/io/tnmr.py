@@ -1,5 +1,5 @@
 from .. import DNPData
-import numpy as np
+import numpy as _np
 import struct
 import re
 
@@ -83,7 +83,7 @@ def import_tnmr_data(path):
 
                     raw_data = struct.unpack("%if" % (bytes_to_read / 4), raw_data)
 
-                    raw_data = np.array(raw_data)
+                    raw_data = _np.array(raw_data)
 
                     data = raw_data[::2] + 1j * raw_data[1::2]
 
@@ -95,7 +95,7 @@ def import_tnmr_data(path):
 
                     unsupported_bytes = f.read(bytes_to_read)
 
-    abscissa = np.array(range(0, len(data)))
+    abscissa = _np.array(range(0, len(data)))
 
     dims = ["t2"]
     coords = [abscissa]
