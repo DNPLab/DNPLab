@@ -12,7 +12,7 @@ def remove_background(data, dim="t2", deg=0, regions=None):
 
     Returns:
         data (DNPData): Background corrected data
-    
+
     Examples:
 
         0th-order background removal (DC offset)
