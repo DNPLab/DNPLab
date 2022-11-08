@@ -89,15 +89,15 @@ def smooth(data, dim="t2", window_length=11, polyorder=3):
 
 
 def left_shift(data, dim="t2", shift_points=0):
-    """Remove points from the left of data
+    """Remove points from the left
 
     Args:
-        data (dnpdata): Data container for data
+        data (DNPData): Data object
         dim (str): Name of dimension to left shift, default is "t2"
         shift_points (int): Number of points to left shift, default is 0.
 
     Returns:
-        dnpdata: data object with left-shifted data
+        data (DNPDdata): Shifted data object
     """
 
     data = data[dim, shift_points:]
