@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 from ..core.data import DNPData
 import warnings
 
@@ -7,30 +7,20 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
     """Alignment of NMR spectra using FFT Cross Correlation
 
     Args:
-        all_data (object) : dnpdata object
-        dim (str) : dimension to align along
-        reference (numpy) : second dimension to align along
-        center (float) : range center
-        width (float) : range width
+        all_data (object) : DNPData object
+        dim (str) : Dimension to align along
+        reference (numpy) : Reference spectra for alignment
+        center (float) : Center of alignment range, by default entire range
+        width (float) : Width of alignment range, by default entire range
+        average (int) : Number of averages to use for reference
 
     Returns:
-        dnpdata: Aligned data in container
+        DNPData: Aligned data
 
     Examples:
 
-        >>> import numpy as np
-        >>> from matplotlib.pylab import *
-        >>> import dnplab as dnp
-        >>> x = np.r_[-10:10:100j]
-        >>> y = np.r_[0,1,2]
-        >>> values = dnp.math.lineshape.lorentzian(x.reshape(-1,1),y.reshape(1,-1),1)
-        >>> data = dnp.DNPData(values, ['f2','sample'], [x, y])
-        >>> figure('Before Alignment')
-        >>> dnp.plot(data)
         >>> data_aligned = dnp.ndalign(data)
-        >>> figure('After Alignment')
-        >>> dnp.plot(data_aligned)
-        >>> show()
+        >>> data_aligned = dnp.ndalign(data, center = 10, width = 20)
     """
 
     proc_parameters = {"dim": dim}
@@ -48,7 +38,7 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         start = data.coords[dim][-1]
         stop = data.coords[dim][0]
     else:
-        raise ValueError("selected range is not accpetable")
+        raise ValueError("selected range is not acceptable")
 
     values = data[dim, (start, stop)].values
 
@@ -61,34 +51,34 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
     all_values = all_values.reshape(all_align_dim_length, -1)
     values = values.reshape(align_dim_length, -1)  # Reshape to 2d
 
-    new_shape = np.shape(values)
+    new_shape = _np.shape(values)
 
     dim2 = new_shape[1]
 
-    abs_values = np.abs(values)
+    abs_values = _np.abs(values)
 
     if reference is None:
-        reference = np.abs(values[:, -1])
+        reference = _np.abs(values[:, -1])
     elif isinstance(reference, DNPData):
-        reference = np.abs(reference.values)
+        reference = _np.abs(reference.values)
         if average != None:
-            reference = np.convolve(reference, np.ones(average), "same") / average
+            reference = _np.convolve(reference, _np.ones(average), "same") / average
 
-    ref_max_ix = np.argmax(reference)
+    ref_max_ix = _np.argmax(reference)
 
-    all_aligned_values = np.zeros_like(all_values)
+    all_aligned_values = _np.zeros_like(all_values)
 
     for ix in range(dim2):
         if average != None:
             abs_values[:, ix] = (
-                np.convolve(abs_values[:, ix], np.ones(average), "same") / average
+                _np.convolve(abs_values[:, ix], _np.ones(average), "same") / average
             )
-        cor = np.correlate(
+        cor = _np.correlate(
             abs_values[:, ix], reference, mode="same"
         )  # calculate cross-correlation
-        max_ix = np.argmax(cor)  # Maximum of cross correlation
+        max_ix = _np.argmax(cor)  # Maximum of cross correlation
         delta_max_ix = max_ix - ref_max_ix  # Calculate how many points to shift
-        all_aligned_values[:, ix] = np.roll(
+        all_aligned_values[:, ix] = _np.roll(
             all_values[:, ix], -1 * delta_max_ix
         )  # shift values
 
@@ -107,7 +97,7 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
 
 
 def align(data, dim="f2", dim2=None, center=None, width=None):
-    """DEPRECIATED. Please use ndalign instead. Alignment of NMR spectra down given dimension or dimensions
+    """This function is deprecated and will be removed from future releases. Please use ndalign instead. Alignment of NMR spectra down given dimension or dimensions
 
     Args:
         all_data (object) : dnpdata object
@@ -119,11 +109,13 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
     Returns:
         dnpdata: Aligned data in container
     """
-
     warnings.warn(
-        "align is depreciated. Use ndalign instead. align will be removed after 01/01/2023"
+        "This function is deprecated. Please use ndalign instead. align will be removed after 01/01/2023",
+        DeprecationWarning,
+        stacklevel=2,
     )
-    if len(np.shape(data.values)) > 3:
+
+    if len(_np.shape(data.values)) > 3:
         raise ValueError("Greater than 3-dimensional data is currently not supported")
 
     proc_parameters = {"dim": dim, "dim2": dim2}
@@ -166,11 +158,11 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
             else:
                 raise ValueError("selected range is not accpetale")
 
-            corrData = np.correlate(np.abs(rangeData), np.abs(refData), mode="same")
-            shiftIx = np.argmax(corrData) - (
+            corrData = _np.correlate(_np.abs(rangeData), _np.abs(refData), mode="same")
+            shiftIx = _np.argmax(corrData) - (
                 len(corrData) / 2
             )  # subtract half length so spectrum is shifted relative to center, not edge
-            shiftData = np.roll(tempData, -1 * int(np.round(shiftIx, 0)))
+            shiftData = _np.roll(tempData, -1 * int(_np.round(shiftIx, 0)))
             data.values[:, ix] = shiftData
     else:
 
@@ -191,11 +183,13 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
                 else:
                     raise ValueError("selected range is not accpetale")
 
-                corrData = np.correlate(np.abs(rangeData), np.abs(refData), mode="same")
-                shiftIx = np.argmax(corrData) - (
+                corrData = _np.correlate(
+                    _np.abs(rangeData), _np.abs(refData), mode="same"
+                )
+                shiftIx = _np.argmax(corrData) - (
                     len(corrData) / 2
                 )  # subtract half length so spectrum is shifted relative to center, not edge
-                shiftData = np.roll(tempData, -1 * int(np.round(shiftIx, 0)))
+                shiftData = _np.roll(tempData, -1 * int(_np.round(shiftIx, 0)))
                 data.values[:, ix2, ix1] = shiftData
 
     data.reorder(originalAxesOrder)

@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 
 
 def remove_background(data, dim="t2", deg=0, regions=None):
@@ -23,7 +23,7 @@ def remove_background(data, dim="t2", deg=0, regions=None):
     fit = background(data, dim=dim, deg=deg, regions=regions)
     data = data - fit
 
-    proc_attr_name = "remove_backround"
+    proc_attr_name = "remove_background"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return data
@@ -58,8 +58,8 @@ def background(data, dim="t2", deg=0, regions=None):
             ]
 
     for ix in range(out.shape[1]):
-        p = np.polyfit(coord[fit_points], out.values[:, ix][fit_points], deg=deg)
-        fit = np.polyval(p, coord)
+        p = _np.polyfit(coord[fit_points], out.values[:, ix][fit_points], deg=deg)
+        fit = _np.polyval(p, coord)
         out.values[:, ix] = fit
 
     out.fold()
