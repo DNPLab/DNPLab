@@ -11,7 +11,7 @@ from ..version import __version__
 version = __version__
 
 
-_numerical_types = (_np.ndarray, int, float, complex, _np.complex64)
+_numerical_types = (_np.ndarray, int, float, complex, _np.complex64, _np.float16, _np.double, _np.longdouble, _np.csingle, _np.cdouble, _np.clongdouble, _np.longlong)
 
 # _nddata_core_version = "1.0"
 
