@@ -104,8 +104,8 @@ def autophase(
 
         if method == "arctan":
             data.attrs["phase0"] = _np.arctan(
-                np.sum(_np.imag(temp_data.reshape(-1, 1)))
-                / np.sum(_np.real(temp_data.reshape(-1, 1)))
+                _np.sum(_np.imag(temp_data.reshape(-1, 1)))
+                / _np.sum(_np.real(temp_data.reshape(-1, 1)))
             )
         elif method == "search":
             if pts_lim is not None:
