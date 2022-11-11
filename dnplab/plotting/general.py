@@ -77,7 +77,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         showPar (boolean): Toggle whether to show experiment parameters
 
     Returns:
-        Returns formated matplotlib plot.
+        Returns formatted matplotlib plot.
 
     Example:
 

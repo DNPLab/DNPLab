@@ -18,6 +18,16 @@ def load(path, data_type=None, dim=None, coord=None, verbose=False, *args, **kwa
 
     Returns:
         data (dnpData): Data object
+
+    Examples:
+
+        Load a data file
+
+        >>> data = dnp.load('Path/To/File')
+
+        Load a list of files and concatenate down a new dimension called 't1' with coordinates
+
+        >>> data = dnp.load(['1/data.1d','2/data.1d','3/data.1d'], dim = 't1', coord = np.r_[0.1,0.2,0.3])
     """
 
     if isinstance(path, list):

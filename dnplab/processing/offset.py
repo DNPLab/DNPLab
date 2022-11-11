@@ -8,10 +8,17 @@ def remove_background(data, dim="t2", deg=0, regions=None):
         data (DNPData): Data object
         dim (str): Dimension to perform background fit
         deg (int): Polynomial degree
-        regions (None, list): Background regions, by default entire region is background corrected. Regions can be specified as a list of tuples [(min, max), ...]
+        regions (None, list): Background regions, by default the entire region is used to calculate the background correction. Regions can be specified as a list of tuples [(min, max), ...]
 
     Returns:
-        DNPData: Background corrected data
+        data (DNPData): Background corrected data
+
+    Examples:
+
+        0th-order background removal (DC offset)
+
+        >>> data = dnp.remove_background(data)
+
     """
 
     proc_parameters = {
