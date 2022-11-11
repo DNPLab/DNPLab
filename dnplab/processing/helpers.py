@@ -66,7 +66,9 @@ def signal_to_noise():
 
 
 def smooth(data, dim="t2", window_length=11, polyorder=3):
-    """Apply Savitzky Golay Smoothing
+    """Apply Savitzky-Golay Smoothing
+
+    This function is a wrapper function for the savgol_filter from the SciPy python package (https://scipy.org/). For a more detailed description see the SciPy help for this function.
 
     Args:
         data (DNPData): Data object
@@ -75,7 +77,7 @@ def smooth(data, dim="t2", window_length=11, polyorder=3):
         polyorder (int): Polynomial order to fit samples
 
     Returns:
-        DNPData: Data with Savitzky Golay smoothing applied
+        data (DNPData): Data with Savitzky-Golay smoothing applied
     """
     out = data.copy()
 
