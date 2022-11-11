@@ -24,6 +24,7 @@ def fit(
         data (DNPData): Data for fit
         dim (str): Dimension to perform fit along
         p0 (tuple): Initial guess for fit
+        fit_points (int): Number of points to use in the fit. If None (default), the number of points is the same as the data.
         kwargs: Additional parameters for scipy.curve_fit
 
     Returns:
