@@ -8,6 +8,7 @@ def fit(
     data,
     dim,
     p0,
+    fit_points = None,
     sigma=None,
     absolute_sigma=False,
     check_finite=True,
@@ -30,6 +31,23 @@ def fit(
     """
 
     fit = data.copy()
+
+    index = fit.index(dim)
+    dims = fit.dims
+    coords = list(fit.coords.copy())
+    shape = list(fit.shape)
+
+    coord = coords[index]
+    if fit_points is not None:
+        new_coord = _np.r_[_np.min(coord):_np.max(coord):1j*fit_points]
+    else:
+        new_coord = coord
+
+    shape[index] = len(new_coord)
+    coords[index] = new_coord
+    fit_out = DNPData(_np.zeros(shape), dims, coords)
+
+    fit_out.unfold(dim)
     fit.unfold(dim)
 
     ydata = fit.values
@@ -52,8 +70,8 @@ def fit(
             jac=jac,
             **kwargs
         )
-        fit_values = f(xdata, *out[0])
-        fit.values[:, ix] = fit_values
+        fit_values = f(new_coord, *out[0])
+        fit_out.values[:, ix] = fit_values
         popt = out[0]
         pcov = out[1]
         perr = _np.sqrt(_np.diag(pcov))
@@ -66,6 +84,7 @@ def fit(
     perr_array = _np.array(perr_list).T.reshape(p_shape)
 
     fit.fold()
+    fit_out.fold()
 
     pdims = list(fit.dims)
     pdims[0] = "popt"
@@ -78,7 +97,7 @@ def fit(
     perr_data = DNPData(perr_array, pdims, pcoords)
 
     out = {
-        "fit": fit,
+        "fit": fit_out,
         "popt": popt_data,
         "err": perr_data,
     }
