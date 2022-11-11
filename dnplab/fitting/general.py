@@ -8,7 +8,7 @@ def fit(
     data,
     dim,
     p0,
-    fit_points = None,
+    fit_points=None,
     sigma=None,
     absolute_sigma=False,
     check_finite=True,
@@ -39,7 +39,7 @@ def fit(
 
     coord = coords[index]
     if fit_points is not None:
-        new_coord = _np.r_[_np.min(coord):_np.max(coord):1j*fit_points]
+        new_coord = _np.r_[_np.min(coord) : _np.max(coord) : 1j * fit_points]
     else:
         new_coord = coord
 
