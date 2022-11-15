@@ -5,6 +5,20 @@ __all__ = ["generate_data"]
 
 
 def generate_data(shape):
+    '''Generate random data set with given shape
+
+    Args:
+        shape (tuple): shape of data
+    
+    Returns:
+        DNPData: data of given shape
+    
+    Examples:
+
+        Generate a random 5 x 10 x 20 data set:
+
+        >>> data = generate_data((5, 10, 20))
+    '''
     size = 1
     dims = []
     coords = []
