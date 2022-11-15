@@ -1,6 +1,6 @@
 """Functions to import Bruker EPR data"""
 
-import numpy as np
+import numpy as _np
 import os
 from .. import DNPData
 import warnings
@@ -251,11 +251,11 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
         dims (list) : dimensions
     """
 
-    dta_dtype = np.dtype(params["x_format"]).newbyteorder(params["endian"])
+    dta_dtype = _np.dtype(params["x_format"]).newbyteorder(params["endian"])
     file_opened = open(path_dta, "rb")
     file_bytes = file_opened.read()
     file_opened.close()
-    spec = np.frombuffer(file_bytes, dtype=dta_dtype)
+    spec = _np.frombuffer(file_bytes, dtype=dta_dtype)
     if params["x_type"] == "nonlinear":
         abscissa = [
             load_gf_files(
@@ -270,7 +270,7 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
         ]
     elif params["x_type"] == "linear":
         abscissa = [
-            np.linspace(
+            _np.linspace(
                 params["x_min"],
                 params["x_min"] + params["x_width"],
                 params["x_points"],
@@ -287,7 +287,7 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
         dims = ["t2"]
 
     if params["data_type"] == "CPLX":
-        spec = spec.astype(dtype=params["imag_format"]).view(dtype=np.dtype("complex"))
+        spec = spec.astype(dtype=params["imag_format"]).view(dtype=_np.dtype("complex"))
     elif params["data_type"] == "REAL":
         spec = spec.astype(dtype=params["real_format"]).view()
 
@@ -295,7 +295,7 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
         "z_points" not in params.keys()
         or ("z_points" in params.keys() and params["z_points"] == 1)
     ) and ("y_points" in params.keys() and params["y_points"] != 1):
-        spec = np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
+        spec = _np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
 
         dims.append("t1")
 
@@ -312,7 +312,7 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
         )
 
     elif "z_points" in params.keys() and params["z_points"] != 1:
-        spec = np.reshape(
+        spec = _np.reshape(
             spec,
             (params["x_points"], params["y_points"]),
             params["z_points"],
@@ -403,20 +403,20 @@ def load_gf_files(
     if path != "none":
         if axis_type == "linear":
             warnings.warn("axis format is linear, confirm that the axis is correct")
-        gf_type = np.dtype(axis_format).newbyteorder(endian)
+        gf_type = _np.dtype(axis_format).newbyteorder(endian)
         file_opened = open(path, "rb")
         file_bytes = file_opened.read()
         file_opened.close()
-        abscissa = np.frombuffer(file_bytes, dtype=axis_format)
+        abscissa = _np.frombuffer(file_bytes, dtype=axis_format)
     elif path == "none":
         if axis_type == "nonlinear":
             warnings.warn(
                 "axis is nonlinear, confirm that file is not needed and the axis is correct"
             )
-        abscissa = np.linspace(axis_min, axis_min + axis_width, axis_points)
+        abscissa = _np.linspace(axis_min, axis_min + axis_width, axis_points)
     else:
         warnings.warn("axis format not supported, axis is only indexed")
-        abscissa = np.array([range(axis_points)])
+        abscissa = _np.array([range(axis_points)])
 
     return abscissa
 

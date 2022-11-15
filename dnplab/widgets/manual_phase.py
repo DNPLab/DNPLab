@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
@@ -42,15 +42,15 @@ def manual_phase(data, dim="f2"):
         min_y_data = 0
         max_y_data = 0
         for ix, line in enumerate(l):
-            y_data = np.real(
-                np.exp(-1j * np.pi * phase / 180.0)
-                * np.exp(-1j * np.pi * phase1 * coord / 180)
+            y_data = _np.real(
+                _np.exp(-1j * _np.pi * phase / 180.0)
+                * _np.exp(-1j * _np.pi * phase1 * coord / 180)
                 * values[:, ix]
             )
-            margin = max(0.1 * (np.max(y_data) - np.min(y_data)), margin)
+            margin = max(0.1 * (_np.max(y_data) - _np.min(y_data)), margin)
             line.set_ydata(y_data)
-            min_y_data = min(min_y_data, np.min(y_data))
-            max_y_data = max(max_y_data, np.max(y_data))
+            min_y_data = min(min_y_data, _np.min(y_data))
+            max_y_data = max(max_y_data, _np.max(y_data))
         #        ax.set_ylim(min_y_data - margin, max_y_data + margin)
         fig.canvas.draw_idle()
 
@@ -96,7 +96,7 @@ def manual_phase(data, dim="f2"):
     manual_phase = sphase.val
     manual_phase1 = sphase1.val
 
-    data *= np.exp(-1j * np.pi * manual_phase / 180.0)
+    data *= _np.exp(-1j * _np.pi * manual_phase / 180.0)
 
     proc_attr_name = "manualphase"
     proc_parameters = {"phase": manual_phase, "phase1": manual_phase1}

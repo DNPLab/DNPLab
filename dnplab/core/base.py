@@ -1,6 +1,6 @@
 from __future__ import division
 import operator
-import numpy as np
+import numpy as _np
 import warnings
 from copy import deepcopy
 from collections import OrderedDict
@@ -11,7 +11,21 @@ from ..version import __version__
 version = __version__
 
 
-_numerical_types = (np.ndarray, int, float, complex, np.complex64)
+_numerical_types = (
+    _np.ndarray,
+    int,
+    float,
+    complex,
+    _np.complex64,
+    _np.float16,
+    _np.float32,
+    _np.double,
+    _np.longdouble,
+    _np.csingle,
+    _np.cdouble,
+    _np.clongdouble,
+    _np.longlong,
+)
 
 # _nddata_core_version = "1.0"
 
@@ -31,17 +45,17 @@ class ABCData(object):
     __array_priority__ = 1000  # radd, rsub, ... should return nddata object
 
     def __init__(
-        self, values=np.r_[[]], dims=[], coords=[], attrs={}, error=None, **kwargs
+        self, values=_np.r_[[]], dims=[], coords=[], attrs={}, error=None, **kwargs
     ):
 
         self.version = version
 
         # if values is list, convert to numpy array
         if isinstance(values, list):
-            values = np.array(values)
+            values = _np.array(values)
 
         # verify values are numpy array
-        if isinstance(values, np.ndarray):
+        if isinstance(values, _np.ndarray):
             self._values = values
         else:
             raise TypeError(
@@ -55,7 +69,7 @@ class ABCData(object):
         else:
             raise TypeError('attrs must be type "dict" not %s' % str(type(attrs)))
 
-        if isinstance(error, np.ndarray) or (error == None):
+        if isinstance(error, _np.ndarray) or (error == None):
             self._error = error
         else:
             raise TypeError(
@@ -105,7 +119,7 @@ class ABCData(object):
         """
 
         for coord in coords:
-            if isinstance(coord, np.ndarray):
+            if isinstance(coord, _np.ndarray):
                 if len(coord.shape) == 1:
                     pass
                 else:
@@ -125,7 +139,7 @@ class ABCData(object):
             bool: True if valid error. False otherwise.
         """
 
-        check_type = isinstance(error, np.ndarray)
+        check_type = isinstance(error, _np.ndarray)
 
         if check_type:
             check_size = error.size == self._values.size
@@ -159,7 +173,7 @@ class ABCData(object):
 
         for key in self._attrs:
             if not isinstance(
-                self._attrs, (list, np.ndarray, int, float, complex, str)
+                self._attrs, (list, _np.ndarray, int, float, complex, str)
             ):
                 return False
 
@@ -209,11 +223,11 @@ class ABCData(object):
             if isinstance(slice_, tuple):
                 index = a.index(dim)
                 if len(slice_) == 1:
-                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
+                    start = _np.argmin(_np.abs(slice_[0] - a.get_coord(dim)))
                     updated_index_slice.append(slice(start, start + 1))
                 else:
-                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
-                    stop = np.argmin(np.abs(slice_[1] - a.get_coord(dim)))
+                    start = _np.argmin(_np.abs(slice_[0] - a.get_coord(dim)))
+                    stop = _np.argmin(_np.abs(slice_[1] - a.get_coord(dim)))
                     if start == stop:
                         stop = start + 1
                     if stop < start:
@@ -226,7 +240,7 @@ class ABCData(object):
                 else:
                     updated_index_slice.append(slice(slice_, None))
             elif isinstance(slice_, float):
-                start = np.argmin(np.abs(slice_ - a.get_coord(dim)))
+                start = _np.argmin(_np.abs(slice_ - a.get_coord(dim)))
                 updated_index_slice.append(slice(start, start + 1))
             else:
                 updated_index_slice.append(slice_)
@@ -288,11 +302,11 @@ class ABCData(object):
             if isinstance(slice_, tuple):
                 index = a.index(dim)
                 if len(slice_) == 1:
-                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
+                    start = _np.argmin(_np.abs(slice_[0] - a.get_coord(dim)))
                     updated_index_slice.append(slice(start, start + 1))
                 else:
-                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
-                    stop = np.argmin(np.abs(slice_[1] - a.get_coord(dim)))
+                    start = _np.argmin(_np.abs(slice_[0] - a.get_coord(dim)))
+                    stop = _np.argmin(_np.abs(slice_[1] - a.get_coord(dim)))
                     if start == stop:
                         stop = start + 1
                     if stop < start:
@@ -305,7 +319,7 @@ class ABCData(object):
                 else:
                     updated_index_slice.append(slice(slice_, None))
             elif isinstance(slice_, float):
-                start = np.argmin(np.abs(slice_ - a.get_coord(dim)))
+                start = _np.argmin(_np.abs(slice_ - a.get_coord(dim)))
                 updated_index_slice.append(slice(start, start + 1))
             else:
                 updated_index_slice.append(slice_)
@@ -371,7 +385,9 @@ class ABCData(object):
         sorted_order = sorted(range(len(self.dims)), key=lambda x: self.dims[x])
 
         self.coords.reorder_index(sorted_order)
-        self._values = np.moveaxis(self._values, range(len(sorted_order)), sorted_order)
+        self._values = _np.moveaxis(
+            self._values, range(len(sorted_order)), sorted_order
+        )
 
     def index(self, dim):
         """Find index of given dimension name
@@ -396,7 +412,7 @@ class ABCData(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                error = abs(a.values) * np.sqrt(
+                error = abs(a.values) * _np.sqrt(
                     (self.error / a.values) ** 2.0 + (b.error / a.values) ** 2.0
                 )
             elif b.error is not None:
@@ -427,7 +443,7 @@ class ABCData(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                error = abs(a.values) * np.sqrt(
+                error = abs(a.values) * _np.sqrt(
                     (self.error / a.values) ** 2.0 + (b.error / a.values) ** 2.0
                 )
             elif b.error is not None:
@@ -452,7 +468,7 @@ class ABCData(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                a.error = np.sqrt(a.error**2.0 + b.error**2.0)
+                a.error = _np.sqrt(a.error**2.0 + b.error**2.0)
             elif b.error is not None:
                 a.error = b.error
 
@@ -475,7 +491,7 @@ class ABCData(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                a.error = np.sqrt(a.error**2.0 + b.error**2.0)
+                a.error = _np.sqrt(a.error**2.0 + b.error**2.0)
             elif b.error is not None:
                 a.error = b.error
 
@@ -502,10 +518,10 @@ class ABCData(object):
 
     @values.setter
     def values(self, b):
-        if not isinstance(b, (int, complex, float, np.ndarray)):
+        if not isinstance(b, (int, complex, float, _np.ndarray)):
             raise TypeError('Values must be type "numpy.ndarray" not %s' % type(b))
         if isinstance(b, (int, complex, float)):
-            b = np.array(b)
+            b = _np.array(b)
 
         self._values = b
 
@@ -546,7 +562,7 @@ class ABCData(object):
 
     @error.setter
     def error(self, b):
-        if isinstance(b, (np.ndarray, type(None))):
+        if isinstance(b, (_np.ndarray, type(None))):
             self._error = b
         else:
             raise ValueError('error must be type "numpy.ndarray"')
@@ -598,7 +614,7 @@ class ABCData(object):
 
         # Transpose values
         #        self.values = np.transpose(self.values, new_order)
-        self.values = np.transpose(self.values, permutation_order)
+        self.values = _np.transpose(self.values, permutation_order)
 
     def __str__(self):
         return "values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}".format(
@@ -616,17 +632,17 @@ class ABCData(object):
         shape = a.shape
 
         remove_dims = [a.dims[x] for x in range(len(shape)) if shape[x] == 1]
-        values = np.squeeze(a.values)
+        values = _np.squeeze(a.values)
 
         if a.error is not None:
-            a.error = np.squeeze(a.error)
+            a.error = _np.squeeze(a.error)
 
         attrs = a.attrs
 
         for dim in remove_dims:
             out = a.coords.pop(dim)
             if dim not in attrs:
-                attrs[dim] = np.array(out)
+                attrs[dim] = _np.array(out)
             else:
                 warnings.warn("Attribute lost {}:{}".format(dim, out))
 
@@ -729,7 +745,7 @@ class ABCData(object):
         # re-order
         old_order = list(range(len(new_order)))
         # re-order b values so they match order of all_dims
-        values_b = np.moveaxis(b.values, new_order, old_order)
+        values_b = _np.moveaxis(b.values, new_order, old_order)
         # create new dims where necessary
         values_b = values_b[
             tuple(slice(None) if dim in b.dims else None for dim in all_dims)
@@ -743,7 +759,7 @@ class ABCData(object):
         else:
             error = a.error
         if b.error is not None:
-            error_b = np.moveaxis(b.values, new_order, old_order)
+            error_b = _np.moveaxis(b.values, new_order, old_order)
             error_b = error_b[
                 tuple(slice(None) if dim in b.dims else None for dim in all_dims)
             ]
@@ -753,7 +769,7 @@ class ABCData(object):
         # check coords
         for dim in all_dims:
             if (dim in a.dims) and (dim in b.dims):
-                if not np.allclose(a.get_coord(dim), b.get_coord(dim)):
+                if not _np.allclose(a.get_coord(dim), b.get_coord(dim)):
                     raise ValueError("Coords do not match for dim: %s" % dim)
 
         # merge attrs
@@ -794,7 +810,7 @@ class ABCData(object):
             dim (str): dimension to sort
         """
 
-        sort_array = np.argsort(self.coords[dim])
+        sort_array = _np.argsort(self.coords[dim])
 
         self.coords[dim] = self.coords[dim][sort_array]
 
@@ -808,7 +824,7 @@ class ABCData(object):
         """Split the dimension dim into"""
 
         if isinstance(coord, int):
-            coord = np.arange(coord)
+            coord = _np.arange(coord)
 
         # move dim to end of dims
         dims = self.dims
@@ -836,27 +852,27 @@ class ABCData(object):
         Returns:
             bool: True if sorted, False otherwise.
         """
-        return np.all(self.coords[dim][:-1] <= self.coords[dim][1:])
+        return _np.all(self.coords[dim][:-1] <= self.coords[dim][1:])
 
     @property
     def real(self):
         """DNPData: DNPData with real part of values"""
         a = self.copy()
-        a.values = np.real(a.values)
+        a.values = _np.real(a.values)
         return a
 
     @property
     def imag(self):
         """DNPData: DNPData with imaginary part of values"""
         a = self.copy()
-        a.values = np.imag(a.values)
+        a.values = _np.imag(a.values)
         return a
 
     @property
     def abs(self):
         """DNPData: DNPData with absolute part of values"""
         a = self.copy()
-        a.values = np.abs(a.values)
+        a.values = _np.abs(a.values)
         return a
 
     def concatenate(self, b, dim):
@@ -876,12 +892,12 @@ class ABCData(object):
 
         b.reorder(self.dims)
 
-        self.values = np.concatenate((self.values, b.values), axis=index)
+        self.values = _np.concatenate((self.values, b.values), axis=index)
 
-        self.coords[dim] = np.concatenate(
+        self.coords[dim] = _np.concatenate(
             (
-                np.array(self.coords[dim]).reshape(-1),
-                np.array(b.coords[dim]).reshape(-1),
+                _np.array(self.coords[dim]).reshape(-1),
+                _np.array(b.coords[dim]).reshape(-1),
             )
         )
 
@@ -892,8 +908,8 @@ class ABCData(object):
             dim (str): Name of new dimension
             coord (int, float): New coord
         """
-        self.coords.append(dim, np.r_[coord])
-        self.values = np.expand_dims(self.values, -1)
+        self.coords.append(dim, _np.r_[coord])
+        self.values = _np.expand_dims(self.values, -1)
 
     def maximum(self, dim):
         """Return max for given dim
@@ -905,7 +921,7 @@ class ABCData(object):
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = np.max(a.values, axis=index)
+        a.values = _np.max(a.values, axis=index)
         a.coords.pop(dim)
 
         return a
@@ -919,7 +935,7 @@ class ABCData(object):
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = a.coords[dim][np.argmax(a.values, axis=index)]
+        a.values = a.coords[dim][_np.argmax(a.values, axis=index)]
         a.coords.pop(dim)
 
         return a
@@ -933,7 +949,7 @@ class ABCData(object):
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = np.argmax(a.values, axis=index)
+        a.values = _np.argmax(a.values, axis=index)
         a.coords.pop(dim)
 
         return a
@@ -947,7 +963,7 @@ class ABCData(object):
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = np.min(a.values, axis=index)
+        a.values = _np.min(a.values, axis=index)
         a.coords.pop(dim)
 
         return a
@@ -961,7 +977,7 @@ class ABCData(object):
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = a.coords[dim][np.argmin(a.values, axis=index)]
+        a.values = a.coords[dim][_np.argmin(a.values, axis=index)]
         a.coords.pop(dim)
 
         return a
@@ -975,7 +991,7 @@ class ABCData(object):
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = np.argmin(a.values, axis=index)
+        a.values = _np.argmin(a.values, axis=index)
         a.coords.pop(dim)
 
         return a

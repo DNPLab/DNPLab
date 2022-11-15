@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 import os
 from .. import DNPData
 
@@ -80,32 +80,32 @@ def load_specman_d01(path, params):
         params = {}
 
     file_opened = open(path, "rb")
-    uint_read = np.fromfile(file_opened, dtype=np.uint32)
+    uint_read = _np.fromfile(file_opened, dtype=_np.uint32)
     file_opened.close()
 
     file_opened = open(path, "rb")
-    float_read = np.fromfile(file_opened, dtype="<f4")
+    float_read = _np.fromfile(file_opened, dtype="<f4")
     file_opened.close()
     float_data_real = float_read[14 : uint_read[7] + 14]
     float_data_complex = float_read[uint_read[7] + 14 : len(float_read)]
     float_data_folded = float_data_real + 1j * float_data_complex
 
     if uint_read[2] == 1:
-        y_data = np.reshape(float_data_folded, (uint_read[3]))
+        y_data = _np.reshape(float_data_folded, (uint_read[3]))
     elif uint_read[2] == 2:
-        y_data = np.reshape(float_data_folded, (uint_read[4], uint_read[3]))
+        y_data = _np.reshape(float_data_folded, (uint_read[4], uint_read[3]))
     elif uint_read[2] == 3:
-        y_data = np.reshape(
+        y_data = _np.reshape(
             float_data_folded, (uint_read[5], uint_read[4], uint_read[3])
         )
     elif uint_read[2] == 4:
-        y_data = np.reshape(
+        y_data = _np.reshape(
             float_data_folded, (uint_read[6], uint_read[5], uint_read[4], uint_read[3])
         )
     else:
         raise TypeError("DNPLab currently only supports up to 4D data")
 
-    y_data = np.transpose(y_data)
+    y_data = _np.transpose(y_data)
 
     dims_full = ["t2", "t1", "t0", "t"]
     dims = dims_full[0 : uint_read[2]]
@@ -116,6 +116,6 @@ def load_specman_d01(path, params):
         if dims[k] in params.keys():
             abscissa.append(params[dims[k]])
         else:
-            abscissa.append(np.array(range(0, axes_lengths[k])))
+            abscissa.append(_np.array(range(0, axes_lengths[k])))
 
     return y_data, dims, abscissa, params

@@ -1,6 +1,6 @@
 from ..core.data import DNPData
 import warnings
-import numpy as np
+import numpy as _np
 import h5py
 
 None_alias = "__PYTHON_NONE__"  # h5 does not have Null type
@@ -51,7 +51,7 @@ def read_dnpdata(dnpdata_group):
     values = dnpdata_group["values"][:]
     version = dnpdata_group.attrs["dnplab_version"]
 
-    for index in range(len(np.shape(values))):
+    for index in range(len(_np.shape(values))):
         dim_key = dnpdata_group["values"].dims[index].keys()[0]  # assumes 1 key only
         coords.append(dnpdata_group["values"].dims[index][dim_key][:])
         dims.append(dim_key)
@@ -140,7 +140,7 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
     for key in dnpDataObject.attrs:
         value = dnpDataObject.attrs[key]
 
-        if isinstance(value, np.ndarray):
+        if isinstance(value, _np.ndarray):
             attrs_group.create_dataset(key, data=value)
         else:
             if value in python_types:

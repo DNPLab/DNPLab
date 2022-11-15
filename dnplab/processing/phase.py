@@ -104,8 +104,8 @@ def autophase(
 
         if method == "arctan":
             data.attrs["phase0"] = _np.arctan(
-                np.sum(_np.imag(temp_data.reshape(-1, 1)))
-                / np.sum(_np.real(temp_data.reshape(-1, 1)))
+                _np.sum(_np.imag(temp_data.reshape(-1, 1)))
+                / _np.sum(_np.real(temp_data.reshape(-1, 1)))
             )
         elif method == "search":
             if pts_lim is not None:
@@ -228,13 +228,13 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
 
     Args:
         data (DNPData): Data object to phase
-        dim (str): Dimension to phase
+        dim (str): Dimension to phase, default is "f2"
         p0 (float, array): Zero order phase correction (degree)
         p1 (float, array): First order phase correction (degree)
         picot (float): Pivot point for first order phase correction
 
     Returns:
-        data(DNPData): Phased data, including new attributes "p0", "p1", and "pivot"
+        data (DNPData): Phased data, including new attributes "p0", "p1", and "pivot"
 
     Examples:
 

@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 import re
 from warnings import warn
 
@@ -214,10 +214,10 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     if verbose:
         print("group delay", group_delay)
 
-    group_delay = int(np.floor(group_delay))  # should this be floor or ceil?
+    group_delay = int(_np.floor(group_delay))  # should this be floor or ceil?
 
     # why is dividing by 2 required?
-    t2 = 1.0 / acqus_params["SW_h"] * np.arange(0, int(acqus_params["TD"] / 2))
+    t2 = 1.0 / acqus_params["SW_h"] * _np.arange(0, int(acqus_params["TD"] / 2))
     if verbose:
         print("points in FID:", acqus_params["TD"] / 2)
 
@@ -233,7 +233,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
             print("Loading acqu2s")
         acqu2s_params = load_acqu(os.path.join(path, "acqu2s"), verbose=verbose)
         dims.insert(0, "t1")
-        t1 = 1.0 / acqu2s_params["SW_h"] * np.arange(0, int(acqu2s_params["TD"]))
+        t1 = 1.0 / acqu2s_params["SW_h"] * _np.arange(0, int(acqu2s_params["TD"]))
         coords.insert(0, t1)
 
     # 3d data must be tested
@@ -242,12 +242,12 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
             print("Loading acqu3s")
         acqu3s_params = load_acqu(os.path.join(path, "acqu3s"), verbose=verbose)
         dims.insert(0, "t3")
-        t3 = 1.0 / acqu3s_params["SW_h"] * np.arange(0, int(acqu3s_params["TD"]))
+        t3 = 1.0 / acqu3s_params["SW_h"] * _np.arange(0, int(acqu3s_params["TD"]))
         coords.insert(0, t3)
 
     new_shape = [len(coords[ix]) if dims[ix] != "t2" else -1 for ix in range(len(dims))]
     if verbose:
-        print("Raw Data Shape:", np.shape(values))
+        print("Raw Data Shape:", _np.shape(values))
         print("reshaping data to:", new_shape)
 
     if assign_vdlist:
@@ -320,7 +320,7 @@ def load_pdata(path, verbose=False):
     phase_1 = proc_params["PHC1"]  # Phase correction, first order phase
 
     f2 = (
-        -1 * SW * np.linspace(0, 1, num=SI, endpoint=False) / spectrometer_frequency
+        -1 * SW * _np.linspace(0, 1, num=SI, endpoint=False) / spectrometer_frequency
         + offset
     )
 
@@ -417,16 +417,20 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
         endian = ">"
 
     if dtype == "fid":
-        raw = np.fromfile(os.path.join(path, "fid"), dtype=endian + "i4")
+        raw = _np.fromfile(os.path.join(path, "fid"), dtype=endian + "i4")
     else:
-        raw = np.fromfile(os.path.join(path, "ser"), dtype=endian + "i4")
+        raw = _np.fromfile(os.path.join(path, "ser"), dtype=endian + "i4")
 
     data = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     group_delay = find_group_delay(attrs_dict)
-    group_delay = int(np.ceil(group_delay))
+    group_delay = int(_np.ceil(group_delay))
 
-    t = 1.0 / attrs_dict["SW_h"] * np.arange(0, int(attrs_dict["TD"] / 2) - group_delay)
+    t = (
+        1.0
+        / attrs_dict["SW_h"]
+        * _np.arange(0, int(attrs_dict["TD"] / 2) - group_delay)
+    )
 
     if "vdlist" in dir_list:
         important_params_dict.update({"VDLIST": topspin_vdlist(path)})
@@ -448,11 +452,11 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
                     coords = [t, important_params_dict["VDLIST"]]
             else:
                 if isinstance(phase_cycle, list):
-                    length1d = int((np.ceil(attrs_dict["TD"] / 256.0) * 256) / 2)
+                    length1d = int((_np.ceil(attrs_dict["TD"] / 256.0) * 256) / 2)
                     ser_data = data.reshape(-1, int(length1d)).T
                     ser_data = ser_data[group_delay : int(attrs_dict["TD"] / 2), :]
-                    phs_facs = np.tile(
-                        np.array(phase_cycle),
+                    phs_facs = _np.tile(
+                        _np.array(phase_cycle),
                         int(attrs_dict["TD_2"]) / len(phase_cycle),
                     )
                     for indx in range(int(attrs_dict["TD_2"])):
@@ -465,7 +469,7 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
             t = (
                 1.0
                 / attrs_dict["SW_h"]
-                * np.arange(
+                * _np.arange(
                     0, int(attrs_dict["TD"] / 2 / int(attrs_dict["TD_3"])) - group_delay
                 )
             )
@@ -526,7 +530,7 @@ def topspin_vdlist(path):
             value = float(line)
             vdlist.append(value)
 
-    vdlist = np.array(vdlist)
+    vdlist = _np.array(vdlist)
     return vdlist
 
 
@@ -547,7 +551,7 @@ def load_ser(path, dtype=">i4"):
         stacklevel=2,
     )
 
-    raw = np.fromfile(os.path.join(path), dtype=dtype)
+    raw = _np.fromfile(os.path.join(path), dtype=dtype)
 
     return raw
 
@@ -563,7 +567,7 @@ def load_bin(path, dtype=">i4"):
         raw (np.ndarray): Data from ser file
     """
 
-    raw = np.fromfile(os.path.join(path), dtype=dtype)
+    raw = _np.fromfile(os.path.join(path), dtype=dtype)
 
     return raw
 
@@ -647,7 +651,7 @@ def load_topspin_jcamp_dx(path, verbose=False):
 
                         array += array_line
 
-                    array = np.array(array)
+                    array = _np.array(array)
 
                     attrs[key] = array
 

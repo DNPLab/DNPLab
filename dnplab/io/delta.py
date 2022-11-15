@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 from struct import unpack
 from .. import DNPData
 
@@ -129,7 +129,7 @@ def import_delta_data(path, params):
     ][:num_dims]
     abscissa = []
     for ix in range(num_dims):
-        abscissa.append(np.linspace(axes_start[ix], axes_stop[ix], num_pts[ix]))
+        abscissa.append(_np.linspace(axes_start[ix], axes_stop[ix], num_pts[ix]))
 
     data_start = [
         unpack(">I", file_contents[1284 + ix : 1288 + ix])[0] for ix in range(0, 4, 4)
@@ -138,17 +138,17 @@ def import_delta_data(path, params):
     file_opened = open(path, "rb")
     file_opened.seek(data_start)
     if num_dims == 2 and axis_type[0] == 3 and axis_type[1] == 3:
-        read_pts = np.prod(num_pts) * 4
+        read_pts = _np.prod(num_pts) * 4
     else:
-        read_pts = np.prod(num_pts) * 2
-    data = np.fromfile(file_opened, endian, read_pts)
+        read_pts = _np.prod(num_pts) * 2
+    data = _np.fromfile(file_opened, endian, read_pts)
     file_opened.close()
 
     if num_dims == 1:
         if axis_type[0] == 1:
             y_data = data
         elif axis_type[0] == 3 or axis_type[0] == 4:
-            y_data = np.split(data, 2)[0] - 1j * np.split(data, 2)[1]
+            y_data = _np.split(data, 2)[0] - 1j * _np.split(data, 2)[1]
         else:
             raise TypeError("Data format not recognized")
 
@@ -156,23 +156,23 @@ def import_delta_data(path, params):
 
     elif num_dims == 2:
         if axis_type[0] == 4 or (axis_type[0] == 3 and axis_type[1] == 1):
-            data_folded = np.split(data, 2)[0] - 1j * np.split(data, 2)[1]
-            data_shaped = np.reshape(
+            data_folded = _np.split(data, 2)[0] - 1j * _np.split(data, 2)[1]
+            data_shaped = _np.reshape(
                 data_folded, [int(num_pts[0] / 4), int(num_pts[1] / 4), 4, 4], order="F"
             )
-            y_data = np.concatenate(np.concatenate(data_shaped, 1), 1)
+            y_data = _np.concatenate(_np.concatenate(data_shaped, 1), 1)
         elif axis_type[0] == 3 and axis_type[1] == 3:
             data_folded = [
-                np.split(data, 4)[0] - 1j * np.split(data, 4)[1],
-                np.split(data, 4)[2] - 1j * np.split(data, 4)[3],
+                _np.split(data, 4)[0] - 1j * _np.split(data, 4)[1],
+                _np.split(data, 4)[2] - 1j * _np.split(data, 4)[3],
             ]
             for idx in enumerate(data_folded):
-                data_shaped[idx] = np.reshape(
+                data_shaped[idx] = _np.reshape(
                     data_folded[idx],
                     [int(num_pts[0] / 32), int(num_pts[1] / 32), 32, 32],
                     order="F",
                 )
-                y_data[idx] = np.concatenate(np.concatenate(data_shaped[idx], 1), 1)
+                y_data[idx] = _np.concatenate(_np.concatenate(data_shaped[idx], 1), 1)
         else:
             raise ValueError("Data format not recognized")
 

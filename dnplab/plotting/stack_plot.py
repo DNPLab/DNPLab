@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import numpy as np
+import numpy as _np
 
 
 def stack(data, *args, offset=None, **kwargs):
@@ -23,10 +23,10 @@ def stack(data, *args, offset=None, **kwargs):
     dim = data.dims[0]
 
     if offset == None:
-        offset = np.max(data.abs)
+        offset = _np.max(data.abs)
 
     offset_matrix = (
-        offset * np.ones(coord.size).reshape(-1, 1) * np.r_[0 : data.coords[1].size]
+        offset * _np.ones(coord.size).reshape(-1, 1) * _np.r_[0 : data.coords[1].size]
     )
 
     plt.plot(coord, data.values + offset_matrix, *args, **kwargs)
