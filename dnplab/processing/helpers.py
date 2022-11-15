@@ -7,7 +7,7 @@ from ..processing.integration import integrate
 import dnplab as dnp
 
 
-def calculate_enhancement(integrals, off_spectrum_index=0, return_complex_values=False):
+def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=False):
     """Calculate enhancement of a power series. Needs integrals as input
 
     Args:
@@ -19,17 +19,17 @@ def calculate_enhancement(integrals, off_spectrum_index=0, return_complex_values
         enhancements (DNPData): Enhancement values
     """
 
-    enhancements = integrals.copy()
+    enhancements = data.copy()
 
-    if not "experiment_type" in integrals.attrs.keys():
+    if not "experiment_type" in data.attrs.keys():
 
         raise KeyError("Experiment type not defined")
 
-    if integrals.attrs["experiment_type"] != "integrals":
+    if data.attrs["experiment_type"] != "integrals":
 
         raise ValueError("dnpdata object does not contain integrals.")
 
-    if integrals.dims[0] == "Power":
+    if data.dims[0] == "Power":
 
         enhancements.attrs["experiment_type"] = "enhancements_P"
 
@@ -37,7 +37,7 @@ def calculate_enhancement(integrals, off_spectrum_index=0, return_complex_values
             enhancements.values / enhancements.values[off_spectrum_index]
         )
 
-    elif integrals.dims[0] == "B0":
+    elif data.dims[0] == "B0":
 
         enhancements.attrs["experiment_type"] = "enhancements_B0"
         print("This is a DNP enhancement profile. Not implemented yet.")
