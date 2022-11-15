@@ -8,15 +8,17 @@ import dnplab as dnp
 
 
 def calculate_enhancement(integrals, off_spectrum_index=0, return_complex_values=False):
-    """Calculate enhancement of a power series. Needs integrals as input
+    """Calculate DNP enhancement from a DNPData object.
+
+    Streamlined function to calculate enhancements from a DNPData object. The function requires a DNP data object that contains previously calculated integrals as input.
 
     Args:
-        integrals (DNPData):
-        off_spectrum_index (int):
-        return_complex_values (bool):
+        data (DNPData): DNPData object containing integrals
+        off_spectrum_index (int): Index for the off spectrum (no microwave). The default is 0 (first spectrum)
+        return_complex_values (bool): By default the functions returns the real value. Use this flag to return a complex value
 
     Returns:
-        enhancements (DNPData): Enhancement values
+        data (DNPData): DNPData object containing enhancement values
     """
 
     enhancements = integrals.copy()
@@ -27,7 +29,7 @@ def calculate_enhancement(integrals, off_spectrum_index=0, return_complex_values
 
     if integrals.attrs["experiment_type"] != "integrals":
 
-        raise ValueError("dnpdata object does not contain integrals.")
+        raise ValueError("DNPData object does not contain integrals.")
 
     if integrals.dims[0] == "Power":
 
@@ -56,7 +58,7 @@ def calculate_enhancement(integrals, off_spectrum_index=0, return_complex_values
 
 
 def signal_to_noise():
-    """Find signal-to-noise ratio
+    """Calculate signal-to-noise ratio
 
     Returns:
         NotImplemented
@@ -99,7 +101,7 @@ def left_shift(data, dim="t2", shift_points=0):
         shift_points (int): Number of points to left shift, default is 0.
 
     Returns:
-        data (DNPDdata): Shifted data object
+        data (DNPData): Shifted data object
     """
 
     data = data[dim, shift_points:]
@@ -119,11 +121,13 @@ def normalize():
 
 
 def reference(data, dim="f2", old_ref=0, new_ref=0):
-    """Function for referencing NMR spectra
+    """Reference NMR spectra
+
+    This function is used to reference NMR spectra. This function changes the coords of the DNPData object.
 
     Args:
-        data (DNPData): Data for referencing
-        dim (str): dimension to perform referencing down. By default this dimension is "f2".
+        data (DNPData): DNPData object containing NMR spectrum to reference
+        dim (str): Dimension used for referencing. By default this dimension is "f2"
         old_ref (float): Value of old reference
         new_ref (float): New reference value
 
