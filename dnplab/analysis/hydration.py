@@ -352,6 +352,38 @@ def hydration(data={}, constants={}):
     Returns:
         (dict)                        : keys and values are described in the example
 
+    Examples:
+    
+    Perform hydration analysis of ODNP data
+    >>> data = {
+    "E_array": enhancements,  # numpy array of signal enhancements (unitless)
+    "E_powers": enhancement_powers,  # numpy array of microwave power levels used to collect enhancements
+    "T1_array": T1s,  # numpy array of T1 measurements (s)
+    "T1_powers": T1_powers,  # numpy array of microwave power levels used to collect T1s
+    "T10": 2.0,  # T1 measured with microwave power = 0 (s)
+    "T100": 2.5,  # T1 measured for sample without unpaired spin and microwave power = 0 (s)
+    "spin_C": 100e-6,  # spin concentration (M)
+    "magnetic_field": 0.35,  # magnetic field (T)
+    "smax_model": "tethered",  # choice of smax model or direct input of smax value
+    "interpolate_method": "second_order",  # choice of interpolation method
+    }
+    >>> standard_constants = {
+    "ksigma_bulk": 95.4,  # bulk ksigma value (s^-1 * M^-1)
+    "krho_bulk": 353.4,  # bulk krho value (s^-1 * M^-1)
+    "klow_bulk": 366,  # bulk klow value (s^-1 * M^-1)
+    "tcorr_bulk": 54e-12,  # bulk tcorr value (s)
+    "D_H2O": 2.3e-9,  # bulk water diffusivity (m^2 / s)
+    "D_SL": 4.1e-10,  # diffusivity of spin probe in bulk water (m^2 / s)
+    }
+
+    >>> interpolation_constants = {
+    "delta_T1_water": 1,  # change in water proton T1 due to microwaves (s)
+    "T1_water": 2.5,  # T1 of bulk water protons (s)
+    "macro_C": 100e-6,  # concentration (M)
+    }
+    >>> constants = {**standard_constants, **interpolation_constants}
+    >>> results = dnplab.hydration(data, constants)
+
     J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
 
