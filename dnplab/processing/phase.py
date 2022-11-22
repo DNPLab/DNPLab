@@ -34,6 +34,14 @@ def autophase(
     Returns:
         DNPData: Autophased data, including attrs "phase0" for order="zero", and "phase1" if order="first"
 
+    Examples:
+
+        Autophase data using default search method
+        >>> data_phased = dnp.autophase(data)
+
+        Autophase data using arctan method
+        >>> data_phased = dnp.autophase(data, method = 'arctan') 
+
     .. math::
 
         \mathrm{data}         &= \exp(-1j * \mathrm{phase}) &
