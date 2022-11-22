@@ -51,7 +51,7 @@ def background(data, dim="t2", deg=0, regions=None):
 
     Examples:
 
-        Return background 
+        Return background fit of DNPData object
         >>> background_fit = dnp.background(data)
     """
 
