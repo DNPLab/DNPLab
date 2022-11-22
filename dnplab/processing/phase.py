@@ -195,6 +195,10 @@ def phase_cycle(data, dim, receiver_phase):
 
     Returns:
         dnpdata: data object after phase cycle applied
+
+    Example:
+
+        data = dnp.phase_cycle(data, dim = 'Average', receiver_phase = [0,1,2,3])
     """
 
     data = data.copy()
