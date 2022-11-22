@@ -26,10 +26,7 @@ def plot(data, *args, **kwargs):
         args: args for matplotlib plot function
         kwargs: kwargs for matplotlib plot function
 
-    Returns:
-        Returns formated matplotlib plot.
-
-    Example:
+    Examples:
 
        Plotting a DNPData object:
 
@@ -75,9 +72,6 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         xlim (tuple): List of limit values for plotting function
         title (str): Plot title
         showPar (boolean): Toggle whether to show experiment parameters
-
-    Returns:
-        Returns formatted matplotlib plot.
 
     Example:
 
