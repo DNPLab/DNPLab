@@ -27,6 +27,12 @@ def fit(
 
     Returns:
         out (dict): Dictionary of fit, fitting parameters, and error
+
+    Examples:
+
+        Basic fitting example for T1 fit
+        >>> out = dnp.fit(dnp.relaxation.t1 ,data, 't1', [1., -1, 1])
+
     """
 
     fit = data.copy()

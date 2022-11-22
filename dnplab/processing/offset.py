@@ -37,7 +37,7 @@ def remove_background(data, dim="t2", deg=0, regions=None):
 
 
 def background(data, dim="t2", deg=0, regions=None):
-    """Remove background from data
+    """Return background polynomial fit of DNPData
 
     Args:
         data (DNPData): Data object
@@ -47,6 +47,12 @@ def background(data, dim="t2", deg=0, regions=None):
 
     Returns:
         DNPData: Background fit
+
+
+    Examples:
+
+        Return background 
+        >>> background_fit = dnp.background(data)
     """
 
     out = data.copy()
