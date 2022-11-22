@@ -346,11 +346,11 @@ def hydration(data={}, constants={}):
     """Function for performing ODNP calculations
 
     Args:
-        data (dict)                   : keys and values are described in the example
-        constants (dict)              : (optional) keys and values are described in the example
+        data (dict): keys and values are described in the example
+        constants (dict): (optional) keys and values are described in the example
 
     Returns:
-        (dict)                        : keys and values are described in the example
+        dict: keys and values are described in the example
 
     Examples:
     
