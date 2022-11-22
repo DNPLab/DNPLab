@@ -4,8 +4,21 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 
 
-def manual_align(data, dim):
-    """Manually align spectra"""
+def manual_align(data, dim = "f2"):
+    """Manually align spectra
+
+    Args:
+        data (DNPData): DNPData to phase
+        dim (str): Dimension to perform manual phase along, "f2" by default
+    
+    Returns:
+        DNPData: Phased data
+    
+    Examples:
+
+        >>> data = dnp.manual_phase(data)
+
+    """
 
     coord = data.coords[dim]
     max_index = int(data.size / (coord.size**2.0))
