@@ -11,25 +11,12 @@ def stack(data, *args, offset=None, **kwargs):
         offset: Value to offset each spectra, by default maximum of absolute value
         kwargs: kwargs for matplotlib plot function
 
-    Example::
+    Examples:
 
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.stack(data)
-       dnp.dnpResults.plt.show()
+       dnp.stack(data)
 
     """
-
-    coord = data.coords[0]
-    dim = data.dims[0]
-
-    if offset == None:
-        offset = _np.max(data.abs)
-
-    offset_matrix = (
-        offset * _np.ones(coord.size).reshape(-1, 1) * _np.r_[0 : data.coords[1].size]
-    )
-
-    plt.plot(coord, data.values + offset_matrix, *args, **kwargs)
+    waterfall(data, 0, offset, *args, **kwargs)
 
 
 def waterfall(data, dx, dy, *args, **kwargs):
@@ -40,11 +27,9 @@ def waterfall(data, dx, dy, *args, **kwargs):
         dx (float, int): x-increment for each line
         dy (float, int): y-increment for each line
 
-    Example::
+    Examples:
 
-       dnp.dnpResults.plt.figure()
-       dnp.dnpResults.waterfall(data)
-       dnp.dnpResults.plt.show()
+       dnp.waterfall(data)
 
     """
 
