@@ -15,10 +15,10 @@ _np.set_printoptions(threshold=15)
 
 
 class DNPData(ABCData):
-    """
-    DNPData Class for handling dnp data
+    """DNPData Class for handling dnp data
 
     The DNPData class is inspired by pyspecdata nddata object which handles n-dimensional data, axes, and other relevant information together.
+    https://github.com/jmfrancklab/pyspecdata
 
     This class is designed to handle data and axes together so that performing NMR processing can be performed easily.
 
@@ -28,7 +28,10 @@ class DNPData(ABCData):
         dims (list): List of axes labels for data
         attrs (dict): Dictionary of parameters for data
 
+    Examples:
 
+        Construct DNPData object:
+        >>> data = dnp.DNPData(np.r_[0:100].reshape(4,25), dims = ['t1','t2'], coords = [np.r_[0:4],np.r_[0:25]])
     """
 
     def __init__(
