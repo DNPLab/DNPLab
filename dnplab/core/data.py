@@ -111,11 +111,17 @@ class DNPData(ABCData):
         if not self.proc_attrs:
             print("none.")
         else:
+            attrs_list = [x[0] for x in self.proc_attrs]
+            longest_item = max(attrs_list, key = len)
+            maximum_length_of_item = len(longest_item)
             for x in self.proc_attrs:
+                attrs_spaces = " " * (1 + maximum_length_of_item - len(x[0]))
                 print(
-                    x[0]
-                    + ": "
-                    + str([y + "=" + str(x[1][y]) for y in x[1].keys()])
+                    "| "
+                    + x[0]
+                    + attrs_spaces
+                    + "| "
+                    + str([y + " = " + str(x[1][y]) for y in x[1].keys()])
                     .replace("[", "")
                     .replace("]", "")
                     .replace("'", "")
@@ -131,7 +137,6 @@ class DNPData(ABCData):
         if not self.attrs:
             print("none.")
         else:
-            # print(len(max(self.attrs, key = len)))
             longest_key = max(self.attrs, key = len)
             maximum_length_of_attrs = len(longest_key)
             for x in self.attrs:
