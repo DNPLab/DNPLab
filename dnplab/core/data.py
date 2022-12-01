@@ -131,10 +131,16 @@ class DNPData(ABCData):
         if not self.attrs:
             print("none.")
         else:
+            # print(len(max(self.attrs, key = len)))
+            longest_key = max(self.attrs, key = len)
+            maximum_length_of_attrs = len(longest_key)
             for x in self.attrs:
+                spaces = " " * (1 + maximum_length_of_attrs - len(x))
                 print(
-                    x
-                    + ": "
+                    '| '
+                    + x
+                    + spaces
+                    + '| '
                     + str(self.attrs[x])
                     )
     
