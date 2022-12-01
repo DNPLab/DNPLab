@@ -121,6 +121,23 @@ class DNPData(ABCData):
                     .replace("'", "")
                 )
 
+    def attrs_info(self):
+        """
+        Print experiment attributes currently in attrs dictionary
+        """
+        print("-----------------")
+        print("Experiment Attributes")
+        print("-----------------")
+        if not self.attrs:
+            print("none.")
+        else:
+            for x in self.attrs:
+                print(
+                    x
+                    + ": "
+                    + str(self.attrs[x])
+                    )
+
     def add_proc_attrs(self, proc_attr_name, proc_dict):
         """
         Stamp processing step to DNPData object
