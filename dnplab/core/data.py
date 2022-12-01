@@ -137,6 +137,17 @@ class DNPData(ABCData):
                     + ": "
                     + str(self.attrs[x])
                     )
+    
+    def show_attrs(self, show_attrs_info = True, show_proc_info = True):
+        """
+        Print experiment attributes and processing steps
+        """
+
+        if show_attrs_info:
+            self.attrs_info()
+        
+        if show_proc_info:
+            self.proc_info()
 
     def add_proc_attrs(self, proc_attr_name, proc_dict):
         """
