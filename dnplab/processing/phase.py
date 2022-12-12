@@ -214,14 +214,6 @@ def phase_cycle(data, dim, receiver_phase):
     return data
 
 
-def phase_p0():
-    return NotImplemented
-
-
-def phase_p1():
-    return NotImplemented
-
-
 def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
 
     """Apply phase correction to DNPData object
