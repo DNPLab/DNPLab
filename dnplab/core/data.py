@@ -106,7 +106,7 @@ class DNPData(ABCData):
         """
 
         print("-----------------")
-        print("proccessing steps")
+        print("Processing Attributes")
         print("-----------------")
         if not self.proc_attrs:
             print("none.")
@@ -127,7 +127,7 @@ class DNPData(ABCData):
                     .replace("'", "")
                 )
 
-    def attrs_info(self):
+    def exp_info(self):
         """
         Print experiment attributes currently in attrs dictionary
         """
@@ -155,7 +155,7 @@ class DNPData(ABCData):
         """
 
         if show_attrs_info:
-            self.attrs_info()
+            self.exp_info()
         
         if show_proc_info:
             self.proc_info()
