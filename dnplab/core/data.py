@@ -32,7 +32,7 @@ class DNPData(ABCData):
     """
 
     def __init__(
-        self, values=_np.r_[[]], dims=[], coords=[], attrs={}, proc_attrs={}
+        self, values=_np.r_[[]], dims=[], coords=[], attrs={}, exp_attrs = {}, dnplab_atts = {}, proc_attrs={}
     ):
         """
         DNPData Class __init__ method
@@ -42,6 +42,9 @@ class DNPData(ABCData):
             coords (list): list of axes
             dims (list): list of strings which are names of axes
             attrs (dict): dictionary of parameters
+            exp_attrs (dict): dictionary of experiment parameters
+            dnplab_attrs (dict): dictionary of parameters used in dnplab 
+            pro_attrs (dict): dictionary of parameters used in data processing
         """
 
         if len(dims) > 0 and isinstance(dims[0], list):
@@ -49,10 +52,10 @@ class DNPData(ABCData):
 
         super().__init__(values, dims, coords, attrs)
         self.version = version
-        if proc_attrs is not None:
-            self.proc_attrs = proc_attrs
-        else:
-            self.proc_attrs = []
+        self.exp_attrs = exp_attrs
+        self.dnplab_attrs = dnplab_atts
+        self.proc_attrs = proc_attrs
+        
         self.max_print_attrs = 5
         self.print_values = False
 
