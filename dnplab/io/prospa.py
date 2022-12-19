@@ -40,6 +40,7 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
 
     try:
         attrs = import_par(os.path.join(path, parameters_filename))
+
     except:
         warnings.warn("No parameters file in directory")
         attrs = {}
@@ -60,13 +61,14 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
 
         attrs["nmr_frequency"] = nmr_frequency * 1e6
         attrs["spectrometer_format"] = "prospa"
+        dnplab_attrs = prospa_attrs4dnplab(attrs)
 
     # Assume direct dimension is 1st dimension
     data_shape = _np.shape(_np.squeeze(data))
 
     dims, coords = prospa_coords(attrs, data_shape, experiment=experiment)
 
-    kea_data = DNPData(data, dims, coords, attrs)
+    kea_data = DNPData(data, dims, coords, attrs, dnplab_attrs)
 
     return kea_data
 
@@ -365,3 +367,41 @@ def prospa_coords(attrs, data_shape, experiment):
             coords[0] = x
 
     return dims, coords
+
+def prospa_attrs4dnplab(exp_attrs):
+    """Convert experiment attributes to dnplab attributes
+
+    Args:
+        exp_attrs (dict): Dictionary of prospa experiment acqusition parameters
+
+    Returns:
+        dnplab_attrs (dict): Dictionary of parameters used in dnplab
+    """
+    dnplab_attrs = {}
+    dnplab_attrs["experiment_type"] = "nmr_spectrum"
+    experiment = exp_attrs["experiment"]
+    dnplab_attrs["prospa_program_name"] = experiment
+    dnplab_attrs["spectrometer_frequency"] = exp_attrs["nmr_frequency"] # Hz
+    dnplab_attrs["number_of_points"] = exp_attrs["nrPnts"]
+    dnplab_attrs["dwell_time"] = exp_attrs["dwellTime"] * 10e-6 # s
+    dnplab_attrs["number_of_scans"] = exp_attrs["nrScans"]
+
+    if experiment == "T1-IR-FID" or experiment == "B12T_T1-IR-FID" or experiment == "B12T_T1-IR-FID_MPS":
+        dnplab_attrs["number_of_steps"] = exp_attrs["nrSteps"]
+        dnplab_attrs["minimum_delay"] = exp_attrs["minDelay"] * 10e-3 # s
+        dnplab_attrs["maximum_delay"] = exp_attrs["maxDelay"] * 10e-3 # s
+        if exp_attrs["delaySpacing"] == "lin":
+            dnplab_attrs["delay_spacing"] = "linear" 
+        elif exp_attrs["delaySpacing"] == "log":
+            dnplab_attrs["delay_spacing"] = "logarithm" 
+    
+    if experiment == "B12T_jres2D":
+        dnplab_attrs["number_of_steps"] = exp_attrs["nrSteps"]
+        dnplab_attrs["inter_pulse_delay"] = exp_attrs["interPulseDelay"]
+        dnplab_attrs["increment"] = exp_attrs["increment"]
+
+    
+
+    
+    return dnplab_attrs
+    
