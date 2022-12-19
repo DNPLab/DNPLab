@@ -110,7 +110,7 @@ class DNPData(ABCData):
         print("-----------------")
         print("Experiment Attributes")
         print("-----------------")
-        if not self.attrs:
+        if self.attrs == {}:
             print("none.")
         else:
             longest_key = max(self.attrs, key = len)
@@ -133,7 +133,7 @@ class DNPData(ABCData):
         print("-----------------")
         print("DNPLab Attributes")
         print("-----------------")
-        if not self.dnplab_attrs:
+        if self.dnplab_attrs == {}:
             print("none.")
         else:
             longest_key = max(self.dnplab_attrs, key = len)
@@ -159,7 +159,7 @@ class DNPData(ABCData):
         print("-----------------")
         print("Processing Attributes")
         print("-----------------")
-        if not self.proc_attrs:
+        if self.proc_attrs == {}:
             print("none.")
         else:
             longest_key = max(self.proc_attrs, key = len)
@@ -178,7 +178,7 @@ class DNPData(ABCData):
                     )
     def show_attrs(self, show_exp_info = False, show_dnplab_info = True, show_proc_info = True):
         """
-        Print experiment attributes and processing steps
+        Print experiment attributes, dnplab attributes and processing steps
         """
 
         if show_exp_info:
