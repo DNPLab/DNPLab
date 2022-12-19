@@ -385,8 +385,8 @@ def prospa_attrs4dnplab(exp_attrs):
     dnplab_attrs["number_of_scans"] = exp_attrs["nrScans"]
 
     if experiment == "T1-IR-FID" or experiment == "B12T_T1-IR-FID" or experiment == "B12T_T1-IR-FID_MPS":
-        dnplab_attrs["minimum_delay"] = exp_attrs["minDelay"] * 10e-3 # s
-        dnplab_attrs["maximum_delay"] = exp_attrs["maxDelay"] * 10e-3 # s
+        dnplab_attrs["minimum_delay"] = exp_attrs["minDelay"] * 1e-3 # s
+        dnplab_attrs["maximum_delay"] = exp_attrs["maxDelay"] * 1e-3 # s
     
     if experiment == "B12T_jres2D":
         dnplab_attrs["number_of_steps"] = exp_attrs["nrSteps"]
