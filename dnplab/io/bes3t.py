@@ -67,8 +67,9 @@ def import_bes3t(path):
         path_dta, path_xgf, path_ygf, path_zgf, params
     )
     attrs["spectrometer_format"] = "xepr"
+    dnplab_attrs = bes3t_attrs4dnplab(attrs)
 
-    bes3t_data = DNPData(values, dims, coords, attrs)
+    bes3t_data = DNPData(values, dims, coords, attrs, dnplab_attrs)
 
     return bes3t_data
 
@@ -434,3 +435,24 @@ def _return_data_type(par, key):
         return "int16"
     elif fmt == "I":
         return "int32"
+
+def bes3t_attrs4dnplab(exp_attrs):
+
+    dnplab_attrs = {}
+    dnplab_attrs["experiment_type"] = "epr_spectrum"
+    dnplab_attrs["spectrometer_frequency"] = exp_attrs["frequency"] * 1e9 # Hz
+
+    if exp_attrs["x_unit"] == "G":
+        dnplab_attrs["center_field"] = exp_attrs["center_field"] * 1e5 # T
+    elif exp_attrs["x_unit"] == "T":
+        dnplab_attrs["center_field"] = exp_attrs["center_field"] # T
+    
+    dnplab_attrs["power"] = exp_attrs["power"] # W
+    dnplab_attrs["attenuation"] = exp_attrs["attenuation"]
+    dnplab_attrs["number_of_scan"] = exp_attrs["nscans"]
+    dnplab_attrs["conversion_time"] = exp_attrs["conversion_time"] * 1e-3 # s
+    dnplab_attrs["modulation_amplitude"] = exp_attrs["modulation_amplitude"]
+    dnplab_attrs["modulation_frequency"] = exp_attrs["modulation_frequency"] * 1e3 # Hz
+    dnplab_attrs["time_constant"] = exp_attrs["time_constant"] * 1e-3 # s
+    
+    return dnplab_attrs
