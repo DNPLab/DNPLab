@@ -103,6 +103,54 @@ class DNPData(ABCData):
 
         return string
 
+    def exp_info(self):
+        """
+        Print experiment attributes currently in attrs dictionary
+        """
+        print("-----------------")
+        print("Experiment Attributes")
+        print("-----------------")
+        if not self.attrs:
+            print("none.")
+        else:
+            longest_key = max(self.attrs, key = len)
+            maximum_length_of_attrs = len(longest_key)
+            for x in self.attrs:
+                spaces = " " * (1 + maximum_length_of_attrs - len(x))
+                print(
+                    '| '
+                    + x
+                    + spaces
+                    + '| '
+                    + str(self.attrs[x])
+                    )
+
+    def dnplab_info(self):
+        """
+        Print parameters currently in used in dnplab
+        """
+
+        print("-----------------")
+        print("DNPLab Attributes")
+        print("-----------------")
+        if not self.dnplab_attrs:
+            print("none.")
+        else:
+            longest_key = max(self.dnplab_attrs, key = len)
+            maximum_length_of_dnplab_attrs = len(longest_key)
+            for x in self.dnplab_attrs:
+                spaces = " " * (1 + maximum_length_of_dnplab_attrs - len(x))
+                print(
+                    '| '
+                    + x
+                    + spaces
+                    + '| '
+                    + str(self.dnplab_attrs[x])
+                    .replace("{", "")
+                    .replace("}", "")
+                    .replace("'", "")
+                    )
+
     def proc_info(self):
         """
         Print processing steps and parameters currently in proc_attrs list
@@ -128,36 +176,16 @@ class DNPData(ABCData):
                     .replace("}", "")
                     .replace("'", "")
                     )
-
-    def exp_info(self):
-        """
-        Print experiment attributes currently in attrs dictionary
-        """
-        print("-----------------")
-        print("Experiment Attributes")
-        print("-----------------")
-        if not self.attrs:
-            print("none.")
-        else:
-            longest_key = max(self.attrs, key = len)
-            maximum_length_of_attrs = len(longest_key)
-            for x in self.attrs:
-                spaces = " " * (1 + maximum_length_of_attrs - len(x))
-                print(
-                    '| '
-                    + x
-                    + spaces
-                    + '| '
-                    + str(self.attrs[x])
-                    )
-    
-    def show_attrs(self, show_exp_info = True, show_proc_info = True):
+    def show_attrs(self, show_exp_info = False, show_dnplab_info = True, show_proc_info = True):
         """
         Print experiment attributes and processing steps
         """
 
         if show_exp_info:
             self.exp_info()
+        
+        if show_dnplab_info:
+            self.dnplab_info()
         
         if show_proc_info:
             self.proc_info()
