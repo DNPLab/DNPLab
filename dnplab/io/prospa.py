@@ -393,8 +393,5 @@ def prospa_attrs4dnplab(exp_attrs):
         dnplab_attrs["inter_pulse_delay"] = exp_attrs["interPulseDelay"]
         dnplab_attrs["increment"] = exp_attrs["increment"]
 
-    
-
-    
     return dnplab_attrs
     
