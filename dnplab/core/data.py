@@ -53,7 +53,8 @@ class DNPData(ABCData):
         super().__init__(values, dims, coords, attrs)
         self.version = version
         self.attrs = attrs
-        self.exp_attrs = attrs
+        attrs = exp_attrs
+        self.exp_attrs = exp_attrs
         self.dnplab_attrs = dnplab_attrs
         self.proc_attrs = proc_attrs
         
