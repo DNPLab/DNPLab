@@ -382,18 +382,11 @@ def prospa_attrs4dnplab(exp_attrs):
     experiment = exp_attrs["experiment"]
     dnplab_attrs["prospa_program_name"] = experiment
     dnplab_attrs["spectrometer_frequency"] = exp_attrs["nmr_frequency"] # Hz
-    dnplab_attrs["number_of_points"] = exp_attrs["nrPnts"]
-    dnplab_attrs["dwell_time"] = exp_attrs["dwellTime"] * 10e-6 # s
     dnplab_attrs["number_of_scans"] = exp_attrs["nrScans"]
 
     if experiment == "T1-IR-FID" or experiment == "B12T_T1-IR-FID" or experiment == "B12T_T1-IR-FID_MPS":
-        dnplab_attrs["number_of_steps"] = exp_attrs["nrSteps"]
         dnplab_attrs["minimum_delay"] = exp_attrs["minDelay"] * 10e-3 # s
         dnplab_attrs["maximum_delay"] = exp_attrs["maxDelay"] * 10e-3 # s
-        if exp_attrs["delaySpacing"] == "lin":
-            dnplab_attrs["delay_spacing"] = "linear" 
-        elif exp_attrs["delaySpacing"] == "log":
-            dnplab_attrs["delay_spacing"] = "logarithm" 
     
     if experiment == "B12T_jres2D":
         dnplab_attrs["number_of_steps"] = exp_attrs["nrSteps"]
