@@ -66,6 +66,7 @@ def import_bes3t(path):
     values, dims, coords, attrs = load_dta(
         path_dta, path_xgf, path_ygf, path_zgf, params
     )
+    attrs["spectrometer_format"] = "xepr"
 
     bes3t_data = DNPData(values, dims, coords, attrs)
 

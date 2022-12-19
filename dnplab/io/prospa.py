@@ -59,6 +59,7 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
             nmr_frequency = float(nmr_frequency.replace("d", ""))
 
         attrs["nmr_frequency"] = nmr_frequency * 1e6
+        attrs["spectrometer_format"] = "prospa"
 
     # Assume direct dimension is 1st dimension
     data_shape = _np.shape(_np.squeeze(data))
