@@ -32,7 +32,7 @@ class DNPData(ABCData):
     """
 
     def __init__(
-        self, values=_np.r_[[]], dims=[], coords=[], attrs = {}, exp_attrs={}, dnplab_attrs = {}, proc_attrs={}
+        self, values=_np.r_[[]], dims=[], coords=[], attrs = {}, dnplab_attrs = {}, proc_attrs={}
     ):
         """
         DNPData Class __init__ method
@@ -50,14 +50,12 @@ class DNPData(ABCData):
         if len(dims) > 0 and isinstance(dims[0], list):
             dims = dims[0]
 
-        super().__init__(values, dims, coords, attrs)
+        super().__init__(values, dims, coords, attrs, dnplab_attrs)
         self.version = version
         self.attrs = attrs
-        attrs = exp_attrs
-        self.exp_attrs = exp_attrs
+        self.exp_attrs = attrs
         self.dnplab_attrs = dnplab_attrs
         self.proc_attrs = proc_attrs
-        
         self.max_print_attrs = 5
         self.print_values = False
 
