@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 from ..core.data import DNPData
 from ..core.util import concat
 
@@ -48,18 +48,31 @@ def cumulative_integrate(data, dim="f2", regions=None):
         return data_list
 
 
-def integrate(data, dim="f2", regions=None, error_regions=None):
-    """Integrate data down given dimension
+def integrate(data, dim="f2", regions=None):
+    """Integrate data along given dimension. If no region is given, the integral is calculated over the entire range.
 
     Args:
         data (DNPData): Data object
-        dim (str): Dimension to perform integration
-        regions (None, list): List of tuples, by default entire dimension is integrated
+        dim (str): Dimension to perform integration. Default is "f2"
+        regions (None, list): List of tuples defining the region to integrate
 
     Returns:
-        data: integrals of data
-    """
+        data (DNPData): Integrals of data. If multiple regions are given the first value corresponds to the first region, the second value corresponds to the second region, etc.
 
+    Examples:
+        Integrated entire data region:
+
+            >>> data = dnp.integrate(data)
+
+        Integrate single peak/region:
+
+            >>> data = dnp.integrate(data, regions=[(4, 5)])
+
+        Integrate two regions:
+
+            >>> data = dnp.integrate(data, regions=[(1.1, 2.1), (4.5, 4.9)])
+
+    """
     data = data.copy()
     data.attrs["experiment_type"] = "integrals"
 
@@ -85,7 +98,7 @@ def integrate(data, dim="f2", regions=None, error_regions=None):
         for region in regions:
             data_list.append(integrate(data[dim, region], dim))
 
-        x = np.array(list(range(len(data_list))))
+        x = _np.array(list(range(len(data_list))))
         dim_name = "integrals"
         data = concat(data_list, dim_name, coord=x)
 
