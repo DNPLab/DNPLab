@@ -11,7 +11,7 @@ def sim_dnp_profile(
     B0,
     nucleus="1H",
     dnp_process="SE",
-    add_details = False,
+    add_details=False,
     remove_background=True,
     normalize=True,
     integrate=True,
@@ -97,16 +97,14 @@ def sim_dnp_profile(
 
     out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    if (add_details == True):
+    if add_details == True:
         sim_data = _np.array([out.values, EPRdataNeg.values, EPRdataPos.values])
 
         proc_attr_name = "sim_dnp_profile"
         proc_parameters = {
             "sim_data": sim_data,
         }
-    
+
         out.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return out
-
-
