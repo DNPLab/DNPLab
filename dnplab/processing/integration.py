@@ -78,7 +78,7 @@ def integrate(data, dim="f2", regions=None):
 
     index = data.index(dim)
     if regions == None:
-        data.values = np.trapz(data.values, data.coords[dim], axis=index)
+        data.values = _np.trapz(data.values, data.coords[dim], axis=index)
         data.coords.pop(dim)
 
         # if error_regions == None:
