@@ -89,10 +89,6 @@ def integrate(data, dim="f2", regions=None):
         #     signal = max(data.values)
         #     noise = np.trapz(data.)
 
-
-
-
-
     else:
         data_list = []
         for region in regions:

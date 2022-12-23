@@ -114,9 +114,9 @@ def left_shift(data, dim="t2", shift_points=0):
     return data
 
 
-def normalize(data, amplitude = True):
+def normalize(data, amplitude=True):
     """Normalize spectrum
-    
+
     Args:
         data (DNPData): Data object
         amplitude (boolean): True: normalize amplitude, false: normalize area. The default is True
@@ -127,11 +127,11 @@ def normalize(data, amplitude = True):
 
     out = data.copy()
 
-    if (amplitude == True):
+    if amplitude == True:
         out.values = out.values / _np.max(out.values)
-    elif (amplitude == False):
+    elif amplitude == False:
 
-        out.values = out.values             # Normalize to area = 1, not implemented yet
+        out.values = out.values  # Normalize to area = 1, not implemented yet
 
     proc_attr_name = "normalized"
     proc_parameters = {
