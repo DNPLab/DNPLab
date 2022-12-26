@@ -79,12 +79,10 @@ def sim_dnp_profile(
     EPRdataNeg.values = _np.roll(out.values, (-1) * points_to_shift)
     EPRdataNeg.values = (-1) * EPRdataNeg.values
 
-    match dnp_process:
-        case "SE":
-            out = EPRdataPos + EPRdataNeg
-
-        case "CE/TM":
-            out = out.values * (EPRdataPos + EPRdataNeg)
+    if dnp_process == "SE":
+        out = EPRdataPos + EPRdataNeg
+    elif dnp_process == "CE/TM":
+        out = out.values * (EPRdataPos + EPRdataNeg)
 
     proc_attr_name = "sim_dnp_profile"
     proc_parameters = {
