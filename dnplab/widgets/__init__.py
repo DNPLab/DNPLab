@@ -1,4 +1,4 @@
 """Matplotlib widgets for processing and to increase usability"""
 
-from .manual_align import manual_align
+from .align_widget import align_widget
 from .manual_phase import manual_phase
