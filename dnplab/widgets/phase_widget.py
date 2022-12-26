@@ -5,7 +5,17 @@ from matplotlib.widgets import Slider, Button
 
 
 def phase_widget(data, dim="f2"):
-    """Manually Phase NMR Spectra"""
+    """Widget to manually phase NMR spectra
+
+    Calling this function will open a separate GUI to phase the NMR spectrum.
+
+    Args:
+        data (DNPData): NMR spectrum to phase
+    
+    Returns:
+        DNPData: Phased NMR spectrum
+    
+    """
 
     fig, ax = plt.subplots()
 
