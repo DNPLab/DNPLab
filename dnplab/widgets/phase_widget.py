@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
 
 
-def manual_phase(data, dim="f2"):
+def phase_widget(data, dim="f2"):
     """Manually Phase NMR Spectra"""
 
     fig, ax = plt.subplots()
