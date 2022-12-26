@@ -11,10 +11,10 @@ def phase_widget(data, dim="f2"):
 
     Args:
         data (DNPData): NMR spectrum to phase
-    
+
     Returns:
         DNPData: Phased NMR spectrum
-    
+
     """
 
     fig, ax = plt.subplots()
