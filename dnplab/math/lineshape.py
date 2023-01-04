@@ -54,7 +54,7 @@ def gaussian(x, x0, sigma, integral=1.0):
     return (
         integral
         / (sigma * _np.sqrt(2 * _np.pi))
-        * _np.exp(-((x - x0) ** 2) / (2 * sigma**2))
+        * _np.exp(-((x - x0) ** 2) / (2 * sigma ** 2))
     )
 
 
@@ -77,5 +77,5 @@ def lorentzian(x, x0, gamma, integral=1.0):
         f(x) = \frac{1}{\pi \gamma} \left[\frac{\gamma^2}{(x-x_0)^2 + \gamma^2}\right]
     """
     return (
-        integral * (1.0 / (_np.pi * gamma)) * gamma**2 / ((x - x0) ** 2 + gamma**2)
+        integral * (1.0 / (_np.pi * gamma)) * gamma ** 2 / ((x - x0) ** 2 + gamma ** 2)
     )

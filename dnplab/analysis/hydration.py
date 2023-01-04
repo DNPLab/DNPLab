@@ -180,12 +180,12 @@ def calculate_xi(tcorr=54e-12, omega_e=0.0614, omega_H=9.3231e-05):
 
     # (Eq. 2)
     Jdiff = (1 + (zdiff / 4)) / (
-        1 + zdiff + ((4 * (zdiff**2)) / 9) + ((zdiff**3) / 9)
+        1 + zdiff + ((4 * (zdiff ** 2)) / 9) + ((zdiff ** 3) / 9)
     )
 
-    Jsum = (1 + (zsum / 4)) / (1 + zsum + ((4 * (zsum**2)) / 9) + ((zsum**3) / 9))
+    Jsum = (1 + (zsum / 4)) / (1 + zsum + ((4 * (zsum ** 2)) / 9) + ((zsum ** 3) / 9))
 
-    JH = (1 + (zH / 4)) / (1 + zH + ((4 * (zH**2)) / 9) + ((zH**3) / 9))
+    JH = (1 + (zH / 4)) / (1 + zH + ((4 * (zH ** 2)) / 9) + ((zH ** 3) / 9))
 
     # (Eq. 23) calculation of coupling_factor from the spectral density functions
     xi = ((6 * _np.real(Jdiff)) - _np.real(Jsum)) / (
