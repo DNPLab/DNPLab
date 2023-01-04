@@ -50,7 +50,7 @@ def gaussian(x, lw):
     sigma = lw / (
         2.0 * _np.sqrt(2.0 * _np.log(2.0))
     )  # convert FWHM to standard deviation
-    return _np.exp(-1 * 2.0 * _np.pi ** 2.0 * (x ** 2.0) * (sigma ** 2.0))
+    return _np.exp(-1 * 2.0 * _np.pi**2.0 * (x**2.0) * (sigma**2.0))
 
 
 def hann(x):
@@ -93,7 +93,7 @@ def traf(x, lw):
     T = _np.max(t)
     E = _np.exp(-1 * t / T2)
     e = _np.exp(-1 * (T - t) / T2)
-    return E * (E + e) / (E ** 2 + e ** 2)
+    return E * (E + e) / (E**2 + e**2)
 
 
 def hamming(x):
@@ -139,7 +139,7 @@ def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
     N = len(x)
     expo = _np.pi * x * exp_lw
     gaus = 0.6 * _np.pi * gauss_lw * (gaussian_max * (N - 1) - x)
-    return _np.exp(expo - gaus ** 2).reshape(N)
+    return _np.exp(expo - gaus**2).reshape(N)
 
 
 def sin2(x):
