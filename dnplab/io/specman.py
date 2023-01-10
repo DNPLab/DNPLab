@@ -10,7 +10,7 @@ def import_specman(path):
         path (str) : Path to either .d01 or .exp file
 
     Returns:
-        specman_data (object) : DNPData object containing specman data
+        specman_data (DNPData) : DNPData object containing specman EPR data
     """
     if path[-1] == os.sep:
         path = path[:-1]
@@ -111,11 +111,11 @@ def load_specman_d01(path, params):
     dims = dims_full[0 : uint_read[2]]
     axes_lengths = uint_read[9:13]
 
-    abscissa = []
+    coords = []
     for k in range(0, len(dims)):
         if dims[k] in params.keys():
-            abscissa.append(params[dims[k]])
+            coords.append(params[dims[k]])
         else:
-            abscissa.append(_np.array(range(0, axes_lengths[k])))
+            coords.append(_np.array(range(0, axes_lengths[k])))
 
-    return y_data, dims, abscissa, params
+    return y_data, dims, coords, params
