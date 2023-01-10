@@ -26,6 +26,9 @@ def import_specman(path):
     params = load_specman_exp(file_name_exp)
     values, dims, coords, attrs = load_specman_d01(file_name_d01, params)
 
+    # Assign data/spectrum type
+    attrs["experiment_type"] = "epr_spectrum"
+
     specman_data = DNPData(values, dims, coords, attrs)
 
     return specman_data
