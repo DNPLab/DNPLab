@@ -131,7 +131,7 @@ def load_spc(path, attrs):
 
     Returns:
         coords (ndarray) : coordinates for spectrum or spectra
-        spec (ndarray) : data values
+        values (ndarray) : data values
         attrs (dict) : updated dictionary of parameters
         dims (list) : dimension labels
     """
@@ -139,16 +139,16 @@ def load_spc(path, attrs):
     data_format = _np.dtype(attrs["data_type"]).newbyteorder(attrs["endian"])
     file_opened = open(path, "rb")
     file_bytes = file_opened.read()
-    spec = _np.frombuffer(file_bytes, dtype=data_format)
+    values = _np.frombuffer(file_bytes, dtype=data_format)
 
     attrs.pop("data_type", None)
     attrs.pop("endian", None)
 
     if "x_points" not in attrs.keys():
         if "y_points" not in attrs.keys():
-            attrs["x_points"] = int(len(spec))
+            attrs["x_points"] = int(len(values))
         else:
-            attrs["x_points"] = int(len(spec) / attrs["y_points"])
+            attrs["x_points"] = int(len(values) / attrs["y_points"])
 
     if "center_field" not in attrs.keys() or "x_width" not in attrs.keys():
         if "sweep_start" in attrs.keys() and "sweep_extent" in attrs.keys():
@@ -184,7 +184,7 @@ def load_spc(path, attrs):
         dims = ["t2"]
 
     if "y_points" in attrs.keys() and attrs["y_points"] != 1:
-        spec = _np.reshape(spec, (attrs["x_points"], attrs["y_points"]), order="F")
+        values = _np.reshape(values, (attrs["x_points"], attrs["y_points"]), order="F")
         dims.append("t1")
 
         if "y_min" in attrs.keys() and "y_width" in attrs.keys():
@@ -200,4 +200,4 @@ def load_spc(path, attrs):
 
     file_opened.close()
 
-    return spec, dims, coords, attrs
+    return values, dims, coords, attrs
