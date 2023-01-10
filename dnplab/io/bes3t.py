@@ -67,6 +67,9 @@ def import_bes3t(path):
         path_dta, path_xgf, path_ygf, path_zgf, attrs
     )
 
+    # Assign data/spectrum type
+    attrs["experiment_type"] = "epr_spectrum"
+
     bes3t_data = DNPData(values, dims, coords, attrs)
 
     return bes3t_data
