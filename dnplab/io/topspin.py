@@ -398,7 +398,7 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
     for a in attrs_dict_list:
         attrs_dict.update(a)
 
-    important_params_dict = {
+    attrs = {
         "nmr_frequency": attrs_dict["SFO1"] * 1e6,
         "SW_h": attrs_dict["SW_h"],
         "TD": attrs_dict["TD"],
@@ -409,7 +409,7 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
         for x in ["SW_h_2", "TD_2", "SFO1_2", "SW_h_3", "TD_3", "SFO1_3"]
         if x in attrs_dict.keys()
     }
-    important_params_dict.update(higher_dim_pars)
+    attrs.update(higher_dim_pars)
 
     if attrs_dict["BYTORDA"] == 0:
         endian = "<"
@@ -433,7 +433,7 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
     )
 
     if "vdlist" in dir_list:
-        important_params_dict.update({"VDLIST": topspin_vdlist(path)})
+        attrs.update({"VDLIST": topspin_vdlist(path)})
 
     if dtype == "fid":
         data = data[group_delay : int(attrs_dict["TD"] / 2)] / attrs_dict["RG"]
@@ -447,9 +447,9 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
         coords = [t, range(int(attrs_dict["TD_2"]))]
         dims = ["t2", "t1"]
         if "acqu2s" in dir_list and "acqu3s" not in dir_list:
-            if "VDLIST" in important_params_dict.keys():
-                if len(important_params_dict["VDLIST"]) == int(attrs_dict["TD_2"]):
-                    coords = [t, important_params_dict["VDLIST"]]
+            if "VDLIST" in attrs.keys():
+                if len(attrs["VDLIST"]) == int(attrs_dict["TD_2"]):
+                    coords = [t, attrs["VDLIST"]]
             else:
                 if isinstance(phase_cycle, list):
                     length1d = int((_np.ceil(attrs_dict["TD"] / 256.0) * 256) / 2)
@@ -473,12 +473,12 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
                     0, int(attrs_dict["TD"] / 2 / int(attrs_dict["TD_3"])) - group_delay
                 )
             )
-            if "VDLIST" in important_params_dict.keys() and len(
-                important_params_dict["VDLIST"]
+            if "VDLIST" in attrs.keys() and len(
+                attrs["VDLIST"]
             ) == int(attrs_dict["TD_2"]):
                 coords = [
                     t,
-                    important_params_dict["VDLIST"],
+                    attrs["VDLIST"],
                     range(int(attrs_dict["TD_3"])),
                 ]
             else:
@@ -495,7 +495,7 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
             )
         data = ser_data
 
-    return DNPData(data, dims, coords, important_params_dict)
+    return DNPData(data, dims, coords, attrs)
 
 
 def topspin_vdlist(path):
