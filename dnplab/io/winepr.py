@@ -76,6 +76,9 @@ def import_winepr(path):
     attrs = load_par(path_par)
     values, dims, coords, attrs = load_spc(path_spc, attrs)
 
+    # Assign data/spectrum type
+    attrs["experiment_type"] = "epr_spectrum"
+
     parspc_data = DNPData(values, dims, coords, attrs)
 
     return parspc_data
