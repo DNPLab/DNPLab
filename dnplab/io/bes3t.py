@@ -290,7 +290,9 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, attrs={}):
         dims = ["t2"]
 
     if attrs["data_type"] == "CPLX":
-        values = values.astype(dtype=attrs["imag_format"]).view(dtype=_np.dtype("complex"))
+        values = values.astype(dtype=attrs["imag_format"]).view(
+            dtype=_np.dtype("complex")
+        )
     elif attrs["data_type"] == "REAL":
         values = values.astype(dtype=attrs["real_format"]).view()
 

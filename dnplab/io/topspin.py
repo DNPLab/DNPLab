@@ -476,9 +476,9 @@ def load_fid_ser(path, dtype="fid", phase_cycle=None):
                     0, int(attrs_dict["TD"] / 2 / int(attrs_dict["TD_3"])) - group_delay
                 )
             )
-            if "VDLIST" in attrs.keys() and len(
-                attrs["VDLIST"]
-            ) == int(attrs_dict["TD_2"]):
+            if "VDLIST" in attrs.keys() and len(attrs["VDLIST"]) == int(
+                attrs_dict["TD_2"]
+            ):
                 coords = [
                     t,
                     attrs["VDLIST"],
