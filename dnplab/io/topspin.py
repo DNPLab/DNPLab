@@ -273,6 +273,9 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     # Add NMR Frequency to attrs
     topspin_data.attrs["nmr_frequency"] = acqus_params["SFO1"] * 1e6
 
+    # Assign data/spectrum type
+    topspin_data.attrs["experiment_type"] = "nmr_spectrum"
+
     # reorder so that 't2' is first
     topspin_data.reorder(["t2"])
 
