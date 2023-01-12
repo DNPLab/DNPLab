@@ -116,8 +116,6 @@ def load_par(path):
             else:
                 attrs[new_key] = attrs[key]
 
-
-
     if "DOS" in attrs:
         attrs["endian"] = "LIT"
         attrs["data_type"] = "float32"
