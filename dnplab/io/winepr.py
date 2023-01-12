@@ -111,7 +111,7 @@ def load_par(path):
             new_key = rename_dict[key]
             if new_key in float_params:
                 attrs[new_key] = float(attrs[key])
-            elif new_key in int_attrs:
+            elif new_key in int_params:
                 attrs[new_key] = int(float(attrs[key]))
             else:
                 attrs[new_key] = attrs[key]
