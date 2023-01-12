@@ -109,12 +109,14 @@ def load_par(path):
     for key in rename_dict:
         if key in attrs:
             new_key = rename_dict[key]
-            if new_key in float_attrs:
+            if new_key in float_params:
                 attrs[new_key] = float(attrs[key])
             elif new_key in int_attrs:
                 attrs[new_key] = int(float(attrs[key]))
             else:
                 attrs[new_key] = attrs[key]
+
+
 
     if "DOS" in attrs:
         attrs["endian"] = "LIT"
