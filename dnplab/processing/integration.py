@@ -78,8 +78,16 @@ def integrate(data, dim="f2", regions=None):
 
     index = data.index(dim)
     if regions == None:
-        data.values = trapz(data.values, data.coords[dim], axis=index)
+        data.values = _np.trapz(data.values, data.coords[dim], axis=index)
         data.coords.pop(dim)
+
+        # if error_regions == None:
+        #     data.error = np.zeros(data.shape)
+        #     print("add errors")
+
+        # else:
+        #     signal = max(data.values)
+        #     noise = np.trapz(data.)
 
     else:
         data_list = []
