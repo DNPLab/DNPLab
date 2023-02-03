@@ -47,7 +47,6 @@ class ABCData(object):
     def __init__(
         self, values=_np.r_[[]], dims=[], coords=[], attrs={}, error=None, **kwargs
     ):
-
         self.version = version
 
         # if values is list, convert to numpy array
@@ -208,7 +207,6 @@ class ABCData(object):
 
         # check slices
         for slice_ in index_slice:
-
             # type must be slice or tuple
             if not isinstance(slice_, (slice, tuple, float, int)):
                 raise ValueError("Invalid slice type")
@@ -287,7 +285,6 @@ class ABCData(object):
 
         # check slices
         for slice_ in index_slice:
-
             # type must be slice or tuple
             if not isinstance(slice_, (slice, tuple, float, int)):
                 raise ValueError("Invalid slice type")
@@ -405,7 +402,6 @@ class ABCData(object):
 
     def __truediv__(self, b):
         if isinstance(b, ABCData):
-
             a, b = self.align(b)
 
             a.values = a.values / b.values

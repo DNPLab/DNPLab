@@ -191,7 +191,6 @@ def mr_properties(nucleus, *args):
         return gmr
 
     elif len(args) == 1:
-
         if isinstance(args[0], str):
             if args[0] == "gamma":
                 return gmrProperties.get(nucleus)[1]
@@ -222,7 +221,6 @@ def mr_properties(nucleus, *args):
             return vLarmor
 
     elif len(args) == 2:
-
         if args[1] == True:
             print(" ")
             print("Nucleus                    : ", nucleus)
