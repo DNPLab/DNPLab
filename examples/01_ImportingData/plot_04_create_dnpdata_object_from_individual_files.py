@@ -73,7 +73,6 @@ powers = np.linspace(0, 40, 41)
 # Now load the data and assign the power array to coord,
 
 data = dnp.load(filenames, dim="Power", coord=powers)
-data.attrs["experiment_type"] = "nmr_spectrum"
 
 # %%
 # Process and Save the NMR Spectra
