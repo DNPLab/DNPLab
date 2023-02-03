@@ -36,7 +36,6 @@ def save(data_object, filename, save_type=None, *args, **kwargs):
 
 
 def autodetect(test_name):
-
     if test_name[-1] == os.sep:
         test_name = test_name[:-1]
 

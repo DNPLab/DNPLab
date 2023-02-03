@@ -96,7 +96,6 @@ def load_par(path):
 
     attrs = {}
     with open(path, "r") as f:
-
         for line in f:
             line = line.rstrip()
             split_line = line.split(" ", 1)
