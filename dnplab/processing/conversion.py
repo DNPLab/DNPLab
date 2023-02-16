@@ -13,8 +13,6 @@ def dBm2w(power_in_dBm):
         float (array): Power in (W)
 
     """
-    print("This is dBm2w")
-
     power_in_W = 10.0 ** (power_in_dBm / 10.0) / 1000.0
 
     # Set values below -199 dBm to 0 W
