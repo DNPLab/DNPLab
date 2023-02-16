@@ -161,7 +161,6 @@ class Coords(object):
         return functools.reduce(operator.mul, [len(k) for k in self.coords], 1)
 
     def reorder(self, dims):
-
         if not self._check_dims(dims):
             raise TypeError("New dims must be list of str with no duplicates")
         for dim in dims:
@@ -195,7 +194,6 @@ class Coords(object):
         self._dims = [self._dims[x] for x in new_order]
 
     def rename(self, dim, new_dim):
-
         self.dims[self.index(dim)] = new_dim
 
     def append(self, dim, coord):
