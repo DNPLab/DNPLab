@@ -69,6 +69,78 @@ def radical_properties(name):
     return giso
 
 
+def show_epr_properties(radical, mwFrequency, b0Field):
+    # """Calculate DNP Properties for a given radical
+
+    # Args:
+    #     radical (str): Radical name, see mrProperties.py for radicals that are currently implemented
+    #     mwFrequency (float): Microwave frequency in (Hz)
+    #     dnpNucleus (str): Nucleus for DNP-NMR experiments
+
+    # Returns:
+    #     Function returns a table of DNP parameters to the screen
+
+    # Examples:
+
+    #     >>> dnp.show_dnp_poperties('gfree', 9.45e9, '1H')
+
+    # .. Note:
+    #     This function is currently only implemented for liquid state experiments
+
+    # """
+
+    # # http://physics.nist.gov/constants
+    # mub = 9.27400968e-24
+    # planck = 6.62606957e-34
+
+    # # Get radical properties
+    # glist = radicalProperties.get(radical)[0]
+    # nucleus = radicalProperties.get(radical)[1]
+    # Alist = radicalProperties.get(radical)[2]
+
+    # # Get g-value
+    # g = _np.array(glist)
+    # giso = _np.sum(g) / g.size
+
+    # B0 = mwFrequency * planck / giso / mub
+
+    # # Get hyperfine coupling and calculate isotropic value
+    # A = _np.array(Alist)
+    # AisoMHz = _np.sum(A) / A.size
+
+    # gmr_e = mr_properties("0e")
+    # AisoT = AisoMHz / gmr_e / 2 / _np.pi
+
+    # if nucleus != None:
+    #     nucSpin = mr_properties(nucleus, "spin")
+    #     n = 2 * nucSpin + 1
+    #     ms = _np.linspace(-1.0 * nucSpin, nucSpin, int(n))
+    #     B = B0 + ms * AisoT
+
+    # else:
+    #     nucSpin = 0
+    #     B = B0
+
+    # print("")
+    # print("Input Parameters: ")
+    # print("Radical                  : ", radical)
+    # print("giso                     :  %8.6f" % giso)
+    # print("Nucleus                  : ", nucleus)
+    # print("Nuc Spin                 : ", nucSpin)
+    # print("Aiso               (MHz) :  %4.2f" % AisoMHz)
+    # print("")
+    # print("Predicted Field Values for DNP: ")
+    # m = 1
+    # for b in B:
+    #     print("Transition: ", m)
+    #     print("B                    (T) :  %6.4f" % b)
+    #     nmr = mr_properties("1H") * b * 10 / 2 / _np.pi
+    #     print("NMR Frequency      (MHz) :  %6.3f" % nmr)
+    #     print("")
+    #     m += 1
+
+
+
 def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     """Calculate DNP Properties for a given radical
 
