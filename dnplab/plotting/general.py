@@ -77,7 +77,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         showPar (boolean): Toggle whether to show experiment parameters
 
     Returns:
-        Returns formated matplotlib plot.
+        Returns formatted matplotlib plot.
 
     Example:
 
@@ -119,11 +119,9 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         plt.xlim(max(coord), min(coord))
 
         if xlim != []:
-
             plt.xlim(xlim[1], xlim[0])
 
         if showPar == True:
-
             parameterString = "Freq: " + str(round(data.attrs["nmr_frequency"], 4))
 
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
@@ -206,7 +204,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     elif data.attrs["experiment_type"] == "inversion_recovery":
         plt.plot(
             data.coords["t1"],
-            data.values,
+            data.values.real,
             marker="o",
             fillstyle="none",
             *args,
@@ -222,7 +220,6 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         # if showPar == True:
 
     else:
-
         plot(data)
 
     data.fold()

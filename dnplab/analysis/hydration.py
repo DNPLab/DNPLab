@@ -81,7 +81,6 @@ def interpolate_T1(
 
     # linear fit, Franck et al. PNMRS (Eq. 39)
     elif interpolate_method == "linear":
-
         linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
 
         p = _np.polyfit(T1_powers, linear_t1, 1)

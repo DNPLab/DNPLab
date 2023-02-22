@@ -144,27 +144,24 @@ def mr_properties(nucleus, *args):
 
     Args:
 
-        nucleus:          '1H', '2H', '6Li', '13C', 14N', etc.
-        numerical:        If only a numerical is given in addition to the nucleus it must be a B0 value in Tesla and the Larmor frequency will be returned
+        nucleus (str): '1H', '2H', '6Li', '13C', 14N', etc.
+        B0 (float): (optional) B0 field in (mT)
 
-    +------------------+----------------------------------------------------------------------------+
-    | args             |  returns                                                                   |
-    +==================+============================================================================+
-    | "gamma"          | Gyromagnetic Ration [radians/T/s]                                          |
-    +------------------+----------------------------------------------------------------------------+
-    | "spin"           | Spin number of selected nucleus [1]                                        |
-    +------------------+----------------------------------------------------------------------------+
-    | "qmom"           | Quadrupole moment [fm^2] (100 barns)                                       |
-    +------------------+----------------------------------------------------------------------------+
-    | "natAbundance"   | Natural abundance [%]                                                      |
-    +------------------+----------------------------------------------------------------------------+
-    | "relSensitivity" | Relative sensitiviy with respect to 1H at constant B0                      |
-    +------------------+----------------------------------------------------------------------------+
-    | "moment"         | Magnetic dipole moment, abs(u)/uN = abs(gamma)*hbar[I(I + 1)]^1/2/uN,      |
-    +------------------+----------------------------------------------------------------------------+
-    | "qlw"            | quadrupolar line-width factor, Qlw = Q^2(2I + 3)/[I^2(2I + 1)]             |
-    +------------------+----------------------------------------------------------------------------+
+        Additional flags (see examples below)
 
+            gamma: Return Gyromagnetic Ration (radians/T/s)
+
+            spin: Return spin number of selected nucleus
+
+            qmom: Resturn quadrupole moment [fm^2] (100 barns)
+
+            natAbundance: Return natural abundance (%)
+
+            relSensitivity: Return relative sensitiviy with respect to 1H at constant B0
+
+            moment: Return magnetic dipole moment, abs(u)/uN = abs(gamma)*hbar[I(I + 1)]^1/2/uN
+
+            qlw: Return quadrupolar line-width factor, Qlw = Q^2(2I + 3)/[I^2(2I + 1)]
 
     Examples:
         .. code-block:: python
@@ -178,6 +175,7 @@ def mr_properties(nucleus, *args):
             dnp.dnpTools.mr_Properties('6Li', 'natAbundance') = 7.59 # % Natural Abundance
 
             dnp.dnpTools.mr_Properties('6Li', 'relSensitivity') = 0.000645 # Relative sensitivity
+
     """
 
     if isinstance(nucleus, str):
@@ -193,7 +191,6 @@ def mr_properties(nucleus, *args):
         return gmr
 
     elif len(args) == 1:
-
         if isinstance(args[0], str):
             if args[0] == "gamma":
                 return gmrProperties.get(nucleus)[1]
@@ -224,7 +221,6 @@ def mr_properties(nucleus, *args):
             return vLarmor
 
     elif len(args) == 2:
-
         if args[1] == True:
             print(" ")
             print("Nucleus                    : ", nucleus)
