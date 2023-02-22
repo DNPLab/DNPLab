@@ -98,8 +98,8 @@ def show_epr_properties(radical, mwFrequency, b0Field):
     # mub = 9.27400968e-24
     # planck = 6.62606957e-34
 
-    # # Get radical properties
-    # glist = radicalProperties.get(radical)[0]
+    mub = 9.2740100783e-24
+    planck = 6.62607015e-34
     # nucleus = radicalProperties.get(radical)[1]
     # Alist = radicalProperties.get(radical)[2]
 
