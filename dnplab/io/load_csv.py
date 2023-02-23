@@ -67,7 +67,7 @@ def load_csv(
     )  # or config_io['load_csv']['delimiter']
 
     if "delimiter" in kwargs.keys():
-        delimiter = kwargs["delimiter"]
+        delimiter = kwargs.pop("delimiter")
     if "dims" in kwargs.keys():
         dims = kwargs["dims"]
     else:
