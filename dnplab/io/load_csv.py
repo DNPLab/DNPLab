@@ -103,7 +103,7 @@ def load_csv(
 
     data = _np.array(data, dtype=complex)
     values = data[:, 1]
-    coords = data[:, 0].astype(float)
+    coords = _np.real( data[:, 0] )
 
     logger.debug(
         "Loading data with {0} elements and from file {1} with delimiter {2}".format(
