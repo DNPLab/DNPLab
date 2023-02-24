@@ -1,6 +1,28 @@
 from .data import DNPData
 import numpy as _np
+from .base import _SPECIAL_NP_HANDLED
 
+def implements_np(np_function):
+    "register an numpy function for special handling in SPECIAL_NO_HANDLED"
+    def decorator(someFunction):
+        _SPECIAL_NP_HANDLED[np_function]=someFunction
+        return someFunction
+    return decorator
+
+def _replaceClassWithAttribute(replace_class_type,args,kwargs,target_attr='values'):
+    r_args=[]
+    for a in args:
+        if type(a)==replace_class_type:
+            r_args.append(getattr(replace_class_type,target_attr))
+        else:
+            r_args.append(a)
+    r_kwargs={}
+    for key,val in kwargs.values():
+        if type(val)==replace_class_type:
+            r_kwargs[key]=getattr(replace_class_type,target_attr)
+        else:
+            r_kwargs[key]=val
+    return tuple(r_args),r_kwargs
 
 def concat(data_list, dim, coord=None):
     """Concatenates list of data objects down another dimension
