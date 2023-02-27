@@ -13,7 +13,6 @@ radicalProperties = {}
 # http://physics.nist.gov/constants
 radicalProperties["gfree"] = [2.00231930436153, None, [0]]
 
-
 # TEMPO in Toluene
 # Table 1, page 243 in Lebedev et al., Bioactive Spinlabels, Springer Verlag, 1992
 radicalProperties["tempo1"] = [[2.00980, 2.00622, 2.00220], "14N", [16.8, 20.5, 95.9]]
@@ -30,6 +29,7 @@ radicalProperties["bdpa"] = [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.
 # Krzystek et al., JMR, 1997
 radicalProperties["dpph_neat"] = [2.0036, None, [0]]
 
+
 def radical_properties(name):
     """Return properties of different radicals. At the minimum the g value is returned. If available, large hyperfine couplings to a nucleus are returned. Add new properties or new radicals to radicalProperties.py
 
@@ -45,7 +45,7 @@ def radical_properties(name):
     | "bdpa"      | [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.0]]       |
     +-------------+---------------------------------------------------------------+
     | "ddph_neat" | 2.0036                                                        |
-    +-------------+---------------------------------------------------------------+    
+    +-------------+---------------------------------------------------------------+
 
     Args:
         name (str): Name of the radical
@@ -74,76 +74,67 @@ def radical_properties(name):
     return giso
 
 
-def show_epr_properties(radical, mwFrequency, b0Field):
-    # """Calculate DNP Properties for a given radical
+def calc_epr_field(radical, mwFrequency):
+    """Calculate resonance field for spin S=1/2
 
     # Args:
-    #     radical (str): Radical name, see mrProperties.py for radicals that are currently implemented
-    #     mwFrequency (float): Microwave frequency in (Hz)
-    #     dnpNucleus (str): Nucleus for DNP-NMR experiments
-
+    #     radical (str)         : Radical name, see mrProperties.py for radicals that are currently implemented
+    #     mwFrequency (float)   : Microwave frequency in (Hz)
+    #
     # Returns:
-    #     Function returns a table of DNP parameters to the screen
+    #     B0                    : Resonance for EPR transition
 
     # Examples:
 
-    #     >>> dnp.show_dnp_poperties('gfree', 9.45e9, '1H')
+    #     >>> dnp.calc_epr_field('gfree', 9.45e9)
 
-    # .. Note:
-    #     This function is currently only implemented for liquid state experiments
+    """
 
-    # """
-
-    # # http://physics.nist.gov/constants
-    # mub = 9.27400968e-24
-    # planck = 6.62606957e-34
-
+    # http://physics.nist.gov/constants 
     mub = 9.2740100783e-24
     planck = 6.62607015e-34
-    # nucleus = radicalProperties.get(radical)[1]
-    # Alist = radicalProperties.get(radical)[2]
 
-    # # Get g-value
-    # g = _np.array(glist)
-    # giso = _np.sum(g) / g.size
+    # Get radical properties
+    glist = radicalProperties.get(radical)[0]
 
-    # B0 = mwFrequency * planck / giso / mub
+    # Get g-value
+    g = _np.array(glist)
+    giso = _np.sum(g) / g.size
 
-    # # Get hyperfine coupling and calculate isotropic value
-    # A = _np.array(Alist)
-    # AisoMHz = _np.sum(A) / A.size
+    b0Field = mwFrequency * planck / giso / mub
 
-    # gmr_e = mr_properties("0e")
-    # AisoT = AisoMHz / gmr_e / 2 / _np.pi
+    return b0Field
 
-    # if nucleus != None:
-    #     nucSpin = mr_properties(nucleus, "spin")
-    #     n = 2 * nucSpin + 1
-    #     ms = _np.linspace(-1.0 * nucSpin, nucSpin, int(n))
-    #     B = B0 + ms * AisoT
 
-    # else:
-    #     nucSpin = 0
-    #     B = B0
+def calc_epr_frequency(radical, b0Field):
+    """Calculate resonance frequency for spin S=1/2
 
-    # print("")
-    # print("Input Parameters: ")
-    # print("Radical                  : ", radical)
-    # print("giso                     :  %8.6f" % giso)
-    # print("Nucleus                  : ", nucleus)
-    # print("Nuc Spin                 : ", nucSpin)
-    # print("Aiso               (MHz) :  %4.2f" % AisoMHz)
-    # print("")
-    # print("Predicted Field Values for DNP: ")
-    # m = 1
-    # for b in B:
-    #     print("Transition: ", m)
-    #     print("B                    (T) :  %6.4f" % b)
-    #     nmr = mr_properties("1H") * b * 10 / 2 / _np.pi
-    #     print("NMR Frequency      (MHz) :  %6.3f" % nmr)
-    #     print("")
-    #     m += 1
+    # Args:
+    #     radical (str)         : Radical name, see mrProperties.py for radicals that are currently implemented
+    #     b0Field (float)       : Static magnetic field in (T)
+    #
+    # Returns:
+    #     B0                    : Resonance for EPR transition
 
+    # Examples:
+
+    #     >>> dnp.calc_epr_frequency('gfree', 3.5)
+
+    """
+
+    # http://physics.nist.gov/constants
+    mub = 9.27400968e-24
+    planck = 6.62606957e-34
+
+    # Get radical properties
+    glist = radicalProperties.get(radical)[0]
+
+    # Get g-value
+    g = _np.array(glist)
+    giso = _np.sum(g) / g.size
+    mwFrequency = b0Field * giso * mub / planck
+
+    return mwFrequency
 
 
 def show_dnp_properties(radical, mwFrequency, dnpNucleus):
