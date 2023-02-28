@@ -78,6 +78,7 @@ def signal_to_noise(
         NotImplemented
     """
     import warnings
+    import scipy.optimize as _scipy_optimize
 
     warnings.warn(
         "helpers.signal_to_noise: The signature and implementation of this function is not final and is subject to changes - do use at your own risk!"
