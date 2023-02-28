@@ -50,14 +50,93 @@ def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=Fals
         return enhancements.real
 
 
-def signal_to_noise():
+def signal_to_noise(
+    data: DNPData,
+    signal_region: tuple,
+    noise_region: tuple,
+    dim: str = "f2",
+    method="absval",
+    detrend: bool = True,
+    fullOutput: bool = False,
+):
     """Find signal-to-noise ratio
 
+    Simplest implementation: select largest value in a signal_region and divide this value by the estimated std. of the baseline in another region
+
+    The signature of this function is not final and is subject to changes - do use at your own risk!
+
+    Args:
+        data: Spectrum data
+        signal_region : tuple (start,stop) of region where signal should be searched
+        noise_region : tuple (start,stop) of region that should be taken as noise
+        dim (default f2): dimension of data that is used for snr
+        detrend:bool=False is whether a quadratic detrending should be done on the
+        fullOutput:bool=False whether singal and noise should also be returned
+
+        method:str=absval currently not used
     Returns:
         NotImplemented
     """
+    import warnings
 
-    return NotImplemented
+    warnings.warn(
+        "helpers.signal_to_noise: The signature and implementation of this function is not final and is subject to changes - do use at your own risk!"
+    )
+
+    def signal_estimation(data, signal_region: tuple, dim: str = "f2"):
+        signal = _np.max(_np.abs(data[dim, signal_region[0] : signal_region[1]]))
+        return signal
+
+    def noise_estimation(
+        data, noise_region: tuple, dim: str = "f2", detrend: bool = detrend
+    ):
+        noise_data = _np.abs(
+            data[dim, noise_region[0] : noise_region[1]]
+        )  # make it behave as numpy array?
+        f_index = noise_data.index(dim)
+        f_noise = data.coords[f_index][noise_region[0] : noise_region[1]]
+        if detrend:
+            # detrend by making quadratic fit
+            ind_mean = int(noise_data.size / 2)
+            if noise_data.size < 3:
+                raise ValueError(
+                    "Please chose larger region, noise data region is too small ({0}) for quadratic detrending fit".format(
+                        noise_region
+                    )
+                )
+            ind_last = noise_data.size - 1
+            guess_data = _np.array(
+                (noise_data[dim, 0], noise_data[dim, ind_mean], noise_data[dim, -1])
+            )
+            # work on indices not on frequencies
+            ind = _np.arange(0, noise_data.size)
+            guess_mat = _np.array(
+                [[0, 0, 1], [ind_mean**2, ind_mean, 1], [ind_last**2, ind_last, 1]]
+            )
+            init_guess = _np.squeeze(_np.linalg.solve(guess_mat, guess_data))
+            detrend_fun = (
+                lambda prm, x, data: prm[0] * x**2 + prm[1] * x + prm[2] - data
+            )
+            result = _scipy_optimize.least_squares(
+                detrend_fun, init_guess, args=(ind, noise_data.values)
+            )
+            if not result.success:
+                warnigns.warn(
+                    "No success with detrending quadratic fit, do not consider the result as meaningful! maybe try with detrend=False"
+                )
+            # detrended, only mean value remains, should work with DNPdata
+            noise_data = (
+                _np.mean(noise_data) + noise_data - detrend_fun(result.x, ind, 0)
+            )
+        noise = _np.std(noise_data)
+        return noise
+
+    signal = signal_estimation(data, signal_region, dim)
+    noise = noise_estimation(data, noise_region, dim, detrend)
+
+    if fullOutput:
+        return signal / noise, signal, noise
+    return signal / noise
 
 
 def smooth(data, dim="t2", window_length=11, polyorder=3):
