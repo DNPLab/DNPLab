@@ -5,6 +5,7 @@ import os
 
 import numpy as np
 
+
 class helper_functions_processing(unittest.TestCase):
     def setUp(self):
         self.testdata = os.path.join(".", "data", "csv")
@@ -25,23 +26,24 @@ class helper_functions_processing(unittest.TestCase):
 
         Missing: check whether signal and noise are scalar values
         """
-        f= dnp.processing.signal_to_noise
+        f = dnp.processing.signal_to_noise
 
-        self.assertRaises(ValueError,f,self.data,(300,400),(500,600) )
-        data=dnp.fourier_transform(self.data)
+        self.assertRaises(ValueError, f, self.data, (300, 400), (500, 600))
+        data = dnp.fourier_transform(self.data)
 
         try:
-            snr=f(data,(300,400),(500,600) )
+            snr = f(data, (300, 400), (500, 600))
         except ValueError as e:
-            self.fail('signal_to_noise reported ValueError {0}'.format(e))
+            self.fail("signal_to_noise reported ValueError {0}".format(e))
         self.assertTrue(not np.isnan(snr))
 
-        snr,signal,noise=f(data,(300,400),(500,600),fullOutput=True,detrend=False)
+        snr, signal, noise = f(
+            data, (300, 400), (500, 600), fullOutput=True, detrend=False
+        )
 
-        self.assertTrue( not np.isnan(snr))
-        self.assertTrue( not np.isnan(signal))
-        self.assertTrue( not np.isnan(noise))
-
+        self.assertTrue(not np.isnan(snr))
+        self.assertTrue(not np.isnan(signal))
+        self.assertTrue(not np.isnan(noise))
 
 
 if __name__ == "__main__":
