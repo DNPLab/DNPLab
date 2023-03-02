@@ -30,6 +30,7 @@ radicalProperties["bdpa"] = [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.
 # Krzystek et al., JMR, 1997
 radicalProperties["dpph_neat"] = [2.0036, None, [0]]
 
+
 def radical_properties(name):
     """Return properties of different radicals. At the minimum the g value is returned. If available, large hyperfine couplings to a nucleus are returned. Add new properties or new radicals to radicalProperties.py
 
@@ -45,7 +46,7 @@ def radical_properties(name):
     | "bdpa"      | [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.0]]       |
     +-------------+---------------------------------------------------------------+
     | "ddph_neat" | 2.0036                                                        |
-    +-------------+---------------------------------------------------------------+    
+    +-------------+---------------------------------------------------------------+
 
     Args:
         name (str): Name of the radical
