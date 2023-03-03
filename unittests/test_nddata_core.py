@@ -146,3 +146,35 @@ class dnplab_ABCData_coord_tester(unittest.TestCase):
     def test_rename(self):
         self.collection_inst.rename("a", "new_a")
         assert_array_equal(self.collection_inst.dims, ["new_a", "b", "c"])
+
+class ABCData_numpy_implementation_test(unittest.TestCase):
+
+    def setUp(self):
+        self.size=10
+        self.val=5
+        self.a=np.zeros(self.size)
+        self.b=np.ones(self.size)
+        self.c=self.val*np.ones(self.size)
+
+        self.Adata=ABCData(self.a)
+        self.Bdata=ABCData(self.b)
+        self.Cdata=ABCData(self.c)
+
+    def test_000_replaceAttr(self):
+        from dnplab.core.base import _replaceClassWithAttribute
+        test_tuple=(self.Adata,1,self.a)
+        test_dict={'1':self.Bdata,'2':5,'3':self.c}
+        nargs,nkwargs=_replaceClassWithAttribute(self.Adata,test_tuple,test_dict)
+        self.assertEqual(type(nargs[0]),type(self.a))
+
+    def test_001_npSum(self):
+        self.assertEqual(np.sum(self.Adata),0)
+        self.assertEqual(np.sum(self.Bdata),10)
+        self.assertEqual(np.sum(self.Cdata),50)
+
+    def test_002_npSin(self):
+        f=np.sin
+        self.assertEqual(np.sum( f(self.Adata)-f(self.a) ),0)
+        self.assertEqual(np.sum( f(self.Bdata)-f(self.b) ),0)
+        self.assertEqual(np.sum( f(self.Cdata)-f(self.c) ),0)
+        self.assertEqual( type(f(self.Adata)),type(self.Adata) )
