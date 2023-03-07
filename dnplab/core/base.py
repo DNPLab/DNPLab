@@ -5,7 +5,7 @@ import warnings
 from copy import deepcopy
 from collections import OrderedDict
 from .coord import Coords
-
+import logging
 
 from ..version import __version__
 
@@ -1081,9 +1081,40 @@ class ABCData(object):
         else:
             # default implementation, replaces all  ABCData objects in args and kwargs with ABCData.values and calls func
             args, kwargs = _replaceClassWithAttribute(self, args, kwargs)
+            #check for dims and use dims as axis array, note that this will reduce the output dimensions
+            # better: also automatically convert numerical dimensions to corresponding dimensions ?
+            str_or_int=lambda possible_dim: int(self.index(possible_dim)) if isinstance(possible_dim,str) else possible_dim
+            data_dims=[]
+            while (True):
+                if 'axis' in kwargs.keys():
+                    ax_value=kwargs.pop('axis')
+                else:
+                    break
+                if ax_value is None:
+                    indx=None
+                    kwargs['axis']=indx
+                    break
+                if isinstance(ax_value,str):
+                    indx=tuple( [int(self.index(ax_value))] )
+                    data_dims+=[ax_value]
+                    kwargs['axis']=indx
+                    break
+                # assume we can iteratre over it
+                indx=[]
+                for value in ax_value:
+                    _val=str_or_int(value)
+                    if isinstance(value,str):
+                        data_dims+=[value]
+                    indx+=[_val]
+                indx=tuple(  indx )
+                kwargs['axis']=indx
+                break
             return_values = func(*args, **kwargs)
         if type(return_values) == _np.ndarray:
             a = self.copy()
+            #delete dimensions that are removed
+            for dim in data_dims:
+                a.coords.pop(dim)
             a.values = return_values
             return a
         # if not ndarray then return as is
