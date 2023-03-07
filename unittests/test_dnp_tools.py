@@ -1,18 +1,54 @@
 import unittest
+import pathlib
 import dnplab as dnp
 from numpy.testing import assert_array_equal
 import numpy as np
 
 
 class dnpTools_tester(unittest.TestCase):
+
     def setUp(self):
         x = np.r_[0:10]
         y = x ** 2.0
         self.data = dnp.DNPData(y, ["t2"], [x])
+        self.testdata = os.path.join(".", "data", "csv")
+        p = pathlib.Path(self.testdata)
+        self.data = dnp.io.load_csv.load_csv(
+            p.joinpath("csv_example.csv"),
+            skiprows=1,
+            maxrows=1000,
+            tcol=0,
+            real=1,
+            imag=3,
+        )
 
-    def test_signal_to_noise(self):
+    def test_000_funcionality_signal_to_noise(self):
+        """
+        check only whether the function raises no error with DNPData input, not whether rsults are useful
+        alot of simple tests lumped together
 
-        dnp.signal_to_noise()
+        Missing: check whether signal and noise are scalar values
+        """
+        f = dnp.processing.signal_to_noise
+
+        self.assertRaises(ValueError, f, self.data, (300, 400), (500, 600))
+        data = dnp.fourier_transform(self.data)
+
+        try:
+            snr = f(data, (300, 400), (500, 600))
+        except ValueError as e:
+            self.fail("signal_to_noise reported ValueError {0}".format(e))
+        self.assertTrue(not np.isnan(snr))
+
+        snr, signal, noise = f(
+            data, (300, 400), (500, 600), fullOutput=True, detrend=False
+        )
+
+        self.assertTrue(not np.isnan(snr))
+        self.assertTrue(not np.isnan(signal))
+        self.assertTrue(not np.isnan(noise))
+
+        pass
 
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")
