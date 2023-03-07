@@ -1,4 +1,5 @@
 import unittest
+import os
 import pathlib
 import dnplab as dnp
 from numpy.testing import assert_array_equal
@@ -6,10 +7,9 @@ import numpy as np
 
 
 class dnpTools_tester(unittest.TestCase):
-
     def setUp(self):
         x = np.r_[0:10]
-        y = x ** 2.0
+        y = x**2.0
         self.data = dnp.DNPData(y, ["t2"], [x])
         self.testdata = os.path.join(".", "data", "csv")
         p = pathlib.Path(self.testdata)
@@ -54,7 +54,6 @@ class dnpTools_tester(unittest.TestCase):
         dnp.integrate(self.data, dim="t2")
 
     def test_mr_properties(self):
-
         info_1H = dnp.mr_properties("1H")
         self.assertEqual(info_1H, 26.7522128)
 
