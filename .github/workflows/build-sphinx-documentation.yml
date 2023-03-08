@@ -39,5 +39,5 @@ jobs:
       run: aws s3 sync --delete --acl public-read ./docs/build/html/ s3://dnplab-docu-staging
 
     - name: Upload to staging website
-      if: github.ref == 'refs/heads/release'
+      if: github.ref == 'refs/heads/master'
       run: aws s3 sync --delete --acl public-read ./docs/build/html/ s3://dnplab.net
