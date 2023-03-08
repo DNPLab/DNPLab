@@ -147,34 +147,61 @@ class dnplab_ABCData_coord_tester(unittest.TestCase):
         self.collection_inst.rename("a", "new_a")
         assert_array_equal(self.collection_inst.dims, ["new_a", "b", "c"])
 
+
 class ABCData_numpy_implementation_test(unittest.TestCase):
 
-    def setUp(self):
-        self.size=10
-        self.val=5
-        self.a=np.zeros(self.size)
-        self.b=np.ones(self.size)
-        self.c=self.val*np.ones(self.size)
+    # c&p from above for simplicity
+    def construct_random_data(self):
+        random_dims = random.sample(test_dims, random.randint(1, len(test_dims)))
 
-        self.Adata=ABCData(self.a)
-        self.Bdata=ABCData(self.b)
-        self.Cdata=ABCData(self.c)
+        random_coords = [np.r_[0 : random.randint(1, 6)] for dim in random_dims]
+        shape = [coord.size for coord in random_coords]
+
+        random_values = np.random.randn(*shape)
+        data = ABCData(random_values, random_dims, random_coords)
+        return data, random_dims, random_values, random_coords
+
+    def setUp(self):
+        self.size = 10
+        self.val = 5
+        self.a = np.zeros(self.size)
+        self.b = np.ones(self.size)
+        self.c = self.val * np.ones(self.size)
+
+        self.Adata = ABCData(self.a)
+        self.Bdata = ABCData(self.b)
+        self.Cdata = ABCData(self.c)
 
     def test_000_replaceAttr(self):
         from dnplab.core.base import _replaceClassWithAttribute
-        test_tuple=(self.Adata,1,self.a)
-        test_dict={'1':self.Bdata,'2':5,'3':self.c}
-        nargs,nkwargs=_replaceClassWithAttribute(self.Adata,test_tuple,test_dict)
-        self.assertEqual(type(nargs[0]),type(self.a))
+
+        test_tuple = (self.Adata, 1, self.a)
+        test_dict = {"1": self.Bdata, "2": 5, "3": self.c}
+        nargs, nkwargs = _replaceClassWithAttribute(self.Adata, test_tuple, test_dict)
+        self.assertEqual(type(nargs[0]), type(self.a))
 
     def test_001_npSum(self):
-        self.assertEqual(np.sum(self.Adata),0)
-        self.assertEqual(np.sum(self.Bdata),10)
-        self.assertEqual(np.sum(self.Cdata),50)
+        self.assertEqual(np.sum(self.Adata), 0)
+        self.assertEqual(np.sum(self.Bdata), 10)
+        self.assertEqual(np.sum(self.Cdata), 50)
 
     def test_002_npSin(self):
-        f=np.sin
-        self.assertEqual(np.sum( f(self.Adata)-f(self.a) ),0)
-        self.assertEqual(np.sum( f(self.Bdata)-f(self.b) ),0)
-        self.assertEqual(np.sum( f(self.Cdata)-f(self.c) ),0)
-        self.assertEqual( type(f(self.Adata)),type(self.Adata) )
+        f = np.sin
+        self.assertEqual(np.sum(f(self.Adata) - f(self.a)), 0)
+        self.assertEqual(np.sum(f(self.Bdata) - f(self.b)), 0)
+        self.assertEqual(np.sum(f(self.Cdata) - f(self.c)), 0)
+        self.assertEqual(type(f(self.Adata)), type(self.Adata))
+
+    def test_003_axisKeywordTest_nonufunc(self):
+        # testing with function sum, which is often used
+        b = np.sum(self.Adata)
+        self.assertEqual(type(b), np.float64)
+
+        rdata, dims, values, coords = self.construct_random_data()
+        test_sum = np.sum(values, axis=0)  # corresponds to dim[0]
+        b = np.sum(rdata, axis=dims[0])
+
+        self.assertEqual(type(b), type(rdata))
+        self.assertEqual(test_sum.shape, b.shape)
+        self.assertTrue(np.isclose(test_sum - b._values, 0))  # check for value equality
+        self.assertFalse(dims[0] in b.dims)
