@@ -203,6 +203,6 @@ class ABCData_numpy_implementation_test(unittest.TestCase):
 
         self.assertEqual(type(b), type(rdata))
         self.assertEqual(test_sum.shape, b.shape)
-        self.assertTrue(np.isclose(test_sum - b._values, 0))  # check for value equality
+        self.assertTrue( np.all( np.isclose(test_sum - b._values, 0)) )  # check for value equality
         self.assertFalse(dims[0] in b.dims)
         self.assertRaises(ValueError,np.sum,b,axis='doesnotexist')
