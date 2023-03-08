@@ -103,7 +103,6 @@ class TestHydration(unittest.TestCase):
         }
 
     def test_hydration(self):
-
         result = dnp.hydration(self.data, self.constants)
 
         self.assertEqual(len(self.data["E_powers"]), 21)
