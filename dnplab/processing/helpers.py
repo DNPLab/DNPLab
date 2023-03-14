@@ -84,37 +84,38 @@ def signal_to_noise(
     warnings.warn(
         "helpers.signal_to_noise: The signature and implementation of this function is not final and is subject to changes - do use at your own risk!"
     )
-    #convenience for signal and noise region
-    def _convenience_tuple_to_list(possible_region:list):
+    # convenience for signal and noise region
+    def _convenience_tuple_to_list(possible_region: list):
         if possible_region is None:
             return possible_region
         # we assume its iterable
-        if len(possible_region)!=2:
+        if len(possible_region) != 2:
             return possible_region
         # if we can typecast it as int we are fine
         try:
-            a=int(possible_region[0])
-            b=int(possible_region[1])
-            return [(a,b)]
+            a = int(possible_region[0])
+            b = int(possible_region[1])
+            return [(a, b)]
         except TypeError:
             return possible_region
-    signal_region=_convenience_tuple_to_list(signal_region)
-    noise_region=_convenience_tuple_to_list(noise_region)
-    remove_background=_convenience_tuple_to_list(remove_background)
+
+    signal_region = _convenience_tuple_to_list(signal_region)
+    noise_region = _convenience_tuple_to_list(noise_region)
+    remove_background = _convenience_tuple_to_list(remove_background)
 
     # remove background
     if remove_background is not None:
-        deg=kwargs.pop('deg',2)
-        data=dnp_remove_background(data,dim,deg,remove_background)
+        deg = kwargs.pop("deg", 2)
+        data = dnp_remove_background(data, dim, deg, remove_background)
 
-    #currently only one method avaiable -> absolute value
+    # currently only one method avaiable -> absolute value
 
     def signal_estimation(data, signal_region: tuple, dim: str = "f2"):
         signal = _np.max(_np.abs(data[dim, signal_region[0] : signal_region[1]]))
         return signal
 
-    def noise_estimation(data,noise_region:list,dim:str = 'f2'):
-        noise_data = _np.abs( data[dim, noise_region[0] : noise_region[1]] )
+    def noise_estimation(data, noise_region: list, dim: str = "f2"):
+        noise_data = _np.abs(data[dim, noise_region[0] : noise_region[1]])
         noise = _np.std(noise_data)
         return noise
 

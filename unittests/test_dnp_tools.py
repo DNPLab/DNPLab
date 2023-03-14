@@ -50,10 +50,16 @@ class dnpTools_tester(unittest.TestCase):
         self.assertTrue(not np.isnan(noise))
 
         # some input checks:
-        snr = f(data, [(300,400)],[(500,600)] )
-        snr = f(data, [(300,400)],[(500,600)] , remove_background=(100,200),deg=3) # works with degree
-        snr = f(data, [(300,400)],[(500,600)] , remove_background=(100,200)) #works without degree
-        snr = f(data, [(300,400)],[(500,600)] , remove_background=[(100,200)]) #works with list as intended
+        snr = f(data, [(300, 400)], [(500, 600)])
+        snr = f(
+            data, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=3
+        )  # works with degree
+        snr = f(
+            data, [(300, 400)], [(500, 600)], remove_background=(100, 200)
+        )  # works without degree
+        snr = f(
+            data, [(300, 400)], [(500, 600)], remove_background=[(100, 200)]
+        )  # works with list as intended
 
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")
