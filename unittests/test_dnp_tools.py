@@ -36,12 +36,12 @@ class dnpTools_tester(unittest.TestCase):
         data = dnp.fourier_transform(self.data)
 
         try:
-            snr = f(data, (300, 400), (500, 600))
+            data, snr = f(data, (300, 400), (500, 600))
         except ValueError as e:
             self.fail("signal_to_noise reported ValueError {0}".format(e))
         self.assertTrue(not np.isnan(snr))
 
-        snr, signal, noise = f(
+        dat, snr, signal, noise = f(
             data, (300, 400), (500, 600), fullOutput=True, detrend=False
         )
 
@@ -50,14 +50,14 @@ class dnpTools_tester(unittest.TestCase):
         self.assertTrue(not np.isnan(noise))
 
         # some input checks:
-        snr = f(data, [(300, 400)], [(500, 600)])
-        snr = f(
+        dat, snr = f(data, [(300, 400)], [(500, 600)])
+        dat, snr = f(
             data, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=3
         )  # works with degree
-        snr = f(
+        dat, snr = f(
             data, [(300, 400)], [(500, 600)], remove_background=(100, 200)
         )  # works without degree
-        snr = f(
+        dat, snr = f(
             data, [(300, 400)], [(500, 600)], remove_background=[(100, 200)]
         )  # works with list as intended
 

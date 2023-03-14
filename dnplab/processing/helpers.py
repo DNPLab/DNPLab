@@ -123,8 +123,8 @@ def signal_to_noise(
     noise = noise_estimation(data, noise_region[0], dim)
 
     if fullOutput:
-        return signal / noise, signal, noise
-    return signal / noise
+        return data, signal / noise, signal, noise
+    return data, signal / noise
 
 
 def smooth(data, dim="t2", window_length=11, polyorder=3):
