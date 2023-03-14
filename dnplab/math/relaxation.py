@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 
 
 def t1(t, T1, M_0, M_inf):
@@ -17,7 +17,7 @@ def t1(t, T1, M_0, M_inf):
         f(t) = M_{\infty} - (M_{\infty} - M_0) e^{-t/T_1}
     """
 
-    return M_inf - (M_inf - M_0) * np.exp(-1.0 * t / T1)
+    return M_inf - (M_inf - M_0) * _np.exp(-1.0 * t / T1)
 
 
 def t2(t, M_0, T2, p=1.0):
@@ -36,7 +36,7 @@ def t2(t, M_0, T2, p=1.0):
         f(t) = M_{0} e^{(-(t/T_{2})^{p}}
     """
 
-    return M_0 * np.exp(-1.0 * (t / T2) ** p)
+    return M_0 * _np.exp(-1.0 * (t / T2) ** p)
 
 
 def general_exp(t, C1, C2, tau):
@@ -55,7 +55,7 @@ def general_exp(t, C1, C2, tau):
         f(t) = C1 + C2 e^{-t/tau}
     """
 
-    return C1 + C2 * np.exp(-1.0 * t / tau)
+    return C1 + C2 * _np.exp(-1.0 * t / tau)
 
 
 def general_biexp(t, C1, C2, tau1, C3, tau2):
@@ -76,7 +76,7 @@ def general_biexp(t, C1, C2, tau1, C3, tau2):
         f(t) = C1 + C2 e^{-t/tau1} + C3 e^{-t/tau2}
     """
 
-    return C1 + C2 * np.exp(-1.0 * t / tau1) + C3 * np.exp(-1.0 * t / tau2)
+    return C1 + C2 * _np.exp(-1.0 * t / tau1) + C3 * _np.exp(-1.0 * t / tau2)
 
 
 def buildup_function(p, E_max, p_half):

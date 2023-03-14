@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 import os
 from .. import DNPData
 
@@ -10,7 +10,7 @@ def import_specman(path):
         path (str) : Path to either .d01 or .exp file
 
     Returns:
-        specman_data (object) : DNPData object containing specman data
+        specman_data (DNPData) : DNPData object containing specman EPR data
     """
     if path[-1] == os.sep:
         path = path[:-1]
@@ -25,6 +25,9 @@ def import_specman(path):
 
     params = load_specman_exp(file_name_exp)
     values, dims, coords, attrs = load_specman_d01(file_name_d01, params)
+
+    # Assign data/spectrum type
+    attrs["experiment_type"] = "epr_spectrum"
 
     specman_data = DNPData(values, dims, coords, attrs)
 
@@ -80,42 +83,42 @@ def load_specman_d01(path, params):
         params = {}
 
     file_opened = open(path, "rb")
-    uint_read = np.fromfile(file_opened, dtype=np.uint32)
+    uint_read = _np.fromfile(file_opened, dtype=_np.uint32)
     file_opened.close()
 
     file_opened = open(path, "rb")
-    float_read = np.fromfile(file_opened, dtype="<f4")
+    float_read = _np.fromfile(file_opened, dtype="<f4")
     file_opened.close()
     float_data_real = float_read[14 : uint_read[7] + 14]
     float_data_complex = float_read[uint_read[7] + 14 : len(float_read)]
     float_data_folded = float_data_real + 1j * float_data_complex
 
     if uint_read[2] == 1:
-        y_data = np.reshape(float_data_folded, (uint_read[3]))
+        y_data = _np.reshape(float_data_folded, (uint_read[3]))
     elif uint_read[2] == 2:
-        y_data = np.reshape(float_data_folded, (uint_read[4], uint_read[3]))
+        y_data = _np.reshape(float_data_folded, (uint_read[4], uint_read[3]))
     elif uint_read[2] == 3:
-        y_data = np.reshape(
+        y_data = _np.reshape(
             float_data_folded, (uint_read[5], uint_read[4], uint_read[3])
         )
     elif uint_read[2] == 4:
-        y_data = np.reshape(
+        y_data = _np.reshape(
             float_data_folded, (uint_read[6], uint_read[5], uint_read[4], uint_read[3])
         )
     else:
         raise TypeError("DNPLab currently only supports up to 4D data")
 
-    y_data = np.transpose(y_data)
+    y_data = _np.transpose(y_data)
 
     dims_full = ["t2", "t1", "t0", "t"]
     dims = dims_full[0 : uint_read[2]]
     axes_lengths = uint_read[9:13]
 
-    abscissa = []
+    coords = []
     for k in range(0, len(dims)):
         if dims[k] in params.keys():
-            abscissa.append(params[dims[k]])
+            coords.append(params[dims[k]])
         else:
-            abscissa.append(np.array(range(0, axes_lengths[k])))
+            coords.append(_np.array(range(0, axes_lengths[k])))
 
-    return y_data, dims, abscissa, params
+    return y_data, dims, coords, params

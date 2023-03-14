@@ -10,7 +10,7 @@ This example demonstrates how to load and process a single 1D NMR spectrum recor
 
 """
 # %%
-# First you need to prepare the Python environment by importing DNPLab. In this example we also have to imp, also numpy is imported. However, this is only necessary if you would like to access numpy functions and procedures directly.
+# First you need to prepare the Python environment by importing DNPLab.
 
 import dnplab as dnp
 import matplotlib.pylab as plt
