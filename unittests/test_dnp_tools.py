@@ -32,6 +32,7 @@ class dnpTools_tester(unittest.TestCase):
         f = dnp.processing.signal_to_noise
 
         self.assertRaises(ValueError, f, self.data, (300, 400), (500, 600))
+
         data = dnp.fourier_transform(self.data)
 
         try:
@@ -48,7 +49,17 @@ class dnpTools_tester(unittest.TestCase):
         self.assertTrue(not np.isnan(signal))
         self.assertTrue(not np.isnan(noise))
 
-        pass
+        # some input checks:
+        snr = f(data, [(300, 400)], [(500, 600)])
+        snr = f(
+            data, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=3
+        )  # works with degree
+        snr = f(
+            data, [(300, 400)], [(500, 600)], remove_background=(100, 200)
+        )  # works without degree
+        snr = f(
+            data, [(300, 400)], [(500, 600)], remove_background=[(100, 200)]
+        )  # works with list as intended
 
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")
