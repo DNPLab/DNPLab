@@ -704,15 +704,15 @@ def t1_fit_coefficients(data):
         power_array = temp.coords["power"]
         t1_list = temp.values[0].T
         peak_number = 0
-        while peak_number <= np.shape(t1_list)[0] - 1:
-            coeff, cov = np.polyfit(power_array, t1_list[peak_number], 1, cov=True)
-            err = np.sqrt(np.diag(cov))
+        while peak_number <= _np.shape(t1_list)[0] - 1:
+            coeff, cov = _np.polyfit(power_array, t1_list[peak_number], 1, cov=True)
+            err = _np.sqrt(_np.diag(cov))
             if peak_number == 0:
-                coeff_array = np.array([coeff])
-                err_array = np.array([err])
+                coeff_array = _np.array([coeff])
+                err_array = _np.array([err])
             else:
-                coeff_array = np.append(coeff_array, [coeff], axis=0)
-                err_array = np.append(err_array, [err], axis=0)
+                coeff_array = _np.append(coeff_array, [coeff], axis=0)
+                err_array = _np.append(err_array, [err], axis=0)
 
             peak_number += 1
 
@@ -745,20 +745,20 @@ def calc_f(t1n0, t10n, t1n0_err=None, t10n_err=None):
     """
 
     if t1n0_err == None:
-        t1n0_err = np.zeros(np.size(t1n0))
+        t1n0_err = _np.zeros(_np.size(t1n0))
         print("t1n0 does not have errors, assigning 0 to all errors")
 
     if t10n_err == None:
-        t10n_err = np.zeros(np.size(t10n))
+        t10n_err = _np.zeros(_np.size(t10n))
         print("t10n does not have errors, assigning 0 to all errors")
 
     f = [1 - x / y for x, y in zip(t1n0, t10n)]
     f_err = [
-        (1 - x / y) * np.sqrt((x_err / x) ** 2 + (y_err / y) ** 2)
+        (1 - x / y) * _np.sqrt((x_err / x) ** 2 + (y_err / y) ** 2)
         for x, x_err, y, y_err in zip(t1n0, t1n0_err, t10n, t10n_err)
     ]
 
-    return np.array(f), np.array(f_err)
+    return _np.array(f), _np.array(f_err)
 
 
 def calc_ksigma_smax(odnp_enhancements_data, t1_coeff, radical_concentration):
@@ -788,7 +788,7 @@ def calc_ksigma_smax(odnp_enhancements_data, t1_coeff, radical_concentration):
     temp = 1 - odnp_enhancements
     for index in temp.coords["integrals"]:
         fit_coefficients = t1_coeff[index]
-        t1_func = np.poly1d(fit_coefficients)
+        t1_func = _np.poly1d(fit_coefficients)
         temp.values[:, index] /= t1_func(temp.coords["power"])
 
     ksig_sp = temp / (radical_concentration * 659.33)
@@ -808,8 +808,8 @@ def calc_ksigma_smax(odnp_enhancements_data, t1_coeff, radical_concentration):
     return (
         ksig_sp_coefficients,
         ksig_sp_errors,
-        np.array(ksig_smax_array),
-        np.array(ksig_smax_err_array),
+        _np.array(ksig_smax_array),
+        _np.array(ksig_smax_err_array),
     )
 
 
@@ -843,20 +843,20 @@ def calc_krho(t1n0, t10n, radical_concentration, t1n0_err=None, t10n_err=None):
     c = radical_concentration
 
     if t1n0_err == None:
-        t1n0_err = np.zeros(np.size(t1n0))
+        t1n0_err = _np.zeros(_np.size(t1n0))
         print("t1n0 does not have errors, assigning 0 to all errors")
 
     if t10n_err == None:
-        t10n_err = np.zeros(np.size(t10n))
+        t10n_err = _np.zeros(_np.size(t10n))
         print("t10n does not have errors, assigning 0 to all errors")
 
     krho = [(x**-1 - y**-1) / c for x, y in zip(t1n0, t10n)]
     krho_array = [
-        np.sqrt((x_err / x**2) ** 2 + (y_err / y**2) ** 2) / c
+        _np.sqrt((x_err / x**2) ** 2 + (y_err / y**2) ** 2) / c
         for x, x_err, y, y_err in zip(t1n0, t1n0_err, t10n, t10n_err)
     ]
 
-    return np.array(krho), np.array(krho_array)
+    return _np.array(krho), _np.array(krho_array)
 
 
 def calc_xi_smax(ksig_smax, krho, ksig_smax_err, krho_err):
@@ -886,8 +886,8 @@ def calc_xi_smax(ksig_smax, krho, ksig_smax_err, krho_err):
 
     xi_smax = [x / y for x, y in zip(ksig_smax, krho)]
     xi_smax_err = [
-        x / y * np.sqrt((x_err / x) ** 2 + (y_err / y) ** 2)
+        x / y * _np.sqrt((x_err / x) ** 2 + (y_err / y) ** 2)
         for x, x_err, y, y_err in zip(ksig_smax, ksig_smax_err, krho, krho_err)
     ]
 
-    return np.array(xi_smax), np.array(xi_smax_err)
+    return _np.array(xi_smax), _np.array(xi_smax_err)
