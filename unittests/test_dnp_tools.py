@@ -51,8 +51,9 @@ class dnpTools_tester(unittest.TestCase):
 
         # some input checks:
         dat, snr = f(data, [(300, 400)], [(500, 600)])
+        self.assertTrue(data._values.size>0) #check for existing data
         dat, snr = f(
-            data, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=3
+            data, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=1
         )  # works with degree
         dat, snr = f(
             data, [(300, 400)], [(500, 600)], remove_background=(100, 200)
