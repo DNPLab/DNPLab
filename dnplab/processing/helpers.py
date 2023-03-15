@@ -84,6 +84,7 @@ def signal_to_noise(
     warnings.warn(
         "helpers.signal_to_noise: The signature and implementation of this function is not final and is subject to changes - do use at your own risk!"
     )
+
     # convenience for signal and noise region
     def _convenience_tuple_to_list(possible_region: list):
         if possible_region is None:
