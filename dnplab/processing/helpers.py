@@ -112,7 +112,7 @@ def signal_to_noise(
 
     # remove background
     if remove_background is not None:
-        deg = kwargs.pop("deg", 2)
+        deg = kwargs.pop("deg", 1)
         data = dnp_remove_background(data, dim, deg, remove_background)
 
     # currently only one method avaiable -> absolute value
