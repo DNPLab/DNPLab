@@ -23,7 +23,6 @@ def array_coords(attrs):
     """
 
     try:
-
         array_delta = attrs["arraydelta"]
         array_dim = attrs["arraydim"]
         array_start = attrs["arraystart"]
@@ -39,7 +38,6 @@ def array_coords(attrs):
         return dim, coord
 
     except KeyError:
-
         coord = None
         dim = None
 

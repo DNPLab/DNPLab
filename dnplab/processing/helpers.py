@@ -22,15 +22,12 @@ def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=Fals
     enhancements = data.copy()
 
     if not "experiment_type" in data.attrs.keys():
-
         raise KeyError("Experiment type not defined")
 
     if data.attrs["experiment_type"] != "integrals":
-
         raise ValueError("dnpdata object does not contain integrals.")
 
     if data.dims[0] == "Power":
-
         enhancements.attrs["experiment_type"] = "enhancements_P"
 
         enhancements.values = (
@@ -38,12 +35,10 @@ def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=Fals
         )
 
     elif data.dims[0] == "B0":
-
         enhancements.attrs["experiment_type"] = "enhancements_B0"
         print("This is a DNP enhancement profile. Not implemented yet.")
 
     else:
-
         raise TypeError(
             "Integration axis not recognized. First dimension should be Power or B0."
         )
@@ -114,8 +109,32 @@ def left_shift(data, dim="t2", shift_points=0):
     return data
 
 
-def normalize():
-    return NotImplemented
+def normalize(data, amplitude=True):
+    """Normalize spectrum
+
+    Args:
+        data (DNPData): Data object
+        amplitude (boolean): True: normalize amplitude, false: normalize area. The default is True
+
+    Returns:
+        data (DNPDdata): Normalized data object
+    """
+
+    out = data.copy()
+
+    if amplitude == True:
+        out.values = out.values / _np.max(out.values)
+    elif amplitude == False:
+        out.values = out.values  # Normalize to area = 1, not implemented yet
+
+    proc_attr_name = "normalized"
+    proc_parameters = {
+        "amplitude": amplitude,
+    }
+
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    return out
 
 
 def reference(data, dim="f2", old_ref=0, new_ref=0):
