@@ -71,7 +71,7 @@ def signal_to_noise(
         signal_region : tuple (start,stop) of region where signal should be searched
         noise_region : tuple (start,stop) of region that should be taken as noise
         dim (default f2): dimension of data that is used for snr
-        remove_backgorund :listl=None, if this is not none (a list of tuples, or a single tuple) this will be forwarded to dnp.remove_backgorund, tgether with any kwargs
+        remove_background :listl=None, if this is not none (a list of tuples, or a single tuple) this will be forwarded to dnp.remove_background, tgether with any kwargs
         fullOutput:bool=False whether signal and noise should also be returned
 
     Returns:
@@ -97,20 +97,23 @@ def signal_to_noise(
                 return possible_region
         except TypeError:
             return possible_region  # return as is
-        return [
-            (possible_region[0], possible_region[1])
-        ]  # make a list that contains a tuple
+        try:
+            #check whether we can interpret it as value
+            a=int(possible_region[0])
+            return [(possible_region[0], possible_region[1])]  # make a list that contains a tuple
+        except TypeError:
+            return possible_region
 
     signal_region = _convenience_tuple_to_list(signal_region)
     noise_region = _convenience_tuple_to_list(noise_region)
     remove_background = _convenience_tuple_to_list(remove_background)
 
+    print(remove_background)
+
     # remove background
     if remove_background is not None:
         deg = kwargs.pop("deg", 2)
         data = dnp_remove_background(data, dim, deg, remove_background)
-
-    print(data.coords[dim])
 
     # currently only one method avaiable -> absolute value
     signal = _np.max(_np.abs(data[dim, signal_region[0]]))
