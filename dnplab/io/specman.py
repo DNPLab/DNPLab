@@ -1,5 +1,5 @@
 import numpy as _np
-import _os
+import os
 import dnplab as _dnp
 
 
@@ -17,7 +17,7 @@ def import_specman(path):
         data (DNPData) : DNPData object containing SpecMan EPR data
     """
 
-    if path[-1] == _os.sep:
+    if path[-1] == os.sep:
         path = path[:-1]
     if path[-1] == "p":
         file_name_d01 = path.replace("exp", "d01")
