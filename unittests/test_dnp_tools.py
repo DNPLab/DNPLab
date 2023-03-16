@@ -24,6 +24,7 @@ class dnpTools_tester(unittest.TestCase):
             real=1,
             imag=3,
         )
+        self.data.attrs['nmr_frequency']=14.86e6
 
     def test_000_funcionality_signal_to_noise(self):
         """
@@ -52,9 +53,13 @@ class dnpTools_tester(unittest.TestCase):
         self.assertTrue(not np.isnan(signal))
         self.assertTrue(not np.isnan(noise))
 
-        # some input checks:
+    def test_001_using_different_dimensions(self):
+        f = dnp.processing.signal_to_noise
+        data = dnp.fourier_transform(self.data)
+
+        # some input checks, just to check that no errors are thrown:
         dat, snr = f(data, [(300, 400)], [(500, 600)])
-        self.assertTrue(data._values.size>0) #check for existing data
+        self.assertTrue(data._values.size > 0)  # check for existing data
         dat, snr = f(
             data, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=3
         )  # works with degree
@@ -64,6 +69,21 @@ class dnpTools_tester(unittest.TestCase):
         dat, snr = f(
             data, [(300, 400)], [(500, 600)], remove_background=[(100, 200)]
         )  # works with list as intended
+        dat, snr = f(
+            data, [(-121.5,104.1)], [(632.5, 1264.2)], remove_background=[(100, 200)]
+        )
+        dat, snr = f(
+            data, [(-121.5,104.1)], [(632.5, 1264.2)], remove_background=[(-1300.1, -500.0)]
+        )
+        """
+        dat, snr = f(
+            data, [100:300], [300:400], remove_background=[80:500]
+        )
+        dat, snr = f(
+            data, 100:300, 300:400, remove_background=[80:500]
+        )
+        """
+
 
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")

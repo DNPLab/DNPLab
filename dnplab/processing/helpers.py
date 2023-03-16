@@ -71,12 +71,13 @@ def signal_to_noise(
         signal_region : tuple (start,stop) of region where signal should be searched
         noise_region : tuple (start,stop) of region that should be taken as noise
         dim (default f2): dimension of data that is used for snr
-        detrend:bool=False is whether a quadratic detrending should be done on the
-        fullOutput:bool=False whether singal and noise should also be returned
+        remove_backgorund :listl=None, if this is not none (a list of tuples, or a single tuple) this will be forwarded to dnp.remove_backgorund, tgether with any kwargs
+        fullOutput:bool=False whether signal and noise should also be returned
 
-        method:str=absval currently not used
     Returns:
-        NotImplemented
+        data: DNPData, snr:float
+        or:
+        data: DNPData, snr:float, signal:float, noise: float
     """
     import warnings
     import scipy.optimize as _scipy_optimize
@@ -90,15 +91,13 @@ def signal_to_noise(
         if possible_region is None:
             return possible_region
         # we assume its iterable
-        if len(possible_region) != 2:
-            return possible_region
-        # if we can typecast it as int we are fine
         try:
-            a = int(possible_region[0])
-            b = int(possible_region[1])
-            return [(a, b)]
+            l = len(possible_region)
+            if l != 2:
+                return possible_region
         except TypeError:
-            return possible_region
+            return possible_region # return as is
+        return [(possible_region[0],possible_region[1])] #make a list that contains a tuple
 
     signal_region = _convenience_tuple_to_list(signal_region)
     noise_region = _convenience_tuple_to_list(noise_region)
@@ -109,19 +108,11 @@ def signal_to_noise(
         deg = kwargs.pop("deg", 2)
         data = dnp_remove_background(data, dim, deg, remove_background)
 
+    print(data.coords[dim])
+
     # currently only one method avaiable -> absolute value
-
-    def signal_estimation(data, signal_region: tuple, dim: str = "f2"):
-        signal = _np.max(_np.abs(data[dim, signal_region[0] : signal_region[1]]))
-        return signal
-
-    def noise_estimation(data, noise_region: list, dim: str = "f2"):
-        noise_data = _np.abs(data[dim, noise_region[0] : noise_region[1]])
-        noise = _np.std(noise_data)
-        return noise
-
-    signal = signal_estimation(data, signal_region[0], dim)
-    noise = noise_estimation(data, noise_region[0], dim)
+    signal = _np.max(_np.abs(data[dim, signal_region[0] ]) )
+    noise = _np.std( _np.abs(data[dim, noise_region[0] ]) )
 
     if fullOutput:
         return data, signal / noise, signal, noise
