@@ -51,7 +51,6 @@ spinQuatnumNumber = np.empty(121)
 k = 0
 
 for each in dnp.gmrProperties.keys():
-
     spinQuatnumNumber[k] = dnp.gmrProperties[each][0]
 
     k = k + 1

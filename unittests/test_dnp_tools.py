@@ -24,7 +24,7 @@ class dnpTools_tester(unittest.TestCase):
             real=1,
             imag=3,
         )
-        self.data.attrs['nmr_frequency']=14.86e6
+        self.data.attrs["nmr_frequency"] = 14.86e6
 
     def test_000_funcionality_signal_to_noise(self):
         """
@@ -70,10 +70,13 @@ class dnpTools_tester(unittest.TestCase):
             data, [(300, 400)], [(500, 600)], remove_background=[(100, 200)]
         )  # works with list as intended
         dat, snr = f(
-            data, [(-121.5,104.1)], [(632.5, 1264.2)], remove_background=[(100, 200)]
+            data, [(-121.5, 104.1)], [(632.5, 1264.2)], remove_background=[(100, 200)]
         )
         dat, snr = f(
-            data, [(-121.5,104.1)], [(632.5, 1264.2)], remove_background=[(-1300.1, -500.0)]
+            data,
+            [(-121.5, 104.1)],
+            [(632.5, 1264.2)],
+            remove_background=[(-1300.1, -500.0)],
         )
         """
         dat, snr = f(
@@ -83,7 +86,6 @@ class dnpTools_tester(unittest.TestCase):
             data, 100:300, 300:400, remove_background=[80:500]
         )
         """
-
 
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")

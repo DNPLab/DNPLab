@@ -96,8 +96,10 @@ def signal_to_noise(
             if l != 2:
                 return possible_region
         except TypeError:
-            return possible_region # return as is
-        return [(possible_region[0],possible_region[1])] #make a list that contains a tuple
+            return possible_region  # return as is
+        return [
+            (possible_region[0], possible_region[1])
+        ]  # make a list that contains a tuple
 
     signal_region = _convenience_tuple_to_list(signal_region)
     noise_region = _convenience_tuple_to_list(noise_region)
@@ -111,8 +113,8 @@ def signal_to_noise(
     print(data.coords[dim])
 
     # currently only one method avaiable -> absolute value
-    signal = _np.max(_np.abs(data[dim, signal_region[0] ]) )
-    noise = _np.std( _np.abs(data[dim, noise_region[0] ]) )
+    signal = _np.max(_np.abs(data[dim, signal_region[0]]))
+    noise = _np.std(_np.abs(data[dim, noise_region[0]]))
 
     if fullOutput:
         return data, signal / noise, signal, noise
