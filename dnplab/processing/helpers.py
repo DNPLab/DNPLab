@@ -98,17 +98,17 @@ def signal_to_noise(
         except TypeError:
             return possible_region  # return as is
         try:
-            #check whether we can interpret it as value
-            a=int(possible_region[0])
-            return [(possible_region[0], possible_region[1])]  # make a list that contains a tuple
+            # check whether we can interpret it as value
+            a = int(possible_region[0])
+            return [
+                (possible_region[0], possible_region[1])
+            ]  # make a list that contains a tuple
         except TypeError:
             return possible_region
 
     signal_region = _convenience_tuple_to_list(signal_region)
     noise_region = _convenience_tuple_to_list(noise_region)
     remove_background = _convenience_tuple_to_list(remove_background)
-
-    print(remove_background)
 
     # remove background
     if remove_background is not None:
