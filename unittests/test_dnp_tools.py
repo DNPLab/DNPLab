@@ -1,9 +1,12 @@
 import unittest
 import os
-import pathlib
 import dnplab as dnp
 from numpy.testing import assert_array_equal
 import numpy as np
+
+import logging
+import sys
+import pathlib
 
 
 class dnpTools_tester(unittest.TestCase):
@@ -53,7 +56,7 @@ class dnpTools_tester(unittest.TestCase):
         dat, snr = f(data, [(300, 400)], [(500, 600)])
         self.assertTrue(data._values.size>0) #check for existing data
         dat, snr = f(
-            data, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=1
+            data, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=3
         )  # works with degree
         dat, snr = f(
             data, [(300, 400)], [(500, 600)], remove_background=(100, 200)
