@@ -220,6 +220,6 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         # if showPar == True:
 
     else:
-        plot(data,*args,**kwargs)
+        plot(data, *args, **kwargs)
 
     data.fold()
