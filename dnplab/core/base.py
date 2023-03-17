@@ -5,11 +5,32 @@ import warnings
 from copy import deepcopy
 from collections import OrderedDict
 from .coord import Coords
+import logging
 
 from ..version import __version__
 
 version = __version__
 
+
+def _replaceClassWithAttribute(replace_class, args, kwargs, target_attr="_values"):
+    r_args = []
+    for a in args:
+        if type(a) == type(replace_class):
+            r_args.append(getattr(replace_class, target_attr))
+        else:
+            r_args.append(a)
+    r_kwargs = {}
+    # iterating over .values() can lead to errors?
+    for key in kwargs.keys():
+        val = kwargs[key]
+        if type(val) == type(replace_class):
+            r_kwargs[key] = getattr(replace_class, target_attr)
+        else:
+            r_kwargs[key] = val
+    return tuple(r_args), r_kwargs
+
+
+_SPECIAL_NP_HANDLED = {}  # numpy functions that need special handling, will
 
 _numerical_types = (
     _np.ndarray,
@@ -1023,3 +1044,83 @@ class ABCData(object):
         if "folded_order" in self.attrs:
             self.reorder(self.attrs["folded_order"])
             self.attrs.pop("folded_order")
+
+    def __array_ufunc__(self, ufunc, method, *arrInput, **kwargs):
+        """
+        started implementation of numpy comapilibity accoring to
+        https://numpy.org/doc/stable/user/basics.dispatch.html
+
+        - copying the methods there to achieve the possibility to use numpy fuctions directly
+        - numpy functions work on all values for now yes?
+
+        TODO: add history attribute?
+        """
+        # need to implement all methods
+        if method == "__call__":
+            # a=self.copy() #in accordance with rest of class
+            args, kwargs = _replaceClassWithAttribute(self, arrInput, kwargs)
+            values = ufunc(*args, **kwargs)
+            a = self.copy()
+            a.values = values
+            return a
+        return NotImplemented
+
+    def __array_function__(self, func, types, args, kwargs):
+        """
+        started implementation of numpy comapilibity accoring to
+        https://numpy.org/doc/stable/user/basics.dispatch.html
+
+        - copying the methods there to achieve the possibility to use numpy fuctions directly
+        - special handling is done for function that return no array, be aware that this is currently not optimal and possibly slow (copying a array before checking whether copy is necessary?)
+        - numpy functions currently just apply to the values of self, special handling is done for functions in SPECIAL_NP_HANDLED
+
+        - default implementation, replaces all  ABCData objects with ABCData.values and calls func with replaced *args,**kwargs
+        """
+        if func in _SPECIAL_NP_HANDLED:
+            return_values = _SPECIAL_NP_HANDLED[func](*args, **kwargs)
+        else:
+            # default implementation, replaces all  ABCData objects in args and kwargs with ABCData.values and calls func
+            args, kwargs = _replaceClassWithAttribute(self, args, kwargs)
+            # check for dims and use dims as axis array, note that this will reduce the output dimensions
+            # better: also automatically convert numerical dimensions to corresponding dimensions ?
+            # NOTE the check for the axis keyword types could be placed in a seperate function, but for now it is kept here, removed debug logging
+            str_or_int = (
+                lambda possible_dim: int(self.index(possible_dim))
+                if isinstance(possible_dim, str)
+                else possible_dim
+            )
+            data_dims = []
+            while True:
+                if "axis" in kwargs.keys():
+                    ax_value = kwargs.pop("axis")
+                else:
+                    break
+                if ax_value is None:
+                    indx = None
+                    kwargs["axis"] = indx
+                    break
+                if isinstance(ax_value, str):
+                    indx = tuple([int(self.index(ax_value))])
+                    data_dims += [ax_value]
+                    kwargs["axis"] = indx
+                    break
+                # assume we can iteratre over it
+                indx = []
+                for value in ax_value:
+                    _val = str_or_int(value)
+                    if isinstance(value, str):
+                        data_dims += [value]
+                    indx += [_val]
+                indx = tuple(indx)
+                kwargs["axis"] = indx
+                break
+            return_values = func(*args, **kwargs)
+        if type(return_values) == _np.ndarray:
+            a = self.copy()
+            # delete dimensions that are removed
+            for dim in data_dims:
+                a.coords.pop(dim)
+            a.values = return_values
+            return a
+        # if not ndarray then return as is
+        return return_values

@@ -3,6 +3,7 @@ from scipy.signal import savgol_filter
 
 from ..core.data import DNPData
 from ..processing.integration import integrate
+from ..processing.offset import remove_background as dnp_remove_background
 
 import dnplab as dnp
 
@@ -50,14 +51,77 @@ def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=Fals
         return enhancements.real
 
 
-def signal_to_noise():
+def signal_to_noise(
+    data: DNPData,
+    signal_region: list,
+    noise_region: list,
+    dim: str = "f2",
+    remove_background: list = None,
+    fullOutput: bool = False,
+    **kwargs
+):
     """Find signal-to-noise ratio
 
-    Returns:
-        NotImplemented
-    """
+    Simplest implementation: select largest value in a signal_region and divide this value by the estimated std. of the baseline in another region
 
-    return NotImplemented
+    The signature of this function is not final and is subject to changes - do use at your own risk!
+
+    Args:
+        data: Spectrum data
+        signal_region : tuple (start,stop) of region where signal should be searched
+        noise_region : tuple (start,stop) of region that should be taken as noise
+        dim (default f2): dimension of data that is used for snr
+        remove_background :listl=None, if this is not none (a list of tuples, or a single tuple) this will be forwarded to dnp.remove_background, tgether with any kwargs
+        fullOutput:bool=False whether signal and noise should also be returned
+
+    Returns:
+        data: DNPData, snr:float
+        or:
+        data: DNPData, snr:float, signal:float, noise: float
+    """
+    import warnings
+    import scipy.optimize as _scipy_optimize
+
+    warnings.warn(
+        "helpers.signal_to_noise: The signature and implementation of this function is not final and is subject to changes - do use at your own risk!"
+    )
+
+    # convenience for signal and noise region
+    def _convenience_tuple_to_list(possible_region: list):
+        if possible_region is None:
+            return possible_region
+        # we assume its iterable
+        try:
+            l = len(possible_region)
+            if l != 2:
+                return possible_region
+        except TypeError:
+            return possible_region  # return as is
+        try:
+            # check whether we can interpret it as value
+            a = int(possible_region[0])
+            return [
+                (possible_region[0], possible_region[1])
+            ]  # make a list that contains a tuple
+        except TypeError:
+            return possible_region
+
+    signal_region = _convenience_tuple_to_list(signal_region)
+    noise_region = _convenience_tuple_to_list(noise_region)
+    remove_background = _convenience_tuple_to_list(remove_background)
+
+    # remove background
+    if remove_background is not None:
+        deg = kwargs.pop("deg", 1)
+        data = dnp_remove_background(data, dim, deg, remove_background)
+
+    # currently only one method avaiable -> absolute value
+    signal = _np.max(_np.abs(data[dim, signal_region[0]]))
+    noise = _np.std(_np.abs(data[dim, noise_region[0]]))
+
+    if fullOutput:
+        return data, signal / noise, signal, noise
+    return data, signal / noise
 
 
 def smooth(data, dim="t2", window_length=11, polyorder=3):
