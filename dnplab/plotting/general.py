@@ -26,6 +26,8 @@ def plot(data, *args, **kwargs):
         args: args for matplotlib plot function
         kwargs: kwargs for matplotlib plot function
 
+        if semilogy=x is in kwargs and x is not None a semilogy axis will be used
+
     Returns:
         Returns formated matplotlib plot.
 
@@ -61,6 +63,12 @@ def plot(data, *args, **kwargs):
 
     data.unfold(dim)
 
+    plot_semilogy = kwargs.pop("semilogy", None) is not None
+    if plot_semilogy:
+        plt.semilogy(coord, data.values.real, *args, **kwargs)
+        data.fold()
+        return
+    # default
     plt.plot(coord, data.values.real, *args, **kwargs)
     data.fold()
 
