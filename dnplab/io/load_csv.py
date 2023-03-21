@@ -69,7 +69,7 @@ def load_csv(
     if "delimiter" in kwargs.keys():
         delimiter = kwargs.pop("delimiter")
 
-    dims = kwargs.pop("dims", "t2")
+    dims = kwargs.pop("dims", ["t2"])
 
     def _checknone(x, row, ind=None):
         if x is None and (ind is not None):
