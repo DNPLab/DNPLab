@@ -18,7 +18,16 @@ plt.rcParams["axes.prop_cycle"] = plt.cycler(
 show = plt.show
 
 # hand curated list of plotting arguments that are forwarded, note that this should probably be in a config file (refactoring needed)
-forwarded_pyplot_plots=['semilogy', "semilogx", "polar", "loglog", "scatter", "errorbar", "step" ]
+forwarded_pyplot_plots = [
+    "semilogy",
+    "semilogx",
+    "polar",
+    "loglog",
+    "scatter",
+    "errorbar",
+    "step",
+]
+
 
 def plot(data, *args, **kwargs):
     """Plot function for dnpdata object
@@ -67,15 +76,14 @@ def plot(data, *args, **kwargs):
 
     # will try to plot various pyplot utility plot functions into same axis, the use should know what he does!
     # no unittest added, but only hand tested with semilogy and normal plot works as intended ni fancy_plot)
-    #
-    use_default=True
-    plot_function_list=[]
+    use_default = True
+    plot_function_list = []
     for k in forwarded_pyplot_plots:
-        if bool(kwargs.pop(k,None)):
-            plot_function_list.append(getattr(plt,k))
-            use_default=False
+        if bool(kwargs.pop(k, None)):
+            plot_function_list.append(getattr(plt, k))
+            use_default = False
     for f in plot_function_list:
-        f(coord, data.values.real, *args,**kwargs )
+        f(coord, data.values.real, *args, **kwargs)
     if use_default:
         plt.plot(coord, data.values.real, *args, **kwargs)
     data.fold()
