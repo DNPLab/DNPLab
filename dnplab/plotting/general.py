@@ -69,11 +69,13 @@ def plot(data, *args, **kwargs):
     # no unittest added, but only hand tested with semilogy and normal plot works as intended ni fancy_plot)
     #
     use_default=True
+    plot_function_list=[]
     for k in forwarded_pyplot_plots:
         if bool(kwargs.pop(k,None)):
-            plt_function=getattr(plt,k)
-            plt_function(coord, data.values.real, *args,**kwargs )
+            plot_function_list.append(getattr(plt,k))
             use_default=False
+    for f in plot_function_list:
+        f(coord, data.values.real, *args,**kwargs )
     if use_default:
         plt.plot(coord, data.values.real, *args, **kwargs)
     data.fold()
