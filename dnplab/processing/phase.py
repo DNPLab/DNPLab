@@ -1,6 +1,7 @@
 from warnings import warn
 
 import numpy as _np
+from scipy.constants import *
 
 
 def autophase(
@@ -131,7 +132,7 @@ def autophase(
                                 for indx in range(ind_shape)
                             ]
                         ).reshape(pts_lim, ind_shape)
-            phases_0 = _np.linspace(-_np.pi / 2, _np.pi / 2, 180).reshape(-1)
+            phases_0 = _np.linspace(-pi / 2, pi / 2, 180).reshape(-1)
             rotated_data = (temp_data.reshape(-1, 1)) * _np.exp(-1j * phases_0)
             real_imag_ratio = (_np.real(rotated_data) ** 2).sum(axis=0) / (
                 (_np.imag(rotated_data) ** 2).sum(axis=0)
@@ -205,7 +206,7 @@ def phase_cycle(data, dim, receiver_phase):
     reshape_size = [1 for k in data.dims]
     reshape_size[index] = len(data.coords[dim])
 
-    data *= _np.exp(-1j * (_np.pi / 2.0) * receiver_phase.reshape(reshape_size))
+    data *= _np.exp(-1j * (pi / 2.0) * receiver_phase.reshape(reshape_size))
 
     proc_attr_name = "phasecycle"
     data.add_proc_attrs(proc_attr_name, proc_parameters)
@@ -242,8 +243,8 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
 
     """
 
-    p0 = _np.array(p0 * _np.pi / 180.0)  # p0 in radians
-    p1 = _np.array(p1 * _np.pi / 180.0)  # p1 in radians
+    p0 = _np.array(p0 * pi / 180.0)  # p0 in radians
+    p1 = _np.array(p1 * pi / 180.0)  # p1 in radians
 
     out = data.copy()
     out.unfold(dim)

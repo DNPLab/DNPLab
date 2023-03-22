@@ -7,7 +7,7 @@ import numpy as np
 class dnpNMR_tester(unittest.TestCase):
     def setUp(self):
         pts = 1024
-        omega = 50 * np.pi
+        omega = 50 * dnp.pi
         tau = 0.1
         t2 = np.r_[0 : 1 : 1j * pts]
         y = np.exp(1j * t2 * omega) * np.exp(-1 * t2 / tau)
