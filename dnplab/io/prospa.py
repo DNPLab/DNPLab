@@ -65,6 +65,9 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
 
     dims, coords = prospa_coords(attrs, data_shape, experiment=experiment)
 
+    # Assign data/spectrum type
+    attrs["experiment_type"] = "nmr_spectrum"
+
     kea_data = DNPData(data, dims, coords, attrs)
 
     return kea_data

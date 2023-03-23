@@ -119,11 +119,9 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         plt.xlim(max(coord), min(coord))
 
         if xlim != []:
-
             plt.xlim(xlim[1], xlim[0])
 
         if showPar == True:
-
             parameterString = "Freq: " + str(round(data.attrs["nmr_frequency"], 4))
 
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
@@ -222,7 +220,6 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         # if showPar == True:
 
     else:
-
-        plot(data)
+        plot(data, *args, **kwargs)
 
     data.fold()

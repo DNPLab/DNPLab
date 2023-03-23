@@ -32,7 +32,6 @@ def load_h5(path):
     dnp_dict = {}
 
     for key in keys_list:
-
         if f[key].attrs["dnplab_data_type"] == "dnpdata":
             data = read_dnpdata(f[key])
         elif f[key].attrs["dnplab_data_type"] == "dict":

@@ -8,7 +8,7 @@ def get_gauss_3d(std_noise=0.0):
     z = np.r_[0:100]
 
     noise = std_noise * np.random.randn(len(x), len(y), len(z))
-    gauss = np.exp(-1.0 * (x - 50) ** 2.0 / (10.0 ** 2))
+    gauss = np.exp(-1.0 * (x - 50) ** 2.0 / (10.0**2))
     gauss_3d = (
         gauss.reshape(-1, 1, 1) * gauss.reshape(1, -1, 1) * gauss.reshape(1, 1, -1)
     )

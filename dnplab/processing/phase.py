@@ -84,7 +84,6 @@ def autophase(
                 "Invalid combination of phase order and phase value(s). Supply float for zero order, array or list for first order"
             )
     else:
-
         if isinstance(reference_range, (list, tuple)) and len(reference_range) == 2:
             check_data = data[dim, (reference_range[0], reference_range[1])]
         else:
@@ -215,7 +214,6 @@ def phase_cycle(data, dim, receiver_phase):
 
 
 def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
-
     """Apply phase correction to DNPData object
 
     Args:

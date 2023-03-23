@@ -62,10 +62,13 @@ def import_bes3t(path):
     else:
         raise TypeError("data file must be .DTA, .DSC, .YGF, or .ZGF")
 
-    params = load_dsc(path_dsc)
+    attrs = load_dsc(path_dsc)
     values, dims, coords, attrs = load_dta(
-        path_dta, path_xgf, path_ygf, path_zgf, params
+        path_dta, path_xgf, path_ygf, path_zgf, attrs
     )
+
+    # Assign data/spectrum type
+    attrs["experiment_type"] = "epr_spectrum"
 
     bes3t_data = DNPData(values, dims, coords, attrs)
 
@@ -80,142 +83,142 @@ def load_dsc(path):
         path (str) : Path to .DSC file
 
     Returns:
-        params (dict) : dictionary of parameters
+        attrs (dict) : dictionary of parameters
     """
 
     file_opened = open(path, "r")
     dscfile_contents = file_opened.readlines()
     file_opened.close()
 
-    params = {}
+    attrs = {}
     sweep_domain = None
     for ix in range(len(dscfile_contents)):
         try:
             par = dscfile_contents[ix].rstrip("\t").rstrip("\n")
             if "MWFQ" in par:
-                params["frequency"] = float(par.replace("MWFQ", "").strip()) / 1e9
+                attrs["frequency"] = float(par.replace("MWFQ", "").strip()) / 1e9
             elif "Power" in par and "Atten" not in par:
-                params["power"] = float(
+                attrs["power"] = float(
                     par.replace("Power", "").replace("mW", "").strip()
                 )
             elif "PowerAtten" in par:
-                params["attenuation"] = int(
+                attrs["attenuation"] = int(
                     float(par.replace("PowerAtten", "").replace("dB", "").strip())
                 )
             elif "Attenuation" in par:
-                params["pulse_attenuation"] = int(
+                attrs["pulse_attenuation"] = int(
                     float(par.replace("Attenuation", "").replace("dB", "").strip())
                 )
             elif "CenterField" in par:
-                params["center_field"] = float(
+                attrs["center_field"] = float(
                     par.replace("CenterField", "").replace("G", "").strip()
                 )
             elif "ConvTime" in par:
-                params["conversion_time"] = float(
+                attrs["conversion_time"] = float(
                     par.replace("ConvTime", "").replace("ms", "").strip()
                 )
             elif "TimeConst" in par:
-                params["time_constant"] = float(
+                attrs["time_constant"] = float(
                     par.replace("TimeConst", "").replace("ms", "").strip()
                 )
             elif "ModAmp" in par:
-                params["modulation_amplitude"] = float(
+                attrs["modulation_amplitude"] = float(
                     par.replace("ModAmp", "").replace("G", "").strip()
                 )
             elif "ModFreq" in par:
-                params["modulation_frequency"] = float(
+                attrs["modulation_frequency"] = float(
                     par.replace("ModFreq", "").replace("kHz", "").strip()
                 )
             elif "NbScansDone" in par:
-                params["nscans"] = int(par.replace("NbScansDone", "").strip())
+                attrs["nscans"] = int(par.replace("NbScansDone", "").strip())
             elif "Temperature" in par:
-                params["temperature"] = float(
+                attrs["temperature"] = float(
                     par.replace("Temperature", "").replace("K", "").strip()
                 )
             elif "XNAM" in par:
                 sweep_domain = par.replace("XNAM", "").replace("'", "").strip()
             elif "XUNI" in par:
-                params["x_unit"] = par.replace("XUNI", "").replace("'", "").strip()
+                attrs["x_unit"] = par.replace("XUNI", "").replace("'", "").strip()
             elif "XPTS" in par:
-                params["x_points"] = int(par.replace("XPTS", "").strip())
+                attrs["x_points"] = int(par.replace("XPTS", "").strip())
             elif "XMIN" in par:
-                params["x_min"] = float(par.replace("XMIN", "").strip())
+                attrs["x_min"] = float(par.replace("XMIN", "").strip())
             elif "XWID" in par:
-                params["x_width"] = float(par.replace("XWID", "").strip())
+                attrs["x_width"] = float(par.replace("XWID", "").strip())
             elif "XTYP" in par:
                 xtyp = par.replace("XTYP", "").strip()
                 if xtyp == "IGD":
-                    params["x_type"] = "nonlinear"
+                    attrs["x_type"] = "nonlinear"
                 elif xtyp == "IDX":
-                    params["x_type"] = "linear"
+                    attrs["x_type"] = "linear"
 
             elif "XFMT" in par:
-                params["x_format"] = _return_data_type(par, "XFMT")
+                attrs["x_format"] = _return_data_type(par, "XFMT")
 
             elif "YNAM" in par:
                 y_domain = par.replace("YNAM", "").replace("'", "").strip()
             elif "YUNI" in par:
-                params["y_unit"] = par.replace("YUNI", "").replace("'", "").strip()
+                attrs["y_unit"] = par.replace("YUNI", "").replace("'", "").strip()
             elif "YPTS" in par:
-                params["y_points"] = int(par.replace("YPTS", "").strip())
+                attrs["y_points"] = int(par.replace("YPTS", "").strip())
             elif "YMIN" in par:
-                params["y_min"] = float(par.replace("YMIN", "").strip())
+                attrs["y_min"] = float(par.replace("YMIN", "").strip())
             elif "YWID" in par:
-                params["y_width"] = float(par.replace("YWID", "").strip())
+                attrs["y_width"] = float(par.replace("YWID", "").strip())
             elif "YTYP" in par:
                 ytyp = par.replace("YTYP", "").strip()
                 if ytyp == "IGD":
-                    params["y_type"] = "nonlinear"
+                    attrs["y_type"] = "nonlinear"
                 elif ytyp == "IDX":
-                    params["y_type"] = "linear"
+                    attrs["y_type"] = "linear"
 
             elif "YFMT" in par:
-                params["y_format"] = _return_data_type(par, "YFMT")
+                attrs["y_format"] = _return_data_type(par, "YFMT")
 
             elif "ZNAM" in par:
                 z_domain = par.replace("ZNAM", "").replace("'", "").strip()
             elif "ZUNI" in par:
-                params["z_unit"] = par.replace("ZUNI", "").replace("'", "").strip()
+                attrs["z_unit"] = par.replace("ZUNI", "").replace("'", "").strip()
             elif "ZPTS" in par:
-                params["z_points"] = int(par.replace("ZPTS", "").strip())
+                attrs["z_points"] = int(par.replace("ZPTS", "").strip())
             elif "ZMIN" in par:
-                params["z_min"] = float(par.replace("ZMIN", "").strip())
+                attrs["z_min"] = float(par.replace("ZMIN", "").strip())
             elif "ZWID" in par:
-                params["z_width"] = float(par.replace("ZWID", "").strip())
+                attrs["z_width"] = float(par.replace("ZWID", "").strip())
             elif "ZTYP" in par:
                 ztyp = par.replace("ZTYP", "").strip()
                 if ztyp == "IGD":
-                    params["z_type"] = "nonlinear"
+                    attrs["z_type"] = "nonlinear"
                 elif ztyp == "IDX":
-                    params["z_type"] = "linear"
+                    attrs["z_type"] = "linear"
 
             elif "ZFMT" in par:
-                params["z_format"] = _return_data_type(par, "ZFMT")
+                attrs["z_format"] = _return_data_type(par, "ZFMT")
 
             elif "IRFMT" in par:
-                params["real_format"] = _return_data_type(par, "IRFMT")
+                attrs["real_format"] = _return_data_type(par, "IRFMT")
 
             elif "IIFMT" in par:
-                params["imag_format"] = _return_data_type(par, "IIFMT")
+                attrs["imag_format"] = _return_data_type(par, "IIFMT")
 
             elif "IKKF" in par:
-                params["data_type"] = par.replace("IKKF", "").strip()
+                attrs["data_type"] = par.replace("IKKF", "").strip()
             elif "BSEQ" in par:
-                params["endian"] = par.replace("BSEQ", "").strip()
+                attrs["endian"] = par.replace("BSEQ", "").strip()
 
         except ValueError:
             continue
 
-    if sweep_domain == "Time" and int(params["attenuation"]) == 60:
-        params.pop("attenuation", None)
-        params.pop("power", None)
-    elif sweep_domain == "Time" and int(params["pulse_attenuation"]) == 60:
-        params["pulse_attenuation"] = params["attenuation"]
-        params.pop("attenuation", None)
+    if sweep_domain == "Time" and int(attrs["attenuation"]) == 60:
+        attrs.pop("attenuation", None)
+        attrs.pop("power", None)
+    elif sweep_domain == "Time" and int(attrs["pulse_attenuation"]) == 60:
+        attrs["pulse_attenuation"] = attrs["attenuation"]
+        attrs.pop("attenuation", None)
 
     if all(
         [
-            y not in params.keys()
+            y not in attrs.keys()
             for y in ["real_format", "imag_format", "x_format", "y_format", "z_format"]
         ]
     ):
@@ -224,16 +227,16 @@ def load_dsc(path):
         )
 
     for x in ["x", "y", "z"]:
-        if x + "_format" not in params.keys():
-            if params["data_type"] == "REAL":
-                params[x + "_format"] = params["real_format"]
-            elif params["data_type"] == "CPLX":
-                params[x + "_format"] = params["imag_format"]
+        if x + "_format" not in attrs.keys():
+            if attrs["data_type"] == "REAL":
+                attrs[x + "_format"] = attrs["real_format"]
+            elif attrs["data_type"] == "CPLX":
+                attrs[x + "_format"] = attrs["imag_format"]
 
-    return params
+    return attrs
 
 
-def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
+def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, attrs={}):
     """
     Import data from .DTA file. Uses .DSC and .XGF, .YGF, or .ZGF files if they exists
 
@@ -242,112 +245,114 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
         path_xgf (str) : path to .XGF file for 1D data with nonlinear axis, "none" otherwise
         path_ygf (str) : path to .YGF file for 2D data, "none" if 1D or linear y axis
         path_zgf (str) : path to .ZGF file for 3D data, "none" if 1D/2D or linear z axis
-        params (dict) : dictionary of parameters
+        attrs (dict) : dictionary of parameters
 
     Returns:
-        abscissa (ndarray) : coordinates for spectrum or spectra
-        spec (ndarray) : spectrum for 1D or spectra for 2D
-        params (dict) : updated dictionary of parameters
+        values (ndarray) : Spectrum for 1D or spectra for 2D
         dims (list) : dimensions
+        coords (ndarray) : coordinates for spectrum or spectra
+        attrs (dict) : updated dictionary of parameters
     """
 
-    dta_dtype = _np.dtype(params["x_format"]).newbyteorder(params["endian"])
+    dta_dtype = _np.dtype(attrs["x_format"]).newbyteorder(attrs["endian"])
     file_opened = open(path_dta, "rb")
     file_bytes = file_opened.read()
     file_opened.close()
-    spec = _np.frombuffer(file_bytes, dtype=dta_dtype)
-    if params["x_type"] == "nonlinear":
-        abscissa = [
+    values = _np.frombuffer(file_bytes, dtype=dta_dtype)
+    if attrs["x_type"] == "nonlinear":
+        coords = [
             load_gf_files(
                 path_xgf,
-                axis_type=params["x_type"],
-                axis_format=params["x_format"],
-                axis_points=params["x_points"],
-                axis_min=params["x_min"],
-                axis_width=params["x_width"],
-                endian=params["endian"],
+                axis_type=attrs["x_type"],
+                axis_format=attrs["x_format"],
+                axis_points=attrs["x_points"],
+                axis_min=attrs["x_min"],
+                axis_width=attrs["x_width"],
+                endian=attrs["endian"],
             )
         ]
-    elif params["x_type"] == "linear":
-        abscissa = [
+    elif attrs["x_type"] == "linear":
+        coords = [
             _np.linspace(
-                params["x_min"],
-                params["x_min"] + params["x_width"],
-                params["x_points"],
+                attrs["x_min"],
+                attrs["x_min"] + attrs["x_width"],
+                attrs["x_points"],
             )
         ]
 
-    if "x_unit" in params.keys() and params["x_unit"] in ["G", "T"]:
-        if params["x_unit"] == "G":
-            abscissa = [x / 10 for x in abscissa]
-        elif params["x_unit"] == "T":
-            abscissa = [x * 1000 for x in abscissa]
+    if "x_unit" in attrs.keys() and attrs["x_unit"] in ["G", "T"]:
+        if attrs["x_unit"] == "G":
+            coords = [x / 10 for x in coords]
+        elif attrs["x_unit"] == "T":
+            coords = [x * 1000 for x in coords]
         dims = ["B0"]
     else:
         dims = ["t2"]
 
-    if params["data_type"] == "CPLX":
-        spec = spec.astype(dtype=params["imag_format"]).view(dtype=_np.dtype("complex"))
-    elif params["data_type"] == "REAL":
-        spec = spec.astype(dtype=params["real_format"]).view()
+    if attrs["data_type"] == "CPLX":
+        values = values.astype(dtype=attrs["imag_format"]).view(
+            dtype=_np.dtype("complex")
+        )
+    elif attrs["data_type"] == "REAL":
+        values = values.astype(dtype=attrs["real_format"]).view()
 
     if (
-        "z_points" not in params.keys()
-        or ("z_points" in params.keys() and params["z_points"] == 1)
-    ) and ("y_points" in params.keys() and params["y_points"] != 1):
-        spec = _np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
+        "z_points" not in attrs.keys()
+        or ("z_points" in attrs.keys() and attrs["z_points"] == 1)
+    ) and ("y_points" in attrs.keys() and attrs["y_points"] != 1):
+        values = _np.reshape(values, (attrs["x_points"], attrs["y_points"]), order="F")
 
         dims.append("t1")
 
-        abscissa.append(
+        coords.append(
             load_gf_files(
                 path_ygf,
-                axis_type=params["y_type"],
-                axis_format=params["y_format"],
-                axis_points=params["y_points"],
-                axis_min=params["y_min"],
-                axis_width=params["y_width"],
-                endian=params["endian"],
+                axis_type=attrs["y_type"],
+                axis_format=attrs["y_format"],
+                axis_points=attrs["y_points"],
+                axis_min=attrs["y_min"],
+                axis_width=attrs["y_width"],
+                endian=attrs["endian"],
             )
         )
 
-    elif "z_points" in params.keys() and params["z_points"] != 1:
-        spec = _np.reshape(
-            spec,
-            (params["x_points"], params["y_points"]),
-            params["z_points"],
+    elif "z_points" in attrs.keys() and attrs["z_points"] != 1:
+        values = _np.reshape(
+            values,
+            (attrs["x_points"], attrs["y_points"]),
+            attrs["z_points"],
             order="F",
         )
 
-        abscissa.append(
+        coords.append(
             load_gf_files(
                 path_ygf,
-                axis_type=params["y_type"],
-                axis_format=params["y_format"],
-                axis_points=params["y_points"],
-                axis_min=params["y_min"],
-                axis_width=params["y_width"],
-                endian=params["endian"],
+                axis_type=attrs["y_type"],
+                axis_format=attrs["y_format"],
+                axis_points=attrs["y_points"],
+                axis_min=attrs["y_min"],
+                axis_width=attrs["y_width"],
+                endian=attrs["endian"],
             )
         )
         dims.append("t1")
 
-        abscissa.append(
+        coords.append(
             load_gf_files(
                 path_zgf,
-                axis_type=params["z_type"],
-                axis_format=params["z_format"],
-                axis_points=params["z_points"],
-                axis_min=params["z_min"],
-                axis_width=params["z_width"],
-                endian=params["endian"],
+                axis_type=attrs["z_type"],
+                axis_format=attrs["z_format"],
+                axis_points=attrs["z_points"],
+                axis_min=attrs["z_min"],
+                axis_width=attrs["z_width"],
+                endian=attrs["endian"],
             )
         )
         dims.append("t0")
 
-    params = {
-        x: params[x]
-        for x in params.keys()
+    attrs = {
+        x: attrs[x]
+        for x in attrs.keys()
         if x
         not in [
             "endian",
@@ -372,7 +377,7 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, params={}):
         ]
     }
 
-    return spec, dims, abscissa, params
+    return values, dims, coords, attrs
 
 
 def load_gf_files(
@@ -397,7 +402,7 @@ def load_gf_files(
         endian (float) : endian of data
 
     Returns:
-        abscissa (ndarray) : axis coordinates
+        coords (ndarray) : axis coordinates
     """
 
     if path != "none":
@@ -407,18 +412,18 @@ def load_gf_files(
         file_opened = open(path, "rb")
         file_bytes = file_opened.read()
         file_opened.close()
-        abscissa = _np.frombuffer(file_bytes, dtype=axis_format)
+        coords = _np.frombuffer(file_bytes, dtype=axis_format)
     elif path == "none":
         if axis_type == "nonlinear":
             warnings.warn(
                 "axis is nonlinear, confirm that file is not needed and the axis is correct"
             )
-        abscissa = _np.linspace(axis_min, axis_min + axis_width, axis_points)
+        coords = _np.linspace(axis_min, axis_min + axis_width, axis_points)
     else:
         warnings.warn("axis format not supported, axis is only indexed")
-        abscissa = _np.array([range(axis_points)])
+        coords = _np.array([range(axis_points)])
 
-    return abscissa
+    return coords
 
 
 def _return_data_type(par, key):

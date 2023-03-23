@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 
 
-def manual_align(data, dim):
+def align_widget(data, dim):
     """Manually align spectra"""
 
     coord = data.coords[dim]
