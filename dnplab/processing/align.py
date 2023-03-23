@@ -168,7 +168,6 @@ def align(data, dim="f2", dim2=None, center=None, width=None):
             shiftData = _np.roll(tempData, -1 * int(_np.round(shiftIx, 0)))
             data.values[:, ix] = shiftData
     else:
-
         for ix1 in range(len(data.coords[-1])):
             if start != None and stop != None:
                 refData = data[dim, (start, stop)].values[:, 0, 0]

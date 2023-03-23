@@ -1,5 +1,16 @@
 from .data import DNPData
 import numpy as _np
+from .base import _SPECIAL_NP_HANDLED
+
+
+def implements_np(np_function):
+    "register an numpy function for special handling in SPECIAL_NO_HANDLED"
+
+    def decorator(someFunction):
+        _SPECIAL_NP_HANDLED[np_function] = someFunction
+        return someFunction
+
+    return decorator
 
 
 def concat(data_list, dim, coord=None):

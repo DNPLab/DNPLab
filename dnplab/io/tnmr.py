@@ -53,13 +53,11 @@ def import_tnmr_data(path):
     """
 
     with open(path, "rb") as f:
-
         version = f.read(8).decode("utf-8")
 
         section = None
 
         while section != "":
-
             section = f.read(4).decode("utf-8")
             section = str(section)
 

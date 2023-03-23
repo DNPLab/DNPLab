@@ -6,7 +6,6 @@ from ..math import *
 
 
 def inversion_recovery_fit(integrals):
-
     # Estimate an initial guess from experimental data
 
     initial_guess = (2.0, -4000, 4000)

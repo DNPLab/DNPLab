@@ -26,7 +26,6 @@ import dnplab as dnp
 
 ########## OFF Signal (P = 0 W) ##########
 data_off = dnp.load("../../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/35/data.1d")
-data_off.attrs["experiment_type"] = "nmr_spectrum"
 
 data_off = dnp.remove_background(data_off)
 data_off = dnp.apodize(data_off, lw=15)
@@ -39,7 +38,6 @@ data_off = dnp.fourier_transform(data_off)
 
 ########## ON Signal (P = 2 W) ##########
 data_on = dnp.load("../../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/51/data.1d")
-data_on.attrs["experiment_type"] = "nmr_spectrum"
 
 data_on = dnp.remove_background(data_on)
 data_on = dnp.apodize(data_on, lw=15)
@@ -64,6 +62,6 @@ dnp.plt.show()
 
 dnp.plt.figure()
 dnp.fancy_plot(data_on, xlim=[-20, 20])
-dnp.fancy_plot(data_off*50, xlim=[-20, 20])
+dnp.fancy_plot(data_off * 50, xlim=[-20, 20])
 dnp.plt.title(sampleTag + ", MW ON/OFF(*50)")
 dnp.plt.show()
