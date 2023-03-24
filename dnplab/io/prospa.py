@@ -73,35 +73,6 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
     return kea_data
 
 
-# Depreciated
-def import_prospa_dir(path, exp_list=None):
-    """Import directory of prospa experiments
-
-    Args:
-        path (str): Directory of all data
-        exp_list (list): List of directorys to include
-
-    Returns:
-        dict: Dictionary of DNPData objects
-    """
-
-    dirs = [x for x in os.listdir(path) if os.path.isdir(os.path.join(path, x))]
-
-    if exp_list is not None:
-        dirs = [dir_ for dir_ in dirs if dir_ in exp_list]
-
-    ws = {}
-
-    for ix, dir_ in enumerate(dirs):
-        try:
-            tmp = import_prospa(os.path.join(path, dir_))
-            ws[dir] = tmp
-        except ValueError as e:
-            print("Skipping folder: %s" % str(e))
-
-    return ws
-
-
 def import_nd(path):
     """Import Kea binary 1d, 2d, 3d, 4d files
 
