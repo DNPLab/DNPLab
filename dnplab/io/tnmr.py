@@ -53,49 +53,54 @@ def import_tnmr_data(path):
     """
 
     with open(path, "rb") as f:
-        version = f.read(8).decode("utf-8")
+        raw = f.read()
 
-        section = None
+    tmag_attrs = {}
+    tmag_attrs['version'] = str(raw[0:8])
 
-        while section != "":
-            section = f.read(4).decode("utf-8")
-            section = str(section)
+    len_tecmag_struct = int.from_bytes(raw[16:20], 'little')
+    tecmag_struct = raw[20:20+len_tecmag_struct]
 
-            if section == "TMAG":
-                flag = bool(f.read(4))
-                if flag:
-                    bytes_to_read = f.read(4)
-                    bytes_to_read = struct.unpack("<i", bytes_to_read)[0]
+    offset = 28+len_tecmag_struct
+    len_data = raw[offset:offset+4]
+    offset += 4
 
-                    header = f.read(bytes_to_read)
+    len_data = int.from_bytes(len_data, 'little')
 
-                    ### Deal With Header Here ###
+    data = raw[offset:offset+(len_data)]
 
-            elif section == "DATA":
-                flag = bool(f.read(4))
-                if flag:
-                    bytes_to_read = f.read(4)
-                    bytes_to_read = struct.unpack("<i", bytes_to_read)[0]
+    data = _np.frombuffer(data, dtype = '<f')
 
-                    raw_data = f.read(bytes_to_read)
+    data = data[0::2] + 1j * data[1::2]
 
-                    raw_data = struct.unpack("%if" % (bytes_to_read / 4), raw_data)
+    # Parse tecmag struct
 
-                    raw_data = _np.array(raw_data)
+    # points in 1d, 2d, 3d, 4d
+    npts = _np.frombuffer(tecmag_struct[0:16], dtype = '<i')
 
-                    data = raw_data[::2] + 1j * raw_data[1::2]
+    actual_npts = _np.frombuffer(tecmag_struct[16:32], dtype = '<i')
 
-            else:
-                flag = bool(f.read(4))
-                if flag:
-                    bytes_to_read = f.read(4)
-                    bytes_to_read = struct.unpack("<i", bytes_to_read)[0]
+    acq_pts = int.from_bytes(tecmag_struct[32:36], byteorder = 'little')
+    scans = int.from_bytes(tecmag_struct[36:40], byteorder = 'little')
+    actual_scans = int.from_bytes(tecmag_struct[40:44], byteorder = 'little')
+    dummy_scans = int.from_bytes(tecmag_struct[44:48], byteorder = 'little')
 
-                    unsupported_bytes = f.read(bytes_to_read)
+    sw = struct.unpack('<4d', tecmag_struct[240:272])
+    dwell_time = struct.unpack('<4d', tecmag_struct[272:304])
+    #dwell_time = float.from_bytes(tecmag_struct[272:304], byteorder = 'little')
 
-    abscissa = _np.array(range(0, len(data)))
+    print(actual_npts)
+    print(acq_pts)
+    print(sw)
+    print(dwell_time)
 
-    dims = ["t2"]
-    coords = [abscissa]
+    data = data.reshape(npts[::-1])
+    data = data.squeeze()
+
+
+    print(data.shape)
+
+
+    time = _np.r_[0:npts[0]]*dwell_time[0]
 
     return data, dims, coords
