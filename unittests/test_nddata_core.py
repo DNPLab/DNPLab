@@ -119,6 +119,8 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
     def test_000_checkDimdeepcopy(self):
         # test for issue 295
         # this test doesn't really test anything but it checks that the functionality is as is, so this test fails if an error is raised
+        # uses dnplab
+        import dnplab as dnp
         dims = ["Average", "t2"]
         coords1 = [np.arange(0, 100), np.arange(0, 1024)]
         coords2 = [np.arange(0, 100), np.arange(0, 1024)]
