@@ -37,7 +37,8 @@ def plot(data, *args, **kwargs):
         args: args for matplotlib plot function
         kwargs: kwargs for matplotlib plot function
 
-        if semilogy=x is in kwargs and x is not None a semilogy axis will be used
+        if any of semilogy, semilogx, polar, loglog, scatter, errorbar or step is in kwargs the argument will be evaluated with
+        bool(). If this evaluates to True the corresponding matplotlib function is used instead of the standard plot
 
     Returns:
         Returns formated matplotlib plot.
@@ -61,6 +62,14 @@ def plot(data, *args, **kwargs):
 
        >>> dnp.plt.figure()
        >>> dnp.plot(data, 'k-', linewidth = 3.0, alpha = 0.5)
+       >>> dnp.plt.show()
+
+       Plotting a DNPData object with a semilogy plot (possible arguments: semilogy=1, semilogy=True, semilogy="True")
+       Forwarded arguments: semilogy, semilogx, polar, loglog, scatter, errorbar or step
+       The absolute value is taken to ensure that the y axis is always positive
+
+       >>> dnp.plt.figure()
+       >>> dnp.plot(np.abs(data), 'k-', linewidth = 3.0, alpha = 0.5, semilogy=1)
        >>> dnp.plt.show()
 
     """
