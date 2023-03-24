@@ -3,6 +3,7 @@ from numpy.testing import assert_allclose, assert_array_equal
 import dnplab as dnp
 import numpy as np
 
+
 # FIX -> Should only use Fit functions, not import or processing functions
 class dnpFit_tester(unittest.TestCase):
     def setUp(self):

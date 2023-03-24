@@ -1,3 +1,3 @@
-sphinx-build -b html source html
+python -m sphinx.cmd.build -b html source html
 
 PAUSE
