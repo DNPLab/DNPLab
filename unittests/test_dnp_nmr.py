@@ -41,7 +41,7 @@ class dnpNMR_tester_sim(unittest.TestCase):
         )
 
     def test_align(self):
-        self.aligned_data = dnp.align(self.data, dim="x")
+        self.aligned_data = dnp.ndalign(self.data, dim="x")
         assert_array_equal(
             self.aligned_data.values,
             np.array(

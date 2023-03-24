@@ -116,6 +116,25 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
 
         self.assertEqual(data.ndim, 2)
 
+    def test_000_checkDimdeepcopy(self):
+        # test for issue 295
+        # this test doesn't really test anything but it checks that the functionality is as is, so this test fails if an error is raised
+        dims=['Average','t2']
+        coords1=[np.arange(0,100),np.arange(0,1024)]
+        coords2=[np.arange(0,100),np.arange(0,1024)]
+        data1=np.random.random((100,1024))
+        data2=np.random.random((100,1024))
+
+        DNPObj1=dnp.DNPData(data1,dims,coords1)
+        DNPObj2=dnp.DNPData(data2,dims,coords2)
+
+        DNPObj1=dnp.fourier_transform(DNPObj1,convert_to_ppm=False)
+        # this should not raise an error
+        try:
+            DNPObj2=dnp.fourier_transform(DNPObj2,convert_to_ppm=False)
+        except ValueError as e:
+            self.fail('Deepcopy of dims most likely failed! Error {0}'.format(e))
+
 
 class dnplab_ABCData_coord_tester(unittest.TestCase):
     def setUp(self):
