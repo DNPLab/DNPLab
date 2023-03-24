@@ -2,6 +2,7 @@ import numpy as _np
 
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button
+from scipy.constants import *
 
 
 def phase_widget(data, dim="f2"):
@@ -53,8 +54,8 @@ def phase_widget(data, dim="f2"):
         max_y_data = 0
         for ix, line in enumerate(l):
             y_data = _np.real(
-                _np.exp(-1j * _np.pi * phase / 180.0)
-                * _np.exp(-1j * _np.pi * phase1 * coord / 180)
+                _np.exp(-1j * pi * phase / 180.0)
+                * _np.exp(-1j * pi * phase1 * coord / 180)
                 * values[:, ix]
             )
             margin = max(0.1 * (_np.max(y_data) - _np.min(y_data)), margin)
@@ -106,7 +107,7 @@ def phase_widget(data, dim="f2"):
     manual_phase = sphase.val
     manual_phase1 = sphase1.val
 
-    data *= _np.exp(-1j * _np.pi * manual_phase / 180.0)
+    data *= _np.exp(-1j * pi * manual_phase / 180.0)
 
     proc_attr_name = "manualphase"
     proc_parameters = {"phase": manual_phase, "phase1": manual_phase1}
