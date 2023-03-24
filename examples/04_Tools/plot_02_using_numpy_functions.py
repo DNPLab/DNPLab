@@ -22,8 +22,8 @@ N.B.: This is still an experimental feature!
 # * when the result is a ndarray a DNPData object is returned
 #
 # when the axis keyword is support by the numpy function one can provide the dimension (e.g. np.sum(mydata,axis='f2'))
-# N.B.: the corresponding axis is consumed and no longer in the returned DNPData object
-# the following example shows how this can be conveniently used.
+# The corresponding axis is consumed and no longer in the returned DNPData object.
+# The following example shows how this can be conveniently used.
 #
 # To get started, first, setup the python environment:
 
@@ -65,5 +65,5 @@ dnp.fancy_plot(mean_real_spectrum)
 
 # %%
 # the total mean could also be calculated directly using np.mean() without the axis keyword (up to numerical precision)
-print( np.mean(np.real(data)), '==' , total_mean )
+print( np.mean(np.real(data)), '~=' , total_mean )
 dnp.plt.show()
