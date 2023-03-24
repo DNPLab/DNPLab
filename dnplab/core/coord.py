@@ -25,15 +25,23 @@ class Coords(object):
             if isinstance(coord, (range, list)):
                 coords[index] = _np.array(coord)
 
-        if self._check_dims:
-            self._dims = dims
+        if self._check_dims(dims):
+            self._dims = deepcopy(dims)
         else:
-            raise TypeError("dims must be list of str")
+            raise TypeError(
+                "dims must be list of str, you provided types {0}".format(
+                    [type(k) for k in dims]
+                )
+            )
 
-        if self._check_coords:
-            self._coords = coords
+        if self._check_coords(coords):
+            self._coords = deepcopy(coords)
         else:
-            raise TypeError("coords must be list of 1d numpy arrays")
+            raise TypeError(
+                "coords must be list of 1d numpy arrays, you provided types {0}".format(
+                    [type(k) for k in coords]
+                )
+            )
 
     def _check_dims(self, dims):
         """Verify dims is a list of str

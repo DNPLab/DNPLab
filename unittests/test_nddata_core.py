@@ -116,6 +116,27 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
 
         self.assertEqual(data.ndim, 2)
 
+    def test_000_checkDimdeepcopy(self):
+        # test for issue 295
+        # this test doesn't really test anything but it checks that the functionality is as is, so this test fails if an error is raised
+        # uses dnplab
+        import dnplab as dnp
+        dims = ["Average", "t2"]
+        coords1 = [np.arange(0, 100), np.arange(0, 1024)]
+        coords2 = [np.arange(0, 100), np.arange(0, 1024)]
+        data1 = np.random.random((100, 1024))
+        data2 = np.random.random((100, 1024))
+
+        DNPObj1 = dnp.DNPData(data1, dims, coords1)
+        DNPObj2 = dnp.DNPData(data2, dims, coords2)
+
+        DNPObj1 = dnp.fourier_transform(DNPObj1, convert_to_ppm=False)
+        # this should not raise an error
+        try:
+            DNPObj2 = dnp.fourier_transform(DNPObj2, convert_to_ppm=False)
+        except ValueError as e:
+            self.fail("Deepcopy of dims most likely failed! Error {0}".format(e))
+
 
 class dnplab_ABCData_coord_tester(unittest.TestCase):
     def setUp(self):
@@ -149,7 +170,6 @@ class dnplab_ABCData_coord_tester(unittest.TestCase):
 
 
 class ABCData_numpy_implementation_test(unittest.TestCase):
-
     # c&p from above for simplicity
     def construct_random_data(self):
         random_dims = random.sample(test_dims, random.randint(1, len(test_dims)))
@@ -203,6 +223,8 @@ class ABCData_numpy_implementation_test(unittest.TestCase):
 
         self.assertEqual(type(b), type(rdata))
         self.assertEqual(test_sum.shape, b.shape)
-        self.assertTrue( np.all( np.isclose(test_sum - b._values, 0)) )  # check for value equality
+        self.assertTrue(
+            np.all(np.isclose(test_sum - b._values, 0))
+        )  # check for value equality
         self.assertFalse(dims[0] in b.dims)
-        self.assertRaises(ValueError,np.sum,b,axis='doesnotexist')
+        self.assertRaises(ValueError, np.sum, b, axis="doesnotexist")
