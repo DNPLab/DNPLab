@@ -35,7 +35,7 @@ data = dnp.fourier_transform(data)
 #
 # NMR spectra are typically phase sensitive (complex data) and the final processing step is to phase the spectrum. In DNPLab you can either manually phase correct the spectrum using the 'autophase' function using the 'manual' keyword and by giving a phase explicitely:
 
-data = dnp.autophase(data, method="manual", phase=-1 * dnp.constants.pi / 2)
+data = dnp.autophase(data, method="manual", phase=-1 * dnp.pi / 2)
 
 # %%
 # Or by using the autophase function to automatically search for and apply the best phase angle
