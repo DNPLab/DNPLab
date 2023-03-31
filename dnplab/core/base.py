@@ -1083,16 +1083,19 @@ class ABCData(object):
             args, kwargs = _replaceClassWithAttribute(self, args, kwargs)
             # check for dims and use dims as axis array, note that this will reduce the output dimensions
             # better: also automatically convert numerical dimensions to corresponding dimensions ?
-            # NOTE the check for the axis keyword types could be placed in a seperate function, but for now it is kept here, removed debug logging
+            # NOTE the check for the axis keyword types could be placed in a seperate function, but for now it is kept here
             str_or_int = (
                 lambda possible_dim: int(self.index(possible_dim))
                 if isinstance(possible_dim, str)
                 else possible_dim
             )
             data_dims = []
+            proc_dims=[]
+            # replace e.g. 'f2' with corresponding dim
             while True:
                 if "axis" in kwargs.keys():
                     ax_value = kwargs.pop("axis")
+                    proc_dims.append(ax_value)
                 else:
                     break
                 if ax_value is None:
@@ -1114,6 +1117,8 @@ class ABCData(object):
                 indx = tuple(indx)
                 kwargs["axis"] = indx
                 break
+
+            #apply function to values
             return_values = func(*args, **kwargs)
         if type(return_values) == _np.ndarray:
             a = self.copy()
@@ -1121,6 +1126,15 @@ class ABCData(object):
             for dim in data_dims:
                 a.coords.pop(dim)
             a.values = return_values
+
+            # add processing attributes
+            proc_attr_name = "numpy."+func.__name__
+            proc_parameters = {"axis": proc_dims}
+            try:
+                a.add_proc_attrs(proc_attr_name, proc_parameters)
+            except AttributeError:
+                pass #would log error here
+
             return a
         # if not ndarray then return as is
         return return_values
