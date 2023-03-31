@@ -32,6 +32,8 @@ class dnpTools_tester(unittest.TestCase):
         alot of simple tests lumped together
 
         Missing: check whether signal and noise are scalar values
+
+        note that these tests are not really unittests but more integration tests
         """
         f = dnp.processing.signal_to_noise
 
@@ -40,52 +42,54 @@ class dnpTools_tester(unittest.TestCase):
         data = dnp.fourier_transform(self.data)
 
         try:
-            data, snr = f(data, (300, 400), (500, 600))
+            snr = f(data, (300, 400), (500, 600))
         except ValueError as e:
             self.fail("signal_to_noise reported ValueError {0}".format(e))
         self.assertTrue(not np.isnan(snr))
 
-        dat, snr, signal, noise = f(
-            data, (300, 400), (500, 600), fullOutput=True, detrend=False
+        snr = f(
+            data,
+            (300, 400),
+            (500, 600),
         )
-
-        self.assertTrue(not np.isnan(snr))
-        self.assertTrue(not np.isnan(signal))
-        self.assertTrue(not np.isnan(noise))
 
     def test_001_using_different_dimensions(self):
         f = dnp.processing.signal_to_noise
         data = dnp.fourier_transform(self.data)
 
         # some input checks, just to check that no errors are thrown:
-        dat, snr = f(data, [(300, 400)], [(500, 600)])
-        self.assertTrue(data._values.size > 0)  # check for existing data
-        dat, snr = f(
+        snr = f(data, [(300, 400)], [(500, 600)])
+        snr = f(
             data, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=3
         )  # works with degree
-        dat, snr = f(
+        snr = f(
             data, [(300, 400)], [(500, 600)], remove_background=(100, 200)
         )  # works without degree
-        dat, snr = f(
+        snr = f(
             data, [(300, 400)], [(500, 600)], remove_background=[(100, 200)]
         )  # works with list as intended
-        dat, snr = f(
+        snr = f(
             data, [(-121.5, 104.1)], [(632.5, 1264.2)], remove_background=[(100, 200)]
         )
-        dat, snr = f(
+        snr = f(
             data,
             [(-121.5, 104.1)],
             [(632.5, 1264.2)],
             remove_background=[(-1300.1, -500.0)],
         )
-        """
-        dat, snr = f(
-            data, [100:300], [300:400], remove_background=[80:500]
+        # with defaults
+        snr = f(data)
+        # with slices
+        snr = f(data, slice(0, None), remove_background=[(100, 200)])
+        self.assertRaises(ValueError, f, data, [slice(0, None), (100, 300)])
+        snr2 = f(data, (0, 1000), remove_background=[(100, 200)])
+
+        snr = f(
+            data,
+            slice(0, None),
+            [slice(0, 100), slice(500, 600)],
+            remove_background=[(100, 200)],
         )
-        dat, snr = f(
-            data, 100:300, 300:400, remove_background=[80:500]
-        )
-        """
 
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")
