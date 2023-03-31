@@ -1090,7 +1090,7 @@ class ABCData(object):
                 else possible_dim
             )
             data_dims = []
-            proc_dims=[]
+            proc_dims = []
             # replace e.g. 'f2' with corresponding dim
             while True:
                 if "axis" in kwargs.keys():
@@ -1118,7 +1118,7 @@ class ABCData(object):
                 kwargs["axis"] = indx
                 break
 
-            #apply function to values
+            # apply function to values
             return_values = func(*args, **kwargs)
         if type(return_values) == _np.ndarray:
             a = self.copy()
@@ -1128,12 +1128,12 @@ class ABCData(object):
             a.values = return_values
 
             # add processing attributes
-            proc_attr_name = "numpy."+func.__name__
+            proc_attr_name = "numpy." + func.__name__
             proc_parameters = {"axis": proc_dims}
             try:
                 a.add_proc_attrs(proc_attr_name, proc_parameters)
             except AttributeError:
-                pass #would log error here
+                pass  # would log error here
 
             return a
         # if not ndarray then return as is

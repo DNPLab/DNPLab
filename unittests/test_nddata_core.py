@@ -121,6 +121,7 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
         # this test doesn't really test anything but it checks that the functionality is as is, so this test fails if an error is raised
         # uses dnplab
         import dnplab as dnp
+
         dims = ["Average", "t2"]
         coords1 = [np.arange(0, 100), np.arange(0, 1024)]
         coords2 = [np.arange(0, 100), np.arange(0, 1024)]
@@ -136,6 +137,7 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
             DNPObj2 = dnp.fourier_transform(DNPObj2, convert_to_ppm=False)
         except ValueError as e:
             self.fail("Deepcopy of dims most likely failed! Error {0}".format(e))
+
 
 class dnplab_ABCData_coord_tester(unittest.TestCase):
     def setUp(self):
@@ -186,14 +188,14 @@ class ABCData_numpy_implementation_test(unittest.TestCase):
         self.a = np.zeros(self.size)
         self.b = np.ones(self.size)
         self.c = self.val * np.ones(self.size)
-        self.d = np.random.random((self.size,self.size))
+        self.d = np.random.random((self.size, self.size))
 
-        self.ax=np.arange(self.size)
+        self.ax = np.arange(self.size)
 
         self.Adata = ABCData(self.a)
         self.Bdata = ABCData(self.b)
         self.Cdata = ABCData(self.c)
-        self.Ddata = ABCData(self.d,dims=['1','2'],coords=[self.ax,self.ax])
+        self.Ddata = ABCData(self.d, dims=["1", "2"], coords=[self.ax, self.ax])
 
     def test_000_replaceAttr(self):
         from dnplab.core.base import _replaceClassWithAttribute
@@ -231,6 +233,3 @@ class ABCData_numpy_implementation_test(unittest.TestCase):
         )  # check for value equality
         self.assertFalse(dims[0] in b.dims)
         self.assertRaises(ValueError, np.sum, b, axis="doesnotexist")
-
-
-
