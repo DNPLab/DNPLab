@@ -30,30 +30,32 @@ def load_csv(
     imag=2,
     skiprows=0,
     maxrows=-1,
-    convert_time=lambda x: float(x.replace(",", ".")) / 1e6,
+    convert_tcol=lambda x: float(x.replace(",", ".")),
     convert_data=lambda x: float(x.replace(",", ".")),
     **kwargs
 ):
     """
-    load_csv files function
+    load_csv files function. Returns DNPData with tcol as the coord and real+1j*imag as the values
 
     Args:
+
         filename: str/path like
-        tcol: column index for time data (default=0), None = not applicable, will count from 0 to npoints and then apply covert_time!
+        tcol: column index for time data (default=0), None = not applicable, will count from 0 to npoints and then apply convert_tcol!
         real: column index for real part (default=1), None = not applicable, will be set to zero
         imag: column index for imaginary part (default=2), None = not applicable, will be set to zero
         skiprows: number of rows to skip at beginning (default=0)
-        maxrows: if this is larger than zeros read at most maxrows rows
-        convert_time: callable that converts the time strings to a number (default: assumes us and converts into s)
-        convert_data: callable that converts data to a number (default: replaces , with .)
+        maxrows: if this is larger than -1, read at most maxrows rows
+        convert_time: callable that converts the tcol strings to a number (default: replace comma with a dot)
+        convert_data: callable that converts data to a number (default: replace comma with a dot)
 
-        delimiter: optional, sets the delimiter in the csv file (default ; ), can be set in ../config/io_config.conf
-        dims: optional, sets name for dimension (default: t2)
+        delimiter: optional, sets the delimiter in the csv file (default: semicolon (';') )
+        dims: optional, sets name for dimension (default: 't2')
         **kwargs are forwarded to csv.reader object
 
 
     Returns:
-        DNPData: data object with values,coords and dim
+
+        data (dnpData): Data object
 
 
     example:
