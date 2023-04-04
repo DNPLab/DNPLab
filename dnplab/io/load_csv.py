@@ -89,7 +89,7 @@ def load_csv(
             if row_ind > maxrows and maxrows > 0:
                 break
             try:
-                t = convert_time(_checknone(tcol, row, row_ind - skiprows))
+                t = convert_tcol(_checknone(tcol, row, row_ind - skiprows))
                 r = convert_data(_checknone(real, row))
                 i = convert_data(_checknone(imag, row))
             except IndexError:

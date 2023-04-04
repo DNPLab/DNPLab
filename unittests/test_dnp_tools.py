@@ -9,6 +9,14 @@ import sys
 import pathlib
 
 
+# define logger for unittest output
+#logger = logging.getLogger(__name__)
+#logger.setLevel(logging.DEBUG)
+#handler = logging.FileHandler('./log_test_dnp_tool.log')
+#handler.setLevel(logging.DEBUG)
+#logger.addHandler(handler)
+
+
 class dnpTools_tester(unittest.TestCase):
     def setUp(self):
         x = np.r_[0:10]
@@ -37,20 +45,20 @@ class dnpTools_tester(unittest.TestCase):
         """
         f = dnp.processing.signal_to_noise
 
-        self.assertRaises(ValueError, f, self.data, (300, 400), (500, 600))
+        self.assertRaises(ValueError, f, self.data, (-0.1,0.015), (0.015, 0.022))
 
         data = dnp.fourier_transform(self.data)
 
         try:
-            snr = f(data, (300, 400), (500, 600))
+            snr = f(data, (-0.1,0.015), (0.015, 0.022))
         except ValueError as e:
             self.fail("signal_to_noise reported ValueError {0}".format(e))
         self.assertTrue(not np.isnan(snr))
 
         snr = f(
             data,
-            (300, 400),
-            (500, 600),
+            (-0.001,0.0015),
+            (0.0015, 0.0022),
         )
 
     def test_001_using_different_dimensions(self):
@@ -58,37 +66,37 @@ class dnpTools_tester(unittest.TestCase):
         data = dnp.fourier_transform(self.data)
 
         # some input checks, just to check that no errors are thrown:
-        snr = f(data, [(300, 400)], [(500, 600)])
+        snr = f(data, [(-0.001,0.001)], [(0.001, 0.0016)])
         snr = f(
-            data, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=3
+            data, [(-0.001,0.0015)], [(0.0014, 0.0022)], remove_background=(-0.001640, -0.000200), deg=3
         )  # works with degree
         snr = f(
-            data, [(300, 400)], [(500, 600)], remove_background=(100, 200)
+            data, [(-0.001,0.0015)], [(0.0014, 0.0022)], remove_background=(-0.001640, -0.000200)
         )  # works without degree
         snr = f(
-            data, [(300, 400)], [(500, 600)], remove_background=[(100, 200)]
+            data, [(-0.001,0.0015)], [(0.0014, 0.0022)], remove_background=[(-0.001640, -0.000200)]
         )  # works with list as intended
         snr = f(
-            data, [(-121.5, 104.1)], [(632.5, 1264.2)], remove_background=[(100, 200)]
+            data, [(-0.001215, 0.001041)], [(0.0014, 0.0022)], remove_background=[(-0.001640, -0.000200)]
         )
         snr = f(
             data,
-            [(-121.5, 104.1)],
-            [(632.5, 1264.2)],
-            remove_background=[(-1300.1, -500.0)],
+            [(-0.001215, 0.001041)],
+            [(0.0012, 0.00162)],
+            remove_background=[(-0.0013001, -0.0005000)],
         )
         # with defaults
         snr = f(data)
         # with slices
-        snr = f(data, slice(0, None), remove_background=[(100, 200)])
-        self.assertRaises(ValueError, f, data, [slice(0, None), (100, 300)])
-        snr2 = f(data, (0, 1000), remove_background=[(100, 200)])
+        snr = f(data, slice(0, None), remove_background=[(-0.001640, -0.000200)])
+        self.assertRaises(ValueError, f, data, [slice(0, None), (0.0015, 0.0022)])
+        snr2 = f(data, (0, 0.001000), remove_background=[(-0.001640, -0.000200)])
 
         snr = f(
             data,
             slice(0, None),
             [slice(0, 100), slice(500, 600)],
-            remove_background=[(100, 200)],
+            remove_background=[(-0.001640, -0.000200)],
         )
 
     def test_integrate(self):
