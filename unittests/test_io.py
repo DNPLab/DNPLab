@@ -212,7 +212,7 @@ class csv_import_tester(unittest.TestCase):
         )
         self.assertEqual(data.dims[0], "t2")
         self.assertEqual(data.values[1], 5e3 + 1j * 25000)
-        self.assertEqual(data.coords[0][1], 20 )
+        self.assertEqual(data.coords[0][1], 20)
         self.assertEqual(data.values.size, 115)
 
     def test_remove_data_csv_arrLNA_fid(self):

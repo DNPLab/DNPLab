@@ -10,11 +10,11 @@ import pathlib
 
 
 # define logger for unittest output
-#logger = logging.getLogger(__name__)
-#logger.setLevel(logging.DEBUG)
-#handler = logging.FileHandler('./log_test_dnp_tool.log')
-#handler.setLevel(logging.DEBUG)
-#logger.addHandler(handler)
+# logger = logging.getLogger(__name__)
+# logger.setLevel(logging.DEBUG)
+# handler = logging.FileHandler('./log_test_dnp_tool.log')
+# handler.setLevel(logging.DEBUG)
+# logger.addHandler(handler)
 
 
 class dnpTools_tester(unittest.TestCase):
@@ -45,19 +45,19 @@ class dnpTools_tester(unittest.TestCase):
         """
         f = dnp.processing.signal_to_noise
 
-        self.assertRaises(ValueError, f, self.data, (-0.1,0.015), (0.015, 0.022))
+        self.assertRaises(ValueError, f, self.data, (-0.1, 0.015), (0.015, 0.022))
 
         data = dnp.fourier_transform(self.data)
 
         try:
-            snr = f(data, (-0.1,0.015), (0.015, 0.022))
+            snr = f(data, (-0.1, 0.015), (0.015, 0.022))
         except ValueError as e:
             self.fail("signal_to_noise reported ValueError {0}".format(e))
         self.assertTrue(not np.isnan(snr))
 
         snr = f(
             data,
-            (-0.001,0.0015),
+            (-0.001, 0.0015),
             (0.0015, 0.0022),
         )
 
@@ -66,18 +66,31 @@ class dnpTools_tester(unittest.TestCase):
         data = dnp.fourier_transform(self.data)
 
         # some input checks, just to check that no errors are thrown:
-        snr = f(data, [(-0.001,0.001)], [(0.001, 0.0016)])
+        snr = f(data, [(-0.001, 0.001)], [(0.001, 0.0016)])
         snr = f(
-            data, [(-0.001,0.0015)], [(0.0014, 0.0022)], remove_background=(-0.001640, -0.000200), deg=3
+            data,
+            [(-0.001, 0.0015)],
+            [(0.0014, 0.0022)],
+            remove_background=(-0.001640, -0.000200),
+            deg=3,
         )  # works with degree
         snr = f(
-            data, [(-0.001,0.0015)], [(0.0014, 0.0022)], remove_background=(-0.001640, -0.000200)
+            data,
+            [(-0.001, 0.0015)],
+            [(0.0014, 0.0022)],
+            remove_background=(-0.001640, -0.000200),
         )  # works without degree
         snr = f(
-            data, [(-0.001,0.0015)], [(0.0014, 0.0022)], remove_background=[(-0.001640, -0.000200)]
+            data,
+            [(-0.001, 0.0015)],
+            [(0.0014, 0.0022)],
+            remove_background=[(-0.001640, -0.000200)],
         )  # works with list as intended
         snr = f(
-            data, [(-0.001215, 0.001041)], [(0.0014, 0.0022)], remove_background=[(-0.001640, -0.000200)]
+            data,
+            [(-0.001215, 0.001041)],
+            [(0.0014, 0.0022)],
+            remove_background=[(-0.001640, -0.000200)],
         )
         snr = f(
             data,
