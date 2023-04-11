@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as _plt
 import numpy as _np
 from warnings import warn
 
@@ -10,12 +10,12 @@ dark_grey = "#4D4D4F"
 light_grey = "#A7A9AC"
 orange = "#F37021"
 
-plt.rcParams["lines.linewidth"] = 1.5
-plt.rcParams["axes.prop_cycle"] = plt.cycler(
+_plt.rcParams["lines.linewidth"] = 1.5
+_plt.rcParams["axes.prop_cycle"] = _plt.cycler(
     color=[orange, dark_green, light_green, dark_grey, light_grey]
 )
 
-show = plt.show
+show = _plt.show
 
 # hand curated list of plotting arguments that are forwarded, note that this should probably be in a config file (refactoring needed)
 forwarded_pyplot_plots = [
@@ -89,12 +89,12 @@ def plot(data, *args, **kwargs):
     plot_function_list = []
     for k in forwarded_pyplot_plots:
         if bool(kwargs.pop(k, None)):
-            plot_function_list.append(getattr(plt, k))
+            plot_function_list.append(getattr(_plt, k))
             use_default = False
     for f in plot_function_list:
         f(coord, data.values.real, *args, **kwargs)
     if use_default:
-        plt.plot(coord, data.values.real, *args, **kwargs)
+        _plt.plot(coord, data.values.real, *args, **kwargs)
     data.fold()
 
 
@@ -138,40 +138,40 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     else:
         dim = data.dims[0]
 
-    plt.grid(True)
-    plt.title(title)
+    _plt.grid(True)
+    _plt.title(title)
 
     if data.attrs["experiment_type"] == "nmr_spectrum":
         coord = data.coords[dim]
         data.unfold(dim)
 
-        plt.plot(coord, data.values.real, *args, **kwargs)
-        plt.xlabel("Chemical Shift $\delta$ (ppm)")
-        plt.ylabel("NMR Signal Intensity (a.u.)")
+        _plt.plot(coord, data.values.real, *args, **kwargs)
+        _plt.xlabel("Chemical Shift $\delta$ (ppm)")
+        _plt.ylabel("NMR Signal Intensity (a.u.)")
 
-        plt.xlim(max(coord), min(coord))
+        _plt.xlim(max(coord), min(coord))
 
         if xlim != []:
-            plt.xlim(xlim[1], xlim[0])
+            _plt.xlim(xlim[1], xlim[0])
 
         if showPar == True:
             parameterString = "Freq: " + str(round(data.attrs["nmr_frequency"], 4))
 
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
-            xmin, xmax, ymin, ymax = plt.axis()
+            xmin, xmax, ymin, ymax = _plt.axis()
 
-            plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
+            _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
     elif data.attrs["experiment_type"] == "epr_spectrum":
         coord = data.coords[dim]
         data.unfold(dim)
 
-        plt.plot(coord, data.values.real, *args, **kwargs)
-        plt.xlabel("Magnetic Field $B_{0}$ (mT)")
-        plt.ylabel("EPR Signal Intensity (a.u.)")
+        _plt.plot(coord, data.values.real, *args, **kwargs)
+        _plt.xlabel("Magnetic Field $B_{0}$ (mT)")
+        _plt.ylabel("EPR Signal Intensity (a.u.)")
 
         if xlim != []:
-            plt.xlim(xlim[0], xlim[1])
+            _plt.xlim(xlim[0], xlim[1])
 
         if showPar == True:
             SW = coord[-1] - coord[0]
@@ -194,9 +194,9 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             )
 
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
-            xmin, xmax, ymin, ymax = plt.axis()
+            xmin, xmax, ymin, ymax = _plt.axis()
 
-            plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
+            _plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
 
     elif (
         data.attrs["experiment_type"] == "enhancements_P"
@@ -205,12 +205,14 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         coord = data.coords[dim]
         data.unfold(dim)
 
-        plt.plot(coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs)
-        plt.xlabel("Microwave Power (dBm)")
-        plt.ylabel("DNP Enhancement")
+        _plt.plot(
+            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
+        )
+        _plt.xlabel("Microwave Power (dBm)")
+        _plt.ylabel("DNP Enhancement")
 
         if xlim != []:
-            plt.xlim(xlim[0], xlim[1])
+            _plt.xlim(xlim[0], xlim[1])
 
         # if showPar == True:
 
@@ -218,7 +220,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         coord = data.coords[dim]
         data.unfold(dim)
 
-        plt.plot(
+        _plt.plot(
             coord * 1e-3,
             data.values.real,
             marker="o",
@@ -226,16 +228,16 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             *args,
             **kwargs
         )
-        plt.xlabel("Microwave Power (W)")
-        plt.ylabel("DNP Enhancement")
+        _plt.xlabel("Microwave Power (W)")
+        _plt.ylabel("DNP Enhancement")
 
         if xlim != []:
-            plt.xlim(xlim[0], xlim[1])
+            _plt.xlim(xlim[0], xlim[1])
 
         # if showPar == True:
 
     elif data.attrs["experiment_type"] == "inversion_recovery":
-        plt.plot(
+        _plt.plot(
             data.coords["t1"],
             data.values.real,
             marker="o",
@@ -244,11 +246,11 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             **kwargs
         )
 
-        plt.xlabel("Evolution Time T1 (s)")
-        plt.ylabel("NMR Amplitude [a.u.]")
+        _plt.xlabel("Evolution Time T1 (s)")
+        _plt.ylabel("NMR Amplitude [a.u.]")
 
         if xlim != []:
-            plt.xlim(xlim[0], xlim[1])
+            _plt.xlim(xlim[0], xlim[1])
 
         # if showPar == True:
 
