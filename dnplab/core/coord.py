@@ -188,7 +188,10 @@ class Coords(object):
         self.coords = [self.coords[x] for x in permutation_order]
 
     def pop(self, dim):
-        index = self.index(dim)
+        if type(dim) == str:
+            index = self.index(dim)
+        else:
+            index = dim
         out = self._coords.pop(index)
         self.dims.pop(index)
         return out

@@ -173,6 +173,8 @@ def autodetect(test_path, verbose=False):
         spectrometer_format = "vnmrj"
     elif path_exten in [".1d", ".2d", ".3d", ".4d"]:
         spectrometer_format = "prospa"
+    elif path_exten == ".tnt":
+        spectrometer_format = "tnmr"
     elif (
         os.path.isdir(test_path)
         and "acqu.par" in os.listdir(test_path)
