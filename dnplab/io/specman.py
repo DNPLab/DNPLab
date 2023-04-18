@@ -74,7 +74,7 @@ def load_specman_exp(path):
     return attrs
 
 
-def load_specman_d01(path, attrs, verbose=False):
+def load_specman_d01(path, attrs, verbose=True):
     """Import SpecMan d01 data file
 
     Args:
@@ -119,17 +119,22 @@ def load_specman_d01(path, attrs, verbose=False):
         data = _np.reshape(data, (attrs["numberOfVariables"], uint_read[3]))
 
     elif attrs["dims"] == 2:
-        data = _np.reshape(data, (uint_read[2], uint_read[3], uint_read[4]))
+        data = _np.reshape(data, (uint_read[0], uint_read[3], uint_read[4]))
+        # data = _np.reshape(data, (uint_read[2], uint_read[3], uint_read[4]))
+        print("2D data")
 
     elif attrs["dims"] == 3:
         data = _np.reshape(
-            data, (uint_read[2], uint_read[3], uint_read[4], uint_read[5])
+            data, (uint_read[0], uint_read[3], uint_read[4], uint_read[5])
+            # data, (uint_read[2], uint_read[3], uint_read[4], uint_read[5])
         )
+        print("3D data")
 
     elif attrs["dims"] == 4:
         data = _np.reshape(
-            data, (uint_read[2], uint_read[3], uint_read[4], uint_read[5], uint_read[6])
+            data, (uint_read[0], uint_read[3], uint_read[4], uint_read[5], uint_read[6])
         )
+        print("4D data")
 
     elif attrs["dims"] >= 4:
         print("Maximum dimensionality for SpecMan data is 4D")
