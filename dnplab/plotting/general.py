@@ -162,6 +162,23 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
+    if data.attrs["experiment_type"] == "dnp_enhancement_profile":
+
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        plt.plot(coord, data.values.real, *args, **kwargs)
+
+        plt.xlabel("Frequency (GHz)")
+        plt.ylabel("DNP Enhancement (a.u.)")
+
+        plt.grid(True)
+
+        plt.xlim(max(coord), min(coord))
+
+        if xlim != []:
+            plt.xlim(xlim[0], xlim[1])
+
     elif data.attrs["experiment_type"] == "epr_spectrum":
         coord = data.coords[dim]
         data.unfold(dim)
