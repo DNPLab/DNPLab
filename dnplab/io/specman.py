@@ -94,6 +94,9 @@ def load_specman_d01(path, attrs, verbose=True):
     float_read = _np.fromfile(file_opened, dtype="<f4")
     file_opened.close()
 
+    # Save file name in dnpdata object
+    attrs["fileName"] = path
+
     # Number of recorded variables stored
     attrs["numberOfVariables"] = uint_read[0]
 
@@ -121,7 +124,7 @@ def load_specman_d01(path, attrs, verbose=True):
     elif attrs["dims"] == 2:
         data = _np.reshape(data, (uint_read[0], uint_read[4], uint_read[3]))
         # data = _np.reshape(data, (uint_read[2], uint_read[3], uint_read[4]))
-        print("2D data")
+        print("2D data ")
 
     elif attrs["dims"] == 3:
         data = _np.reshape(
@@ -153,5 +156,7 @@ def load_specman_d01(path, attrs, verbose=True):
 
     for index in range(data.ndim):
         coords.append(_np.arange(0, shape[index]))
+
+    print(attrs)
 
     return data, dims, coords, attrs

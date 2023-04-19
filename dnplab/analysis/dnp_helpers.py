@@ -31,6 +31,43 @@ def process_DNP_profile(data, start, stop, frequency_sweep=True, normalize=False
     return out
 
 
+
+def process_DNP_polarization_build_up(data):
+    # , start, stop, frequency_sweep=True, normalize=False):
+
+    """Cleanup DNPData object"""
+
+    out = data.copy()
+
+    # print(out.attrs)
+
+    vd = [0.010, 0.020, 0.040, 0.080, 0.150, 0.290, 0.560, 1.1, 2.16, 4.23, 8.28, 16.210, 31.730, 62.130, 121.650, 238.170, 466.360, 913.020, 1500, 1900, 2200, 2600, 3000, 3500, 4000, 5500, 7000, 9000]
+
+    vd = _np.array(vd)
+
+    out.rename("t1", "tc")
+    out.coords["tc"] = vd
+
+
+    # if frequency_sweep == True:
+
+    #     out.rename("t1", "freq")
+    #     out.coords["freq"] = _np.linspace(start, stop, len(data.values))
+
+    # if frequency_sweep == False:
+
+    #     out.rename("t1", "B0")
+    #     out.coords["B0"] = _np.linspace(start, stop, len(data.values))
+
+    # if normalize == True:
+    #     out = _dnp.normalize(out)
+
+    # out.attrs["experiment_type"] = "dnp_enhacement_profile"
+
+    return out
+
+
+
 def sim_dnp_profile(
     data,
     B0,

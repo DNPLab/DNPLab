@@ -14,7 +14,7 @@ from .io.load import load
 
 from .analysis.relaxation_fit import *
 from .analysis.hydration import hydration
-from .analysis.enhancement_profiles import *
+from .analysis.dnp_helpers import *
 
 from .processing import *
 from .widgets import *
