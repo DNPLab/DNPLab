@@ -124,7 +124,6 @@ def load_specman_d01(path, attrs, verbose=True):
     elif attrs["dims"] == 2:
         data = _np.reshape(data, (uint_read[0], uint_read[4], uint_read[3]))
         # data = _np.reshape(data, (uint_read[2], uint_read[3], uint_read[4]))
-        print("2D data ")
 
     elif attrs["dims"] == 3:
         data = _np.reshape(
