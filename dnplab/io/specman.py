@@ -31,6 +31,9 @@ def import_specman(path):
     attrs = load_specman_exp(file_name_exp)
     data, dims, coords, attrs = load_specman_d01(file_name_d01, attrs)
 
+    #Add import path
+    attrs["import_path"] = path
+    
     # Assign data/spectrum type
     attrs["experiment_type"] = "epr_spectrum"
 
