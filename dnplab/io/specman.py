@@ -122,7 +122,7 @@ def load_specman_d01(path, attrs, verbose=False):
         data = _np.reshape(data, (attrs["numberOfVariables"], uint_read[3]))
 
     elif attrs["dims"] == 2:
-        data = _np.reshape(data, (uint_read[2], uint_read[3], uint_read[4]))
+        data = _np.reshape(data, (uint_read[2], uint_read[4], uint_read[3]))
 
     elif attrs["dims"] == 3:
         data = _np.reshape(
