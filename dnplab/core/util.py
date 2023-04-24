@@ -81,13 +81,10 @@ def update_axis(data, new_dims, start_stop, spacing="lin", verbose=False):
     out.rename(out.dims[0], new_dims)
 
     if verbose == True:
-
         print("New dims name:", new_dims)
 
     if len(start_stop) == 2:
-
         if spacing == "lin":
-
             out.coords[new_dims] = _np.linspace(
                 start_stop[0], start_stop[1], len(out.values)
             )
@@ -98,7 +95,6 @@ def update_axis(data, new_dims, start_stop, spacing="lin", verbose=False):
             )
 
     elif len(start_stop) > 2:
-
         out.coords[new_dims] = start_stop
 
     return out
