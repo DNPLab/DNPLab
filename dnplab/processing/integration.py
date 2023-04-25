@@ -39,11 +39,26 @@ def cumulative_integrate(data, dim="f2", regions=None):
     if regions == None:
         index = data.index(dim)
         data.values = cumtrapz(data.values, data.coords[dim], axis=index, initial=0)
+
+        proc_attr_name = "cumlative_integrate"
+        proc_parameters = {
+            "dim": dim,
+            "regions": regions,
+        }
+        data.add_proc_attrs(proc_attr_name, proc_parameters)
         return data
+
     else:
         data_list = []
         for region in regions:
             data_list.append(cumulative_integrate(data[dim, region], dim))
+
+        proc_attr_name = "cumlative_integrate"
+        proc_parameters = {
+            "dim": dim,
+            "regions": regions,
+        }
+        data.add_proc_attrs(proc_attr_name, proc_parameters)
 
         return data_list
 
@@ -97,5 +112,13 @@ def integrate(data, dim="f2", regions=None):
         x = _np.array(list(range(len(data_list))))
         dim_name = "integrals"
         data = concat(data_list, dim_name, coord=x)
+
+    proc_attr_name = "integrate"
+    proc_parameters = {
+        "dim": dim,
+        "regions": regions,
+    }
+
+    data.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return data

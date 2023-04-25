@@ -12,6 +12,12 @@ class dnpDataTester(unittest.TestCase):
             self.gauss_3d, ["x", "y", "z"], [self.x, self.y, self.z]
         )
 
+        self.size = 10
+        self.d = np.random.random((self.size, self.size))
+
+        self.ax = np.arange(self.size)
+        self.Ddata = dnp.DNPData(self.d, dims=["1", "2"], coords=[self.ax, self.ax])
+
     def test_DNPData(self):
         assertArrayEqual(self.data.coords["x"], self.x)
         assertArrayEqual(self.data.dims, ["x", "y", "z"])
@@ -29,6 +35,32 @@ class dnpDataTester(unittest.TestCase):
         self.data.sort_dims()
         assertArrayEqual(self.data.dims, ["x", "y", "z"])
         assertArrayEqual(self.data.coords["z"], self.z)
+
+    def test_000_checkProcDim(self):
+        f = np.sin
+        f2 = np.max
+
+        tdata = f2(self.Ddata, axis="1")
+
+        if not ("numpy.amax" in tdata.proc_attrs[0]):
+            self.fail(
+                "Assertion that np.max is in proc_attrs is False, proc_attrs:{0}".format(
+                    tdata.proc_attrs
+                )
+            )
+        if not (tdata.proc_attrs[-1][1]["axis"] == ["1"]):
+            self.fail(
+                "Assertion that axis is {0} is False, tdata.proc_attrs[-1]:{1}".format(
+                    "1", tdata.proc_attrs[-1][1]
+                )
+            )
+
+        tdata2 = f2(self.Ddata)
+
+        try:
+            float(tdata2)
+        except ValueError:
+            self.fail("tdata2 is not something like a float: {0}".format(tdata2))
 
 
 if __name__ == "__main__":
