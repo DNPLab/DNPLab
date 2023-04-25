@@ -162,6 +162,92 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
+    if data.attrs["experiment_type"] == "saturation_recovery":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        _plt.plot(
+            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
+        )
+        _plt.xlabel("Evolution Time T1 [s]")
+        _plt.ylabel("Signal Intensity (a.u.)")
+
+        if xlim != []:
+            _plt.xlim(xlim[1], xlim[0])
+
+        if title == "":
+            _plt.title("Saturation Recovery")
+        else:
+            _plt.title(title)
+
+    if data.attrs["experiment_type"] == "polarization_buildup":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        _plt.plot(
+            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
+        )
+        _plt.xlabel("Contact Time t$_c$ [s]")
+        _plt.ylabel("Signal Intensity (a.u.)")
+
+        if xlim != []:
+            _plt.xlim(xlim[1], xlim[0])
+
+        if title == "":
+            _plt.title("Polarization Build-Up")
+        else:
+            _plt.title(title)
+
+    if data.attrs["experiment_type"] == "dnp_enhancement_profile_f":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        _plt.plot(coord, data.values.real, *args, **kwargs)
+        _plt.xlabel("Frequency [GHz]")
+        _plt.ylabel("DNP Intensity (a.u.)")
+
+        if xlim != []:
+            _plt.xlim(xlim[1], xlim[0])
+
+        if title == "":
+            _plt.title("DNP Enhancement Profile")
+        else:
+            _plt.title(title)
+
+    if data.attrs["experiment_type"] == "eldor_profile":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        _plt.plot(coord, data.values.real, *args, **kwargs)
+        _plt.xlabel("Frequency [GHz]")
+        _plt.ylabel("ELDOR Intensity (a.u.)")
+
+        if xlim != []:
+            _plt.xlim(xlim[1], xlim[0])
+
+        if title == "":
+            _plt.title("ELDOR Spectrum")
+        else:
+            _plt.title(title)
+
+    if data.attrs["experiment_type"] == "echo_decay":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        _plt.plot(
+            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
+        )
+        _plt.xlabel("Decay Time [s]")
+        _plt.ylabel("Signal Intensity (a.u.)")
+
+        if xlim != []:
+            _plt.xlim(xlim[1], xlim[0])
+
+        if title == "":
+            _plt.title("Echo Decay")
+        else:
+            _plt.title(title)
+
     elif data.attrs["experiment_type"] == "epr_spectrum":
         coord = data.coords[dim]
         data.unfold(dim)
@@ -214,6 +300,11 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         if xlim != []:
             _plt.xlim(xlim[0], xlim[1])
 
+        if title == "":
+            _plt.title("DNP Enhancement Power Build-Up")
+        else:
+            _plt.title(title)
+
         # if showPar == True:
 
     elif data.attrs["experiment_type"] == "enhancements_PW":
@@ -234,6 +325,11 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         if xlim != []:
             _plt.xlim(xlim[0], xlim[1])
 
+        if title == "":
+            _plt.title("DNP Enhancement Power Build-Up")
+        else:
+            _plt.title(title)
+
         # if showPar == True:
 
     elif data.attrs["experiment_type"] == "inversion_recovery":
@@ -251,6 +347,11 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
         if xlim != []:
             _plt.xlim(xlim[0], xlim[1])
+
+        if title == "":
+            _plt.title("Inversion Recovery")
+        else:
+            _plt.title(title)
 
         # if showPar == True:
 
