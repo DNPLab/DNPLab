@@ -30,30 +30,29 @@ def load_csv(
     imag=2,
     skiprows=0,
     maxrows=-1,
-    convert_time=lambda x: float(x.replace(",", ".")) / 1e6,
+    convert_time=lambda x: float(x.replace(",", ".")),
     convert_data=lambda x: float(x.replace(",", ".")),
     **kwargs
 ):
-    """
-    load_csv files function
+    """function that loads load_csv files
 
     Args:
-        filename: str/path like
-        tcol: column index for time data (default=0), None = not applicable, will count from 0 to npoints and then apply covert_time!
-        real: column index for real part (default=1), None = not applicable, will be set to zero
-        imag: column index for imaginary part (default=2), None = not applicable, will be set to zero
-        skiprows: number of rows to skip at beginning (default=0)
-        maxrows: if this is larger than zeros read at most maxrows rows
-        convert_time: callable that converts the time strings to a number (default: assumes us and converts into s)
-        convert_data: callable that converts data to a number (default: replaces , with .)
+        filename (str): String or path like file that is read
+        tcol (int): column index for time data (default=0), None = not applicable, will count from 0 to npoints and then apply covert_time!
+        real (int): column index for real part (default=1), None = not applicable, will be set to zero
+        imag (int): column index for imaginary part (default=2), None = not applicable, will be set to zero
+        skiprows (int): number of rows to skip at beginning (default=0)
+        maxrows (int): if this is larger than zeros read at most maxrows rows
+        convert_time (callable): callable that converts the time strings to a number (default: replaces , with .)
+        convert_data (callable): callable that converts data to a number (default: replaces , with .)
 
-        delimiter: optional, sets the delimiter in the csv file (default ; ), can be set in ../config/io_config.conf
-        dims: optional, sets name for dimension (default: t2)
+        delimiter (str): optional, sets the delimiter in the csv file (default ; )
+        dims (str,list): optional, sets name for dimension (default: ["t2"])
         **kwargs are forwarded to csv.reader object
 
 
     Returns:
-        DNPData: data object with values,coords and dim
+       data (dnpData): Data object with values,coords and dim
 
 
     example:
@@ -61,13 +60,7 @@ def load_csv(
         data=load_csv('csv_arrLNA_data.csv',imag=2,skiprows=1)
     """
 
-    # standards from config (?)
-    delimiter = config_io.get(
-        "load_csv", "delimiter"
-    )  # or config_io['load_csv']['delimiter']
-
-    if "delimiter" in kwargs.keys():
-        delimiter = kwargs.pop("delimiter")
+    delimiter = kwargs.pop("delimiter", ";")
 
     dims = kwargs.pop("dims", ["t2"])
 
