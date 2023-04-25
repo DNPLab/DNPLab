@@ -15,13 +15,6 @@ handler = logging.StreamHandler(stream=sys.stdout)
 handler.setLevel(logging.INFO)
 logger.addHandler(handler)
 
-# config for load_csv file, can be adjusted to add more options (dialect?)
-# could also be checked for userconfig, bt this is not implemented right now
-parent_dir = pathlib.Path(pathlib.Path(__file__).absolute().parents[1])
-p0 = parent_dir.joinpath("config/io_config.conf")
-config_io = configparser.ConfigParser()
-config_io.read(str(p0))
-
 
 def load_csv(
     filename,
