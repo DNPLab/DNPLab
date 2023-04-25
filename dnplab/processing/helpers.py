@@ -53,14 +53,14 @@ def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=Fals
 
 def create_complex(data, real, imag):
     """Create complex array from input
-    
+
     This function can be used to concatenate a two dimensions of a DNPData object into a complex array. The unused dims and coords will be removed from the input DNPData object.
 
     Args:
         data (DNPData): DNPData input object
         real (array): Real data
-        imag (array): Imaginary data    
-        
+        imag (array): Imaginary data
+
     Returns:
         data (DNPData): New DNPData object
     """
@@ -79,6 +79,7 @@ def create_complex(data, real, imag):
     out = dnp.DNPData(complexData, dims, coords, attrs)
 
     return out
+
 
 def signal_to_noise(
     data: DNPData,
