@@ -162,7 +162,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
-    if data.attrs["experiment_type"] == "saturation_recovery":
+    elif data.attrs["experiment_type"] == "saturation_recovery":
         coord = data.coords[dim]
         data.unfold(dim)
 
@@ -180,7 +180,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         else:
             _plt.title(title)
 
-    if data.attrs["experiment_type"] == "polarization_buildup":
+    elif data.attrs["experiment_type"] == "polarization_buildup":
         coord = data.coords[dim]
         data.unfold(dim)
 
@@ -198,7 +198,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         else:
             _plt.title(title)
 
-    if data.attrs["experiment_type"] == "dnp_enhancement_profile_f":
+    elif data.attrs["experiment_type"] == "dnp_enhancement_profile_f":
         coord = data.coords[dim]
         data.unfold(dim)
 
@@ -214,7 +214,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         else:
             _plt.title(title)
 
-    if data.attrs["experiment_type"] == "eldor_profile":
+    elif data.attrs["experiment_type"] == "eldor_profile":
         coord = data.coords[dim]
         data.unfold(dim)
 
@@ -230,7 +230,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         else:
             _plt.title(title)
 
-    if data.attrs["experiment_type"] == "echo_decay":
+    elif data.attrs["experiment_type"] == "echo_decay":
         coord = data.coords[dim]
         data.unfold(dim)
 
