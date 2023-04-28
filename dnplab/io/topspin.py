@@ -270,6 +270,9 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     # create data object
     topspin_data = DNPData(values, dims, coords, attrs=acqus_params)
 
+    # Add import path to attributes
+    topspin_data.attrs["import_path"] = path
+
     # Add NMR Frequency to attrs
     topspin_data.attrs["nmr_frequency"] = acqus_params["SFO1"] * 1e6
 
