@@ -35,7 +35,7 @@ def load_csv(
         real (int): column index for real part (default=1), None = not applicable, will be set to zero
         imag (int): column index for imaginary part (default=2), None = not applicable, will be set to zero
         skiprows (int): number of rows to skip at beginning (default=0)
-        maxrows (int): if this is larger than zeros read at most maxrows rows
+        maxrows (int): if this is larger than zero, read at most maxrows rows. (default: -1)
         convert_time (callable): callable that converts the time strings to a number (default: replaces , with .)
         convert_data (callable): callable that converts data to a number (default: replaces , with .)
 
