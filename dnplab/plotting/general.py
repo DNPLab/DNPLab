@@ -211,16 +211,17 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         for key in FANCYPLOT_CONFIG[exp_type].keys():
             if key.startswith('ax.'):
                 ax_key=key.lstrip('ax.')
+                value=FANCYPLOT_CONFIG[exp_type][key]
                 try:
-                    getattr(ax,ax_key)(FANCYPLOT_CONFIG[exp_type][key])
+                    getattr(ax,ax_key)(value)
                 except ValueError as e:
-                    warnings.warn("Could not set ax attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(ax_key,FANCYPLOT_CONFIG[exp_type][key],e))
+                    warnings.warn("Could not set ax attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(ax_key,value,e))
             if key.startswith('fig.'):
                 fig_key=key.lstrip('fig.')
                 try:
-                    getattr(fig,fig_key)(FANCYPLOT_CONFIG[exp_type][key])
+                    getattr(fig,fig_key)(value)
                 except ValueError as e:
-                    warnings.warn("Could not set figure attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(fig_key,FANCYPLOT_CONFIG[exp_type][key],e))
+                    warnings.warn("Could not set figure attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(fig_key,value,e))
 
     elif data.attrs["experiment_type"] == "inversion_recovery":
         _plt.plot(
