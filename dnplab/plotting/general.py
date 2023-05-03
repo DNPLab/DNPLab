@@ -166,10 +166,10 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         data.unfold(dim)
 
         plt_config_kwargs = {key.lstrip('__'):val for key,val in FANCYPLOT_CONFIG[exp_type].items() if key.startswith('__') }
-        kwargs.update(plt_config_kwargs)
+        plt_config_kwargs.update(kwargs) #calling values take precedence over config values
 
         _plt.plot(
-            coord, data.values.real * get_float_key('value_scaling') , *args, **kwargs
+            coord, data.values.real * get_float_key('value_scaling') , *args, **plt_config_kwargs
         )
         _plt.xlabel(get_key('xlabel'))
         _plt.ylabel(get_key("ylabel"))
