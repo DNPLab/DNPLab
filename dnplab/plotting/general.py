@@ -206,6 +206,21 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             xmin, xmax, ymin, ymax = _plt.axis()
 
             _plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
+        ax=_plt.gca()
+        fig=_plt.gcf()
+        for key in FANCYPLOT_CONFIG[exp_type].keys():
+            if key.startswith('ax.'):
+                ax_key=key.lstrip('ax.')
+                try:
+                    getattr(ax,ax_key)(FANCYPLOT_CONFIG[exp_type][key])
+                except ValueError as e:
+                    warnings.warn("Could not set ax attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(ax_key,FANCYPLOT_CONFIG[exp_type][key],e))
+            if key.startswith('fig.'):
+                fig_key=key.lstrip('fig.')
+                try:
+                    getattr(fig,fig_key)(FANCYPLOT_CONFIG[exp_type][key])
+                except ValueError as e:
+                    warnings.warn("Could not set figure attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(fig_key,FANCYPLOT_CONFIG[exp_type][key],e))
 
     elif data.attrs["experiment_type"] == "inversion_recovery":
         _plt.plot(
