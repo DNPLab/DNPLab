@@ -182,25 +182,29 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         else:
             _plt.title(title)
 
-        if  FANCYPLOT_CONFIG.getboolean(exp_type,'showPar',fallback=False):
+        if  FANCYPLOT_CONFIG.getboolean(exp_type,'showPar',fallback=False) or showPar:
             SW = coord[-1] - coord[0]
 
-            parameterString = (
-                "MF: "
-                + str(round(data.attrs["frequency"], 4))
-                + "\nMP: "
-                + str(round(data.attrs["power"], 3))
-                + "\nCF: "
-                + str(round(data.attrs["center_field"] / 10, 2))
-                + "\nSW: "
-                + str(round(SW, 2))
-                + "\nMA: "
-                + str(round(data.attrs["modulation_amplitude"], 2))
-                + "\nNS: "
-                + str(data.attrs["nscans"])
-                + "\nTM: "
-                + str(round(data.attrs["temperature"], 1))
-            )
+            try:
+                parameterString = (
+                    "MF: "
+                    + str(round(data.attrs["frequency"], 4))
+                    + "\nMP: "
+                    + str(round(data.attrs["power"], 3))
+                    + "\nCF: "
+                    + str(round(data.attrs["center_field"] / 10, 2))
+                    + "\nSW: "
+                    + str(round(SW, 2))
+                    + "\nMA: "
+                    + str(round(data.attrs["modulation_amplitude"], 2))
+                    + "\nNS: "
+                    + str(data.attrs["nscans"])
+                    + "\nTM: "
+                    + str(round(data.attrs["temperature"], 1))
+                )
+            except KeyError as e:
+                warn('Trying to show parameters but error {0} occured. Are you sure that the attributes are in the data.attrs?\nParameterstring is empty!'.format(e))
+                parameterString=''
 
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
             xmin, xmax, ymin, ymax = _plt.axis()
