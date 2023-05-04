@@ -128,15 +128,14 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         plot(data, *args, **kwargs)
         return
 
-    if "dim" in kwargs:
-        dim = kwargs.pop("dim")
-    else:
-        dim = data.dims[0]
-
     _plt.grid(True)
     _plt.title(title)
 
     if data.attrs["experiment_type"] == "nmr_spectrum":
+        if "dim" in kwargs:
+            dim = kwargs.pop("dim")
+        else:
+            dim = data.dims[0]
         coord = data.coords[dim]
         data.unfold(dim)
 
@@ -162,6 +161,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         get_key = lambda x,fallback=None: FANCYPLOT_CONFIG.get(exp_type,x,fallback=fallback)
         get_float_key = lambda x,fallback=1: FANCYPLOT_CONFIG.getfloat(exp_type,x,fallback=fallback)
 
+        dim = kwargs.pop("dim",FANCYPLOT_CONFIG.get(exp_type,"dim",fallback=data.dims[0]))
         coord = data.coords[dim] * get_float_key('coord_scaling')
         data.unfold(dim)
 
@@ -226,29 +226,6 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
                     getattr(fig,fig_key)(value)
                 except ValueError as e:
                     warn("Could not set figure attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(fig_key,value,e))
-
-    elif data.attrs["experiment_type"] == "inversion_recovery":
-        _plt.plot(
-            data.coords["t1"],
-            data.values.real,
-            marker="o",
-            fillstyle="none",
-            *args,
-            **kwargs
-        )
-
-        _plt.xlabel("Evolution Time T1 (s)")
-        _plt.ylabel("NMR Amplitude [a.u.]")
-
-        if xlim != []:
-            _plt.xlim(xlim[0], xlim[1])
-
-        if title == "":
-            _plt.title("Inversion Recovery")
-        else:
-            _plt.title(title)
-
-        # if showPar == True:
 
     else:
         plot(data, *args, **kwargs)
