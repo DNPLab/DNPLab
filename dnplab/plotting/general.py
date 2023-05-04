@@ -209,9 +209,9 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         ax=_plt.gca()
         fig=_plt.gcf()
         for key in FANCYPLOT_CONFIG[exp_type].keys():
+            value=FANCYPLOT_CONFIG[exp_type][key]
             if key.startswith('ax.'):
                 ax_key=key.lstrip('ax.')
-                value=FANCYPLOT_CONFIG[exp_type][key]
                 try:
                     getattr(ax,ax_key)(value)
                 except ValueError as e:
