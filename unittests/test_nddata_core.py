@@ -116,6 +116,28 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
 
         self.assertEqual(data.ndim, 2)
 
+    def test_000_checkDimdeepcopy(self):
+        # test for issue 295
+        # this test doesn't really test anything but it checks that the functionality is as is, so this test fails if an error is raised
+        # uses dnplab
+        import dnplab as dnp
+
+        dims = ["Average", "t2"]
+        coords1 = [np.arange(0, 100), np.arange(0, 1024)]
+        coords2 = [np.arange(0, 100), np.arange(0, 1024)]
+        data1 = np.random.random((100, 1024))
+        data2 = np.random.random((100, 1024))
+
+        DNPObj1 = dnp.DNPData(data1, dims, coords1)
+        DNPObj2 = dnp.DNPData(data2, dims, coords2)
+
+        DNPObj1 = dnp.fourier_transform(DNPObj1, convert_to_ppm=False)
+        # this should not raise an error
+        try:
+            DNPObj2 = dnp.fourier_transform(DNPObj2, convert_to_ppm=False)
+        except ValueError as e:
+            self.fail("Deepcopy of dims most likely failed! Error {0}".format(e))
+
 
 class dnplab_ABCData_coord_tester(unittest.TestCase):
     def setUp(self):
@@ -146,3 +168,68 @@ class dnplab_ABCData_coord_tester(unittest.TestCase):
     def test_rename(self):
         self.collection_inst.rename("a", "new_a")
         assert_array_equal(self.collection_inst.dims, ["new_a", "b", "c"])
+
+
+class ABCData_numpy_implementation_test(unittest.TestCase):
+    # c&p from above for simplicity
+    def construct_random_data(self):
+        random_dims = random.sample(test_dims, random.randint(1, len(test_dims)))
+
+        random_coords = [np.r_[0 : random.randint(1, 6)] for dim in random_dims]
+        shape = [coord.size for coord in random_coords]
+
+        random_values = np.random.randn(*shape)
+        data = ABCData(random_values, random_dims, random_coords)
+        return data, random_dims, random_values, random_coords
+
+    def setUp(self):
+        self.size = 10
+        self.val = 5
+        self.a = np.zeros(self.size)
+        self.b = np.ones(self.size)
+        self.c = self.val * np.ones(self.size)
+        self.d = np.random.random((self.size, self.size))
+
+        self.ax = np.arange(self.size)
+
+        self.Adata = ABCData(self.a)
+        self.Bdata = ABCData(self.b)
+        self.Cdata = ABCData(self.c)
+        self.Ddata = ABCData(self.d, dims=["1", "2"], coords=[self.ax, self.ax])
+
+    def test_000_replaceAttr(self):
+        from dnplab.core.base import _replaceClassWithAttribute
+
+        test_tuple = (self.Adata, 1, self.a)
+        test_dict = {"1": self.Bdata, "2": 5, "3": self.c}
+        nargs, nkwargs = _replaceClassWithAttribute(self.Adata, test_tuple, test_dict)
+        self.assertEqual(type(nargs[0]), type(self.a))
+
+    def test_001_npSum(self):
+        self.assertEqual(np.sum(self.Adata), 0)
+        self.assertEqual(np.sum(self.Bdata), 10)
+        self.assertEqual(np.sum(self.Cdata), 50)
+
+    def test_002_npSin(self):
+        f = np.sin
+        self.assertEqual(np.sum(f(self.Adata) - f(self.a)), 0)
+        self.assertEqual(np.sum(f(self.Bdata) - f(self.b)), 0)
+        self.assertEqual(np.sum(f(self.Cdata) - f(self.c)), 0)
+        self.assertEqual(type(f(self.Adata)), type(self.Adata))
+
+    def test_003_axisKeywordTest_nonufunc(self):
+        # testing with function sum, which is often used
+        b = np.sum(self.Adata)
+        self.assertEqual(type(b), np.float64)
+
+        rdata, dims, values, coords = self.construct_random_data()
+        test_sum = np.sum(values, axis=0)  # corresponds to dim[0]
+        b = np.sum(rdata, axis=dims[0])
+
+        self.assertEqual(type(b), type(rdata))
+        self.assertEqual(test_sum.shape, b.shape)
+        self.assertTrue(
+            np.all(np.isclose(test_sum - b._values, 0))
+        )  # check for value equality
+        self.assertFalse(dims[0] in b.dims)
+        self.assertRaises(ValueError, np.sum, b, axis="doesnotexist")

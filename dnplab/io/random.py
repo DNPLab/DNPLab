@@ -1,5 +1,6 @@
-import numpy as np
+import numpy as _np
 from ..core.data import DNPData
+from scipy.constants import *
 
 
 def fid(points=1024, snr=100.0):
@@ -13,11 +14,11 @@ def fid(points=1024, snr=100.0):
         DNPData: FID in DNPData object
     """
 
-    t2 = np.r_[0 : 1 : 1j * points]
+    t2 = _np.r_[0 : 1 : 1j * points]
 
     values = (
-        np.exp(1j * 2 * np.pi * 100.0 * t2) * np.exp(-1 * t2 / 0.10)
-        + np.random.randn(points) / snr
+        _np.exp(1j * 2 * pi * 100.0 * t2) * _np.exp(-1 * t2 / 0.10)
+        + _np.random.randn(points) / snr
     )
 
     attrs = {"nmr_frequency": 300e6}

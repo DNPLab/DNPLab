@@ -1,6 +1,7 @@
-import numpy as np
+import numpy as _np
 from scipy import optimize
 import warnings
+from scipy.constants import *
 
 
 def calculate_smax(spin_C=False):
@@ -70,8 +71,8 @@ def interpolate_T1(
             - (kHH * (macro_C))
         ) / (spin_C)
 
-        p = np.polyfit(T1_powers, krp, 2)
-        T1_fit_2order = np.polyval(p, E_powers)
+        p = _np.polyfit(T1_powers, krp, 2)
+        T1_fit_2order = _np.polyval(p, E_powers)
 
         interpolated_T1 = 1.0 / (
             ((spin_C) * T1_fit_2order)
@@ -81,11 +82,10 @@ def interpolate_T1(
 
     # linear fit, Franck et al. PNMRS (Eq. 39)
     elif interpolate_method == "linear":
-
         linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
 
-        p = np.polyfit(T1_powers, linear_t1, 1)
-        T1_fit_linear = np.polyval(p, E_powers)
+        p = _np.polyfit(T1_powers, linear_t1, 1)
+        T1_fit_linear = _np.polyval(p, E_powers)
 
         interpolated_T1 = T1_fit_linear / (
             1.0 + (T1_fit_linear / T10) - (T1_fit_linear / T100)
@@ -146,7 +146,7 @@ def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
 
     ksigma_smax = popt[0]
     p_12 = popt[1]
-    ksigma_std = np.sqrt(np.diag(pcov))
+    ksigma_std = _np.sqrt(_np.diag(pcov))
     ksigma_stdd = ksigma_std[0] / smax
 
     ksigma_fit = calculate_ksigma_array(powers, ksigma_smax, p_12)
@@ -174,9 +174,9 @@ def calculate_xi(tcorr=54e-12, omega_e=0.0614, omega_H=9.3231e-05):
     if tcorr < 0.1:
         tcorr *= 1e12
 
-    zdiff = np.sqrt(1j * (omega_e - omega_H) * tcorr)
-    zsum = np.sqrt(1j * (omega_e + omega_H) * tcorr)
-    zH = np.sqrt(1j * omega_H * tcorr)
+    zdiff = _np.sqrt(1j * (omega_e - omega_H) * tcorr)
+    zsum = _np.sqrt(1j * (omega_e + omega_H) * tcorr)
+    zH = _np.sqrt(1j * omega_H * tcorr)
 
     # (Eq. 2)
     Jdiff = (1 + (zdiff / 4)) / (
@@ -188,8 +188,8 @@ def calculate_xi(tcorr=54e-12, omega_e=0.0614, omega_H=9.3231e-05):
     JH = (1 + (zH / 4)) / (1 + zH + ((4 * (zH**2)) / 9) + ((zH**3) / 9))
 
     # (Eq. 23) calculation of coupling_factor from the spectral density functions
-    xi = ((6 * np.real(Jdiff)) - np.real(Jsum)) / (
-        (6 * np.real(Jdiff)) + (3 * np.real(JH)) + np.real(Jsum)
+    xi = ((6 * _np.real(Jdiff)) - _np.real(Jsum)) / (
+        (6 * _np.real(Jdiff)) + (3 * _np.real(JH)) + _np.real(Jsum)
     )
 
     return xi
@@ -263,8 +263,8 @@ def calculate_uncorrected_Ep(
 
 def _residual_Ep(
     x,
-    E_array: np.array,
-    E_powers: np.array,
+    E_array: _np.array,
+    E_powers: _np.array,
     T10: float,
     T100: float,
     omega_ratio: float,
@@ -454,7 +454,7 @@ def hydration(data={}, constants={}):
     # gamma_H is from NIST. The magnetic_field cancels in the following omega_ratio but you
     # need these individually for the spectral density functions later.
 
-    omega_ratio = (omega_e / (2 * np.pi)) / (omega_H / (2 * np.pi))
+    omega_ratio = (omega_e / (2 * pi)) / (omega_H / (2 * pi))
     # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular
     # frequency units in order to correspond to S_0/I_0, this is also ~= to the
     # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq

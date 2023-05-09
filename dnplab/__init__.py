@@ -12,7 +12,9 @@ from .io import *
 from .io.save import save
 from .io.load import load
 
+from .analysis.relaxation_fit import *
 from .analysis.hydration import hydration
+from .analysis.simulate_enhancement_profiles import *
 
 from .processing import *
 from .widgets import *
