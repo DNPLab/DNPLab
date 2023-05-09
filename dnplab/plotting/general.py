@@ -6,19 +6,25 @@ from ..core.data import DNPData
 from ..__init__ import DNPLAB_CONFIG
 from ..__init__ import _get_dnp_config
 
+"""
+Standard dnplab colors
+
 dark_green = DNPLAB_CONFIG.get('COLORS','dark_green')
 light_green = DNPLAB_CONFIG.get('COLORS','light_green')
 dark_grey = DNPLAB_CONFIG.get('COLORS','dark_grey')
 light_grey = DNPLAB_CONFIG.get('COLORS','light_grey')
 orange=DNPLAB_CONFIG.get('COLORS','orange')
+"""
 
 FANCYPLOT_CONFIG=_get_dnp_config(DNPLAB_CONFIG.get('CONFIGNAMES','FANCYPLOT_CONFIG'))
 # hand curated list of plotting arguments that are forwarded, from config file
 forwarded_pyplot_plots=DNPLAB_CONFIG.getlist('PLOTTING','forwarded_pyplot_plots')
 
+
+cycler_list = [ DNPLAB_CONFIG.get('COLORS',color_key) for color_key in DNPLAB_CONFIG['COLORS'].keys() ]
 _plt.rcParams["lines.linewidth"] = 1.5
 _plt.rcParams["axes.prop_cycle"] = _plt.cycler(
-    color=[orange, dark_green, light_green, dark_grey, light_grey]
+    color= cycler_list
 )
 
 show = _plt.show
