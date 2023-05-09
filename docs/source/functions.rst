@@ -253,18 +253,3 @@ Phase
 Reporting
 ==============================
 
-
-Widgets
-==============================
-
-Manual Align
-------------------------------
-.. automodule:: dnplab.widgets.manual_align
-   :members:
-   :show-inheritance:
-
-Manual Phase
-------------------------------
-.. automodule:: dnplab.widgets.manual_phase
-   :members:
-   :show-inheritance:
