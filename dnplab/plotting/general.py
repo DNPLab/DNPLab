@@ -202,7 +202,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
                     try:
                         prmString+=label.strip().strip(":")+": "+str(round(data.attrs[attribute],int(round_value)))+"\n"
                     except KeyError as e:
-                        warn("Attribute {0} not in data.attributes, skipping this entry!")
+                        warn("Attribute {0} not in data.attributes, skipping this entry!".format(attribute))
                 except ValueError as ve:
                     warn("Could not convert {0} to integer, skipping this entry because of error {1}".format(round_value,ve))
             prmString += "SW: "+str(round(SW, 2))
