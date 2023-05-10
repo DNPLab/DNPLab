@@ -15,8 +15,8 @@ def import_tnmr(path, squeeze=True):
         tnmr_data (object) : DNPData object containing tnmr data
     """
 
-    attrs = import_tnmr_pars(path)
-    values, dims, coords = import_tnmr_data(path)
+    #attrs = import_tnmr_pars(path)
+    values, dims, coords, attrs = import_tnmr_data(path)
 
     tnmr_data = DNPData(values, dims, coords, attrs)
 
@@ -59,8 +59,8 @@ def import_tnmr_data(path):
     with open(path, "rb") as f:
         raw = f.read()
 
-    tmag_attrs = {}
-    tmag_attrs["version"] = str(raw[0:8])
+    attrs = {}
+    attrs["version"] = str(raw[0:8])
 
     len_tecmag_struct = int.from_bytes(raw[16:20], "little")
     tecmag_struct = raw[20 : 20 + len_tecmag_struct]
@@ -87,12 +87,23 @@ def import_tnmr_data(path):
 
     acq_pts = int.from_bytes(tecmag_struct[32:36], byteorder="little")
     scans = int.from_bytes(tecmag_struct[36:40], byteorder="little")
-    # actual_scans = int.from_bytes(tecmag_struct[40:44], byteorder = 'little')
-    # dummy_scans = int.from_bytes(tecmag_struct[44:48], byteorder = 'little')
+    actual_scans = int.from_bytes(tecmag_struct[40:44], byteorder = 'little')
+    dummy_scans = int.from_bytes(tecmag_struct[44:48], byteorder = 'little')
+    repeat_times = int.from_bytes(tecmag_struct[48:52], byteorder = 'little')
+    sadimension = int.from_bytes(tecmag_struct[52:56], byteorder = 'little')
 
     sw = struct.unpack("<4d", tecmag_struct[240:272])
     dwell_time = struct.unpack("<4d", tecmag_struct[272:304])
     # dwell_time = float.from_bytes(tecmag_struct[272:304], byteorder = 'little')
+
+    attrs['npts'] = npts
+    attrs['actual_npts'] = actual_npts
+    attrs['scans'] = scans
+    attrs['acq_points'] = acq_pts
+    attrs['actual_scans'] = actual_scans
+    attrs['dummy_scans'] = dummy_scans
+    attrs['repeat_times'] = repeat_times
+    attrs['sadimension'] = sadimension
 
     data = data.reshape(npts, order="F")
 
@@ -104,4 +115,4 @@ def import_tnmr_data(path):
 
     dims = ["t2", "t1", "t3", "t4"]  # t2 dim is first
 
-    return data, dims, coords
+    return data, dims, coords, attrs
