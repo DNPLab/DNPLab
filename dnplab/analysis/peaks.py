@@ -25,7 +25,7 @@ def find_peaks(
         regions (None, list):   List of tuples defining the region to find peaks (not implemented yet)
 
     Returns:
-        data (DNPData):         nd array of peak index, peak width and relative peak height
+        data (DNPData):         nd array of peak index, peak width and relative peak height. The linewidth is returned in (Hz), based on the spectrometer frequency
 
     Examples:
         Find peaks in entire data region:
@@ -47,6 +47,9 @@ def find_peaks(
 
     coords = []
 
+    resolution = _np.sum(_np.diff(out.coords)) / _np.size(out.coords)
+    frequency = out.attrs["nmr_frequency"]
+
     if normalize == True:
         out = _dnp.normalize(out)
 
@@ -56,7 +59,7 @@ def find_peaks(
             out.values.real, peaks=peak_index, rel_height=height
         )
 
-        peak_width = peak_width_height[0]
+        peak_width = peak_width_height[0] * resolution * 1e-6 * frequency
         peak_height = peak_width_height[1]
 
         out.values = _np.vstack((_np.vstack((peak_index, peak_width)), peak_height))
