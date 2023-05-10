@@ -1,28 +1,31 @@
 import numpy as _np
 import scipy.signal as _spsig
 import dnplab as _dnp
+import warnings
 
 
 def find_peaks(
     data,
     dims="f2",
     normalize=True,
-    peak_height=0.05,
+    threshold=0.05,
+    height=0.5,
     regions=None,
 ):
     """Find peaks in spectrum
 
-    Find peaks in spectrum (dnpdata object). This is a wrapper for the find_peaks function of SciPy.
+    Find peaks in spectrum (dnpdata object) and returns index, width, and relative peak height. The function uses the SciPy functions "find_peaks" and "peak_widths"
 
     Args:
-        data (DNPData): Data object
-        dims (str): Dimension in which to find peaks
-        normalize (boolean): Normalize data to a maximum value of 1. Default is True
-        peak_height (float): Threshold of minimum peak height to be counted. Default is 0.05. This value is impacted by the normalize argument
-        regions (None, list): List of tuples defining the region to find peaks
+        data (DNPData):         Data object
+        dims (str):             Dimension to find peaks
+        normalize (boolean):    Normalize data to a maximum value of 1. Default is True
+        threshold (float):      Threshold of minimum peak height to be counted. Default is 0.05. This value is impacted by the normalize argument
+        height (float):         Relative height at which peak width is measured. Default is 0.5 for FWHH
+        regions (None, list):   List of tuples defining the region to find peaks (not implemented yet)
 
     Returns:
-        data (DNPData): Peak list
+        data (DNPData):         nd array of peak index, peak width and relative peak height
 
     Examples:
         Find peaks in entire data region:
@@ -38,21 +41,27 @@ def find_peaks(
             >>> peak_list = dnp.find_peaks(data, peak_height = 500, normalize = False)
 
     """
-    data = data.copy()
-    data.attrs["experiment_type"] = "peak_list"
+
+    out = data.copy()
+    out.attrs["experiment_type"] = "peak_list"
 
     coords = []
 
     if normalize == True:
-        data = _dnp.normalize(data)
+        out = _dnp.normalize(out)
 
     if regions == None:
-        data.values, _ = _spsig.find_peaks(data.values.real, height=peak_height)
-        data.coords.pop(dims)
-        data.dims = ["x0"]
+        peak_index, _ = _spsig.find_peaks(out.values.real, height=threshold)
+        peak_width_height = _spsig.peak_widths(
+            out.values.real, peaks=peak_index, rel_height=height
+        )
 
-        new_coords = _np.arange(0, len(data.values))
-        data.coords = new_coords
+        peak_width = peak_width_height[0]
+        peak_height = peak_width_height[1]
+
+        out.values = _np.vstack((_np.vstack((peak_index, peak_width)), peak_height))
+
+    out = _dnp.update_axis(out, new_dims="index", start_stop=(0, len(out.values)))
 
     # else:
     #     data_list = []
@@ -60,10 +69,13 @@ def find_peaks(
 
     proc_attr_name = "peak_list"
     proc_parameters = {
-        "dim": dims,
+        "dims": dims,
         "regions": regions,
+        "normalize": normalize,
+        "threshold": threshold,
+        "height": height,
     }
 
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out
