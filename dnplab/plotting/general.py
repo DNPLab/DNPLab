@@ -196,7 +196,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
                 try:
                     label,attribute, round_value = k
                 except ValueError as ve:
-                    warn("could not unpack attribute tupel {0} into label, attribute and round_value, skipping this entry!".format(k))
+                    warn("could not unpack attribute tuple {0} into label, attribute and round_value, skipping this entry!".format(k))
                     continue
                 try:
                     try:
