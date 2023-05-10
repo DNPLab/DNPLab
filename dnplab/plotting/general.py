@@ -188,7 +188,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         else:
             _plt.title(title)
 
-        if  FANCYPLOT_CONFIG.getboolean(exp_type,'showPar',fallback=False) or showPar:
+        if  FANCYPLOT_CONFIG.get(exp_type,'showPar',fallback=False) or showPar:
             SW = coord[-1] - coord[0]
             attrs=[k.strip().strip("(").strip(")").split(",") for k in FANCYPLOT_CONFIG[exp_type]["showPar"].split(';')]
             prmString=''
