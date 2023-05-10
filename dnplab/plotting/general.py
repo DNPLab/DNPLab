@@ -190,49 +190,27 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
         if  FANCYPLOT_CONFIG.getboolean(exp_type,'showPar',fallback=False) or showPar:
             SW = coord[-1] - coord[0]
-            # alternative: if "showPar" in FANCYPLOT_CONFIG[exp_type].keys():
-            # (MF,frequency,4);(MP,power,3);....
-            # attrs=[k.strip("(").strip(")").split(",") for k in FANCYPLOT_CONFIG[exp_type]["showPar"].split(';')]
-            # prmString=''
-            # for k in attrs:
-            #   try:
-            #      label,attribute, round_value = k
-            #   except ValueError as ve:
-            #       warn("could not unpack attribute tupel {0} into label, attribute and round_value, skipping this entry!".format(k))
-            #       continue
-            #   try:
-            #       try:
-            #          prmString+=label.strip().strip(":")+": "+round(data.attrs[attribute],int(round_value))+"\n"
-            #       except KeyError as e:
-            #           warn("Attribute {0} not in data.attributes, skipping this entry!")
-            #   except ValueError as ve:
-            #       warn("Could not convert {0} to integer, skipping this entry because of error {1}".format(round_value,ve))
-
-            try:
-                parameterString = (
-                    "MF: "
-                    + str(round(data.attrs["frequency"], 4))
-                    + "\nMP: "
-                    + str(round(data.attrs["power"], 3))
-                    + "\nCF: "
-                    + str(round(data.attrs["center_field"] / 10, 2))
-                    + "\nSW: "
-                    + str(round(SW, 2))
-                    + "\nMA: "
-                    + str(round(data.attrs["modulation_amplitude"], 2))
-                    + "\nNS: "
-                    + str(data.attrs["nscans"])
-                    + "\nTM: "
-                    + str(round(data.attrs["temperature"], 1))
-                )
-            except KeyError as e:
-                warn('Trying to show parameters but error {0} occured. Are you sure that the attributes are in the data.attrs?\nParameterstring is empty!'.format(e))
-                parameterString=''
+            attrs=[k.strip().strip("(").strip(")").split(",") for k in FANCYPLOT_CONFIG[exp_type]["showPar"].split(';')]
+            prmString=''
+            for k in attrs:
+                try:
+                    label,attribute, round_value = k
+                except ValueError as ve:
+                    warn("could not unpack attribute tupel {0} into label, attribute and round_value, skipping this entry!".format(k))
+                    continue
+                try:
+                    try:
+                        prmString+=label.strip().strip(":")+": "+str(round(data.attrs[attribute],int(round_value)))+"\n"
+                    except KeyError as e:
+                        warn("Attribute {0} not in data.attributes, skipping this entry!")
+                except ValueError as ve:
+                    warn("Could not convert {0} to integer, skipping this entry because of error {1}".format(round_value,ve))
+            prmString += "SW: "+str(round(SW, 2))
 
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
             xmin, xmax, ymin, ymax = _plt.axis()
 
-            _plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
+            _plt.text(xmin * 1.001, ymin * 0.90, prmString, bbox=box_style)
         ax=_plt.gca()
         fig=_plt.gcf()
         for key in FANCYPLOT_CONFIG[exp_type].keys():
