@@ -190,6 +190,23 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
         if  FANCYPLOT_CONFIG.getboolean(exp_type,'showPar',fallback=False) or showPar:
             SW = coord[-1] - coord[0]
+            # alternative: if "showPar" in FANCYPLOT_CONFIG[exp_type].keys():
+            # (MF,frequency,4);(MP,power,3);....
+            # attrs=[k.strip("(").strip(")").split(",") for k in FANCYPLOT_CONFIG[exp_type]["showPar"].split(';')]
+            # prmString=''
+            # for k in attrs:
+            #   try:
+            #      label,attribute, round_value = k
+            #   except ValueError as ve:
+            #       warn("could not unpack attribute tupel {0} into label, attribute and round_value, skipping this entry!".format(k))
+            #       continue
+            #   try:
+            #       try:
+            #          prmString+=label.strip().strip(":")+": "+round(data.attrs[attribute],int(round_value))+"\n"
+            #       except KeyError as e:
+            #           warn("Attribute {0} not in data.attributes, skipping this entry!")
+            #   except ValueError as ve:
+            #       warn("Could not convert {0} to integer, skipping this entry because of error {1}".format(round_value,ve))
 
             try:
                 parameterString = (
