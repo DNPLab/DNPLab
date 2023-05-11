@@ -204,7 +204,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         else:
             _plt.title(title)
 
-        if FANCYPLOT_CONFIG.get(exp_type, "showPar", fallback=False) or showPar:
+        if FANCYPLOT_CONFIG.get(exp_type, "showPar", fallback=False) and showPar:
             SW = coord[-1] - coord[0]
             attrs = [
                 k.strip().strip("(").strip(")").split(",")
@@ -213,10 +213,15 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             prmString = ""
             for k in attrs:
                 try:
-                    label, attribute, round_value = k
+                    if len(k)==4:
+                        label, attribute, round_value scale_value = k
+                        scale_value=float(scale_value)
+                    else:
+                        label, attribute, round_value = k
+                        scale_value = 1
                 except ValueError as ve:
                     warn(
-                        "could not unpack attribute tuple {0} into label, attribute and round_value, skipping this entry!".format(
+                        "could not unpack attribute tuple {0} into label, attribute and round_value (and possibly scale value) or convert scale value, skipping this entry!".format(
                             k
                         )
                     )
@@ -226,7 +231,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
                         prmString += (
                             label.strip().strip(":")
                             + ": "
-                            + str(round(data.attrs[attribute], int(round_value)))
+                            + str(round(data.attrs[attribute]*scale_value, int(round_value)))
                             + "\n"
                         )
                     except KeyError as e:
