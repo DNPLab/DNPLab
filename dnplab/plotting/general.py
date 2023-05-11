@@ -213,9 +213,9 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             prmString = ""
             for k in attrs:
                 try:
-                    if len(k)==4:
+                    if len(k) == 4:
                         label, attribute, round_value, scale_value = k
-                        scale_value=float(scale_value)
+                        scale_value = float(scale_value)
                     else:
                         label, attribute, round_value = k
                         scale_value = 1
@@ -231,7 +231,12 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
                         prmString += (
                             label.strip().strip(":")
                             + ": "
-                            + str(round(data.attrs[attribute]*scale_value, int(round_value)))
+                            + str(
+                                round(
+                                    data.attrs[attribute] * scale_value,
+                                    int(round_value),
+                                )
+                            )
                             + "\n"
                         )
                     except KeyError as e:
