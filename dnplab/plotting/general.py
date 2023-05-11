@@ -214,7 +214,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             for k in attrs:
                 try:
                     if len(k)==4:
-                        label, attribute, round_value scale_value = k
+                        label, attribute, round_value, scale_value = k
                         scale_value=float(scale_value)
                     else:
                         label, attribute, round_value = k
