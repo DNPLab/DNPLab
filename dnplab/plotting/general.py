@@ -16,16 +16,17 @@ light_grey = DNPLAB_CONFIG.get('COLORS','light_grey')
 orange=DNPLAB_CONFIG.get('COLORS','orange')
 """
 
-FANCYPLOT_CONFIG=_get_dnp_config(DNPLAB_CONFIG.get('CONFIGNAMES','FANCYPLOT_CONFIG'))
+FANCYPLOT_CONFIG = _get_dnp_config(DNPLAB_CONFIG.get("CONFIGNAMES", "FANCYPLOT_CONFIG"))
 # hand curated list of plotting arguments that are forwarded, from config file
-forwarded_pyplot_plots=DNPLAB_CONFIG.getlist('PLOTTING','forwarded_pyplot_plots')
+forwarded_pyplot_plots = DNPLAB_CONFIG.getlist("PLOTTING", "forwarded_pyplot_plots")
 
 
-cycler_list = [ DNPLAB_CONFIG.get('COLORS',color_key) for color_key in DNPLAB_CONFIG['COLORS'].keys() ]
+cycler_list = [
+    DNPLAB_CONFIG.get("COLORS", color_key)
+    for color_key in DNPLAB_CONFIG["COLORS"].keys()
+]
 _plt.rcParams["lines.linewidth"] = 1.5
-_plt.rcParams["axes.prop_cycle"] = _plt.cycler(
-    color= cycler_list
-)
+_plt.rcParams["axes.prop_cycle"] = _plt.cycler(color=cycler_list)
 
 show = _plt.show
 
@@ -163,21 +164,36 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
     if data.attrs["experiment_type"] in FANCYPLOT_CONFIG.sections():
-        exp_type=data.attrs["experiment_type"]
-        get_key = lambda x,fallback=None: FANCYPLOT_CONFIG.get(exp_type,x,fallback=fallback)
-        get_float_key = lambda x,fallback=1: FANCYPLOT_CONFIG.getfloat(exp_type,x,fallback=fallback)
+        exp_type = data.attrs["experiment_type"]
+        get_key = lambda x, fallback=None: FANCYPLOT_CONFIG.get(
+            exp_type, x, fallback=fallback
+        )
+        get_float_key = lambda x, fallback=1: FANCYPLOT_CONFIG.getfloat(
+            exp_type, x, fallback=fallback
+        )
 
-        dim = kwargs.pop("dim",FANCYPLOT_CONFIG.get(exp_type,"dim",fallback=data.dims[0]))
-        coord = data.coords[dim] * get_float_key('coord_scaling')
+        dim = kwargs.pop(
+            "dim", FANCYPLOT_CONFIG.get(exp_type, "dim", fallback=data.dims[0])
+        )
+        coord = data.coords[dim] * get_float_key("coord_scaling")
         data.unfold(dim)
 
-        plt_config_kwargs = {key.lstrip('__'):val for key,val in FANCYPLOT_CONFIG[exp_type].items() if key.startswith('__') }
-        plt_config_kwargs.update(kwargs) #calling values take precedence over config values
+        plt_config_kwargs = {
+            key.lstrip("__"): val
+            for key, val in FANCYPLOT_CONFIG[exp_type].items()
+            if key.startswith("__")
+        }
+        plt_config_kwargs.update(
+            kwargs
+        )  # calling values take precedence over config values
 
         _plt.plot(
-            coord, data.values.real * get_float_key('value_scaling') , *args, **plt_config_kwargs
+            coord,
+            data.values.real * get_float_key("value_scaling"),
+            *args,
+            **plt_config_kwargs
         )
-        _plt.xlabel(get_key('xlabel'))
+        _plt.xlabel(get_key("xlabel"))
         _plt.ylabel(get_key("ylabel"))
 
         if xlim != []:
@@ -188,45 +204,73 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         else:
             _plt.title(title)
 
-        if  FANCYPLOT_CONFIG.get(exp_type,'showPar',fallback=False) or showPar:
+        if FANCYPLOT_CONFIG.get(exp_type, "showPar", fallback=False) or showPar:
             SW = coord[-1] - coord[0]
-            attrs=[k.strip().strip("(").strip(")").split(",") for k in FANCYPLOT_CONFIG[exp_type]["showPar"].split(';')]
-            prmString=''
+            attrs = [
+                k.strip().strip("(").strip(")").split(",")
+                for k in FANCYPLOT_CONFIG[exp_type]["showPar"].split(";")
+            ]
+            prmString = ""
             for k in attrs:
                 try:
-                    label,attribute, round_value = k
+                    label, attribute, round_value = k
                 except ValueError as ve:
-                    warn("could not unpack attribute tuple {0} into label, attribute and round_value, skipping this entry!".format(k))
+                    warn(
+                        "could not unpack attribute tuple {0} into label, attribute and round_value, skipping this entry!".format(
+                            k
+                        )
+                    )
                     continue
                 try:
                     try:
-                        prmString+=label.strip().strip(":")+": "+str(round(data.attrs[attribute],int(round_value)))+"\n"
+                        prmString += (
+                            label.strip().strip(":")
+                            + ": "
+                            + str(round(data.attrs[attribute], int(round_value)))
+                            + "\n"
+                        )
                     except KeyError as e:
-                        warn("Attribute {0} not in data.attributes, skipping this entry!".format(attribute))
+                        warn(
+                            "Attribute {0} not in data.attributes, skipping this entry!".format(
+                                attribute
+                            )
+                        )
                 except ValueError as ve:
-                    warn("Could not convert {0} to integer, skipping this entry because of error {1}".format(round_value,ve))
-            prmString += "SW: "+str(round(SW, 2))
+                    warn(
+                        "Could not convert {0} to integer, skipping this entry because of error {1}".format(
+                            round_value, ve
+                        )
+                    )
+            prmString += "SW: " + str(round(SW, 2))
 
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
             xmin, xmax, ymin, ymax = _plt.axis()
 
             _plt.text(xmin * 1.001, ymin * 0.90, prmString, bbox=box_style)
-        ax=_plt.gca()
-        fig=_plt.gcf()
+        ax = _plt.gca()
+        fig = _plt.gcf()
         for key in FANCYPLOT_CONFIG[exp_type].keys():
-            value=FANCYPLOT_CONFIG[exp_type][key]
-            if key.startswith('ax.'):
-                ax_key=key.lstrip('ax.')
+            value = FANCYPLOT_CONFIG[exp_type][key]
+            if key.startswith("ax."):
+                ax_key = key.lstrip("ax.")
                 try:
-                    getattr(ax,ax_key)(value)
+                    getattr(ax, ax_key)(value)
                 except ValueError as e:
-                    warn("Could not set ax attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(ax_key,value,e))
-            if key.startswith('fig.'):
-                fig_key=key.lstrip('fig.')
+                    warn(
+                        "Could not set ax attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(
+                            ax_key, value, e
+                        )
+                    )
+            if key.startswith("fig."):
+                fig_key = key.lstrip("fig.")
                 try:
-                    getattr(fig,fig_key)(value)
+                    getattr(fig, fig_key)(value)
                 except ValueError as e:
-                    warn("Could not set figure attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(fig_key,value,e))
+                    warn(
+                        "Could not set figure attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(
+                            fig_key, value, e
+                        )
+                    )
 
     else:
         plot(data, *args, **kwargs)
