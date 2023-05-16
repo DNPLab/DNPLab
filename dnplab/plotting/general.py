@@ -162,11 +162,13 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
     fancyplot_possiblesections=list(DNPLAB_CONFIG.sections())
-    fancyplot_label = DNPLAB_CONFIG.get("PLOTTING",'fancyplot_label',fallback="fancy_plot")
-    fancyplot_sections=[k.strip(fancyplot_label).strip(":").strip("=") for k in fancyplot_possiblesections if k.lower().startswith(fancyplot_label)]
+    fancyplot_label = DNPLAB_CONFIG.get("PLOTTING",'fancyplot_label',fallback="FANCY_PLOT")
+    fancyplot_sections=[k.strip(fancyplot_label).strip(":") for k in fancyplot_possiblesections if k.startswith(fancyplot_label)]
+
+    print(data.attrs["experiment_type"],fancyplot_sections,fancyplot_label)
 
     if data.attrs["experiment_type"] in fancyplot_sections:
-        exp_type = data.attrs["experiment_type"]
+        exp_type = fancyplot_label+":"+data.attrs["experiment_type"]
         get_key = lambda x, fallback=None: DNPLAB_CONFIG.get(
             exp_type, x, fallback=fallback
         )
@@ -179,7 +181,6 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         )
         coord = data.coords[dim] * get_float_key("coord_scaling")
         data.unfold(dim)
-
         plt_config_kwargs = {
             key.lstrip("__"): val
             for key, val in DNPLAB_CONFIG[exp_type].items()
