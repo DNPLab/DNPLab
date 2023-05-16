@@ -4,7 +4,6 @@ from warnings import warn
 
 from ..core.data import DNPData
 from ..__init__ import DNPLAB_CONFIG
-from ..__init__ import _get_dnp_config
 
 """
 Standard dnplab colors
@@ -16,7 +15,6 @@ light_grey = DNPLAB_CONFIG.get('COLORS','light_grey')
 orange=DNPLAB_CONFIG.get('COLORS','orange')
 """
 
-FANCYPLOT_CONFIG = _get_dnp_config(DNPLAB_CONFIG.get("CONFIGNAMES", "FANCYPLOT_CONFIG"))
 # hand curated list of plotting arguments that are forwarded, from config file
 forwarded_pyplot_plots = DNPLAB_CONFIG.getlist("PLOTTING", "forwarded_pyplot_plots")
 
@@ -163,24 +161,28 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
-    if data.attrs["experiment_type"] in FANCYPLOT_CONFIG.sections():
+    fancyplot_possiblesections=list(DNPLAB_CONFIG.sections())
+    fancyplot_label = DNPLAB_CONFIG.get("PLOTTING",'fancyplot_label',fallback="fancy_plot")
+    fancyplot_sections=[k.strip(fancyplot_label).strip(":").strip("=") for k in fancyplot_possiblesections if k.lower().startswith(fancyplot_label)]
+
+    if data.attrs["experiment_type"] in fancyplot_sections:
         exp_type = data.attrs["experiment_type"]
-        get_key = lambda x, fallback=None: FANCYPLOT_CONFIG.get(
+        get_key = lambda x, fallback=None: DNPLAB_CONFIG.get(
             exp_type, x, fallback=fallback
         )
-        get_float_key = lambda x, fallback=1: FANCYPLOT_CONFIG.getfloat(
+        get_float_key = lambda x, fallback=1: DNPLAB_CONFIG.getfloat(
             exp_type, x, fallback=fallback
         )
 
         dim = kwargs.pop(
-            "dim", FANCYPLOT_CONFIG.get(exp_type, "dim", fallback=data.dims[0])
+            "dim", DNPLAB_CONFIG.get(exp_type, "dim", fallback=data.dims[0])
         )
         coord = data.coords[dim] * get_float_key("coord_scaling")
         data.unfold(dim)
 
         plt_config_kwargs = {
             key.lstrip("__"): val
-            for key, val in FANCYPLOT_CONFIG[exp_type].items()
+            for key, val in DNPLAB_CONFIG[exp_type].items()
             if key.startswith("__")
         }
         plt_config_kwargs.update(
@@ -204,11 +206,11 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         else:
             _plt.title(title)
 
-        if FANCYPLOT_CONFIG.get(exp_type, "showPar", fallback=False) and showPar:
+        if DNPLAB_CONFIG.get(exp_type, "showPar", fallback=False) and showPar:
             SW = coord[-1] - coord[0]
             attrs = [
                 k.strip().strip("(").strip(")").split(",")
-                for k in FANCYPLOT_CONFIG[exp_type]["showPar"].split(";")
+                for k in DNPLAB_CONFIG[exp_type]["showPar"].split(";")
             ]
             prmString = ""
             for k in attrs:
@@ -259,8 +261,8 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             _plt.text(xmin * 1.001, ymin * 0.90, prmString, bbox=box_style)
         ax = _plt.gca()
         fig = _plt.gcf()
-        for key in FANCYPLOT_CONFIG[exp_type].keys():
-            value = FANCYPLOT_CONFIG[exp_type][key]
+        for key in DNPLAB_CONFIG[exp_type].keys():
+            value = DNPLAB_CONFIG[exp_type][key]
             if key.startswith("ax."):
                 ax_key = key.lstrip("ax.")
                 try:
