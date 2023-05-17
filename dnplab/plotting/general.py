@@ -171,8 +171,6 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         if k.startswith(fancyplot_label)
     ]
 
-    print(data.attrs["experiment_type"], fancyplot_sections, fancyplot_label)
-
     if data.attrs["experiment_type"] in fancyplot_sections:
         exp_type = fancyplot_label + ":" + data.attrs["experiment_type"]
         get_key = lambda x, fallback=None: DNPLAB_CONFIG.get(
