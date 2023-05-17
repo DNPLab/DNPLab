@@ -3,7 +3,7 @@ import numpy as _np
 from warnings import warn
 
 from ..core.data import DNPData
-from ..__init__ import DNPLAB_CONFIG
+from ..config.config import DNPLAB_CONFIG
 
 """
 Standard dnplab colors
