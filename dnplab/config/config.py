@@ -19,7 +19,9 @@ def _get_dnp_config(configname="dnplab_cfg.cfg"):
     dnplab_current_config = Path.cwd() / configname
     dnplab_home_config = Path.home() / configname
 
-    dnplab_cfg_folder = str(Path(__file__).parent) #/ configname #.with_name("config"))
+    dnplab_cfg_folder = str(
+        Path(__file__).parent
+    )  # / configname #.with_name("config"))
     dnplab_global_config = Path(dnplab_cfg_folder) / configname
 
     config_read_list = [dnplab_global_config, dnplab_home_config, dnplab_current_config]

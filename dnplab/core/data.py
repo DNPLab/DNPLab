@@ -55,8 +55,12 @@ class DNPData(ABCData):
         else:
             self.proc_attrs = []
 
-        max_print_attrs=kwargs.pop("max_print_attrs",DNPLAB_CONFIG.getint('CORE',"DNPData_max_print_attrs"))
-        print_values=kwargs.pop("print_values",DNPLAB_CONFIG.getboolean('CORE',"DNPData_print_values"))
+        max_print_attrs = kwargs.pop(
+            "max_print_attrs", DNPLAB_CONFIG.getint("CORE", "DNPData_max_print_attrs")
+        )
+        print_values = kwargs.pop(
+            "print_values", DNPLAB_CONFIG.getboolean("CORE", "DNPData_print_values")
+        )
 
         self.max_print_attrs = max_print_attrs
         self.print_values = print_values

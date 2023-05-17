@@ -63,17 +63,18 @@ class dnpDataTester(unittest.TestCase):
             self.fail("tdata2 is not something like a float: {0}".format(tdata2))
 
     def test_001_checkkwargsConfig(self):
-        data1 = dnp.DNPData(
-            self.gauss_3d, ["x", "y", "z"], [self.x, self.y, self.z]
-        )
-        self.assertEqual(5,data1.max_print_attrs)
-        self.assertEqual(False,data1.print_values)
+        data1 = dnp.DNPData(self.gauss_3d, ["x", "y", "z"], [self.x, self.y, self.z])
+        self.assertEqual(5, data1.max_print_attrs)
+        self.assertEqual(False, data1.print_values)
         data2 = dnp.DNPData(
-            self.gauss_3d, ["x", "y", "z"], [self.x, self.y, self.z], max_print_attrs=10, print_values=True
+            self.gauss_3d,
+            ["x", "y", "z"],
+            [self.x, self.y, self.z],
+            max_print_attrs=10,
+            print_values=True,
         )
-        self.assertEqual(10,data2.max_print_attrs)
-        self.assertEqual(True,data2.print_values)
-
+        self.assertEqual(10, data2.max_print_attrs)
+        self.assertEqual(True, data2.print_values)
 
 
 if __name__ == "__main__":
