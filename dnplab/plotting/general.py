@@ -312,12 +312,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         data.unfold(dim)
 
         _plt.plot(
-            coord,
-            data.values.real,
-            marker="o",
-            fillstyle="none",
-            *args,
-            **kwargs
+            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
         )
         _plt.xlabel("Microwave Power (W)")
         _plt.ylabel("DNP Enhancement")
