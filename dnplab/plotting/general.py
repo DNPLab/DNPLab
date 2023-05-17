@@ -312,7 +312,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         data.unfold(dim)
 
         _plt.plot(
-            coord * 1e-3,
+            coord,
             data.values.real,
             marker="o",
             fillstyle="none",
