@@ -11,6 +11,7 @@ def find_peaks(
     threshold=0.05,
     height=0.5,
     regions=None,
+    peak_info=False
 ):
     """Find peaks in spectrum
 
@@ -23,6 +24,7 @@ def find_peaks(
         threshold (float):      Threshold of minimum peak height to be counted. Default is 0.05. This value is impacted by the normalize argument
         height (float):         Relative height at which peak width is measured. Default is 0.5 for FWHH
         regions (None, list):   List of tuples defining the region to find peaks (not implemented yet)
+        peak_info (boolean):    If True print output to terminal
 
     Returns:
         data (DNPData):         nd array of peak index, peak width and relative peak height. The linewidth is returned in (Hz), based on the spectrometer frequency
@@ -81,6 +83,10 @@ def find_peaks(
     }
 
     out.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if peak_info == True:
+
+        _dnp.peak_info(out)
 
     return out
 
