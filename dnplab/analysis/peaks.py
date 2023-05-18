@@ -14,7 +14,7 @@ def find_peaks(
 ):
     """Find peaks in spectrum
 
-    Find peaks in spectrum (dnpdata object) and returns index, width, and relative peak height. The function uses the SciPy functions "find_peaks" and "peak_widths"
+    Find peaks in spectrum (dnpdata object) and returns index, width, and relative peak height. The function uses the SciPy functions "find_peaks" and "peak_widths". Currently this function has only been tested for 1D spectra.
 
     Args:
         data (DNPData):         Data object
@@ -44,6 +44,7 @@ def find_peaks(
 
     out = data.copy()
     out.attrs["experiment_type"] = "peak_list"
+    out.attrs["data_type"] = "peak_list"
 
     coords = []
 
@@ -82,3 +83,37 @@ def find_peaks(
     out.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return out
+
+
+def peak_info(data):
+    """
+    Print peak list in human readable form
+
+    Function to print the peak list in a human readable form. You first have to run find_peaks to create a dnpdata object that includes a peak list.
+
+    Args:
+        data (DNPData):     DNPData object created by find_peaks
+
+    Returns:
+        Output (str):       Peak list table
+    """
+
+    if data.attrs["experiment_type"] != "peak_list":
+        print("Peak list required as input")
+
+        return
+
+    array_size = _np.shape(data.values)
+
+    print("----------")
+    print("Peak Table")
+    print("----------")
+
+    k = 1
+
+    while k < array_size[1] + 1:
+        print(
+            "Peak %3d: Index: %5d, Width (Hz): %4.2f, Height (rel.): %2.2f"
+            % (k, data.values[0][k - 1], data.values[1][k - 1], data.values[2][k - 1])
+        )
+        k += 1
