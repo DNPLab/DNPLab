@@ -215,8 +215,8 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         if showPar:
 
             prmString = ""
-            keylist = DNPLAB_CONFIG[exp_type].keys()
-            attrs_tpl=[ (k.lstrip("showPar_"),k) for k in keylist if (k.startswith("_showPar") and not k.endswith("_scaling"))]
+            keylist = list(DNPLAB_CONFIG[exp_type].keys())
+            attrs_tpl=[ (k.lstrip("showpar_"),k) for k in keylist if (k.startswith("showpar_") and (not k.endswith("_scaling")) )]
             for attr,key in attrs_tpl:
                 try:
                     scaling = DNPLAB_CONFIG.getfloat(exp_type,key+"_scaling",fallback=1)
