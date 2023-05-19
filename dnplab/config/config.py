@@ -30,5 +30,5 @@ def _get_dnp_config(configname="dnplab_cfg.cfg"):
     config.read(config_read_list)
     return config
 
-
-DNPLAB_CONFIG = _get_dnp_config()
+if not "DNPLAB_CONFIG" in locals():
+    DNPLAB_CONFIG = _get_dnp_config()
