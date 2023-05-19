@@ -211,55 +211,24 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         else:
             _plt.title(title)
 
-        if DNPLAB_CONFIG.get(exp_type, "showPar", fallback=False) and showPar:
-            SW = coord[-1] - coord[0]
-            attrs = [
-                k.strip().strip("(").strip(")").split(",")
-                for k in DNPLAB_CONFIG[exp_type]["showPar"].split(";")
-            ]
-            prmString = ""
-            for k in attrs:
-                try:
-                    if len(k) == 4:
-                        label, attribute, round_value, scale_value = k
-                        scale_value = float(scale_value)
-                    else:
-                        label, attribute, round_value = k
-                        scale_value = 1
-                except ValueError as ve:
-                    warn(
-                        "could not unpack attribute tuple {0} into label, attribute and round_value (and possibly scale value) or convert scale value, skipping this entry!".format(
-                            k
-                        )
-                    )
-                    continue
-                try:
-                    try:
-                        prmString += (
-                            label.strip().strip(":")
-                            + ": "
-                            + str(
-                                round(
-                                    data.attrs[attribute] * scale_value,
-                                    int(round_value),
-                                )
-                            )
-                            + "\n"
-                        )
-                    except KeyError as e:
-                        warn(
-                            "Attribute {0} not in data.attributes, skipping this entry!".format(
-                                attribute
-                            )
-                        )
-                except ValueError as ve:
-                    warn(
-                        "Could not convert {0} to integer, skipping this entry because of error {1}".format(
-                            round_value, ve
-                        )
-                    )
-            prmString += "SW: " + str(round(SW, 2))
 
+        if showPar:
+
+            prmString = ""
+            keylist = DNPLAB_CONFIG[exp_type].keys()
+            attrs_tpl=[ (k.lstrip("showPar_"),k) for k in keylist if (k.startswith("_showPar") and not k.endswith("_scaling"))]
+            for attr,key in attrs_tpl:
+                try:
+                    scaling = DNPLAB_CONFIG.getfloat(exp_type,key+"_scaling",fallback=1)
+                    prmString+=DNPLAB_CONFIG[exp_type][key].format(data.attrs[attr]*scaling)
+                    prmString.strip()
+                    if prmString[-1] != '\n':
+                        prmString+='\n'
+                except KeyError:
+                    warn("Attribute {0} not in data.attributes, skipping this entry!".format(attr))
+
+            SW = coord[-1] - coord[0]
+            prmString += "SW: " + str(round(SW, 2))
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
             xmin, xmax, ymin, ymax = _plt.axis()
 
