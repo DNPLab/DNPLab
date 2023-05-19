@@ -211,21 +211,31 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         else:
             _plt.title(title)
 
-
         if showPar:
-
             prmString = ""
             keylist = list(DNPLAB_CONFIG[exp_type].keys())
-            attrs_tpl=[ (k.lstrip("showpar_"),k) for k in keylist if (k.startswith("showpar_") and (not k.endswith("_scaling")) )]
-            for attr,key in attrs_tpl:
+            attrs_tpl = [
+                (k.lstrip("showpar_"), k)
+                for k in keylist
+                if (k.startswith("showpar_") and (not k.endswith("_scaling")))
+            ]
+            for attr, key in attrs_tpl:
                 try:
-                    scaling = DNPLAB_CONFIG.getfloat(exp_type,key+"_scaling",fallback=1)
-                    prmString+=DNPLAB_CONFIG[exp_type][key].format(data.attrs[attr]*scaling)
+                    scaling = DNPLAB_CONFIG.getfloat(
+                        exp_type, key + "_scaling", fallback=1
+                    )
+                    prmString += DNPLAB_CONFIG[exp_type][key].format(
+                        data.attrs[attr] * scaling
+                    )
                     prmString.strip()
-                    if prmString[-1] != '\n':
-                        prmString+='\n'
+                    if prmString[-1] != "\n":
+                        prmString += "\n"
                 except KeyError:
-                    warn("Attribute {0} not in data.attributes, skipping this entry!".format(attr))
+                    warn(
+                        "Attribute {0} not in data.attributes, skipping this entry!".format(
+                            attr
+                        )
+                    )
 
             SW = coord[-1] - coord[0]
             prmString += "SW: " + str(round(SW, 2))
