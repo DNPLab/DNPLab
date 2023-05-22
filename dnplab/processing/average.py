@@ -2,7 +2,8 @@ from warnings import warn
 
 import numpy as _np
 
-def average(data, dim = "Average"):
+
+def average(data, dim="Average"):
     """Average a dimension
 
     Args:
@@ -19,8 +20,8 @@ def average(data, dim = "Average"):
 
     temp = data.copy()
     index = temp.index(dim)
-    temp.values = temp.values.sum(index)/_np.size(temp.coords[dim])
-    
+    temp.values = temp.values.sum(index) / _np.size(temp.coords[dim])
+
     temp.coords.pop(dim)
 
     return temp
