@@ -8,7 +8,7 @@ def fit(
     data,
     dim,
     p0,
-    fit_points=None,
+    fit_points=50,
     sigma=None,
     absolute_sigma=False,
     check_finite=True,
