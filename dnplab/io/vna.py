@@ -61,9 +61,7 @@ def import_snp(path):
 
         # TODO: Use list comprehension instead of two for loops
         for n in range(num):
-
             for m in range(num):
-
                 data[:, n, m] = raw[n::num, 1 + 2 * m] + 1j * raw[n::num, 2 * (1 + m)]
 
     return x, data

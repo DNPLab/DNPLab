@@ -1,4 +1,5 @@
 import numpy as _np
+from scipy.constants import *
 
 #####################################
 # Gyromagnetic Properties of nuclei #
@@ -191,7 +192,6 @@ def mr_properties(nucleus, *args):
         return gmr
 
     elif len(args) == 1:
-
         if isinstance(args[0], str):
             if args[0] == "gamma":
                 return gmrProperties.get(nucleus)[1]
@@ -218,18 +218,17 @@ def mr_properties(nucleus, *args):
                 print("Keyword not recognize")
 
         else:
-            vLarmor = args[0] * gmr * 1e7 / 2 / _np.pi
+            vLarmor = args[0] * gmr * 1e7 / 2 / pi
             return vLarmor
 
     elif len(args) == 2:
-
         if args[1] == True:
             print(" ")
             print("Nucleus                    : ", nucleus)
             print("Spin                       : ", gmrProperties.get(nucleus)[0])
             print(
                 "Gyromagnetic Ratio [kHz/T] : %5.2f"
-                % (gmrProperties.get(nucleus)[1] * 10 / 2 / _np.pi)
+                % (gmrProperties.get(nucleus)[1] * 10 / 2 / pi)
             )
             print(
                 "Natural Abundance      [%%] : %5.2f" % (gmrProperties.get(nucleus)[3])

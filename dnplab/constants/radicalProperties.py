@@ -1,5 +1,6 @@
 import numpy as _np
 from . import mr_properties
+from scipy.constants import *
 
 #######################################
 # EPR Properties of Selected Radicals #
@@ -26,21 +27,27 @@ radicalProperties["tempo2"] = [[2.00909, 2.00621, 2.00222], "14N", [20.2, 20.2, 
 # Bennati et al., JMR, 1999. (2H couplings were scaled to 1H)
 radicalProperties["bdpa"] = [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.0]]
 
+# DPPH, neat
+# Krzystek et al., JMR, 1997
+radicalProperties["dpph_neat"] = [2.0036, None, [0]]
+
 
 def radical_properties(name):
     """Return properties of different radicals. At the minimum the g value is returned. If available, large hyperfine couplings to a nucleus are returned. Add new properties or new radicals to radicalProperties.py
 
-    +-----------+---------------------------------------------------------------+
-    | arg       |  returns                                                      |
-    +===========+===============================================================+
-    | "gfree"   | 2.00231930436153                                              |
-    +-----------+---------------------------------------------------------------+
-    | "tempo1"  | [[2.00980, 2.00622, 2.00220], "14N", [16.8, 20.5, 95.9]]      |
-    +-----------+---------------------------------------------------------------+
-    | "tempo2"  | [[2.00909, 2.00621, 2.00222], "14N", [20.2, 20.2, 102.1]]     |
-    +-----------+---------------------------------------------------------------+
-    | "bdpa"    | [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.0]]       |
-    +-----------+---------------------------------------------------------------+
+    +-------------+---------------------------------------------------------------+
+    | arg         |  returns                                                      |
+    +=============+===============================================================+
+    | "gfree"     | 2.00231930436153                                              |
+    +-------------+---------------------------------------------------------------+
+    | "tempo1"    | [[2.00980, 2.00622, 2.00220], "14N", [16.8, 20.5, 95.9]]      |
+    +-------------+---------------------------------------------------------------+
+    | "tempo2"    | [[2.00909, 2.00621, 2.00222], "14N", [20.2, 20.2, 102.1]]     |
+    +-------------+---------------------------------------------------------------+
+    | "bdpa"      | [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.0]]       |
+    +-------------+---------------------------------------------------------------+
+    | "ddph_neat" | 2.0036                                                        |
+    +-------------+---------------------------------------------------------------+
 
     Args:
         name (str): Name of the radical
@@ -109,7 +116,7 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     AisoMHz = _np.sum(A) / A.size
 
     gmr_e = mr_properties("0e")
-    AisoT = AisoMHz / gmr_e / 2 / _np.pi
+    AisoT = AisoMHz / gmr_e / 2 / pi
 
     if nucleus != None:
         nucSpin = mr_properties(nucleus, "spin")
@@ -134,7 +141,7 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     for b in B:
         print("Transition: ", m)
         print("B                    (T) :  %6.4f" % b)
-        nmr = mr_properties("1H") * b * 10 / 2 / _np.pi
+        nmr = mr_properties("1H") * b * 10 / 2 / pi
         print("NMR Frequency      (MHz) :  %6.3f" % nmr)
         print("")
         m += 1

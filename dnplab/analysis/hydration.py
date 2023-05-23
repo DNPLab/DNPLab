@@ -1,6 +1,7 @@
 import numpy as _np
 from scipy import optimize
 import warnings
+from scipy.constants import *
 
 
 def calculate_smax(spin_C=False):
@@ -81,7 +82,6 @@ def interpolate_T1(
 
     # linear fit, Franck et al. PNMRS (Eq. 39)
     elif interpolate_method == "linear":
-
         linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
 
         p = _np.polyfit(T1_powers, linear_t1, 1)
@@ -454,7 +454,7 @@ def hydration(data={}, constants={}):
     # gamma_H is from NIST. The magnetic_field cancels in the following omega_ratio but you
     # need these individually for the spectral density functions later.
 
-    omega_ratio = (omega_e / (2 * _np.pi)) / (omega_H / (2 * _np.pi))
+    omega_ratio = (omega_e / (2 * pi)) / (omega_H / (2 * pi))
     # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular
     # frequency units in order to correspond to S_0/I_0, this is also ~= to the
     # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq

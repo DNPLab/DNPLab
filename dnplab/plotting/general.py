@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as _plt
 import numpy as _np
 from warnings import warn
 
@@ -10,12 +10,23 @@ dark_grey = "#4D4D4F"
 light_grey = "#A7A9AC"
 orange = "#F37021"
 
-plt.rcParams["lines.linewidth"] = 1.5
-plt.rcParams["axes.prop_cycle"] = plt.cycler(
+_plt.rcParams["lines.linewidth"] = 1.5
+_plt.rcParams["axes.prop_cycle"] = _plt.cycler(
     color=[orange, dark_green, light_green, dark_grey, light_grey]
 )
 
-show = plt.show
+show = _plt.show
+
+# hand curated list of plotting arguments that are forwarded, note that this should probably be in a config file (refactoring needed)
+forwarded_pyplot_plots = [
+    "semilogy",
+    "semilogx",
+    "polar",
+    "loglog",
+    "scatter",
+    "errorbar",
+    "step",
+]
 
 
 def plot(data, *args, **kwargs):
@@ -25,6 +36,9 @@ def plot(data, *args, **kwargs):
         data (DNPData): DNPData object for matplotlib plot function
         args: args for matplotlib plot function
         kwargs: kwargs for matplotlib plot function
+
+        if any of semilogy, semilogx, polar, loglog, scatter, errorbar or step is in kwargs the argument will be evaluated with
+        bool(). If this evaluates to True the corresponding matplotlib function is used instead of the standard plot
 
     Returns:
         Returns formated matplotlib plot.
@@ -50,6 +64,14 @@ def plot(data, *args, **kwargs):
        >>> dnp.plot(data, 'k-', linewidth = 3.0, alpha = 0.5)
        >>> dnp.plt.show()
 
+       Plotting a DNPData object with a semilogy plot (possible arguments: semilogy=1, semilogy=True, semilogy="True")
+       Forwarded arguments: semilogy, semilogx, polar, loglog, scatter, errorbar or step
+       The absolute value is taken to ensure that the y axis is always positive
+
+       >>> dnp.plt.figure()
+       >>> dnp.plot(np.abs(data), 'k-', linewidth = 3.0, alpha = 0.5, semilogy=1)
+       >>> dnp.plt.show()
+
     """
 
     if "dim" in kwargs:
@@ -61,7 +83,18 @@ def plot(data, *args, **kwargs):
 
     data.unfold(dim)
 
-    plt.plot(coord, data.values.real, *args, **kwargs)
+    # will try to plot various pyplot utility plot functions into same axis, the use should know what he does!
+    # no unittest added, but only hand tested with semilogy and normal plot works as intended ni fancy_plot)
+    use_default = True
+    plot_function_list = []
+    for k in forwarded_pyplot_plots:
+        if bool(kwargs.pop(k, None)):
+            plot_function_list.append(getattr(_plt, k))
+            use_default = False
+    for f in plot_function_list:
+        f(coord, data.values.real, *args, **kwargs)
+    if use_default:
+        _plt.plot(coord, data.values.real, *args, **kwargs)
     data.fold()
 
 
@@ -105,42 +138,126 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     else:
         dim = data.dims[0]
 
-    plt.grid(True)
-    plt.title(title)
+    _plt.grid(True)
+    _plt.title(title)
 
     if data.attrs["experiment_type"] == "nmr_spectrum":
         coord = data.coords[dim]
         data.unfold(dim)
 
-        plt.plot(coord, data.values.real, *args, **kwargs)
-        plt.xlabel("Chemical Shift $\delta$ (ppm)")
-        plt.ylabel("NMR Signal Intensity (a.u.)")
+        _plt.plot(coord, data.values.real, *args, **kwargs)
+        _plt.xlabel("Chemical Shift $\delta$ (ppm)")
+        _plt.ylabel("NMR Signal Intensity (a.u.)")
 
-        plt.xlim(max(coord), min(coord))
+        _plt.xlim(max(coord), min(coord))
 
         if xlim != []:
-
-            plt.xlim(xlim[1], xlim[0])
+            _plt.xlim(xlim[1], xlim[0])
 
         if showPar == True:
-
             parameterString = "Freq: " + str(round(data.attrs["nmr_frequency"], 4))
 
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
-            xmin, xmax, ymin, ymax = plt.axis()
+            xmin, xmax, ymin, ymax = _plt.axis()
 
-            plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
+            _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
+
+    elif data.attrs["experiment_type"] == "saturation_recovery":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        _plt.plot(
+            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
+        )
+        _plt.xlabel("Evolution Time T1 [s]")
+        _plt.ylabel("Signal Intensity (a.u.)")
+
+        if xlim != []:
+            _plt.xlim(xlim[1], xlim[0])
+
+        if title == "":
+            _plt.title("Saturation Recovery")
+        else:
+            _plt.title(title)
+
+    elif data.attrs["experiment_type"] == "polarization_buildup":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        _plt.plot(
+            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
+        )
+        _plt.xlabel("Contact Time t$_c$ [s]")
+        _plt.ylabel("Signal Intensity (a.u.)")
+
+        if xlim != []:
+            _plt.xlim(xlim[1], xlim[0])
+
+        if title == "":
+            _plt.title("Polarization Build-Up")
+        else:
+            _plt.title(title)
+
+    elif data.attrs["experiment_type"] == "dnp_enhancement_profile_f":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        _plt.plot(coord, data.values.real, *args, **kwargs)
+        _plt.xlabel("Frequency [GHz]")
+        _plt.ylabel("DNP Intensity (a.u.)")
+
+        if xlim != []:
+            _plt.xlim(xlim[1], xlim[0])
+
+        if title == "":
+            _plt.title("DNP Enhancement Profile")
+        else:
+            _plt.title(title)
+
+    elif data.attrs["experiment_type"] == "eldor_profile":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        _plt.plot(coord, data.values.real, *args, **kwargs)
+        _plt.xlabel("Frequency [GHz]")
+        _plt.ylabel("ELDOR Intensity (a.u.)")
+
+        if xlim != []:
+            _plt.xlim(xlim[1], xlim[0])
+
+        if title == "":
+            _plt.title("ELDOR Spectrum")
+        else:
+            _plt.title(title)
+
+    elif data.attrs["experiment_type"] == "echo_decay":
+        coord = data.coords[dim]
+        data.unfold(dim)
+
+        _plt.plot(
+            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
+        )
+        _plt.xlabel("Decay Time [s]")
+        _plt.ylabel("Signal Intensity (a.u.)")
+
+        if xlim != []:
+            _plt.xlim(xlim[1], xlim[0])
+
+        if title == "":
+            _plt.title("Echo Decay")
+        else:
+            _plt.title(title)
 
     elif data.attrs["experiment_type"] == "epr_spectrum":
         coord = data.coords[dim]
         data.unfold(dim)
 
-        plt.plot(coord, data.values.real, *args, **kwargs)
-        plt.xlabel("Magnetic Field $B_{0}$ (mT)")
-        plt.ylabel("EPR Signal Intensity (a.u.)")
+        _plt.plot(coord, data.values.real, *args, **kwargs)
+        _plt.xlabel("Magnetic Field $B_{0}$ (mT)")
+        _plt.ylabel("EPR Signal Intensity (a.u.)")
 
         if xlim != []:
-            plt.xlim(xlim[0], xlim[1])
+            _plt.xlim(xlim[0], xlim[1])
 
         if showPar == True:
             SW = coord[-1] - coord[0]
@@ -163,9 +280,9 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             )
 
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
-            xmin, xmax, ymin, ymax = plt.axis()
+            xmin, xmax, ymin, ymax = _plt.axis()
 
-            plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
+            _plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
 
     elif (
         data.attrs["experiment_type"] == "enhancements_P"
@@ -174,12 +291,19 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         coord = data.coords[dim]
         data.unfold(dim)
 
-        plt.plot(coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs)
-        plt.xlabel("Microwave Power (dBm)")
-        plt.ylabel("DNP Enhancement")
+        _plt.plot(
+            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
+        )
+        _plt.xlabel("Microwave Power (dBm)")
+        _plt.ylabel("DNP Enhancement")
 
         if xlim != []:
-            plt.xlim(xlim[0], xlim[1])
+            _plt.xlim(xlim[0], xlim[1])
+
+        if title == "":
+            _plt.title("DNP Enhancement Power Build-Up")
+        else:
+            _plt.title(title)
 
         # if showPar == True:
 
@@ -187,7 +311,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         coord = data.coords[dim]
         data.unfold(dim)
 
-        plt.plot(
+        _plt.plot(
             coord * 1e-3,
             data.values.real,
             marker="o",
@@ -195,34 +319,43 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             *args,
             **kwargs
         )
-        plt.xlabel("Microwave Power (W)")
-        plt.ylabel("DNP Enhancement")
+        _plt.xlabel("Microwave Power (W)")
+        _plt.ylabel("DNP Enhancement")
 
         if xlim != []:
-            plt.xlim(xlim[0], xlim[1])
+            _plt.xlim(xlim[0], xlim[1])
+
+        if title == "":
+            _plt.title("DNP Enhancement Power Build-Up")
+        else:
+            _plt.title(title)
 
         # if showPar == True:
 
     elif data.attrs["experiment_type"] == "inversion_recovery":
-        plt.plot(
+        _plt.plot(
             data.coords["t1"],
-            data.values,
+            data.values.real,
             marker="o",
             fillstyle="none",
             *args,
             **kwargs
         )
 
-        plt.xlabel("Evolution Time T1 (s)")
-        plt.ylabel("NMR Amplitude [a.u.]")
+        _plt.xlabel("Evolution Time T1 (s)")
+        _plt.ylabel("NMR Amplitude [a.u.]")
 
         if xlim != []:
-            plt.xlim(xlim[0], xlim[1])
+            _plt.xlim(xlim[0], xlim[1])
+
+        if title == "":
+            _plt.title("Inversion Recovery")
+        else:
+            _plt.title(title)
 
         # if showPar == True:
 
     else:
-
-        plot(data)
+        plot(data, *args, **kwargs)
 
     data.fold()

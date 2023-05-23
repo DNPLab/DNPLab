@@ -236,7 +236,7 @@ class DNPData(ABCData):
         reverse_remove_axes = remove_axes[::-1]
         for index_ix, index_value in enumerate(reverse_remove_axes):
             self.coords.pop(index_value)
-            self.dims.pop(index_value)
+            # self.dims.pop(index_value) # dim is an attr of coords, this would pop twice
             self.values = _np.squeeze(self.values)
 
     def select(self, selection):

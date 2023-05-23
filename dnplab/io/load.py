@@ -4,7 +4,7 @@ from . import *
 from ..core.util import concat
 
 
-def load(path, data_type=None, dim=None, coord=None, verbose=False, *args, **kwargs):
+def load(path, data_type=None, dim=None, coord=[], verbose=False, *args, **kwargs):
     """Import data from different spectrometer formats
 
     Args:
@@ -44,6 +44,9 @@ def load(path, data_type=None, dim=None, coord=None, verbose=False, *args, **kwa
                 filename, data_type=data_type, verbose=verbose, *args, **kwargs
             )
             data_list.append(data)
+        # coord could be empty list
+        if len(coord) == 0:
+            coord = None  # to not break concat call signature
 
         return concat(data_list, dim=dim, coord=coord)
 
@@ -170,6 +173,8 @@ def autodetect(test_path, verbose=False):
         spectrometer_format = "vnmrj"
     elif path_exten in [".1d", ".2d", ".3d", ".4d"]:
         spectrometer_format = "prospa"
+    elif path_exten == ".tnt":
+        spectrometer_format = "tnmr"
     elif (
         os.path.isdir(test_path)
         and "acqu.par" in os.listdir(test_path)

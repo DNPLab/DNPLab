@@ -25,7 +25,7 @@ print(sys.path)
 # -- Project information -----------------------------------------------------
 
 project = "DNPLab"
-copyright = "2022, DNPLab"
+copyright = "2023, DNPLab"
 author = "DNPLab Team"
 
 from datetime import datetime
@@ -149,7 +149,7 @@ html_theme = "sphinx_rtd_theme"
 #
 # html_theme_options = {}
 html_theme_options = {
-    'analytics_id': 'G-917JV2CKD7',  #  Provided by Google in your dashboard
+    "analytics_id": "G-917JV2CKD7",  #  Provided by Google in your dashboard
     #     'analytics_anonymize_ip': False,
     #     'prev_next_buttons_location': 'bottom',
     #     'style_external_links': False,
