@@ -357,7 +357,7 @@ def prospa_attrs4dnplab(exp_attrs):
     dnplab_attrs["90_pulse_length"] = exp_attrs["90Amplitude"]
     dnplab_attrs["receiver_gain"] = exp_attrs["rxGain"]
     try:
-        dnplab_attrs["power"] = exp_attrs["Power"]
+        dnplab_attrs["power"] = exp_attrs["powerList"]
     except:
         pass
     try:
