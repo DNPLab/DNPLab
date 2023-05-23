@@ -1,5 +1,3 @@
-from warnings import warn
-
 import numpy as _np
 
 
@@ -19,9 +17,6 @@ def average(data, dim="Average"):
     """
 
     temp = data.copy()
-    index = temp.index(dim)
-    temp.values = temp.values.sum(index) / _np.size(temp.coords[dim])
-
-    temp.coords.pop(dim)
+    temp = _np.mean(temp, axis=dim)
 
     return temp
