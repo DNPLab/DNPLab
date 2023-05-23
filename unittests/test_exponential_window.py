@@ -26,4 +26,4 @@ class expoinential_window_tester(unittest.TestCase):
         dnp.plt.show()
 
 if __name__ == "__main__":
-    unittest.main()
+    pass
