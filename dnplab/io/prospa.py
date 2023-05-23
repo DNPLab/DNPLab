@@ -381,12 +381,18 @@ def prospa_attrs4dnplab(exp_attrs):
     dnplab_attrs["experiment_type"] = "nmr_spectrum"
     experiment = exp_attrs["experiment"]
     dnplab_attrs["prospa_program_name"] = experiment
-    dnplab_attrs["spectrometer_frequency"] = exp_attrs["frequency"] # Hz
+    dnplab_attrs["spectrometer_frequency"] = exp_attrs["nmr_frequency"] # Hz
     dnplab_attrs["number_of_scans"] = exp_attrs["nrScans"]
     dnplab_attrs["90_pulse_length"] = exp_attrs["90Amplitude"]
     dnplab_attrs["receiver_gain"] = exp_attrs["rxGain"]
-    dnplab_attrs["power"] = exp_attrs["power"]
-    dnplab_attrs["attenuation"] = exp_attrs["attenutaion"]
+    try:
+        dnplab_attrs["power"] = exp_attrs["power"]
+    except:
+        pass
+    try:
+        dnplab_attrs["attenuation"] = exp_attrs["attenuation"]
+    except:
+        pass
 
     if experiment == "T1-IR-FID" or experiment == "B12T_T1-IR-FID" or experiment == "B12T_T1-IR-FID_MPS":
         dnplab_attrs["minimum_delay"] = exp_attrs["minDelay"] * 1e-3 # s
