@@ -47,8 +47,11 @@ def load(path, data_type=None, dim=None, coord=[], verbose=False, *args, **kwarg
         # coord could be empty list
         if len(coord) == 0:
             coord = None  # to not break concat call signature
+            
+        data = concat(data_list, dim=dim, coord=coord)
+        data.dnplab_attrs[dim] = coord
 
-        return concat(data_list, dim=dim, coord=coord)
+        return data
 
     else:
         return load_file(path, data_type=data_type, verbose=verbose, *args, **kwargs)
