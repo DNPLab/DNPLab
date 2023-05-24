@@ -228,6 +228,12 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
 
     coords = [t2]
 
+    # Assign attrs of experiment here 
+    attrs["experiment"] = "Not Defined"
+
+    # Assign default attrs of nrScans here
+    attrs["nrScans"] = 1
+
     # This will not work for vdlist data
     if "acqu2s" in dir_list:
         if verbose:
@@ -237,6 +243,8 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
             dims.insert(0, "Average")
             t1 = 1.0 / acqu2s_params["SW_h"] * _np.arange(0, int(acqu2s_params["TD"]))
             coords.insert(0, _np.arange(0, int(acqu2s_params["TD"])))
+            attrs["experiment"] = "1D"
+            attrs["nrScans"] = int(acqu2s_params["TD"])
         else:
             dims.insert(0, "t1")
             t1 = 1.0 / acqu2s_params["SW_h"] * _np.arange(0, int(acqu2s_params["TD"]))
@@ -249,10 +257,12 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
             # assign vdlist to t1 by default
             if assign_vdlist == False:
                 assign_vdlist = 't1'
+                attrs["experiment"] = "2D IR"
 
             if assign_vdlist in dims:
                 index = dims.index(assign_vdlist)
                 coords[index] = vdlist
+                
             else:
                 raise ValueError("Could not identify dimension to assign vdlist")
 

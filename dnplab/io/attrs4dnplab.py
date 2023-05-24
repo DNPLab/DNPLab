@@ -30,10 +30,15 @@ def attrs4dnplab(exp_attrs):
 
         else:
             dnplab_attrs["experiment"] = "Not Defined"
-    
-        dnplab_attrs["number_of_scans"] = exp_attrs["nrScans"]
+        
         dnplab_attrs["90_pulse_length"] = exp_attrs["90Amplitude"]
         dnplab_attrs["receiver_gain"] = exp_attrs["rxGain"]
+
+
+    elif exp_attrs["spectrometer_format"] == "topspin":
+        dnplab_attrs["experiment"] = exp_attrs["experiment"] 
+    
+    dnplab_attrs["number_of_scans"] = exp_attrs["nrScans"]
 
 
     return dnplab_attrs
