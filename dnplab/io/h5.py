@@ -88,7 +88,7 @@ def read_dnpdata(dnpdata_group):
                     v = python_types[ix]
                 args_dict[arg] = v
             proc_attrs[step] = args_dict
-            
+
     data = DNPData(values, dims, coords, attrs, dnplab_attrs, proc_attrs)
     return data
 
@@ -116,18 +116,22 @@ def save_h5(dataDict, path, overwrite=False):
 
     f = h5py.File(path, mode)
 
-    for key in keysList:
-        dnpDataObject = dataDict[key]
-        
-        dnpDataGroup = f.create_group(key, track_order=True)
-        if isinstance(dnpDataObject, DNPData):
-            write_dnpdata(dnpDataGroup, dnpDataObject)
-        elif isinstance(dnpDataObject, dict):
-            write_dict(dnpDataGroup, dnpDataObject)
-        else:
-            warnings.warn("Could not write key: %s" % str(key))
+    try:
+        for key in keysList:
+            dnpDataObject = dataDict[key]
+            dnpDataGroup = f.create_group(key, track_order=True)
+            if isinstance(dnpDataObject, DNPData):
+                write_dnpdata(dnpDataGroup, dnpDataObject)
+            elif isinstance(dnpDataObject, dict):
+                write_dict(dnpDataGroup, dnpDataObject)
+            else:
+                warnings.warn("Could not write key: %s" % str(key))
 
-    f.close()
+        f.close()
+    
+    except:
+        f.close()
+        raise Warning("h5 close due to error")
 
 
 def write_dnpdata(dnpDataGroup, dnpDataObject):
