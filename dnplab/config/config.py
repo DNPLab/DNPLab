@@ -13,9 +13,9 @@ def _kwarg_converter(s: str):
     for k in tokens:
         subtokens = k.split("=")
         if len(subtokens) == 1:
-            args.append(k)
+            args.append(k[0])
         else:
-            kwargs[subtokens[0]] = subtokens[1]
+            kwargs[subtokens[0].strip()] = subtokens[1].strip()
     return args, kwargs
 
 
