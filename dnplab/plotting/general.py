@@ -200,15 +200,29 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             *args,
             **plt_config_kwargs
         )
-        _plt.xlabel(get_key("xlabel"))
-        _plt.ylabel(get_key("ylabel"))
 
         if xlim != []:
             _plt.xlim(xlim[1], xlim[0])
 
-        if title == "":
-            _plt.title(get_key("title"))
-        else:
+        ax = _plt.gca()
+        fig = _plt.gcf()
+        for key in DNPLAB_CONFIG[exp_type].keys():
+            if key.startswith("ax.") or key.startswith("fig."):
+                args, kwargs = DNPLAB_CONFIG.getargs_kwargs(exp_type, key)
+                prm_key = key.lstrip("ax.").lstrip("fig.")
+                try:
+                    if key.startswith("ax."):
+                        getattr(ax, prm_key)(*args, **kwargs)
+                    else:
+                        getattr(fig, prm_key)(*args, **kwargs)
+                except ValueError as e:
+                    warn(
+                        "Could not set ax/fig attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(
+                            prm_key, (args, kwargs), e
+                        )
+                    )
+
+        if title != "":
             _plt.title(title)
 
         if showPar:
@@ -243,30 +257,6 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             xmin, xmax, ymin, ymax = _plt.axis()
 
             _plt.text(xmin * 1.001, ymin * 0.90, prmString, bbox=box_style)
-        ax = _plt.gca()
-        fig = _plt.gcf()
-        for key in DNPLAB_CONFIG[exp_type].keys():
-            value = DNPLAB_CONFIG[exp_type][key]
-            if key.startswith("ax."):
-                ax_key = key.lstrip("ax.")
-                try:
-                    getattr(ax, ax_key)(value)
-                except ValueError as e:
-                    warn(
-                        "Could not set ax attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(
-                            ax_key, value, e
-                        )
-                    )
-            if key.startswith("fig."):
-                fig_key = key.lstrip("fig.")
-                try:
-                    getattr(fig, fig_key)(value)
-                except ValueError as e:
-                    warn(
-                        "Could not set figure attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(
-                            fig_key, value, e
-                        )
-                    )
 
     else:
         plot(data, *args, **kwargs)

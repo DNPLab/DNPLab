@@ -6,12 +6,24 @@ from pathlib import Path
 import warnings
 
 
-def _get_dnp_config(configname="dnplab_cfg.cfg"):
+def _kwarg_converter(s: str):
+    tokens = s.strip("[").strip("]").split(",")
+    args = []
+    kwargs = {}
+    for k in tokens:
+        subtokens = k.split("=")
+        if len(subtokens) == 1:
+            args.append(k)
+        else:
+            kwargs[subtokens[0]] = subtokens[1]
+    return args, kwargs
+
+
+def _get_dnp_config(configname="dnplab.cfg"):
     config = configparser.ConfigParser(
         converters={
-            "list": lambda x: list(
-                x.strip("(").strip("[").strip("]").strip(")").split(",")
-            )
+            "list": lambda x: list(x.strip("[").strip("]").split(",")),
+            "args_kwargs": _kwarg_converter,
         }
     )
 
