@@ -64,6 +64,17 @@ def import_bes3t(path):
         raise TypeError("data file must be .DTA, .DSC, .YGF, or .ZGF")
 
     attrs = load_dsc(path_dsc)
+    if '1d' in path_dsc.lower():
+        attrs['experiment'] = '1D'
+    elif '2d' in path_dsc.lower():
+        attrs['experiment'] = '2D'
+    elif 'deer' in path_dsc.lower():
+        attrs['experiment'] = 'DEER'
+    elif 'hyscore' in path_dsc.lower():
+        attrs['experiment'] = 'HYSCORE'
+    else:
+        attrs['experiment'] = 'Not Defined'
+
     values, dims, coords, attrs = load_dta(
         path_dta, path_xgf, path_ygf, path_zgf, attrs
     )
