@@ -9,6 +9,7 @@ def attrs4dnplab(exp_attrs):
     """
     dnplab_attrs = {}
     dnplab_attrs["experiment_type"] = "nmr_spectrum"
+    dnplab_attrs["experiment"] = exp_attrs["experiment"]
     dnplab_attrs["spectrometer_format"] = exp_attrs["spectrometer_format"]
     dnplab_attrs["spectrometer_frequency"] = exp_attrs["nmr_frequency"] # Hz
 
