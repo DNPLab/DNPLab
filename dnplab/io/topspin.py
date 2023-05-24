@@ -232,9 +232,28 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
         if verbose:
             print("Loading acqu2s")
         acqu2s_params = load_acqu(os.path.join(path, "acqu2s"), verbose=verbose)
-        dims.insert(0, "t1")
-        t1 = 1.0 / acqu2s_params["SW_h"] * _np.arange(0, int(acqu2s_params["TD"]))
-        coords.insert(0, t1)
+        if "vdlist" not in dir_list:
+            dims.insert(0, "Average")
+            t1 = 1.0 / acqu2s_params["SW_h"] * _np.arange(0, int(acqu2s_params["TD"]))
+            coords.insert(0, _np.arange(0, int(acqu2s_params["TD"])))
+        else:
+            dims.insert(0, "t1")
+            t1 = 1.0 / acqu2s_params["SW_h"] * _np.arange(0, int(acqu2s_params["TD"]))
+            coords.insert(0, t1)
+
+            if verbose:
+                print("Assigning vdlist to %s dim" % assign_vdlist)
+            vdlist = topspin_vdlist(path)
+
+            # assign vdlist to t1 by default
+            if assign_vdlist == False:
+                assign_vdlist = 't1'
+
+            if assign_vdlist in dims:
+                index = dims.index(assign_vdlist)
+                coords[index] = vdlist
+            else:
+                raise ValueError("Could not identify dimension to assign vdlist")
 
     # 3d data must be tested
     if "acqu3s" in dir_list:
@@ -250,16 +269,16 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
         print("Raw Data Shape:", _np.shape(values))
         print("reshaping data to:", new_shape)
 
-    if assign_vdlist:
-        if verbose:
-            print("Assigning vdlist to %s dim" % assign_vdlist)
-        vdlist = topspin_vdlist(path)
-        if assign_vdlist in dims:
-            index = dims.index(assign_vdlist)
-            coords[index] = vdlist
+    # if assign_vdlist:
+    #     if verbose:
+    #         print("Assigning vdlist to %s dim" % assign_vdlist)
+    #     vdlist = topspin_vdlist(path)
+    #     if assign_vdlist in dims:
+    #         index = dims.index(assign_vdlist)
+    #         coords[index] = vdlist
 
-        else:
-            raise ValueError("Could not identify dimension to assign vdlist")
+    #     else:
+    #         raise ValueError("Could not identify dimension to assign vdlist")
 
     # reshape values
     values = values.reshape(new_shape)
