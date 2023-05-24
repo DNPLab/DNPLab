@@ -1,6 +1,7 @@
 import numpy as _np
 import re
 from warnings import warn
+from .attrs4dnplab import *
 
 from .. import DNPData
 
@@ -269,17 +270,6 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
         print("Raw Data Shape:", _np.shape(values))
         print("reshaping data to:", new_shape)
 
-    # if assign_vdlist:
-    #     if verbose:
-    #         print("Assigning vdlist to %s dim" % assign_vdlist)
-    #     vdlist = topspin_vdlist(path)
-    #     if assign_vdlist in dims:
-    #         index = dims.index(assign_vdlist)
-    #         coords[index] = vdlist
-
-    #     else:
-    #         raise ValueError("Could not identify dimension to assign vdlist")
-
     # reshape values
     values = values.reshape(new_shape)
 
@@ -298,8 +288,12 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     # Assign spectrometer format
     attrs["spectrometer_format"] = "topspin"
 
+    # Convert experimental attrs to dnplab attrs:
+
+    dnplab_attrs = attrs4dnplab(attrs)
+
     # create data object
-    topspin_data = DNPData(values, dims, coords, attrs=attrs)
+    topspin_data = DNPData(values, dims, coords, attrs=attrs, dnplab_attrs=dnplab_attrs)
 
     # reorder so that 't2' is first
     topspin_data.reorder(["t2"])
