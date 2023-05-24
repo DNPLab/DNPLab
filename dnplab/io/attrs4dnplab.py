@@ -8,11 +8,13 @@ def attrs4dnplab(exp_attrs):
         dnplab_attrs (dict): Dictionary of parameters used in dnplab
     """
     dnplab_attrs = {}
-    dnplab_attrs["experiment_type"] = "nmr_spectrum"
+    dnplab_attrs["experiment_type"] = exp_attrs["experiment_type"]
     dnplab_attrs["spectrometer_format"] = exp_attrs["spectrometer_format"]
-    dnplab_attrs["spectrometer_frequency"] = exp_attrs["nmr_frequency"] # Hz
+    
 
     if exp_attrs["spectrometer_format"] == "prospa":
+
+        dnplab_attrs["spectrometer_frequency"] = exp_attrs["nmr_frequency"] # Hz
 
         if '1Pulse' in exp_attrs["experiment"]:
             dnplab_attrs["experiment"] = "1D"
@@ -30,15 +32,30 @@ def attrs4dnplab(exp_attrs):
 
         else:
             dnplab_attrs["experiment"] = "Not Defined"
-        
+        dnplab_attrs["spectrometer_frequency"] = exp_attrs["nmr_frequency"] # Hz
         dnplab_attrs["90_pulse_length"] = exp_attrs["90Amplitude"]
         dnplab_attrs["receiver_gain"] = exp_attrs["rxGain"]
 
-
     elif exp_attrs["spectrometer_format"] == "topspin":
         dnplab_attrs["experiment"] = exp_attrs["experiment"] 
-    
+
+    elif exp_attrs["spectrometer_format"] == "xepr":
+        dnplab_attrs["spectrometer_frequency"] = exp_attrs["frequency"] * 1e9
+
+        if exp_attrs["x_unit"] == "G":
+            dnplab_attrs["center_field"] = exp_attrs["center_field"] * 1e5 # T
+        elif exp_attrs["x_unit"] == "T":
+            dnplab_attrs["center_field"] = exp_attrs["center_field"] # T
+
+        dnplab_attrs["power"] = exp_attrs["power"] # W
+        dnplab_attrs["attenuation"] = exp_attrs["attenuation"]
+        dnplab_attrs["conversion_time"] = exp_attrs["conversion_time"] * 1e-3 # s
+        dnplab_attrs["modulation_amplitude"] = exp_attrs["modulation_amplitude"]
+        dnplab_attrs["modulation_frequency"] = exp_attrs["modulation_frequency"] * 1e3 # Hz
+        dnplab_attrs["time_constant"] = exp_attrs["time_constant"] * 1e-3 # s
+
     dnplab_attrs["number_of_scans"] = exp_attrs["nrScans"]
 
-
     return dnplab_attrs
+
+
