@@ -737,7 +737,7 @@ class ABCData(object):
         if a.error is not None:
             a.error = a.error.std(index)
         a.coords.pop(dim)
-        warnings.warn("Method '.sum()' will be removed")
+        DeprecationWarning("Method '.sum()' will be removed")
         return a
 
     def align(self, b):
