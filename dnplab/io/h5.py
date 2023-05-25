@@ -77,19 +77,16 @@ def read_dnpdata(dnpdata_group):
         for k in dnpdata_group["dnplab_attrs"]:
             v = dnpdata_group["dnplab_attrs"][k][:]
             dnplab_attrs[k] = v
+    
+    data = DNPData(values, dims, coords, attrs, dnplab_attrs)
             
     if "proc_attrs" in dnpdata_group.keys():
-        for step in dnpdata_group["proc_attrs"].keys():
-            args_dict = {}
-            for arg in dnpdata_group["proc_attrs"][step].attrs.keys():
-                v = dnpdata_group["proc_attrs"][step].attrs[arg]
-                if v in replace_types:
-                    ix = replace_types.index(v)
-                    v = python_types[ix]
-                args_dict[arg] = v
-            proc_attrs[step] = args_dict
+        proc_attrs = []
+        for k in dnpdata_group["proc_attrs"].keys():
+            proc_attrs_name = k.split(":", 1)[1]
+            proc_attrs_dict = dict(dnpdata_group["proc_attrs"][k].attrs)
+            data.add_proc_attrs(proc_attrs_name, proc_attrs_dict)
 
-    data = DNPData(values, dims, coords, attrs, dnplab_attrs, proc_attrs)
     return data
 
 
@@ -185,19 +182,18 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
 
     # Save proc_steps
     if hasattr(dnpDataObject, "proc_attrs"):
+        proc_attrs = dnpDataObject.proc_attrs
         proc_attrs_group = dnpDataGroup.create_group("proc_attrs", track_order=True)
-        for step in dnpDataObject.proc_attrs:
-            proc_attrs_args_group = proc_attrs_group.create_group(step, track_order = True)
-            for args in dnpDataObject.proc_attrs[step].keys():
-                value = dnpDataObject.proc_attrs[step][args]
-
-                if isinstance(value, _np.ndarray):
-                    proc_attrs_args_group.create_dataset(args, data = value)
-                else:
-                    if value in python_types:
-                        ix = python_types.index(value)
-                        value = replace_types[ix]
-                proc_attrs_args_group.attrs[args] = value
+        for ix in range(len(proc_attrs)):
+            proc_step_name = proc_attrs[ix][0]
+            proc_dict = proc_attrs[ix][1]
+            proc_attrs_group_subgroup = proc_attrs_group.create_group(
+                "%i:%s" % (ix, proc_step_name)
+            )
+            for key in proc_dict:
+                value = proc_dict[key]
+                if value is not None:
+                    proc_attrs_group_subgroup.attrs[key] = value
 
 
 def write_dict(dnpDataGroup, dnpDataObject):

@@ -32,7 +32,7 @@ class DNPData(ABCData):
     """
 
     def __init__(
-        self, values=_np.r_[[]], dims=[], coords=[], attrs = {}, dnplab_attrs = {}, proc_attrs={}
+        self, values=_np.r_[[]], dims=[], coords=[], attrs = {}, dnplab_attrs = {}, proc_attrs=None
     ):
         """
         DNPData Class __init__ method
@@ -44,7 +44,7 @@ class DNPData(ABCData):
             attrs (dict): dictionary of parameters
             exp_attrs (dict): dictionary of experiment parameters
             dnplab_attrs (dict): dictionary of parameters used in dnplab 
-            pro_attrs (dict): dictionary of parameters used in data processing
+            pro_attrs (list): list of processing steps and arguments
         """
 
         if len(dims) > 0 and isinstance(dims[0], list):
@@ -55,7 +55,10 @@ class DNPData(ABCData):
         self.attrs = attrs
         self.exp_attrs = attrs
         self.dnplab_attrs = dnplab_attrs
-        self.proc_attrs = proc_attrs
+        if proc_attrs is not None:
+            self.proc_attrs = proc_attrs
+        else:
+            self.proc_attrs = []
         self.max_print_attrs = 5
         self.print_values = False
 
@@ -159,19 +162,23 @@ class DNPData(ABCData):
         print("-----------------")
         print("Processing Attributes")
         print("-----------------")
-        if self.proc_attrs == {}:
-            print("none.")
+        if self.proc_attrs == []:
+            print("None")
         else:
-            longest_key = max(self.proc_attrs, key = len)
+            steps = list(zip(*self.proc_attrs))[0]
+            values_dict = list(zip(*self.proc_attrs))[1]
+            longest_key = max(steps, key = len)
             maximum_length_of_proc_attrs = len(longest_key)
-            for x in self.proc_attrs:
-                spaces = " " * (1 + maximum_length_of_proc_attrs - len(x))
+            for index in range(len(steps)):
+                spaces = " " * (1 + maximum_length_of_proc_attrs - len(steps[index]))
+                # fix length of step index
                 print(
+                    '{:2d}'.format(index+1),
                     '| '
-                    + x
+                    + steps[index]
                     + spaces
                     + '| '
-                    + str(self.proc_attrs[x])
+                    + str(values_dict[index])
                     .replace("{", "")
                     .replace("}", "")
                     .replace("'", "")
@@ -203,8 +210,7 @@ class DNPData(ABCData):
         if not isinstance(proc_dict, dict):
             raise ValueError("Processing dictionary must be dictionary")
 
-        # self.proc_attrs.append((proc_attr_name, proc_dict))
-        self.proc_attrs[proc_attr_name] = proc_dict
+        self.proc_attrs.append((proc_attr_name, proc_dict))
 
     def phase(self):
         """
