@@ -32,7 +32,13 @@ class DNPData(ABCData):
     """
 
     def __init__(
-        self, values=_np.r_[[]], dims=[], coords=[], attrs = {}, dnplab_attrs = {}, proc_attrs=None
+        self,
+        values=_np.r_[[]],
+        dims=[],
+        coords=[],
+        attrs={},
+        dnplab_attrs={},
+        proc_attrs=None,
     ):
         """
         DNPData Class __init__ method
@@ -43,7 +49,7 @@ class DNPData(ABCData):
             dims (list): list of strings which are names of axes
             attrs (dict): dictionary of parameters
             exp_attrs (dict): dictionary of experiment parameters
-            dnplab_attrs (dict): dictionary of parameters used in dnplab 
+            dnplab_attrs (dict): dictionary of parameters used in dnplab
             pro_attrs (list): list of processing steps and arguments
         """
 
@@ -114,19 +120,13 @@ class DNPData(ABCData):
         print("Experiment Attributes")
         print("-----------------")
         if self.attrs == {}:
-            print("none.")
+            print("None")
         else:
-            longest_key = max(self.attrs, key = len)
+            longest_key = max(self.attrs, key=len)
             maximum_length_of_attrs = len(longest_key)
             for x in self.attrs:
                 spaces = " " * (1 + maximum_length_of_attrs - len(x))
-                print(
-                    '| '
-                    + x
-                    + spaces
-                    + '| '
-                    + str(self.attrs[x])
-                    )
+                print("| " + x + spaces + "| " + str(self.attrs[x]))
 
     def dnplab_info(self):
         """
@@ -137,22 +137,22 @@ class DNPData(ABCData):
         print("DNPLab Attributes")
         print("-----------------")
         if self.dnplab_attrs == {}:
-            print("none.")
+            print("None")
         else:
-            longest_key = max(self.dnplab_attrs, key = len)
+            longest_key = max(self.dnplab_attrs, key=len)
             maximum_length_of_dnplab_attrs = len(longest_key)
             for x in self.dnplab_attrs:
                 spaces = " " * (1 + maximum_length_of_dnplab_attrs - len(x))
                 print(
-                    '| '
+                    "| "
                     + x
                     + spaces
-                    + '| '
+                    + "| "
                     + str(self.dnplab_attrs[x])
                     .replace("{", "")
                     .replace("}", "")
                     .replace("'", "")
-                    )
+                )
 
     def proc_info(self):
         """
@@ -167,33 +167,36 @@ class DNPData(ABCData):
         else:
             steps = list(zip(*self.proc_attrs))[0]
             values_dict = list(zip(*self.proc_attrs))[1]
-            longest_key = max(steps, key = len)
+            longest_key = max(steps, key=len)
             maximum_length_of_proc_attrs = len(longest_key)
             for index in range(len(steps)):
                 spaces = " " * (1 + maximum_length_of_proc_attrs - len(steps[index]))
                 # fix length of step index
                 print(
-                    '{:2d}'.format(index+1),
-                    '| '
+                    "{:2d}".format(index + 1),
+                    "| "
                     + steps[index]
                     + spaces
-                    + '| '
+                    + "| "
                     + str(values_dict[index])
                     .replace("{", "")
                     .replace("}", "")
-                    .replace("'", "")
-                    )
-    def show_attrs(self, show_exp_info = False, show_dnplab_info = True, show_proc_info = True):
+                    .replace("'", ""),
+                )
+
+    def show_attrs(
+        self, show_exp_info=False, show_dnplab_info=True, show_proc_info=True
+    ):
         """
         Print experiment attributes, dnplab attributes and processing steps
         """
 
         if show_exp_info:
             self.exp_info()
-        
+
         if show_dnplab_info:
             self.dnplab_info()
-        
+
         if show_proc_info:
             self.proc_info()
 

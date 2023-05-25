@@ -77,9 +77,9 @@ def read_dnpdata(dnpdata_group):
         for k in dnpdata_group["dnplab_attrs"]:
             v = dnpdata_group["dnplab_attrs"][k][:]
             dnplab_attrs[k] = v
-    
+
     data = DNPData(values, dims, coords, attrs, dnplab_attrs)
-            
+
     if "proc_attrs" in dnpdata_group.keys():
         proc_attrs = []
         for k in dnpdata_group["proc_attrs"].keys():
@@ -125,7 +125,7 @@ def save_h5(dataDict, path, overwrite=False):
                 warnings.warn("Could not write key: %s" % str(key))
 
         f.close()
-    
+
     except:
         f.close()
         raise Warning("h5 close due to error")
@@ -168,7 +168,7 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
     # Save DNPLab Attributes
     if hasattr(dnpDataObject, "dnplab_attrs"):
         dnplab_attrs_group = dnpDataGroup.create_group("dnplab_attrs", track_order=True)
-        
+
         for key in dnpDataObject.dnplab_attrs:
             value = dnpDataObject.dnplab_attrs[key]
 

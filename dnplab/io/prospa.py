@@ -71,7 +71,7 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
     dims, coords = prospa_coords(attrs, data_shape, experiment=experiment)
 
     kea_data = DNPData(data, dims, coords, attrs, dnplab_attrs)
-    
+
     return kea_data
 
 
@@ -340,5 +340,3 @@ def prospa_coords(attrs, data_shape, experiment):
             coords[0] = x
 
     return dims, coords
-
-    
