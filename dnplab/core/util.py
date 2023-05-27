@@ -64,7 +64,7 @@ def update_axis(data, new_dims, start_stop, spacing="lin", verbose=False):
     The function is currently implemented for 1D objects only.
 
     Args:
-        data (DNPData): dnpData objetc
+        data (DNPData): dnpData object
         new_dims (str): Name of the new dimension. If None the name will not be changed.
         start_stop(tuple or vector): Coords for new dimension
         spacing (str): "lin" for linear spaced axis or "log" for logarithmically spaced axis
