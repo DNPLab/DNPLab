@@ -56,7 +56,7 @@ def concat(data_list, dim, coord=None):
     return data
 
 
-def update_axis(data, new_dims, start_stop, spacing="lin", verbose=False):
+def update_axis(data, old_dims= 0, new_dims, start_stop, spacing="lin", verbose=False):
     """Update axis
 
     Update dimensions (dims) and axis (coords) of a dnpDate object. The name of the dims will be replaced with the name giving in new_dims. The variable start_stop defines the values of the new coords. This can be either a tuple (start values, stop value) or a vector with values. If the start and stop value is provided, either a linear axis (spacing = "lin", default) or a logarithmically space (spacing = "log") will be created. The new axis will replace the coords in the dnpdata object.
@@ -76,9 +76,9 @@ def update_axis(data, new_dims, start_stop, spacing="lin", verbose=False):
     out = data.copy()
 
     if new_dims == None:
-        new_dims = out.dims[0]
+        new_dims = out.dims[old_dims]
 
-    out.rename(out.dims[0], new_dims)
+    out.rename(out.dims[old_dims], new_dims)
 
     if verbose == True:
         print("New dims name:", new_dims)
