@@ -154,7 +154,7 @@ class DNPData(ABCData):
                     .replace("'", "")
                 )
 
-    def proc_info(self):
+    def proc_info(self, step_name=None):
         """
         Print processing steps and parameters currently in proc_attrs list
         """
@@ -169,20 +169,24 @@ class DNPData(ABCData):
             values_dict = list(zip(*self.proc_attrs))[1]
             longest_key = max(steps, key=len)
             maximum_length_of_proc_attrs = len(longest_key)
+            if step_name != None and step_name not in steps:
+                print("step not found")
+                return
             for index in range(len(steps)):
                 spaces = " " * (1 + maximum_length_of_proc_attrs - len(steps[index]))
                 # fix length of step index
-                print(
-                    "{:2d}".format(index + 1),
-                    "| "
-                    + steps[index]
-                    + spaces
-                    + "| "
-                    + str(values_dict[index])
-                    .replace("{", "")
-                    .replace("}", "")
-                    .replace("'", ""),
-                )
+                if step_name == None or step_name == steps[index]:
+                    print(
+                        "{:2d}".format(index + 1),
+                        "| "
+                        + steps[index]
+                        + spaces
+                        + "| "
+                        + str(values_dict[index])
+                        .replace("{", "")
+                        .replace("}", "")
+                        .replace("'", ""),
+                    )
 
     def show_attrs(
         self, show_exp_info=False, show_dnplab_info=True, show_proc_info=True
