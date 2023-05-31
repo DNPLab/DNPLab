@@ -136,6 +136,16 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     _plt.grid(True)
     _plt.title(title)
 
+    fancyplot_possiblesections = list(DNPLAB_CONFIG.sections())
+    fancyplot_label = DNPLAB_CONFIG.get(
+        "PLOTTING", "fancyplot_label", fallback="FANCY_PLOT"
+    )
+    fancyplot_sections = [
+        k.strip(fancyplot_label).strip(":")
+        for k in fancyplot_possiblesections
+        if k.startswith(fancyplot_label)
+    ]
+
     if data.attrs["experiment_type"] == "nmr_spectrum":
         if "dim" in kwargs:
             dim = kwargs.pop("dim")
@@ -161,17 +171,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
-    fancyplot_possiblesections = list(DNPLAB_CONFIG.sections())
-    fancyplot_label = DNPLAB_CONFIG.get(
-        "PLOTTING", "fancyplot_label", fallback="FANCY_PLOT"
-    )
-    fancyplot_sections = [
-        k.strip(fancyplot_label).strip(":")
-        for k in fancyplot_possiblesections
-        if k.startswith(fancyplot_label)
-    ]
-
-    if data.attrs["experiment_type"] in fancyplot_sections:
+    elif data.attrs["experiment_type"] in fancyplot_sections:
         exp_type = fancyplot_label + ":" + data.attrs["experiment_type"]
         get_key = lambda x, fallback=None: DNPLAB_CONFIG.get(
             exp_type, x, fallback=fallback
