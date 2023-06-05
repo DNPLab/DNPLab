@@ -9,7 +9,7 @@ def load(path, data_format=None, dim=None, coord=[], verbose=False, *args, **kwa
 
     Args:
         path (str, list): Path to data directory or list of directories
-        data_format (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+        data_format (str): format of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
         dim (str): If giving directories as list, name of dimension to concatenate data along
         coord (numpy.ndarray): If giving directories as list, coordinates of new dimension
         verbose (bool): If true, print debugging output
@@ -63,7 +63,7 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
 
     Args:
         path (str): Path to data directory or file
-        data_format (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+        data_format (str): Format of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
         verbose (bool): If true, print additional debug outputs
         args: Arguments passed to spectrometer specific import function
         kwargs: Key word arguments passed to spectrometer specific import function
@@ -86,7 +86,7 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
         return topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
 
     elif data_format == "topspin pdata":
-        # import_topspin should also handle this type, this is a workaround
+        # import_topspin should also handle this format, this is a workaround
         return topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
 
     elif data_format == "delta":
@@ -186,7 +186,7 @@ def autodetect(test_path, verbose=False):
         data_format = "h5"
     else:
         raise TypeError(
-            "No data type given and autodetect failed to detect format, please specify a format"
+            "No data format given and autodetect failed to detect format, please specify a format"
         )
 
     if verbose:
