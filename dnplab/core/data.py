@@ -6,6 +6,7 @@ import numpy as _np
 
 from .base import ABCData
 from ..version import __version__
+from ..config.config import DNPLAB_CONFIG
 
 version = __version__
 
@@ -32,7 +33,7 @@ class DNPData(ABCData):
     """
 
     def __init__(
-        self, values=_np.r_[[]], dims=[], coords=[], attrs={}, proc_attrs=None
+        self, values=_np.r_[[]], dims=[], coords=[], attrs={}, proc_attrs=None, **kwargs
     ):
         """
         DNPData Class __init__ method
@@ -53,8 +54,16 @@ class DNPData(ABCData):
             self.proc_attrs = proc_attrs
         else:
             self.proc_attrs = []
-        self.max_print_attrs = 5
-        self.print_values = False
+
+        max_print_attrs = kwargs.pop(
+            "max_print_attrs", DNPLAB_CONFIG.getint("CORE", "DNPData_max_print_attrs")
+        )
+        print_values = kwargs.pop(
+            "print_values", DNPLAB_CONFIG.getboolean("CORE", "DNPData_print_values")
+        )
+
+        self.max_print_attrs = max_print_attrs
+        self.print_values = print_values
 
     @property
     def _constructor(self):

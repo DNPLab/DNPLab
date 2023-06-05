@@ -7,3 +7,4 @@ from .integration import *
 from .offset import *
 from .phase import *
 from .conversion import *
+from .average import *

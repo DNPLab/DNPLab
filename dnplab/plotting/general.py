@@ -3,30 +3,30 @@ import numpy as _np
 from warnings import warn
 
 from ..core.data import DNPData
+from ..config.config import DNPLAB_CONFIG
 
-dark_green = "#46812B"
-light_green = "#67AE3E"
-dark_grey = "#4D4D4F"
-light_grey = "#A7A9AC"
-orange = "#F37021"
+"""
+Standard dnplab colors
 
+dark_green = DNPLAB_CONFIG.get('COLORS','dark_green')
+light_green = DNPLAB_CONFIG.get('COLORS','light_green')
+dark_grey = DNPLAB_CONFIG.get('COLORS','dark_grey')
+light_grey = DNPLAB_CONFIG.get('COLORS','light_grey')
+orange=DNPLAB_CONFIG.get('COLORS','orange')
+"""
+
+# hand curated list of plotting arguments that are forwarded, from config file
+forwarded_pyplot_plots = DNPLAB_CONFIG.getlist("PLOTTING", "forwarded_pyplot_plots")
+
+
+cycler_list = [
+    DNPLAB_CONFIG.get("COLORS", color_key)
+    for color_key in DNPLAB_CONFIG["COLORS"].keys()
+]
 _plt.rcParams["lines.linewidth"] = 1.5
-_plt.rcParams["axes.prop_cycle"] = _plt.cycler(
-    color=[orange, dark_green, light_green, dark_grey, light_grey]
-)
+_plt.rcParams["axes.prop_cycle"] = _plt.cycler(color=cycler_list)
 
 show = _plt.show
-
-# hand curated list of plotting arguments that are forwarded, note that this should probably be in a config file (refactoring needed)
-forwarded_pyplot_plots = [
-    "semilogy",
-    "semilogx",
-    "polar",
-    "loglog",
-    "scatter",
-    "errorbar",
-    "step",
-]
 
 
 def plot(data, *args, **kwargs):
@@ -133,15 +133,24 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         plot(data, *args, **kwargs)
         return
 
-    if "dim" in kwargs:
-        dim = kwargs.pop("dim")
-    else:
-        dim = data.dims[0]
-
     _plt.grid(True)
     _plt.title(title)
 
+    fancyplot_possiblesections = list(DNPLAB_CONFIG.sections())
+    fancyplot_label = DNPLAB_CONFIG.get(
+        "PLOTTING", "fancyplot_label", fallback="FANCY_PLOT"
+    )
+    fancyplot_sections = [
+        k.strip(fancyplot_label).strip(":")
+        for k in fancyplot_possiblesections
+        if k.startswith(fancyplot_label)
+    ]
+
     if data.attrs["experiment_type"] == "nmr_spectrum":
+        if "dim" in kwargs:
+            dim = kwargs.pop("dim")
+        else:
+            dim = data.dims[0]
         coord = data.coords[dim]
         data.unfold(dim)
 
@@ -162,198 +171,92 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
-    elif data.attrs["experiment_type"] == "saturation_recovery":
-        coord = data.coords[dim]
+    elif data.attrs["experiment_type"] in fancyplot_sections:
+        exp_type = fancyplot_label + ":" + data.attrs["experiment_type"]
+        get_key = lambda x, fallback=None: DNPLAB_CONFIG.get(
+            exp_type, x, fallback=fallback
+        )
+        get_float_key = lambda x, fallback=1: DNPLAB_CONFIG.getfloat(
+            exp_type, x, fallback=fallback
+        )
+
+        dim = kwargs.pop(
+            "dim", DNPLAB_CONFIG.get(exp_type, "dim", fallback=data.dims[0])
+        )
+        coord = data.coords[dim] * get_float_key("coord_scaling")
         data.unfold(dim)
+        plt_config_kwargs = {
+            key.lstrip("__"): val
+            for key, val in DNPLAB_CONFIG[exp_type].items()
+            if key.startswith("__")
+        }
+        plt_config_kwargs.update(
+            kwargs
+        )  # calling values take precedence over config values
 
         _plt.plot(
-            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
+            coord,
+            data.values.real * get_float_key("value_scaling"),
+            *args,
+            **plt_config_kwargs
         )
-        _plt.xlabel("Evolution Time T1 [s]")
-        _plt.ylabel("Signal Intensity (a.u.)")
 
         if xlim != []:
             _plt.xlim(xlim[1], xlim[0])
 
-        if title == "":
-            _plt.title("Saturation Recovery")
-        else:
+        ax = _plt.gca()
+        fig = _plt.gcf()
+        for key in DNPLAB_CONFIG[exp_type].keys():
+            if key.startswith("ax.") or key.startswith("fig."):
+                args, kwargs = DNPLAB_CONFIG.getargs_kwargs(exp_type, key)
+                prm_key = key.lstrip("ax.").lstrip("fig.")
+                try:
+                    if key.startswith("ax."):
+                        getattr(ax, prm_key)(*args, **kwargs)
+                    else:
+                        getattr(fig, prm_key)(*args, **kwargs)
+                except ValueError as e:
+                    warn(
+                        "Could not set ax/fig attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(
+                            prm_key, (args, kwargs), e
+                        )
+                    )
+
+        if title != "":
             _plt.title(title)
 
-    elif data.attrs["experiment_type"] == "polarization_buildup":
-        coord = data.coords[dim]
-        data.unfold(dim)
+        if showPar:
+            prmString = ""
+            keylist = list(DNPLAB_CONFIG[exp_type].keys())
+            attrs_tpl = [
+                (k.lstrip("showpar_"), k)
+                for k in keylist
+                if (k.startswith("showpar_") and (not k.endswith("_scaling")))
+            ]
+            for attr, key in attrs_tpl:
+                try:
+                    scaling = DNPLAB_CONFIG.getfloat(
+                        exp_type, key + "_scaling", fallback=1
+                    )
+                    prmString += DNPLAB_CONFIG[exp_type][key].format(
+                        data.attrs[attr] * scaling
+                    )
+                    prmString.strip()
+                    if prmString[-1] != "\n":
+                        prmString += "\n"
+                except KeyError:
+                    warn(
+                        "Attribute {0} not in data.attributes, skipping this entry!".format(
+                            attr
+                        )
+                    )
 
-        _plt.plot(
-            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
-        )
-        _plt.xlabel("Contact Time t$_c$ [s]")
-        _plt.ylabel("Signal Intensity (a.u.)")
-
-        if xlim != []:
-            _plt.xlim(xlim[1], xlim[0])
-
-        if title == "":
-            _plt.title("Polarization Build-Up")
-        else:
-            _plt.title(title)
-
-    elif data.attrs["experiment_type"] == "dnp_enhancement_profile_f":
-        coord = data.coords[dim]
-        data.unfold(dim)
-
-        _plt.plot(coord, data.values.real, *args, **kwargs)
-        _plt.xlabel("Frequency [GHz]")
-        _plt.ylabel("DNP Intensity (a.u.)")
-
-        if xlim != []:
-            _plt.xlim(xlim[1], xlim[0])
-
-        if title == "":
-            _plt.title("DNP Enhancement Profile")
-        else:
-            _plt.title(title)
-
-    elif data.attrs["experiment_type"] == "eldor_profile":
-        coord = data.coords[dim]
-        data.unfold(dim)
-
-        _plt.plot(coord, data.values.real, *args, **kwargs)
-        _plt.xlabel("Frequency [GHz]")
-        _plt.ylabel("ELDOR Intensity (a.u.)")
-
-        if xlim != []:
-            _plt.xlim(xlim[1], xlim[0])
-
-        if title == "":
-            _plt.title("ELDOR Spectrum")
-        else:
-            _plt.title(title)
-
-    elif data.attrs["experiment_type"] == "echo_decay":
-        coord = data.coords[dim]
-        data.unfold(dim)
-
-        _plt.plot(
-            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
-        )
-        _plt.xlabel("Decay Time [s]")
-        _plt.ylabel("Signal Intensity (a.u.)")
-
-        if xlim != []:
-            _plt.xlim(xlim[1], xlim[0])
-
-        if title == "":
-            _plt.title("Echo Decay")
-        else:
-            _plt.title(title)
-
-    elif data.attrs["experiment_type"] == "epr_spectrum":
-        coord = data.coords[dim]
-        data.unfold(dim)
-
-        _plt.plot(coord, data.values.real, *args, **kwargs)
-        _plt.xlabel("Magnetic Field $B_{0}$ (mT)")
-        _plt.ylabel("EPR Signal Intensity (a.u.)")
-
-        if xlim != []:
-            _plt.xlim(xlim[0], xlim[1])
-
-        if showPar == True:
             SW = coord[-1] - coord[0]
-
-            parameterString = (
-                "MF: "
-                + str(round(data.attrs["frequency"], 4))
-                + "\nMP: "
-                + str(round(data.attrs["power"], 3))
-                + "\nCF: "
-                + str(round(data.attrs["center_field"] / 10, 2))
-                + "\nSW: "
-                + str(round(SW, 2))
-                + "\nMA: "
-                + str(round(data.attrs["modulation_amplitude"], 2))
-                + "\nNS: "
-                + str(data.attrs["nscans"])
-                + "\nTM: "
-                + str(round(data.attrs["temperature"], 1))
-            )
-
+            prmString += "SW: " + str(round(SW, 2))
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
             xmin, xmax, ymin, ymax = _plt.axis()
 
-            _plt.text(xmin * 1.001, ymin * 0.90, parameterString, bbox=box_style)
-
-    elif (
-        data.attrs["experiment_type"] == "enhancements_P"
-        or data.attrs["experiment_type"] == "enhancements_PdBm"
-    ):
-        coord = data.coords[dim]
-        data.unfold(dim)
-
-        _plt.plot(
-            coord, data.values.real, marker="o", fillstyle="none", *args, **kwargs
-        )
-        _plt.xlabel("Microwave Power (dBm)")
-        _plt.ylabel("DNP Enhancement")
-
-        if xlim != []:
-            _plt.xlim(xlim[0], xlim[1])
-
-        if title == "":
-            _plt.title("DNP Enhancement Power Build-Up")
-        else:
-            _plt.title(title)
-
-        # if showPar == True:
-
-    elif data.attrs["experiment_type"] == "enhancements_PW":
-        coord = data.coords[dim]
-        data.unfold(dim)
-
-        _plt.plot(
-            coord * 1e-3,
-            data.values.real,
-            marker="o",
-            fillstyle="none",
-            *args,
-            **kwargs
-        )
-        _plt.xlabel("Microwave Power (W)")
-        _plt.ylabel("DNP Enhancement")
-
-        if xlim != []:
-            _plt.xlim(xlim[0], xlim[1])
-
-        if title == "":
-            _plt.title("DNP Enhancement Power Build-Up")
-        else:
-            _plt.title(title)
-
-        # if showPar == True:
-
-    elif data.attrs["experiment_type"] == "inversion_recovery":
-        _plt.plot(
-            data.coords["t1"],
-            data.values.real,
-            marker="o",
-            fillstyle="none",
-            *args,
-            **kwargs
-        )
-
-        _plt.xlabel("Evolution Time T1 (s)")
-        _plt.ylabel("NMR Amplitude [a.u.]")
-
-        if xlim != []:
-            _plt.xlim(xlim[0], xlim[1])
-
-        if title == "":
-            _plt.title("Inversion Recovery")
-        else:
-            _plt.title(title)
-
-        # if showPar == True:
+            _plt.text(xmin * 1.001, ymin * 0.90, prmString, bbox=box_style)
 
     else:
         plot(data, *args, **kwargs)
