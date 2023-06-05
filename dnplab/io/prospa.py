@@ -40,6 +40,7 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
 
     try:
         attrs = import_par(os.path.join(path, parameters_filename))
+
     except:
         warnings.warn("No parameters file in directory")
         attrs = {}
@@ -59,14 +60,13 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
             nmr_frequency = float(nmr_frequency.replace("d", ""))
 
         attrs["nmr_frequency"] = nmr_frequency * 1e6
+        attrs["spectrometer_format"] = "prospa"
+        attrs["experiment_type"] = "nmr_spectrum"
 
     # Assume direct dimension is 1st dimension
     data_shape = _np.shape(_np.squeeze(data))
 
     dims, coords = prospa_coords(attrs, data_shape, experiment=experiment)
-
-    # Assign data/spectrum type
-    attrs["experiment_type"] = "nmr_spectrum"
 
     kea_data = DNPData(data, dims, coords, attrs)
 

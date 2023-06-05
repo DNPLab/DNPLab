@@ -6,6 +6,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from .coord import Coords
 import logging
+import warnings
 
 from ..version import __version__
 
@@ -66,7 +67,14 @@ class ABCData(object):
     __array_priority__ = 1000  # radd, rsub, ... should return nddata object
 
     def __init__(
-        self, values=_np.r_[[]], dims=[], coords=[], attrs={}, error=None, **kwargs
+        self,
+        values=_np.r_[[]],
+        dims=[],
+        coords=[],
+        attrs={},
+        dnp_attrs={},
+        error=None,
+        **kwargs
     ):
         self.version = version
 
@@ -88,6 +96,13 @@ class ABCData(object):
             self._attrs = attrs
         else:
             raise TypeError('attrs must be type "dict" not %s' % str(type(attrs)))
+
+        if isinstance(dnp_attrs, dict):
+            self._attrs = attrs
+        else:
+            raise TypeError(
+                'dnp_attrs must be type "dict" not %s' % str(type(dnp_attrs))
+            )
 
         if isinstance(error, _np.ndarray) or (error == None):
             self._error = error
@@ -736,6 +751,7 @@ class ABCData(object):
         if a.error is not None:
             a.error = a.error.std(index)
         a.coords.pop(dim)
+        DeprecationWarning("Method '.sum()' will be removed on September 1st, 2023 ")
         return a
 
     def align(self, b):
