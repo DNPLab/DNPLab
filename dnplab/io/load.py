@@ -48,7 +48,9 @@ def load(path, data_type=None, dim=None, coord=[], verbose=False, *args, **kwarg
         if len(coord) == 0:
             coord = None  # to not break concat call signature
 
-        return concat(data_list, dim=dim, coord=coord)
+        data = concat(data_list, dim=dim, coord=coord)
+
+        return data
 
     else:
         return load_file(path, data_type=data_type, verbose=verbose, *args, **kwargs)

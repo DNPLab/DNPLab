@@ -41,6 +41,7 @@ def concat(data_list, dim, coord=None):
     dims = data_list[0].dims
     coords = data_list[0].coords.coords
     attrs = data_list[0].attrs
+    dnplab_attrs = data_list[0].dnplab_attrs
 
     values = _np.stack(values_list, axis=-1)
 
@@ -51,7 +52,7 @@ def concat(data_list, dim, coord=None):
     else:
         coords.append(coord)
 
-    data = DNPData(values, dims, coords, attrs)
+    data = DNPData(values, dims, coords, attrs, dnplab_attrs)
 
     return data
 
