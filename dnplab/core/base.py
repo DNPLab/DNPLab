@@ -420,7 +420,7 @@ class ABCData(object):
         if dim in self.dims:
             return self.coords.index(dim)
         else:
-            raise ValueError("%s not in %s" % (dim, self.dims))
+            raise ValueError("The dimension \"%s\" is not in dims. Available dimensions are: %s" % (dim, self.dims))
 
     def __truediv__(self, b):
         if isinstance(b, ABCData):
