@@ -68,10 +68,13 @@ def apodize(data, dim="t2", kind="exponential", **kwargs):
     index = data.index(dim)
     coord = data.coords[dim]
 
-    kind = str(kind).lower() # kind of apodization is a lower case string
+    kind = str(kind).lower()  # kind of apodization is a lower case string
 
     if kind not in _windows:
-        raise ValueError('Window function "%s" not valid. Available window functions are: %s.  See documentation for more details.'%(kind,list(_windows.keys())))
+        raise ValueError(
+            'Window function "%s" not valid. Available window functions are: %s.  See documentation for more details.'
+            % (kind, list(_windows.keys()))
+        )
     window = _windows[kind]
     apwin = window(coord, **kwargs)
 
