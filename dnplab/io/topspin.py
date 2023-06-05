@@ -163,7 +163,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     # Load Acquisition Parameters
     if verbose:
         print("Loading acqus")
-    attrs = load_acqu(os.path.join(path, "acqus"), verbose=verbose)
+    acqus_params = load_acqu(os.path.join(path, "acqus"), verbose=verbose)
 
     dims = [
         "t2"
@@ -177,7 +177,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     if verbose:
         print("Binary File:", bin_filename)
 
-    if attrs["BYTORDA"] == 0:
+    if acqus_params["BYTORDA"] == 0:
         endian = "<"
     else:
         endian = ">"
@@ -185,7 +185,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     if verbose:
         print("endian", endian)
 
-    topspin_major_version = int(attrs["topspin"].split(".")[0])
+    topspin_major_version = int(acqus_params["topspin"].split(".")[0])
 
     # Is this incorrect?
     # Most topspin data I've seen is i4, however, later versions seem to have i8
@@ -195,9 +195,9 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     else:
         data_bytes = 4
 
-    if attrs["DTYPA"] == 0:
+    if acqus_params["DTYPA"] == 0:
         data_type = "i"
-    elif attrs["DTYPA"] == 2:
+    elif acqus_params["DTYPA"] == 2:
         data_type = "f"
 
     data_type = data_type + str(data_bytes)
@@ -210,58 +210,31 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     # Is data always complex?
     values = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
-    group_delay = find_group_delay(attrs)
+    group_delay = find_group_delay(acqus_params)
     if verbose:
         print("group delay", group_delay)
 
     group_delay = int(_np.floor(group_delay))  # should this be floor or ceil?
 
     # why is dividing by 2 required?
-    t2 = 1.0 / attrs["SW_h"] * _np.arange(0, int(attrs["TD"] / 2))
+    t2 = 1.0 / acqus_params["SW_h"] * _np.arange(0, int(acqus_params["TD"] / 2))
     if verbose:
-        print("points in FID:", attrs["TD"] / 2)
+        print("points in FID:", acqus_params["TD"] / 2)
 
     # Handle t2 group delay
-    # t2 = t2[slice(group_delay, int(attrs["TD"] / 2))] # Alternative method
+    # t2 = t2[slice(group_delay, int(acqus_params["TD"] / 2))] # Alternative method
     t2 = t2[group_delay:]
 
     coords = [t2]
-
-    # Assign attrs of experiment here
-    attrs["experiment"] = "Not Defined"
-
-    # Assign default attrs of nrScans here
-    attrs["nrScans"] = 1
 
     # This will not work for vdlist data
     if "acqu2s" in dir_list:
         if verbose:
             print("Loading acqu2s")
         acqu2s_params = load_acqu(os.path.join(path, "acqu2s"), verbose=verbose)
-
         dims.insert(0, "t1")
         t1 = 1.0 / acqu2s_params["SW_h"] * _np.arange(0, int(acqu2s_params["TD"]))
         coords.insert(0, t1)
-        if "vdlist" not in dir_list:
-            attrs["experiment"] = "1D"
-            attrs["nrScans"] = int(acqu2s_params["TD"])
-
-        else:
-            if verbose:
-                print("Assigning vdlist to %s dim" % assign_vdlist)
-            vdlist = topspin_vdlist(path)
-
-            # assign vdlist to t1 by default
-            if assign_vdlist == False:
-                assign_vdlist = "t1"
-                attrs["experiment"] = "2D IR"
-
-            if assign_vdlist in dims:
-                index = dims.index(assign_vdlist)
-                coords[index] = vdlist
-
-            else:
-                raise ValueError("Could not identify dimension to assign vdlist")
 
     # 3d data must be tested
     if "acqu3s" in dir_list:
@@ -277,28 +250,34 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
         print("Raw Data Shape:", _np.shape(values))
         print("reshaping data to:", new_shape)
 
+    if assign_vdlist:
+        if verbose:
+            print("Assigning vdlist to %s dim" % assign_vdlist)
+        vdlist = topspin_vdlist(path)
+        if assign_vdlist in dims:
+            index = dims.index(assign_vdlist)
+            coords[index] = vdlist
+
+        else:
+            raise ValueError("Could not identify dimension to assign vdlist")
+
     # reshape values
     values = values.reshape(new_shape)
 
     # Handle group delay
-    values = values[..., slice(group_delay, int(attrs["TD"] / 2))]
-
-    # Add import path to attributes
-    attrs["import_path"] = path
-
-    # Add NMR Frequency to attrs
-    attrs["nmr_frequency"] = attrs["SFO1"] * 1e6
-
-    # Assign data/spectrum type
-    attrs["experiment_type"] = "nmr_spectrum"
-
-    # Assign spectrometer format
-    attrs["spectrometer_format"] = "topspin"
-
-    # Convert experimental attrs to dnplab attrs:
+    values = values[..., slice(group_delay, int(acqus_params["TD"] / 2))]
 
     # create data object
-    topspin_data = DNPData(values, dims, coords, attrs=attrs)
+    topspin_data = DNPData(values, dims, coords, attrs=acqus_params)
+
+    # Add import path to attributes
+    topspin_data.attrs["import_path"] = path
+
+    # Add NMR Frequency to attrs
+    topspin_data.attrs["nmr_frequency"] = acqus_params["SFO1"] * 1e6
+
+    # Assign data/spectrum type
+    topspin_data.attrs["experiment_type"] = "nmr_spectrum"
 
     # reorder so that 't2' is first
     topspin_data.reorder(["t2"])
@@ -325,9 +304,9 @@ def load_pdata(path, verbose=False):
         for each in dir_list:
             print(" ", each)
 
-    attrs = load_acqu(os.path.join(path, "procs"), verbose=verbose)
+    proc_params = load_acqu(os.path.join(path, "procs"), verbose=verbose)
 
-    if attrs["BYTORDP"] == 0:
+    if proc_params["BYTORDP"] == 0:
         endian = "<"
     else:
         endian = ">"
@@ -338,13 +317,13 @@ def load_pdata(path, verbose=False):
     real_raw = load_bin(os.path.join(path, "1r"), dtype=endian + "i4")
     imag_raw = load_bin(os.path.join(path, "1i"), dtype=endian + "i4")
 
-    SW = attrs["SW_p"]
-    offset = attrs["OFFSET"]  # Reference Offset in ppm
-    td_eff = attrs["TDeff"]
-    SI = attrs["SI"]  # What does SI stand for?
-    spectrometer_frequency = attrs["SF"]  # spectrometer frequency in MHz
-    phase_0 = attrs["PHC0"]  # Phase correction, zeroth order phase
-    phase_1 = attrs["PHC1"]  # Phase correction, first order phase
+    SW = proc_params["SW_p"]
+    offset = proc_params["OFFSET"]  # Reference Offset in ppm
+    td_eff = proc_params["TDeff"]
+    SI = proc_params["SI"]  # What does SI stand for?
+    spectrometer_frequency = proc_params["SF"]  # spectrometer frequency in MHz
+    phase_0 = proc_params["PHC0"]  # Phase correction, zeroth order phase
+    phase_1 = proc_params["PHC1"]  # Phase correction, first order phase
 
     f2 = (
         -1 * SW * _np.linspace(0, 1, num=SI, endpoint=False) / spectrometer_frequency
@@ -353,12 +332,10 @@ def load_pdata(path, verbose=False):
 
     raw = real_raw + 1j * imag_raw
 
-    attrs["nmr_frequency"] = spectrometer_frequency
-    attrs["spectrometer_format"] = "topspin"
-    attrs["phase_0"] = phase_0
-    attrs["phase_1"] = phase_1
-
-    data = DNPData(raw, ["f2"], [f2], attrs=attrs)
+    data = DNPData(raw, ["f2"], [f2], attrs=proc_params)
+    data.attrs["nmr_frequency"] = spectrometer_frequency
+    data.attrs["phase_0"] = phase_0
+    data.attrs["phase_1"] = phase_1
 
     return data
 
