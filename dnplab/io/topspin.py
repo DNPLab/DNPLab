@@ -1,7 +1,6 @@
 import numpy as _np
 import re
 from warnings import warn
-from .attrs4dnplab import *
 
 from .. import DNPData
 
@@ -298,10 +297,8 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
 
     # Convert experimental attrs to dnplab attrs:
 
-    dnplab_attrs = attrs4dnplab(attrs)
-
     # create data object
-    topspin_data = DNPData(values, dims, coords, attrs=attrs, dnplab_attrs=dnplab_attrs)
+    topspin_data = DNPData(values, dims, coords, attrs=attrs)
 
     # reorder so that 't2' is first
     topspin_data.reorder(["t2"])

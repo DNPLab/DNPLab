@@ -40,6 +40,7 @@ class DNPData(ABCData):
         attrs={},
         dnplab_attrs={},
         proc_attrs=None,
+        **kwargs,
     ):
         """
         DNPData Class __init__ method

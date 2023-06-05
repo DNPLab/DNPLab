@@ -4,8 +4,6 @@ from struct import unpack
 import warnings
 import os
 import glob
-from .attrs4dnplab import *
-
 
 def import_prospa(path, parameters_filename=None, experiment=None, verbose=False):
     """Import Kea data
@@ -63,14 +61,13 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
         attrs["nmr_frequency"] = nmr_frequency * 1e6
         attrs["spectrometer_format"] = "prospa"
         attrs["experiment_type"] = "nmr_spectrum"
-        dnplab_attrs = attrs4dnplab(attrs)
 
     # Assume direct dimension is 1st dimension
     data_shape = _np.shape(_np.squeeze(data))
 
     dims, coords = prospa_coords(attrs, data_shape, experiment=experiment)
 
-    kea_data = DNPData(data, dims, coords, attrs, dnplab_attrs)
+    kea_data = DNPData(data, dims, coords, attrs)
 
     return kea_data
 

@@ -4,8 +4,6 @@ import numpy as _np
 import os
 from .. import DNPData
 import warnings
-from .attrs4dnplab import *
-
 
 def import_bes3t(path):
     """
@@ -83,9 +81,8 @@ def import_bes3t(path):
     attrs["spectrometer_format"] = "xepr"
     attrs["experiment_type"] = "epr_spectrum"
     attrs["nrScans"] = attrs["nscans"]
-    dnplab_attrs = attrs4dnplab(attrs)
 
-    bes3t_data = DNPData(values, dims, coords, attrs, dnplab_attrs)
+    bes3t_data = DNPData(values, dims, coords, attrs)
 
     return bes3t_data
 

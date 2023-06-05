@@ -49,8 +49,7 @@ def load(path, data_type=None, dim=None, coord=[], verbose=False, *args, **kwarg
             coord = None  # to not break concat call signature
 
         data = concat(data_list, dim=dim, coord=coord)
-        data.dnplab_attrs[dim] = coord
-
+        
         return data
 
     else:
