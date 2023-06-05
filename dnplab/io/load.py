@@ -87,9 +87,6 @@ def load_file(path, data_type=None, verbose=False, *args, **kwargs):
         # import_topspin should also handle this type, this is a workaround
         return topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
 
-    elif data_type == "topspin dir":
-        return topspin.import_topspin_dir(path, *args, **kwargs)
-
     elif data_type == "delta":
         return delta.import_delta(path, *args, **kwargs)
 
@@ -112,7 +109,7 @@ def load_file(path, data_type=None, verbose=False, *args, **kwargs):
         return h5.load_h5(path, *args, **kwargs)
 
     elif data_type == "power":
-        return power.importPower(path, *args, **kwargs)
+        return power.import_power(path, *args, **kwargs)
 
     elif data_type == "vna":
         return vna.import_vna(path, *args, **kwargs)
