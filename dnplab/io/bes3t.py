@@ -5,6 +5,7 @@ import os
 from .. import DNPData
 import warnings
 
+
 def import_bes3t(path):
     """
     Import Bruker BES3T data and return dnpdata object
