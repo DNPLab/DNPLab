@@ -109,7 +109,7 @@ def load_file(path, data_type=None, verbose=False, *args, **kwargs):
         return h5.load_h5(path, *args, **kwargs)
 
     elif data_type == "power":
-        return power.importPower(path, *args, **kwargs)
+        return power.import_power(path, *args, **kwargs)
 
     elif data_type == "vna":
         return vna.import_vna(path, *args, **kwargs)
