@@ -9,7 +9,7 @@ def load(path, data_format=None, dim=None, coord=[], verbose=False, *args, **kwa
 
     Args:
         path (str, list): Path to data directory or list of directories
-        data_format (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+        data_format (str): format of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
         dim (str): If giving directories as list, name of dimension to concatenate data along
         coord (numpy.ndarray): If giving directories as list, coordinates of new dimension
         verbose (bool): If true, print debugging output
@@ -63,7 +63,7 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
 
     Args:
         path (str): Path to data directory or file
-        data_format (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+        data_format (str): Format of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
         verbose (bool): If true, print additional debug outputs
         args: Arguments passed to spectrometer specific import function
         kwargs: Key word arguments passed to spectrometer specific import function
@@ -86,7 +86,7 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
         return topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
 
     elif data_format == "topspin pdata":
-        # import_topspin should also handle this type, this is a workaround
+        # import_topspin should also handle this format, this is a workaround
         return topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
 
     elif data_format == "delta":
@@ -120,19 +120,19 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
         return cnsi.get_powers(path, *args, **kwargs)
 
     else:
-        raise ValueError("Invalid data type: %s" % data_format)
+        raise ValueError("Invalid data format: %s" % data_format)
 
 
 # TODO rename to detect_file_format
 def autodetect(test_path, verbose=False):
-    """Automatically detect spectrometer format
+    """Automatically detect data format
 
     Args:
         test_path (str): Test directory
         verbose (bool): If true, print output for debugging
 
     Returns:
-        str: Spectrometer type as string
+        str: Data format as string
 
     """
 
@@ -153,43 +153,43 @@ def autodetect(test_path, verbose=False):
         print("Extension:", path_exten)
 
     if path_exten == ".DSC" or path_exten == ".DTA" or path_exten == ".YGF":
-        spectrometer_format = "xepr"
+        data_format = "xepr"
     elif path_exten in [".par", ".spc"]:
-        spectrometer_format = "winepr"
+        data_format = "winepr"
     elif path_exten in [".d01", ".exp"]:
-        spectrometer_format = "specman"
+        data_format = "specman"
     elif path_exten == ".jdf":
-        spectrometer_format = "delta"
+        data_format = "delta"
     elif (
         os.path.isdir(test_path)
         #        and ("fid" in os.listdir(test_path) or "ser" in os.listdir(test_path))
         and ("acqu" in os.listdir(test_path) or "acqus" in os.listdir(test_path))
     ):
-        spectrometer_format = "topspin"
+        data_format = "topspin"
     elif os.path.isdir(test_path) and (
         "proc" in os.listdir(test_path) or "procss" in os.listdir(test_path)
     ):
-        spectrometer_format = "topspin pdata"
+        data_format = "topspin pdata"
     elif os.path.isdir(test_path) and path_exten == ".fid":
-        spectrometer_format = "vnmrj"
+        data_format = "vnmrj"
     elif path_exten in [".1d", ".2d", ".3d", ".4d"]:
-        spectrometer_format = "prospa"
+        data_format = "prospa"
     elif path_exten == ".tnt":
-        spectrometer_format = "tnmr"
+        data_format = "tnmr"
     elif (
         os.path.isdir(test_path)
         and "acqu.par" in os.listdir(test_path)
         and "data.csv" in os.listdir(test_path)
     ):
-        spectrometer_format = "prospa"
+        data_format = "prospa"
     elif path_exten == ".h5":
-        spectrometer_format = "h5"
+        data_format = "h5"
     else:
         raise TypeError(
-            "No data type given and autodetect failed to detect format, please specify a format"
+            "No data format given and autodetect failed to detect format, please specify a format"
         )
 
     if verbose:
-        print("Spectrometer Format:", spectrometer_format)
+        print("Data Format:", data_format)
 
-    return spectrometer_format
+    return data_format
