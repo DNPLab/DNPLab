@@ -4,12 +4,12 @@ from . import *
 from ..core.util import concat
 
 
-def load(path, data_type=None, dim=None, coord=[], verbose=False, *args, **kwargs):
+def load(path, data_format=None, dim=None, coord=[], verbose=False, *args, **kwargs):
     """Import data from different spectrometer formats
 
     Args:
         path (str, list): Path to data directory or list of directories
-        data_type (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+        data_format (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
         dim (str): If giving directories as list, name of dimension to concatenate data along
         coord (numpy.ndarray): If giving directories as list, coordinates of new dimension
         verbose (bool): If true, print debugging output
@@ -41,7 +41,7 @@ def load(path, data_type=None, dim=None, coord=[], verbose=False, *args, **kwarg
             dim = "unnamed"
         for filename in path:
             data = load_file(
-                filename, data_type=data_type, verbose=verbose, *args, **kwargs
+                filename, data_format=data_format, verbose=verbose, *args, **kwargs
             )
             data_list.append(data)
         # coord could be empty list
@@ -53,15 +53,17 @@ def load(path, data_type=None, dim=None, coord=[], verbose=False, *args, **kwarg
         return data
 
     else:
-        return load_file(path, data_type=data_type, verbose=verbose, *args, **kwargs)
+        return load_file(
+            path, data_format=data_format, verbose=verbose, *args, **kwargs
+        )
 
 
-def load_file(path, data_type=None, verbose=False, *args, **kwargs):
+def load_file(path, data_format=None, verbose=False, *args, **kwargs):
     """Import data from different spectrometer formats
 
     Args:
         path (str): Path to data directory or file
-        data_type (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+        data_format (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
         verbose (bool): If true, print additional debug outputs
         args: Arguments passed to spectrometer specific import function
         kwargs: Key word arguments passed to spectrometer specific import function
@@ -74,51 +76,51 @@ def load_file(path, data_type=None, verbose=False, *args, **kwargs):
     if os.path.isdir(path) and path[-1] != os.sep:
         path = path + os.sep
 
-    if data_type == None:
-        data_type = autodetect(path, verbose=verbose)
+    if data_format == None:
+        data_format = autodetect(path, verbose=verbose)
 
-    if data_type == "prospa":
+    if data_format == "prospa":
         return prospa.import_prospa(path, *args, **kwargs)
 
-    elif data_type == "topspin":
+    elif data_format == "topspin":
         return topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
 
-    elif data_type == "topspin pdata":
+    elif data_format == "topspin pdata":
         # import_topspin should also handle this type, this is a workaround
         return topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
 
-    elif data_type == "delta":
+    elif data_format == "delta":
         return delta.import_delta(path, *args, **kwargs)
 
-    elif data_type == "vnmrj":
+    elif data_format == "vnmrj":
         return vnmrj.import_vnmrj(path, *args, **kwargs)
 
-    elif data_type == "tnmr":
+    elif data_format == "tnmr":
         return tnmr.import_tnmr(path, *args, **kwargs)
 
-    elif data_type == "specman":
+    elif data_format == "specman":
         return specman.import_specman(path, *args, **kwargs)
 
-    elif data_type in ["xepr", "xenon"]:
+    elif data_format in ["xepr", "xenon"]:
         return bes3t.import_bes3t(path, *args, **kwargs)
 
-    elif data_type in ["winepr", "esp"]:
+    elif data_format in ["winepr", "esp"]:
         return winepr.import_winepr(path, *args, **kwargs)
 
-    elif data_type == "h5":
+    elif data_format == "h5":
         return h5.load_h5(path, *args, **kwargs)
 
-    elif data_type == "power":
+    elif data_format == "power":
         return power.import_power(path, *args, **kwargs)
 
-    elif data_type == "vna":
+    elif data_format == "vna":
         return vna.import_vna(path, *args, **kwargs)
 
-    elif data_type == "cnsi_powers":
+    elif data_format == "cnsi_powers":
         return cnsi.get_powers(path, *args, **kwargs)
 
     else:
-        raise ValueError("Invalid data type: %s" % data_type)
+        raise ValueError("Invalid data type: %s" % data_format)
 
 
 # TODO rename to detect_file_format
