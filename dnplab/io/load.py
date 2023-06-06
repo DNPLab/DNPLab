@@ -87,45 +87,46 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
 
     elif data_format == "topspin":
         data = topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
-        data = assign_dnplab_attrs(data, 'topspin')
-        return data
 
     elif data_format == "topspin pdata":
         # import_topspin should also handle this format, this is a workaround
-        return topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
+        data = topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
 
     elif data_format == "delta":
-        return delta.import_delta(path, *args, **kwargs)
+        data = delta.import_delta(path, *args, **kwargs)
 
     elif data_format == "vnmrj":
-        return vnmrj.import_vnmrj(path, *args, **kwargs)
+        data = vnmrj.import_vnmrj(path, *args, **kwargs)
 
     elif data_format == "tnmr":
-        return tnmr.import_tnmr(path, *args, **kwargs)
+        data = tnmr.import_tnmr(path, *args, **kwargs)
 
     elif data_format == "specman":
-        return specman.import_specman(path, *args, **kwargs)
+        data = specman.import_specman(path, *args, **kwargs)
 
     elif data_format in ["xepr", "xenon"]:
-        return bes3t.import_bes3t(path, *args, **kwargs)
+        data = bes3t.import_bes3t(path, *args, **kwargs)
 
     elif data_format in ["winepr", "esp"]:
-        return winepr.import_winepr(path, *args, **kwargs)
+        data = winepr.import_winepr(path, *args, **kwargs)
 
     elif data_format == "h5":
-        return h5.load_h5(path, *args, **kwargs)
+        data = h5.load_h5(path, *args, **kwargs)
 
     elif data_format == "power":
-        return power.import_power(path, *args, **kwargs)
+        data = power.import_power(path, *args, **kwargs)
 
     elif data_format == "vna":
-        return vna.import_vna(path, *args, **kwargs)
+        data = vna.import_vna(path, *args, **kwargs)
 
     elif data_format == "cnsi_powers":
-        return cnsi.get_powers(path, *args, **kwargs)
+        data = cnsi.get_powers(path, *args, **kwargs)
 
     else:
         raise ValueError("Invalid data format: %s" % data_format)
+
+    data = assign_dnplab_attrs(data, data_format)
+    return data
 
 
 # TODO rename to detect_file_format
