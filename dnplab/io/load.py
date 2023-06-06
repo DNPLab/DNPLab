@@ -1,8 +1,9 @@
 import os
 from . import *
+import re
 
 from ..core.util import concat
-
+from ..config.config import DNPLAB_CONFIG
 
 def load(path, data_format=None, dim=None, coord=[], verbose=False, *args, **kwargs):
     """Import data from different spectrometer formats
@@ -80,7 +81,9 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
         data_format = autodetect(path, verbose=verbose)
 
     if data_format == "prospa":
-        return prospa.import_prospa(path, *args, **kwargs)
+        data = prospa.import_prospa(path, *args, **kwargs)
+        data = assign_dnplab_attrs(data, 'prospa')
+        return data
 
     elif data_format == "topspin":
         return topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
@@ -193,3 +196,60 @@ def autodetect(test_path, verbose=False):
         print("Data Format:", data_format)
 
     return data_format
+
+def assign_dnplab_attrs(data, data_format):
+    if data_format == None:
+        raise TypeError("No data format given and autodetect failed to detect format, please specify a format")
+    
+    else:
+        dnplab_attrs_data_info = DNPLAB_CONFIG.getlist("DNPLAB_ATTRBUTING", "dnplab_attrs_data_info")
+        dnplab_attrs_exp_info_list = DNPLAB_CONFIG.getlist("DNPLAB_ATTRBUTING", "dnplab_attrs_exp_info_list")
+        dnplab_attrs_list = dnplab_attrs_data_info + dnplab_attrs_exp_info_list
+        dnplab_attrs_label = DNPLAB_CONFIG.get("DNPLAB_ATTRBUTING", "dnplab_attrs_label", fallback = "DNPLAB_ATTRS")
+        dnplab_attrs_label += (':' + data_format)
+       
+        for key in dnplab_attrs_list:
+            exp_key = DNPLAB_CONFIG.get(dnplab_attrs_label, key.strip(), fallback=None)
+            if exp_key != None:
+                try:
+                    if key in dnplab_attrs_exp_info_list:
+                        params = dnplab_attrs_conversion(data, exp_key)
+                    else:
+                        params = exp_key
+                        
+                    data.dnplab_attrs[key.strip()] = params
+                except:
+                    continue
+        return data
+
+def dnplab_attrs_conversion(data, exp_key):
+    if ',' in exp_key:
+        [params, unit] = exp_key.split(',')
+        scaling_factor = scaling(unit)
+    else:
+        params = exp_key
+        scaling_factor = 1
+    
+    params_list = params.split('*')
+    new_params = 1
+    for key in params_list:
+        params = data.attrs[''.join(key.split())]
+        try: 
+            new_params *= int(params)
+        except:
+            new_params *= float(re.findall("[+-]?\d+\.\d+", params)[0]) # remove unexpected characters
+        
+    return new_params * scaling_factor 
+
+def scaling(unit):
+    scaling_letter = unit.strip()[0]
+    if scaling_letter == 'm':
+        scaling_letter = 'mm' # for configuration purpose
+    scaling_letter = scaling_letter.lower()
+    if scaling_letter not in list(DNPLAB_CONFIG['SI_SCALING'].keys()):
+        print("unit is wrong, force scaling factor to 1")
+        sacling_factor = 1
+    else:
+        sacling_factor = DNPLAB_CONFIG.get('SI_SCALING', scaling_letter, fallback=None)
+
+    return float(sacling_factor)
