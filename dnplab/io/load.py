@@ -86,7 +86,9 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
         return data
 
     elif data_format == "topspin":
-        return topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
+        data = topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
+        data = assign_dnplab_attrs(data, 'topspin')
+        return data
 
     elif data_format == "topspin pdata":
         # import_topspin should also handle this format, this is a workaround
@@ -234,11 +236,13 @@ def dnplab_attrs_conversion(data, exp_key):
     new_params = 1
     for key in params_list:
         params = data.attrs[''.join(key.split())]
-        try: 
-            new_params *= int(params)
-        except:
-            new_params *= float(re.findall("[+-]?\d+\.\d+", params)[0]) # remove unexpected characters
-        
+        if isinstance(params, str):
+            try: 
+                new_params *= int(params)
+            except:
+                new_params *= float(re.findall("[+-]?\d+\.\d+", params)[0]) # remove unexpected characters
+        else:
+            new_params *= params
     return new_params * scaling_factor 
 
 def scaling(unit):
