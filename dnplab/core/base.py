@@ -121,10 +121,13 @@ class ABCData(object):
         if not self._self_consistent():
             warnings.warn("Data Object Dimensions are not consistent.")
             if not self._check_dims(self.dims):
-                warnings.warn('Dims Check Failed. Dims must be list of strings. Length of dims should match number of dimensions in values.')
+                warnings.warn(
+                    "Dims Check Failed. Dims must be list of strings. Length of dims should match number of dimensions in values."
+                )
             if not self._check_coords(self._coords):
-                warnings.warn('Coords Check Failed. Each coord should be a numpy array matching the length of each dimension in values.')
-
+                warnings.warn(
+                    "Coords Check Failed. Each coord should be a numpy array matching the length of each dimension in values."
+                )
 
     @property
     def __version__(self):
@@ -147,10 +150,10 @@ class ABCData(object):
         any_duplicates = len(dims) == len(set(dims))
 
         # Test if number of dims matches number of dimensions
-        if self.size != 0: # Case where array is not empty
+        if self.size != 0:  # Case where array is not empty
             shape_check = len(self.values.shape) == len(self.dims)
-        else: # Case where array is empty
-            shape_check = (len(self.dims) == 0)
+        else:  # Case where array is empty
+            shape_check = len(self.dims) == 0
 
         return all_strings and any_duplicates and shape_check
 
