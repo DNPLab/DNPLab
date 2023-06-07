@@ -37,7 +37,7 @@ dnp.plt.show()
 # --------------------------------
 # The spectra shown here are the individual NMR spectra for different T1 recovery times. Note how these spectra are not perfectly aligned? This can be fixed using the aligning function. A more detailed description of the aligning routine of DNPLab is given in the tutorial :ref:`plot_01_align_nmr_spectra`.
 
-data = dnp.align(data)
+data = dnp.ndalign(data)
 
 dnp.fancy_plot(data, xlim=[-50, 80], title="Inversion Recovery, aligned")
 dnp.plt.show()

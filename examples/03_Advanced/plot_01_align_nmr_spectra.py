@@ -33,7 +33,7 @@ dnp.plt.show()
 # -------------
 # To align the NMR spectra call the align function ``dnp.align()``. This process may take a couple of seconds if the 2D NMR data set is large.
 
-data_aligned = dnp.align(data)
+data_aligned = dnp.ndalign(data)
 
 # # %%
 # # Next, let's plot the aligned data. Note, that the spectrum is not referenced correctly.
