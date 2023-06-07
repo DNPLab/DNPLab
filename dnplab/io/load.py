@@ -234,7 +234,7 @@ def dnplab_attrs_conversion(data, exp_key):
         params = data.attrs[''.join(key.split())]
         if isinstance(params, str):
             try: 
-                new_params *= int(params)
+                new_params *= int(re.findall('\d+', params)[0])
             except:
                 new_params *= float(re.findall("[+-]?\d+\.\d+", params)[0]) # remove unexpected characters
         else:
