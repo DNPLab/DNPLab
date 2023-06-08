@@ -23,6 +23,8 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         >>> data_aligned = dnp.ndalign(data, center = 10, width = 20)
     """
 
+    data = data.copy()
+
     proc_parameters = {"dim": dim}
 
     original_order = data.dims  # Original order of dims

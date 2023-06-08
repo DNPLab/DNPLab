@@ -50,6 +50,8 @@ def fourier_transform(
         The fourier_transform function assumes dt = t[1] - t[0]
     """
 
+    data = data.copy()
+
     # handle zero_fill_factor
     zero_fill_factor = int(zero_fill_factor)
     if zero_fill_factor <= 0:
@@ -117,6 +119,8 @@ def inverse_fourier_transform(
     .. Note::
         Assumes df = f[1] - f[0]
     """
+
+    data = data.copy()
 
     # handle zero_fill_factor
     zero_fill_factor = int(zero_fill_factor)
