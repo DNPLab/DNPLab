@@ -203,7 +203,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     data_type = data_type + str(data_bytes)
 
     if verbose:
-        print("data type:", data_type)
+        print("data type:", endian + data_type)
 
     raw = load_bin(os.path.join(path, bin_filename), dtype=endian + data_type)
 
