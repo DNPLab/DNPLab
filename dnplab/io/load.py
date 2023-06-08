@@ -213,9 +213,9 @@ def _assign_dnplab_attrs(data, data_format):
         raise TypeError("No data format given and autodetect failed to detect format, please specify a format")
     
     else:
-        dnplab_attrs_data_info = DNPLAB_CONFIG.getlist("DNPLAB_ATTRBUTING", "dnplab_attrs_data_info")
+        dnplab_attrs_data_info = DNPLAB_CONFIG.getlist("DNPLAB_ATTRS_COMMON", "dnplab_attrs_data_info")
         dnplab_attrs_data_info = [x.strip() for x in dnplab_attrs_data_info]
-        dnplab_attrs_label = DNPLAB_CONFIG.get("DNPLAB_ATTRBUTING", "dnplab_attrs_label", fallback = "DNPLAB_ATTRS")
+        dnplab_attrs_label = DNPLAB_CONFIG.get("DNPLAB_ATTRS_COMMON", "dnplab_attrs_label", fallback = "DNPLAB_ATTRS")
         dnplab_attrs_label += (':' + data_format)
         for key, val in DNPLAB_CONFIG[dnplab_attrs_label].items():
             if val != 'None':
