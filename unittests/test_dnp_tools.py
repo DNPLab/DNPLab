@@ -23,6 +23,7 @@ class dnpTools_tester(unittest.TestCase):
             tcol=0,
             real=1,
             imag=3,
+            convert_time=lambda x: float(x.replace(",", ".")) / 1e6,
         )
         self.data.attrs["nmr_frequency"] = 14.86e6
 
