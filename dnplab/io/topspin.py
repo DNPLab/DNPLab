@@ -279,6 +279,10 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     # Assign data/spectrum type
     topspin_data.attrs["experiment_type"] = "nmr_spectrum"
 
+    # Assign number of scans
+    if "acqu2s" in dir_list:
+        topspin_data.attrs["scans"] = int(acqu2s_params["TD"])
+
     # reorder so that 't2' is first
     topspin_data.reorder(["t2"])
 
