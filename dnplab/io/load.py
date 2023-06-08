@@ -5,6 +5,7 @@ import re
 from ..core.util import concat
 from ..config.config import DNPLAB_CONFIG
 
+
 def load(path, data_format=None, dim=None, coord=[], verbose=False, *args, **kwargs):
     """Import data from different spectrometer formats
 
@@ -198,27 +199,34 @@ def autodetect(test_path, verbose=False):
 
     return data_format
 
+
 def _assign_dnplab_attrs(data, data_format):
-    """Load and assign experiment attributes to dnplab attributes 
+    """Load and assign experiment attributes to dnplab attributes
 
     Args:
         data (dnpData): Data object
         data_format (str): Format of spectrometer data to import
-    
+
     Returns:
         data (dnpData): Data object
-    
+
     """
     if data_format == None:
-        raise TypeError("No data format given and autodetect failed to detect format, please specify a format")
-    
+        raise TypeError(
+            "No data format given and autodetect failed to detect format, please specify a format"
+        )
+
     else:
-        dnplab_attrs_data_info = DNPLAB_CONFIG.getlist("DNPLAB_ATTRS_COMMON", "dnplab_attrs_data_info")
+        dnplab_attrs_data_info = DNPLAB_CONFIG.getlist(
+            "DNPLAB_ATTRS_COMMON", "dnplab_attrs_data_info"
+        )
         dnplab_attrs_data_info = [x.strip() for x in dnplab_attrs_data_info]
-        dnplab_attrs_label = DNPLAB_CONFIG.get("DNPLAB_ATTRS_COMMON", "dnplab_attrs_label", fallback = "DNPLAB_ATTRS")
-        dnplab_attrs_label += (':' + data_format)
+        dnplab_attrs_label = DNPLAB_CONFIG.get(
+            "DNPLAB_ATTRS_COMMON", "dnplab_attrs_label", fallback="DNPLAB_ATTRS"
+        )
+        dnplab_attrs_label += ":" + data_format
         for key, val in DNPLAB_CONFIG[dnplab_attrs_label].items():
-            if val != 'None':
+            if val != "None":
                 try:
                     if key not in dnplab_attrs_data_info:
                         params = _convert_dnplab_attrs(data, val)
@@ -229,35 +237,39 @@ def _assign_dnplab_attrs(data, data_format):
                     continue
         return data
 
+
 def _convert_dnplab_attrs(data, exp_key):
-    """Load and calculate the value assigned to dnplab attributes 
+    """Load and calculate the value assigned to dnplab attributes
 
     Args:
         data (dnpData): Data object
         exp_key (str): A string of experiment attributes possibly with multiplication sign and unit
-    
+
     Returns:
         new_params (int or float): dnplab attributes values
     """
-    if ',' in exp_key:
-        [params, unit] = exp_key.split(',')
+    if "," in exp_key:
+        [params, unit] = exp_key.split(",")
         scaling_factor = _scale_dnplab_attrs(unit)
     else:
         params = exp_key
         scaling_factor = 1
-    
-    params_list = params.split('*')
+
+    params_list = params.split("*")
     new_params = 1
     for key in params_list:
-        params = data.attrs[''.join(key.split())]
+        params = data.attrs["".join(key.split())]
         if isinstance(params, str):
-            try: 
-                new_params *= int(re.findall('\d+', params)[0])
+            try:
+                new_params *= int(re.findall("\d+", params)[0])
             except:
-                new_params *= float(re.findall("[+-]?\d+\.\d+", params)[0]) # remove unexpected characters
+                new_params *= float(
+                    re.findall("[+-]?\d+\.\d+", params)[0]
+                )  # remove unexpected characters
         else:
             new_params *= params
-    return new_params * scaling_factor 
+    return new_params * scaling_factor
+
 
 def _scale_dnplab_attrs(unit):
     """Scale all dnplab attributes value to SI unit
@@ -269,13 +281,13 @@ def _scale_dnplab_attrs(unit):
         scaling_factor (float): scaling factor
     """
     scaling_letter = unit.strip()[0]
-    if scaling_letter == 'm':
-        scaling_letter = 'mm' # for configuration purpose
+    if scaling_letter == "m":
+        scaling_letter = "mm"  # for configuration purpose
     scaling_letter = scaling_letter.lower()
-    if scaling_letter not in list(DNPLAB_CONFIG['SI_SCALING'].keys()):
+    if scaling_letter not in list(DNPLAB_CONFIG["SI_SCALING"].keys()):
         print("Unit is wrong, force scaling factor to 1")
         scaling_factor = 1
     else:
-        scaling_factor = DNPLAB_CONFIG.get('SI_SCALING', scaling_letter, fallback=None)
+        scaling_factor = DNPLAB_CONFIG.get("SI_SCALING", scaling_letter, fallback=None)
 
     return float(scaling_factor)
