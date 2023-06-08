@@ -17,8 +17,6 @@ def import_delta(path):
     pars = import_delta_pars(path)
     values, dims, coords, attrs = import_delta_data(path, pars)
 
-    attrs = convert_delta_attrs(attrs)
-
     delta_data = DNPData(values, dims, coords, attrs)
 
     return delta_data
@@ -185,21 +183,3 @@ def import_delta_data(path, params):
         raise TypeError("Only 1D or 2D are supported")
 
     return y_data, dims, abscissa, params
-
-def convert_delta_attrs(attrs):
-    """Import and convert experiment attributes by formula states in the par file
-
-    Args:
-        attrs (dict): dictionary of parameters
-    
-    Returns:
-        attrs (dict): dictionary of parameters
-    
-    """
-
-    # Repetition Time:
-    relaxation_delay = float(re.findall("[+-]?\d+\.\d+", attrs['relaxation_delay'])[0])
-    x_sweep = int(re.findall("\d+", attrs['x_sweep'])[0])
-    attrs['repetition_time'] = relaxation_delay * 1000 + int(attrs['x_points']) / x_sweep
-    
-    return attrs
