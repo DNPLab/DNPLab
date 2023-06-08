@@ -82,8 +82,6 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
 
     if data_format == "prospa":
         data = prospa.import_prospa(path, *args, **kwargs)
-        data = assign_dnplab_attrs(data, 'prospa')
-        return data
 
     elif data_format == "topspin":
         data = topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
@@ -125,7 +123,7 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
     else:
         raise ValueError("Invalid data format: %s" % data_format)
 
-    data = assign_dnplab_attrs(data, data_format)
+    data = _assign_dnplab_attrs(data, data_format)
     return data
 
 
@@ -200,7 +198,7 @@ def autodetect(test_path, verbose=False):
 
     return data_format
 
-def assign_dnplab_attrs(data, data_format):
+def _assign_dnplab_attrs(data, data_format):
     if data_format == None:
         raise TypeError("No data format given and autodetect failed to detect format, please specify a format")
     
@@ -212,7 +210,7 @@ def assign_dnplab_attrs(data, data_format):
         for key, val in DNPLAB_CONFIG[dnplab_attrs_label].items():
             try:
                 if key not in dnplab_attrs_data_info:
-                    params = dnplab_attrs_conversion(data, val)
+                    params = _convert_dnplab_attrs(data, val)
                 else:
                     params = val
                 data.dnplab_attrs[key] = params
@@ -220,10 +218,10 @@ def assign_dnplab_attrs(data, data_format):
                 continue
         return data
 
-def dnplab_attrs_conversion(data, exp_key):
+def _convert_dnplab_attrs(data, exp_key):
     if ',' in exp_key:
         [params, unit] = exp_key.split(',')
-        scaling_factor = scaling(unit)
+        scaling_factor = _scale_dnplab_attrs(unit)
     else:
         params = exp_key
         scaling_factor = 1
@@ -241,13 +239,13 @@ def dnplab_attrs_conversion(data, exp_key):
             new_params *= params
     return new_params * scaling_factor 
 
-def scaling(unit):
+def _scale_dnplab_attrs(unit):
     scaling_letter = unit.strip()[0]
     if scaling_letter == 'm':
         scaling_letter = 'mm' # for configuration purpose
     scaling_letter = scaling_letter.lower()
     if scaling_letter not in list(DNPLAB_CONFIG['SI_SCALING'].keys()):
-        print("unit is wrong, force scaling factor to 1")
+        print("Unit is wrong, force scaling factor to 1")
         sacling_factor = 1
     else:
         sacling_factor = DNPLAB_CONFIG.get('SI_SCALING', scaling_letter, fallback=None)
