@@ -163,6 +163,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     # Load Acquisition Parameters
     if verbose:
         print("Loading acqus")
+
     acqus_params = load_acqu(os.path.join(path, "acqus"), verbose=verbose)
 
     dims = [
@@ -183,7 +184,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
         endian = ">"
 
     if verbose:
-        print("endian", endian)
+        print("Endian", endian)
 
     topspin_major_version = int(acqus_params["topspin"].split(".")[0])
 
@@ -203,7 +204,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     data_type = data_type + str(data_bytes)
 
     if verbose:
-        print("data type:", endian + data_type)
+        print("Data type:", endian + data_type)
 
     raw = load_bin(os.path.join(path, bin_filename), dtype=endian + data_type)
 
@@ -215,29 +216,27 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
         if verbose:
             print("Data is not complex")
 
-        values = values = raw[0::2] + 1j * raw[1::2]                        # convert to complex
+        values = values = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     elif acqus_params["AQ_mod"] == 1 or acqus_params["AQ_mod"] == 3:
         if verbose:
             print("Data is complex")
-        
+
         values = raw
 
     else:
         raise ValueError("Unknown format")
 
-
-
     group_delay = find_group_delay(acqus_params)
     if verbose:
-        print("group delay", group_delay)
+        print("Group Delay", group_delay)
 
     group_delay = int(_np.floor(group_delay))  # should this be floor or ceil?
 
     # why is dividing by 2 required?
     t2 = 1.0 / acqus_params["SW_h"] * _np.arange(0, int(acqus_params["TD"] / 2))
     if verbose:
-        print("points in FID:", acqus_params["TD"] / 2)
+        print("Points in FID:", acqus_params["TD"] / 2)
 
     # Handle t2 group delay
     # t2 = t2[slice(group_delay, int(acqus_params["TD"] / 2))] # Alternative method
@@ -249,6 +248,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     if "acqu2s" in dir_list:
         if verbose:
             print("Loading acqu2s")
+
         acqu2s_params = load_acqu(os.path.join(path, "acqu2s"), verbose=verbose)
         dims.insert(0, "t1")
         t1 = 1.0 / acqu2s_params["SW_h"] * _np.arange(0, int(acqu2s_params["TD"]))
@@ -258,6 +258,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     if "acqu3s" in dir_list:
         if verbose:
             print("Loading acqu3s")
+
         acqu3s_params = load_acqu(os.path.join(path, "acqu3s"), verbose=verbose)
         dims.insert(0, "t3")
         t3 = 1.0 / acqu3s_params["SW_h"] * _np.arange(0, int(acqu3s_params["TD"]))
@@ -266,11 +267,12 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     new_shape = [len(coords[ix]) if dims[ix] != "t2" else -1 for ix in range(len(dims))]
     if verbose:
         print("Raw Data Shape:", _np.shape(values))
-        print("reshaping data to:", new_shape)
+        print("Reshaping data to:", new_shape)
 
     if assign_vdlist:
         if verbose:
             print("Assigning vdlist to %s dim" % assign_vdlist)
+
         vdlist = topspin_vdlist(path)
         if assign_vdlist in dims:
             index = dims.index(assign_vdlist)
