@@ -143,7 +143,9 @@ def find_group_delay(attrs_dict):
 
 
 # This function does too much, should be broken into smaller functions
-def import_topspin(path, assign_vdlist=False, verbose=False):
+def import_topspin(
+    path, assign_vdlist=False, remove_digital_filter=False, verbose=False
+):
     """Import topspin data and return dnpdata object
 
     Args:
@@ -227,21 +229,26 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     else:
         raise ValueError("Unknown format")
 
-    group_delay = find_group_delay(acqus_params)
+    # Option to remove group delay
+    if remove_digital_filter == True:
+        group_delay = find_group_delay(acqus_params)
+        group_delay = int(_np.floor(group_delay))  # should this be floor or ceil?
+
+    else:
+        group_delay = 0
+
     if verbose:
         print("Group Delay", group_delay)
 
-    group_delay = int(_np.floor(group_delay))  # should this be floor or ceil?
-
     # why is dividing by 2 required?
     t2 = 1.0 / acqus_params["SW_h"] * _np.arange(0, int(acqus_params["TD"] / 2))
+
     if verbose:
         print("Points in FID:", acqus_params["TD"] / 2)
 
     # Handle t2 group delay
     # t2 = t2[slice(group_delay, int(acqus_params["TD"] / 2))] # Alternative method
     t2 = t2[group_delay:]
-
     coords = [t2]
 
     # This will not work for vdlist data
@@ -383,8 +390,6 @@ def load_acqu(path, required_params=None, verbose=False):
         acqus_params = raw_params
 
     return acqus_params
-
-
 
 
 def topspin_vdlist(path):
