@@ -199,6 +199,16 @@ def autodetect(test_path, verbose=False):
     return data_format
 
 def _assign_dnplab_attrs(data, data_format):
+    """Load and assign experiment attributes to dnplab attributes 
+
+    Args:
+        data (dnpData): Data object
+        data_format (str): Format of spectrometer data to import
+    
+    Returns:
+        data (dnpData): Data object
+    
+    """
     if data_format == None:
         raise TypeError("No data format given and autodetect failed to detect format, please specify a format")
     
@@ -220,6 +230,15 @@ def _assign_dnplab_attrs(data, data_format):
         return data
 
 def _convert_dnplab_attrs(data, exp_key):
+    """Load and calculate the value assigned to dnplab attributes 
+
+    Args:
+        data (dnpData): Data object
+        exp_key (str): A string of experiment attributes possibly with multiplication sign and unit
+    
+    Returns:
+        new_params (int or float): dnplab attributes values
+    """
     if ',' in exp_key:
         [params, unit] = exp_key.split(',')
         scaling_factor = _scale_dnplab_attrs(unit)
@@ -241,14 +260,22 @@ def _convert_dnplab_attrs(data, exp_key):
     return new_params * scaling_factor 
 
 def _scale_dnplab_attrs(unit):
+    """Scale all dnplab attributes value to SI unit
+
+    Args:
+        unit (str): an unit
+
+    Returns:
+        scaling_factor (float): scaling factor
+    """
     scaling_letter = unit.strip()[0]
     if scaling_letter == 'm':
         scaling_letter = 'mm' # for configuration purpose
     scaling_letter = scaling_letter.lower()
     if scaling_letter not in list(DNPLAB_CONFIG['SI_SCALING'].keys()):
         print("Unit is wrong, force scaling factor to 1")
-        sacling_factor = 1
+        scaling_factor = 1
     else:
-        sacling_factor = DNPLAB_CONFIG.get('SI_SCALING', scaling_letter, fallback=None)
+        scaling_factor = DNPLAB_CONFIG.get('SI_SCALING', scaling_letter, fallback=None)
 
-    return float(sacling_factor)
+    return float(scaling_factor)
