@@ -208,14 +208,15 @@ def _assign_dnplab_attrs(data, data_format):
         dnplab_attrs_label = DNPLAB_CONFIG.get("DNPLAB_ATTRBUTING", "dnplab_attrs_label", fallback = "DNPLAB_ATTRS")
         dnplab_attrs_label += (':' + data_format)
         for key, val in DNPLAB_CONFIG[dnplab_attrs_label].items():
-            try:
-                if key not in dnplab_attrs_data_info:
-                    params = _convert_dnplab_attrs(data, val)
-                else:
-                    params = val
-                data.dnplab_attrs[key] = params
-            except:
-                continue
+            if val != 'None':
+                try:
+                    if key not in dnplab_attrs_data_info:
+                        params = _convert_dnplab_attrs(data, val)
+                    else:
+                        params = val
+                    data.dnplab_attrs[key] = params
+                except:
+                    continue
         return data
 
 def _convert_dnplab_attrs(data, exp_key):
