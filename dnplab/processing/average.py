@@ -1,8 +1,8 @@
 import numpy as _np
 
 
-def average(data, dim="Average"):
-    """Average a dimension
+def average(data, axis="Average"):
+    """Average a dimension using numpy.mean
 
     Args:
         data (object) : DNPData object
@@ -16,7 +16,8 @@ def average(data, dim="Average"):
         >>> data_averaged = dnp.average(data)
     """
 
-    temp = data.copy()
-    temp = _np.mean(temp, axis=dim)
+    data = data.copy()
 
-    return temp
+    data = _np.mean(data, axis=axis)  # it will automatically assign proc_attrs
+
+    return data
