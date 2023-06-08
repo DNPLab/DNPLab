@@ -29,7 +29,7 @@ class Coords(object):
             self._dims = deepcopy(dims)
         else:
             raise TypeError(
-                "dims must be list of str, you provided types {0}".format(
+                "dims must be list of unique strings (type str), you provided types {0}".format(
                     [type(k) for k in dims]
                 )
             )
