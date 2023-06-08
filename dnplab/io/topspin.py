@@ -207,8 +207,26 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
 
     raw = load_bin(os.path.join(path, bin_filename), dtype=endian + data_type)
 
-    # Is data always complex?
-    values = raw[0::2] + 1j * raw[1::2]  # convert to complex
+    if verbose:
+        print("Raw data shape:", _np.shape(raw))
+
+    # Convert to complex data depending on AQ_mod
+    if acqus_params["AQ_mod"] == 0 or acqus_params["AQ_mod"] == 2:
+        if verbose:
+            print("Data is not complex")
+
+        values = values = raw[0::2] + 1j * raw[1::2]                        # convert to complex
+
+    elif acqus_params["AQ_mod"] == 1 or acqus_params["AQ_mod"] == 3:
+        if verbose:
+            print("Data is complex")
+        
+        values = raw
+
+    else:
+        raise ValueError("Unknown format")
+
+
 
     group_delay = find_group_delay(acqus_params)
     if verbose:
