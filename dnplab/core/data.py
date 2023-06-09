@@ -6,6 +6,7 @@ import numpy as _np
 
 from .base import ABCData
 from ..version import __version__
+from ..config.config import DNPLAB_CONFIG
 
 version = __version__
 
@@ -32,7 +33,14 @@ class DNPData(ABCData):
     """
 
     def __init__(
-        self, values=_np.r_[[]], dims=[], coords=[], attrs={}, proc_attrs=None
+        self,
+        values=_np.r_[[]],
+        dims=[],
+        coords=[],
+        attrs={},
+        dnplab_attrs={},
+        proc_attrs=None,
+        **kwargs,
     ):
         """
         DNPData Class __init__ method
@@ -42,19 +50,33 @@ class DNPData(ABCData):
             coords (list): list of axes
             dims (list): list of strings which are names of axes
             attrs (dict): dictionary of parameters
+            exp_attrs (dict): dictionary of experiment parameters
+            dnplab_attrs (dict): dictionary of parameters used in dnplab
+            pro_attrs (list): list of processing steps and arguments
         """
 
         if len(dims) > 0 and isinstance(dims[0], list):
             dims = dims[0]
 
-        super().__init__(values, dims, coords, attrs)
+        super().__init__(values, dims, coords, attrs, dnplab_attrs)
         self.version = version
+        self.attrs = attrs
+        self.exp_attrs = attrs
+        self.dnplab_attrs = dnplab_attrs
         if proc_attrs is not None:
             self.proc_attrs = proc_attrs
         else:
             self.proc_attrs = []
-        self.max_print_attrs = 5
-        self.print_values = False
+
+        max_print_attrs = kwargs.pop(
+            "max_print_attrs", DNPLAB_CONFIG.getint("CORE", "DNPData_max_print_attrs")
+        )
+        print_values = kwargs.pop(
+            "print_values", DNPLAB_CONFIG.getboolean("CORE", "DNPData_print_values")
+        )
+
+        self.max_print_attrs = max_print_attrs
+        self.print_values = print_values
 
     @property
     def _constructor(self):
@@ -100,26 +122,97 @@ class DNPData(ABCData):
 
         return string
 
-    def proc_info(self):
+    def exp_info(self):
+        """
+        Print experiment attributes currently in attrs dictionary
+        """
+        print("-----------------")
+        print("Experiment Attributes")
+        print("-----------------")
+        if self.attrs == {}:
+            print("None")
+        else:
+            longest_key = max(self.attrs, key=len)
+            maximum_length_of_attrs = len(longest_key)
+            for x in self.attrs:
+                spaces = " " * (1 + maximum_length_of_attrs - len(x))
+                print("| " + x + spaces + "| " + str(self.attrs[x]))
+
+    def dnplab_info(self):
+        """
+        Print parameters currently in used in dnplab
+        """
+
+        print("-----------------")
+        print("DNPLab Attributes")
+        print("-----------------")
+        if self.dnplab_attrs == {}:
+            print("None")
+        else:
+            longest_key = max(self.dnplab_attrs, key=len)
+            maximum_length_of_dnplab_attrs = len(longest_key)
+            for x in self.dnplab_attrs:
+                spaces = " " * (1 + maximum_length_of_dnplab_attrs - len(x))
+                print(
+                    "| "
+                    + x
+                    + spaces
+                    + "| "
+                    + str(self.dnplab_attrs[x])
+                    .replace("{", "")
+                    .replace("}", "")
+                    .replace("'", "")
+                )
+
+    def proc_info(self, step_name=None):
         """
         Print processing steps and parameters currently in proc_attrs list
         """
 
         print("-----------------")
-        print("proccessing steps")
+        print("Processing Attributes")
         print("-----------------")
-        if not self.proc_attrs:
-            print("none.")
+        if self.proc_attrs == []:
+            print("None")
         else:
-            for x in self.proc_attrs:
-                print(
-                    x[0]
-                    + ": "
-                    + str([y + "=" + str(x[1][y]) for y in x[1].keys()])
-                    .replace("[", "")
-                    .replace("]", "")
-                    .replace("'", "")
-                )
+            steps = list(zip(*self.proc_attrs))[0]
+            values_dict = list(zip(*self.proc_attrs))[1]
+            longest_key = max(steps, key=len)
+            maximum_length_of_proc_attrs = len(longest_key)
+            if step_name != None and step_name not in steps:
+                print("step not found")
+                return
+            for index in range(len(steps)):
+                spaces = " " * (1 + maximum_length_of_proc_attrs - len(steps[index]))
+                # fix length of step index
+                if step_name == None or step_name == steps[index]:
+                    print(
+                        "{:2d}".format(index + 1),
+                        "| "
+                        + steps[index]
+                        + spaces
+                        + "| "
+                        + str(values_dict[index])
+                        .replace("{", "")
+                        .replace("}", "")
+                        .replace("'", ""),
+                    )
+
+    def show_attrs(
+        self, show_exp_info=False, show_dnplab_info=True, show_proc_info=True
+    ):
+        """
+        Print experiment attributes, dnplab attributes and processing steps
+        """
+
+        if show_exp_info:
+            self.exp_info()
+
+        if show_dnplab_info:
+            self.dnplab_info()
+
+        if show_proc_info:
+            self.proc_info()
 
     def add_proc_attrs(self, proc_attr_name, proc_dict):
         """

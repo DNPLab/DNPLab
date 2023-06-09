@@ -6,6 +6,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from .coord import Coords
 import logging
+import warnings
 
 from ..version import __version__
 
@@ -66,7 +67,14 @@ class ABCData(object):
     __array_priority__ = 1000  # radd, rsub, ... should return nddata object
 
     def __init__(
-        self, values=_np.r_[[]], dims=[], coords=[], attrs={}, error=None, **kwargs
+        self,
+        values=_np.r_[[]],
+        dims=[],
+        coords=[],
+        attrs={},
+        dnp_attrs={},
+        error=None,
+        **kwargs
     ):
         self.version = version
 
@@ -89,6 +97,13 @@ class ABCData(object):
         else:
             raise TypeError('attrs must be type "dict" not %s' % str(type(attrs)))
 
+        if isinstance(dnp_attrs, dict):
+            self._attrs = attrs
+        else:
+            raise TypeError(
+                'dnp_attrs must be type "dict" not %s' % str(type(dnp_attrs))
+            )
+
         if isinstance(error, _np.ndarray) or (error == None):
             self._error = error
         else:
@@ -104,7 +119,15 @@ class ABCData(object):
                 raise TypeError
 
         if not self._self_consistent():
-            warnings.warn("Dimensions not consistent")
+            warnings.warn("Data Object Dimensions are not consistent.")
+            if not self._check_dims(self.dims):
+                warnings.warn(
+                    "Dims Check Failed. Dims must be list of strings. Length of dims should match number of dimensions in values."
+                )
+            if not self._check_coords(self._coords):
+                warnings.warn(
+                    "Coords Check Failed. Each coord should be a numpy array matching the length of each dimension in values."
+                )
 
     @property
     def __version__(self):
@@ -126,7 +149,13 @@ class ABCData(object):
         # test if any duplicates exist
         any_duplicates = len(dims) == len(set(dims))
 
-        return all_strings and any_duplicates
+        # Test if number of dims matches number of dimensions
+        if self.size != 0:  # Case where array is not empty
+            shape_check = len(self.values.shape) == len(self.dims)
+        else:  # Case where array is empty
+            shape_check = len(self.dims) == 0
+
+        return all_strings and any_duplicates and shape_check
 
     def _check_coords(self, coords):
         """Check that coords is list of 1d numpy arrays
@@ -138,6 +167,7 @@ class ABCData(object):
             bool: True if valid coords. False, otherwise.
         """
 
+        # Check that coords is list of 1d numpy arrays
         for coord in coords:
             if isinstance(coord, _np.ndarray):
                 if len(coord.shape) == 1:
@@ -145,6 +175,17 @@ class ABCData(object):
                 else:
                     return False
             else:
+                return False
+
+        shape = self.values.shape
+
+        # Check Shapes are consistent
+        if len(shape) != len(coords):
+            return False
+
+        # Check that each coord length matches shape of each dimension in values
+        for coord_ix, coord in enumerate(coords):
+            if len(coord) != shape[coord_ix]:
                 return False
 
         return True
@@ -158,6 +199,10 @@ class ABCData(object):
         Returns:
             bool: True if valid error. False otherwise.
         """
+
+        # Error is type None if it doesn't exist
+        if error is None:
+            return True
 
         check_type = isinstance(error, _np.ndarray)
 
@@ -180,7 +225,7 @@ class ABCData(object):
         else:
             coords_check = list(self._values.shape) == list(self.coords.shape)
 
-        dims_check = len(self.values.shape) == len(self.dims)
+        dims_check = self._check_dims(self.dims)
 
         return coords_check and dims_check
 
@@ -419,7 +464,10 @@ class ABCData(object):
         if dim in self.dims:
             return self.coords.index(dim)
         else:
-            raise ValueError("%s not in %s" % (dim, self.dims))
+            raise ValueError(
+                'The dimension "%s" is not in dims. Available dimensions are: %s'
+                % (dim, self.dims)
+            )
 
     def __truediv__(self, b):
         if isinstance(b, ABCData):
@@ -736,6 +784,7 @@ class ABCData(object):
         if a.error is not None:
             a.error = a.error.std(index)
         a.coords.pop(dim)
+        DeprecationWarning("Method '.sum()' will be removed on September 1st, 2023 ")
         return a
 
     def align(self, b):

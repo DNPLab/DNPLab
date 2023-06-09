@@ -21,3 +21,6 @@ from .widgets import *
 from .plotting import *
 from .reporting import *
 from .version import __version__
+
+# config
+from .config.config import DNPLAB_CONFIG
