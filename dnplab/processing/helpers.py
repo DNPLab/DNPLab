@@ -22,6 +22,11 @@ def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=Fals
 
     enhancements = data.copy()
 
+    proc_parameters = {
+        "off_spectrum_index": off_spectrum_index,
+        "return_complex_values": return_complex_values,
+    }
+
     if not "experiment_type" in data.attrs.keys():
         raise KeyError("Experiment type not defined")
 
@@ -43,6 +48,9 @@ def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=Fals
         raise TypeError(
             "Integration axis not recognized. First dimension should be Power or B0."
         )
+
+    proc_attr_name = "calculate_enhancement"
+    enhancements.add_proc_attrs(proc_attr_name, proc_parameters)
 
     if return_complex_values == True:
         return enhancements
@@ -205,11 +213,20 @@ def smooth(data, dim="t2", window_length=11, polyorder=3):
     """
     out = data.copy()
 
+    proc_parameters = {
+        "dim": dim,
+        "window_length": window_length,
+        "polyorder": polyorder,
+    }
+
     out.unfold(dim)
 
     out.values = savgol_filter(out.values, window_length, polyorder, axis=0)
 
     out.fold()
+
+    proc_attr_name = "smooth"
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return out
 
@@ -226,16 +243,18 @@ def left_shift(data, dim="t2", shift_points=0):
         data (DNPDdata): Shifted data object
     """
 
-    data = data[dim, shift_points:]
+    out = data.copy()
+
+    out = out[dim, shift_points:]
 
     proc_attr_name = "left_shift"
     proc_parameters = {
         "dim": dim,
         "points": shift_points,
     }
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out
 
 
 def normalize(data, amplitude=True):
@@ -279,8 +298,15 @@ def reference(data, dim="f2", old_ref=0, new_ref=0):
         DNPData: referenced data
     """
 
-    data = data.copy()
+    out = data.copy()
 
-    data.coords[dim] -= old_ref - new_ref
+    out.coords[dim] -= old_ref - new_ref
 
-    return data
+    proc_attr_name = "reference"
+    proc_parameters = {
+        "dim": dim,
+        "old_ref": old_ref,
+        "new_ref": new_ref,
+    }
+
+    return out
