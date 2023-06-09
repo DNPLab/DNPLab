@@ -23,26 +23,26 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         >>> data_aligned = dnp.ndalign(data, center = 10, width = 20)
     """
 
-    data = data.copy()
+    out = data.copy()
 
     proc_parameters = {"dim": dim}
 
-    original_order = data.dims  # Original order of dims
+    original_order = out.dims  # Original order of dims
 
-    data.reorder([dim])  # Move dim to first dimension
+    out.reorder([dim])  # Move dim to first dimension
 
-    all_values = data.values  # Extract Data Values for alignment
+    all_values = out.values  # Extract Data Values for alignment
 
     if center != None and width != None:
         start = center - 0.5 * width
         stop = center + 0.5 * width
     elif center == None and width == None:
-        start = data.coords[dim][-1]
-        stop = data.coords[dim][0]
+        start = out.coords[dim][-1]
+        stop = out.coords[dim][0]
     else:
         raise ValueError("selected range is not acceptable")
 
-    values = data[dim, (start, stop)].values
+    values = out[dim, (start, stop)].values
 
     all_original_shape = all_values.shape
     original_shape = values.shape  # Preserve original shape
@@ -91,11 +91,11 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         all_original_shape
     )  # reshape to original values shape
 
-    data.values = all_aligned_values  # Add aligned values back to data object
+    out.values = all_aligned_values  # Add aligned values back to data object
 
-    data.reorder(original_order)  # Back to original order
+    out.reorder(original_order)  # Back to original order
 
     proc_attr_name = "ndalign"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out

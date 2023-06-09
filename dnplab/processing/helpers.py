@@ -243,18 +243,18 @@ def left_shift(data, dim="t2", shift_points=0):
         data (DNPDdata): Shifted data object
     """
 
-    data = data.copy()
+    out = data.copy()
 
-    data = data[dim, shift_points:]
+    out = out[dim, shift_points:]
 
     proc_attr_name = "left_shift"
     proc_parameters = {
         "dim": dim,
         "points": shift_points,
     }
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out
 
 
 def normalize(data, amplitude=True):
@@ -298,9 +298,9 @@ def reference(data, dim="f2", old_ref=0, new_ref=0):
         DNPData: referenced data
     """
 
-    data = data.copy()
+    out = data.copy()
 
-    data.coords[dim] -= old_ref - new_ref
+    out.coords[dim] -= old_ref - new_ref
 
     proc_attr_name = "reference"
     proc_parameters = {
@@ -309,4 +309,4 @@ def reference(data, dim="f2", old_ref=0, new_ref=0):
         "new_ref": new_ref,
     }
 
-    return data
+    return out
