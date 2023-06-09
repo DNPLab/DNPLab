@@ -7,17 +7,23 @@ def dBm2w(power_in_dBm):
     Convert a microwave power given in dBm to W. Note that for values <= -190 dBm the output power in W is set to 0.
 
     Args:
-        power_in_dBm: Power in (dBm)
+        power_in_dBm (array, list, float or int): Power in (dBm)
 
     Returns:
-        float (array): Power in (W)
+        float (array, list, float or int): Power in (W)
 
-    """
+    """  
 
-    power_in_W = 10.0 ** (power_in_dBm / 10.0) / 1000.0
-
-    # Set values below 1 pW to 0 W
-    power_in_W[power_in_W <= 1e-22] = 0
+    if isinstance(power_in_dBm, (_np.ndarray, list)):
+        power_in_W = power_in_dBm.copy()
+        for index in range(len(power_in_dBm)):
+            power_in_W[index] = dBm2w(power_in_dBm[index])
+        return power_in_W
+    
+    else:
+        power_in_W = 10.0 ** (power_in_dBm / 10.0) / 1000.0
+        # Set values below 1 pW to 0 W
+        power_in_W = 0 if power_in_W <= 1e-22 else power_in_W
 
     return power_in_W
 
