@@ -41,5 +41,5 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
     ],
-    package_data={"dnplab", ["config/dnplab.cfg"]},
+    package_data={"dnplab": ["config/dnplab.cfg"]},
 )
