@@ -1,4 +1,72 @@
 import numpy as _np
+from ..core.data import DNPData
+
+
+def convert_power(data, mode="dBm2W"):
+    """Convert power in dBm to power in W and vice versa
+
+    Convert power in dBm to power in W and vice versa
+
+    If power_unit exists in the DNPData object, the function will automatically convert the power, regardless the mode.
+
+    If power_unit doesn't exist, the function will be performed in the default mode.
+
+    If data is not DNPLab object, the function will be performed based on the mode.
+
+    Args:
+        data (DNPData, array, list, float or int)
+        mode (str): By default, the function convert power in dBm to power in W
+
+    Returns:
+        out (DNPData, array, list, float or int)
+
+    """
+    if isinstance(data, DNPData):
+        out = data.copy()
+        dims = out.dims
+        for dim in dims:
+            if dim.lower() == "power" or dim.lower() == "powers":
+                break
+            elif dim == dims[-1]:
+                raise Warning("Power is not in dim")
+            else:
+                continue
+
+        if "power_unit" in out.dnplab_attrs.keys():
+            if out.dnplab_attrs["power_unit"] == "dBm":
+                mode = "dBm2W"
+            elif out.dnplab_attrs["power_unit"] == "W":
+                mode = "W2dBm"
+            else:
+                raise Warning("Power unit in dnplab_attrs is invalid")
+
+        if mode.lower() == "dbm2w":
+            power_unit = "W"
+            f = dBm2w
+        elif mode.lower() == "w2dbm":
+            power_unit = "dBm"
+            f = w2dBm
+        else:
+            raise Warning("Mode is not acceptable")
+
+        out.coords[dim] = f(out.coords[dim])
+        proc_parameters = {
+            "mode": mode,
+        }
+        out.dnplab_attrs["power_unit"] = power_unit
+        proc_attr_name = "convert_power"
+        out.add_proc_attrs(proc_attr_name, proc_parameters)
+
+        return out
+
+    else:
+        if mode.lower() == "dbm2w":
+            f = dBm2w
+        elif mode.lower() == "w2dbm":
+            f = w2dBm
+        else:
+            raise Warning("Mode is not acceptable")
+        return f(data)
 
 
 def dBm2w(power_in_dBm):
@@ -12,14 +80,14 @@ def dBm2w(power_in_dBm):
     Returns:
         float (array, list, float or int): Power in (W)
 
-    """  
+    """
 
     if isinstance(power_in_dBm, (_np.ndarray, list)):
         power_in_W = power_in_dBm.copy()
         for index in range(len(power_in_dBm)):
             power_in_W[index] = dBm2w(power_in_dBm[index])
         return power_in_W
-    
+
     else:
         power_in_W = 10.0 ** (power_in_dBm / 10.0) / 1000.0
         # Set values below 1 pW to 0 W
@@ -35,7 +103,7 @@ def w2dBm(power_in_W):
 
     Args:
         power_in_W (array, list, float or int):   Power in (W)
-    
+
     Returns:
         float (array, list, float or int): Power in (W)
 
@@ -45,7 +113,7 @@ def w2dBm(power_in_W):
         for index in range(len(power_in_W)):
             power_in_dBm[index] = w2dBm(power_in_W[index])
         return power_in_dBm
-    
+
     else:
         power_in_dBm = 10.0 * _np.log10(1000 * power_in_W)
 
