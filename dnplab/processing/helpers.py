@@ -273,10 +273,17 @@ def normalize(data, amplitude=True, global_reference=True):
 
     out = data.copy()
 
-    if amplitude == True:
-        out.values = out.values / _np.max(out.values)
-    elif amplitude == False:
-        out.values = out.values  # Normalize to area = 1, not implemented yet
+    if global_reference == True:
+        if amplitude == True:
+            out.values = out.values / _np.max(out.values)
+
+        elif amplitude == False:
+            out.values = out.values  # Normalize to area = 1, not implemented yet
+
+    else:
+        for k in out.coords[1]:
+            maxAmp = _np.max(out.values[:, k])
+            out.values[:, k] = out.values[:, k] / maxAmp
 
     proc_attr_name = "normalized"
     proc_parameters = {
