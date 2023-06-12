@@ -1,7 +1,9 @@
 import os
 from . import *
+import re
 
 from ..core.util import concat
+from ..config.config import DNPLAB_CONFIG
 
 
 def load(path, data_format=None, dim=None, coord=[], verbose=False, *args, **kwargs):
@@ -80,47 +82,52 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
         data_format = autodetect(path, verbose=verbose)
 
     if data_format == "prospa":
-        return prospa.import_prospa(path, *args, **kwargs)
+        data = prospa.import_prospa(path, *args, **kwargs)
 
     elif data_format == "topspin":
-        return topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
+        data = topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
 
     elif data_format == "topspin pdata":
         # import_topspin should also handle this format, this is a workaround
-        return topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
+        data = topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
 
     elif data_format == "delta":
-        return delta.import_delta(path, *args, **kwargs)
+        data = delta.import_delta(path, *args, **kwargs)
 
     elif data_format == "vnmrj":
-        return vnmrj.import_vnmrj(path, *args, **kwargs)
+        data = vnmrj.import_vnmrj(path, *args, **kwargs)
 
     elif data_format == "tnmr":
-        return tnmr.import_tnmr(path, *args, **kwargs)
+        data = tnmr.import_tnmr(path, *args, **kwargs)
 
     elif data_format == "specman":
-        return specman.import_specman(path, *args, **kwargs)
+        data = specman.import_specman(path, *args, **kwargs)
 
     elif data_format in ["xepr", "xenon"]:
-        return bes3t.import_bes3t(path, *args, **kwargs)
+        data = bes3t.import_bes3t(path, *args, **kwargs)
 
     elif data_format in ["winepr", "esp"]:
-        return winepr.import_winepr(path, *args, **kwargs)
+        data = winepr.import_winepr(path, *args, **kwargs)
 
     elif data_format == "h5":
-        return h5.load_h5(path, *args, **kwargs)
+        data = h5.load_h5(path, *args, **kwargs)
 
     elif data_format == "power":
-        return power.import_power(path, *args, **kwargs)
+        data = power.import_power(path, *args, **kwargs)
 
     elif data_format == "vna":
-        return vna.import_vna(path, *args, **kwargs)
+        data = vna.import_vna(path, *args, **kwargs)
 
     elif data_format == "cnsi_powers":
-        return cnsi.get_powers(path, *args, **kwargs)
+        data = cnsi.get_powers(path, *args, **kwargs)
 
     else:
         raise ValueError("Invalid data format: %s" % data_format)
+
+    if data_format not in ["h5", "power", "vna", "cnsi_powers"]:
+        data = _assign_dnplab_attrs(data, data_format)
+
+    return data
 
 
 # TODO rename to detect_file_format
@@ -193,3 +200,96 @@ def autodetect(test_path, verbose=False):
         print("Data Format:", data_format)
 
     return data_format
+
+
+def _assign_dnplab_attrs(data, data_format):
+    """Load and assign experiment attributes to dnplab attributes
+
+    Args:
+        data (dnpData): Data object
+        data_format (str): Format of spectrometer data to import
+
+    Returns:
+        data (dnpData): Data object
+
+    """
+    if data_format == None:
+        raise TypeError(
+            "No data format given and autodetect failed to detect format, please specify a format"
+        )
+
+    else:
+        dnplab_attrs_data_info = DNPLAB_CONFIG.getlist(
+            "DNPLAB_ATTRS_COMMON", "dnplab_attrs_data_info"
+        )
+        dnplab_attrs_data_info = [x.strip() for x in dnplab_attrs_data_info]
+        dnplab_attrs_label = DNPLAB_CONFIG.get(
+            "DNPLAB_ATTRS_COMMON", "dnplab_attrs_label", fallback="DNPLAB_ATTRS"
+        )
+        dnplab_attrs_label += ":" + data_format
+        for key, val in DNPLAB_CONFIG[dnplab_attrs_label].items():
+            if val != "None":
+                try:
+                    if key not in dnplab_attrs_data_info:
+                        params = _convert_dnplab_attrs(data, val)
+                    else:
+                        params = val
+                    data.dnplab_attrs[key] = params
+                except:
+                    continue
+        return data
+
+
+def _convert_dnplab_attrs(data, exp_key):
+    """Load and calculate the value assigned to dnplab attributes
+
+    Args:
+        data (dnpData): Data object
+        exp_key (str): A string of experiment attributes possibly with multiplication sign and unit
+
+    Returns:
+        new_params (int or float): dnplab attributes values
+    """
+    if "," in exp_key:
+        [params, unit] = exp_key.split(",")
+        scaling_factor = _scale_dnplab_attrs(unit)
+    else:
+        params = exp_key
+        scaling_factor = 1
+
+    params_list = params.split("*")
+    new_params = 1
+    for key in params_list:
+        params = data.attrs["".join(key.split())]
+        if isinstance(params, str):
+            try:
+                new_params *= int(re.findall("\d+", params)[0])
+            except:
+                new_params *= float(
+                    re.findall("[+-]?\d+\.\d+", params)[0]
+                )  # remove unexpected characters
+        else:
+            new_params *= params
+    return new_params * scaling_factor
+
+
+def _scale_dnplab_attrs(unit):
+    """Scale all dnplab attributes value to SI unit
+
+    Args:
+        unit (str): an unit
+
+    Returns:
+        scaling_factor (float): scaling factor
+    """
+    scaling_letter = unit.strip()[0]
+    if scaling_letter == "m":
+        scaling_letter = "mm"  # for configuration purpose
+    scaling_letter = scaling_letter.lower()
+    if scaling_letter not in list(DNPLAB_CONFIG["SI_SCALING"].keys()):
+        print("Unit is wrong, force scaling factor to 1")
+        scaling_factor = 1
+    else:
+        scaling_factor = DNPLAB_CONFIG.get("SI_SCALING", scaling_letter, fallback=None)
+
+    return float(scaling_factor)

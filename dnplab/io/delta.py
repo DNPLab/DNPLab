@@ -1,4 +1,5 @@
 import numpy as _np
+import re
 from struct import unpack
 from .. import DNPData
 

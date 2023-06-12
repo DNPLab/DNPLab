@@ -11,7 +11,7 @@ DNPLab is a collaborative project created by:
 - [Franck Lab Syracuse University](https://jmfrancklab.github.io/)
 
 Authors:
-Timothy Keller, Thomas Casey, Yanxian Lin, John Franck, Thorsten Maly, Songi Han
+Timothy Keller, Thomas Casey, Yanxian Lin, Yen-Chun Huang, Karl Rieger, John Franck, Thorsten Maly, Songi Han
 
 
 DNPLab is an object-oriented Open Source Python-based package for importing, processing, and analyzing data determined in a [Dynamic Nuclear Polarization (DNP)](https://www.bridge12.com/learn/dnp-spectroscopy/) experiment.
