@@ -257,23 +257,33 @@ def left_shift(data, dim="t2", shift_points=0):
     return out
 
 
-def normalize(data, amplitude=True):
+def normalize(data, amplitude=True, slice=False):
     """Normalize spectrum
 
+    Normalize signal intensity in spectrum. The signal amplitude can either be normalized with respect to the amplitude or the area. The function can also be used for higher dimensions.
+
     Args:
-        data (DNPData): Data object
-        amplitude (boolean): True: normalize amplitude, false: normalize area. The default is True
+        data (DNPData):             Input dnpdata object
+        amplitude (boolean):        True: normalize amplitude, false: normalize area. The default is True
+        slice (boolean):            If false (default) normalize spectrum to largest value in array. If ture, normalize each spectrum (slice) individually
 
     Returns:
-        data (DNPDdata): Normalized data object
+        data (DNPDdata):            Normalized dnpdata object
     """
 
     out = data.copy()
 
-    if amplitude == True:
-        out.values = out.values / _np.max(out.values)
-    elif amplitude == False:
-        out.values = out.values  # Normalize to area = 1, not implemented yet
+    if slice == False:
+        if amplitude == True:
+            out.values = out.values / _np.max(abs(out.values))
+
+        elif amplitude == False:
+            out.values = out.values  # Normalize to area = 1, not implemented yet
+
+    else:
+        for k in out.coords[1]:
+            maxAmp = _np.max(out.values[:, k])
+            out.values[:, k] = out.values[:, k] / maxAmp
 
     proc_attr_name = "normalized"
     proc_parameters = {
