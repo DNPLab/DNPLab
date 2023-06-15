@@ -63,12 +63,13 @@ def import_bes3t(path):
         raise TypeError("data file must be .DTA, .DSC, .YGF, or .ZGF")
 
     attrs = load_dsc(path_dsc)
+
     values, dims, coords, attrs = load_dta(
         path_dta, path_xgf, path_ygf, path_zgf, attrs
     )
-
-    # Assign data/spectrum type
+    attrs["spectrometer_format"] = "xepr"
     attrs["experiment_type"] = "epr_spectrum"
+    attrs["nrScans"] = attrs["nscans"]
 
     bes3t_data = DNPData(values, dims, coords, attrs)
 

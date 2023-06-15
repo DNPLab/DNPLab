@@ -50,6 +50,8 @@ def fourier_transform(
         The fourier_transform function assumes dt = t[1] - t[0]
     """
 
+    out = data.copy()
+
     # handle zero_fill_factor
     zero_fill_factor = int(zero_fill_factor)
     if zero_fill_factor <= 0:
@@ -62,37 +64,37 @@ def fourier_transform(
         "convert_to_ppm": convert_to_ppm,
     }
 
-    index = data.dims.index(dim)
+    index = out.dims.index(dim)
 
-    dt = data.coords[dim][1] - data.coords[dim][0]
-    n_pts = zero_fill_factor * len(data.coords[dim])
+    dt = out.coords[dim][1] - out.coords[dim][0]
+    n_pts = zero_fill_factor * len(out.coords[dim])
     f = (1.0 / (n_pts * dt)) * _np.r_[0:n_pts]
     if shift == True:
         f -= 1.0 / (2 * dt)
 
     if convert_to_ppm:
-        if "nmr_frequency" not in data.attrs.keys():
+        if "nmr_frequency" not in out.attrs.keys():
             warn(
                 "NMR frequency not found in the attrs dictionary. Conversion from ppm to Hz requires the NMR frequency."
             )
         else:
-            nmr_frequency = data.attrs["nmr_frequency"]
+            nmr_frequency = out.attrs["nmr_frequency"]
             f /= nmr_frequency / 1.0e6  # updated
 
-    data.values = _np.fft.fft(data.values, n=n_pts, axis=index)
+    out.values = _np.fft.fft(out.values, n=n_pts, axis=index)
 
     if shift:
-        data.values = _np.fft.fftshift(data.values, axes=index)
+        out.values = _np.fft.fftshift(out.values, axes=index)
 
-    data.coords[dim] = f
+    out.coords[dim] = f
 
     new_dim = rename_ft_dim(dim, "t", "f")
-    data.rename(dim, new_dim)
+    out.rename(dim, new_dim)
 
     proc_attr_name = "fourier_transform"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out
 
 
 def inverse_fourier_transform(
@@ -118,6 +120,8 @@ def inverse_fourier_transform(
         Assumes df = f[1] - f[0]
     """
 
+    out = data.copy()
+
     # handle zero_fill_factor
     zero_fill_factor = int(zero_fill_factor)
     if zero_fill_factor <= 0:
@@ -130,34 +134,34 @@ def inverse_fourier_transform(
         "convert_from_ppm": convert_from_ppm,
     }
 
-    index = data.dims.index(dim)
+    index = out.dims.index(dim)
 
-    df = data.coords[dim][1] - data.coords[dim][0]
+    df = out.coords[dim][1] - out.coords[dim][0]
     if convert_from_ppm:
-        if "nmr_frequency" not in data.attrs.keys():
+        if "nmr_frequency" not in out.attrs.keys():
             warn(
                 "NMR frequency not found in the attrs dictionary. Conversion from ppm to Hz requires the NMR frequency."
             )
         else:
-            nmr_frequency = data.attrs["nmr_frequency"]
+            nmr_frequency = out.attrs["nmr_frequency"]
             df /= 1 / (nmr_frequency / 1.0e6)  # updated
 
-    n_pts = zero_fill_factor * len(data.coords[dim])
+    n_pts = zero_fill_factor * len(out.coords[dim])
     t = (1.0 / (n_pts * df)) * _np.r_[0:n_pts]
 
     if shift:
-        data.values = _np.fft.fftshift(data.values, axes=index)
+        out.values = _np.fft.fftshift(out.values, axes=index)
 
-    data.values = _np.fft.ifft(data.values, n=n_pts, axis=index)
-    data.coords[dim] = t
+    out.values = _np.fft.ifft(out.values, n=n_pts, axis=index)
+    out.coords[dim] = t
 
     new_dim = rename_ft_dim(dim, "f", "t")
-    data.rename(dim, new_dim)
+    out.rename(dim, new_dim)
 
     proc_attr_name = "inverse_fourier_transform"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out
 
 
 def zero_fill():

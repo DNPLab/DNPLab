@@ -23,24 +23,26 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         >>> data_aligned = dnp.ndalign(data, center = 10, width = 20)
     """
 
+    out = data.copy()
+
     proc_parameters = {"dim": dim}
 
-    original_order = data.dims  # Original order of dims
+    original_order = out.dims  # Original order of dims
 
-    data.reorder([dim])  # Move dim to first dimension
+    out.reorder([dim])  # Move dim to first dimension
 
-    all_values = data.values  # Extract Data Values for alignment
+    all_values = out.values  # Extract Data Values for alignment
 
     if center != None and width != None:
         start = center - 0.5 * width
         stop = center + 0.5 * width
     elif center == None and width == None:
-        start = data.coords[dim][-1]
-        stop = data.coords[dim][0]
+        start = out.coords[dim][-1]
+        stop = out.coords[dim][0]
     else:
         raise ValueError("selected range is not acceptable")
 
-    values = data[dim, (start, stop)].values
+    values = out[dim, (start, stop)].values
 
     all_original_shape = all_values.shape
     original_shape = values.shape  # Preserve original shape
@@ -89,114 +91,11 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         all_original_shape
     )  # reshape to original values shape
 
-    data.values = all_aligned_values  # Add aligned values back to data object
+    out.values = all_aligned_values  # Add aligned values back to data object
 
-    data.reorder(original_order)  # Back to original order
+    out.reorder(original_order)  # Back to original order
 
     proc_attr_name = "ndalign"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
-
-
-def align(data, dim="f2", dim2=None, center=None, width=None):
-    """This function is deprecated and will be removed from future releases. Please use ndalign instead. Alignment of NMR spectra down given dimension or dimensions
-
-    Args:
-        all_data (object) : dnpdata object
-        dim (str) : dimension to align along
-        dim2 (str) : second dimension to align along
-        center (float) : range center
-        width (float) : range width
-
-    Returns:
-        dnpdata: Aligned data in container
-    """
-    warnings.warn(
-        "This function is deprecated. Please use ndalign instead. align will be removed after 01/01/2023",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    if len(_np.shape(data.values)) > 3:
-        raise ValueError("Greater than 3-dimensional data is currently not supported")
-
-    proc_parameters = {"dim": dim, "dim2": dim2}
-    originalAxesOrder = data.dims
-
-    if (dim2 is None) or (len(data.shape) == 2):
-        if len(data.shape) > 2:
-            raise ValueError(
-                "data has more than 2 dimensions, 2nd dimension is ambiguous"
-            )
-        dim2 = None
-        data.reorder([dim])
-        dimIter = data.dims[-1]
-
-    else:
-        data.reorder([dim, dim2])
-        dimIter = data.dims[-1]
-    if center != None and width != None:
-        start = center - 0.5 * width
-        stop = center + 0.5 * width
-    elif center == None and width == None:
-        start = None
-        stop = None
-    else:
-        raise ValueError("selected range is not accpetale")
-    if dim2 == None:
-        if start != None and stop != None:
-            refData = data[dimIter, 0, dim, (start, stop)].values.reshape(-1)
-        elif start == None and stop == None:
-            refData = data[dimIter, 0].values.reshape(-1)
-        else:
-            raise ValueError("selected range is not accpetale")
-
-        for ix in range(len(data.coords[dimIter])):
-            tempData = data[dimIter, ix].values.reshape(-1)
-            if start != None and stop != None:
-                rangeData = data[dimIter, ix, dim, (start, stop)].values.reshape(-1)
-            elif start == None and stop == None:
-                rangeData = tempData
-            else:
-                raise ValueError("selected range is not accpetale")
-
-            corrData = _np.correlate(_np.abs(rangeData), _np.abs(refData), mode="same")
-            shiftIx = _np.argmax(corrData) - (
-                len(corrData) / 2
-            )  # subtract half length so spectrum is shifted relative to center, not edge
-            shiftData = _np.roll(tempData, -1 * int(_np.round(shiftIx, 0)))
-            data.values[:, ix] = shiftData
-    else:
-        for ix1 in range(len(data.coords[-1])):
-            if start != None and stop != None:
-                refData = data[dim, (start, stop)].values[:, 0, 0]
-            elif start == None and stop == None:
-                refData = data.values[:, 0, 0]
-            else:
-                raise ValueError("selected range is not accpetale")
-
-            for ix2 in range(len(data.coords[dim2])):
-                tempData = data.values[:, ix2, ix1]
-                if start != None and stop != None:
-                    rangeData = data[dim, (start, stop)].values[:, ix2, ix1]
-                elif start == None and stop == None:
-                    rangeData = tempData
-                else:
-                    raise ValueError("selected range is not accpetale")
-
-                corrData = _np.correlate(
-                    _np.abs(rangeData), _np.abs(refData), mode="same"
-                )
-                shiftIx = _np.argmax(corrData) - (
-                    len(corrData) / 2
-                )  # subtract half length so spectrum is shifted relative to center, not edge
-                shiftData = _np.roll(tempData, -1 * int(_np.round(shiftIx, 0)))
-                data.values[:, ix2, ix1] = shiftData
-
-    data.reorder(originalAxesOrder)
-
-    proc_attr_name = "align"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
-
-    return data
+    return out

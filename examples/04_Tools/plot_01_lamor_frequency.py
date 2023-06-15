@@ -46,11 +46,20 @@ print("I = ", dnp.mr_properties("14N", "spin"))
 
 print(dnp.mr_properties("13C", "natAbundance"), " %")
 
+# %%
+# **Plot Gyromagnetic Ratios for Elements in the Periodic Table**
 
-spinQuatnumNumber = np.empty(121)
+gmr = np.empty(121)
 k = 0
 
 for each in dnp.gmrProperties.keys():
-    spinQuatnumNumber[k] = dnp.gmrProperties[each][0]
+    gmr[k] = dnp.gmrProperties[each][1]
 
     k = k + 1
+
+plt.figure()
+plt.plot(gmr[1:-1])
+plt.xlabel("Atomic Number")
+plt.ylabel("Gyromagnetic Ratio (10^7r/Ts)")
+plt.grid(True)
+plt.show()

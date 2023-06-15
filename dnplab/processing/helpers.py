@@ -22,6 +22,11 @@ def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=Fals
 
     enhancements = data.copy()
 
+    proc_parameters = {
+        "off_spectrum_index": off_spectrum_index,
+        "return_complex_values": return_complex_values,
+    }
+
     if not "experiment_type" in data.attrs.keys():
         raise KeyError("Experiment type not defined")
 
@@ -44,11 +49,44 @@ def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=Fals
             "Integration axis not recognized. First dimension should be Power or B0."
         )
 
+    proc_attr_name = "calculate_enhancement"
+    enhancements.add_proc_attrs(proc_attr_name, proc_parameters)
+
     if return_complex_values == True:
         return enhancements
 
     elif return_complex_values == False:
         return enhancements.real
+
+
+def create_complex(data, real, imag):
+    """Create complex array from input
+
+    This function can be used to concatenate a two dimensions of a DNPData object into a complex array. The unused dims and coords will be removed from the input DNPData object.
+
+    Args:
+        data (DNPData): DNPData input object
+        real (array): Real data
+        imag (array): Imaginary data
+
+    Returns:
+        data (DNPData): New DNPData object
+    """
+
+    complexData = _np.vectorize(complex)(real, imag)
+
+    dims = data.dims
+    dims.pop(-1)
+
+    coords = data.coords
+    coords = list(coords)
+    coords.pop(-1)
+
+    attrs = data.attrs
+
+    out = dnp.DNPData(complexData, dims, coords, attrs)
+
+    return out
 
 
 def signal_to_noise(
@@ -175,11 +213,20 @@ def smooth(data, dim="t2", window_length=11, polyorder=3):
     """
     out = data.copy()
 
+    proc_parameters = {
+        "dim": dim,
+        "window_length": window_length,
+        "polyorder": polyorder,
+    }
+
     out.unfold(dim)
 
     out.values = savgol_filter(out.values, window_length, polyorder, axis=0)
 
     out.fold()
+
+    proc_attr_name = "smooth"
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return out
 
@@ -196,16 +243,18 @@ def left_shift(data, dim="t2", shift_points=0):
         data (DNPDdata): Shifted data object
     """
 
-    data = data[dim, shift_points:]
+    out = data.copy()
+
+    out = out[dim, shift_points:]
 
     proc_attr_name = "left_shift"
     proc_parameters = {
         "dim": dim,
         "points": shift_points,
     }
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out
 
 
 def normalize(data, amplitude=True):
@@ -249,8 +298,15 @@ def reference(data, dim="f2", old_ref=0, new_ref=0):
         DNPData: referenced data
     """
 
-    data = data.copy()
+    out = data.copy()
 
-    data.coords[dim] -= old_ref - new_ref
+    out.coords[dim] -= old_ref - new_ref
 
-    return data
+    proc_attr_name = "reference"
+    proc_parameters = {
+        "dim": dim,
+        "old_ref": old_ref,
+        "new_ref": new_ref,
+    }
+
+    return out

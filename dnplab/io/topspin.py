@@ -143,7 +143,9 @@ def find_group_delay(attrs_dict):
 
 
 # This function does too much, should be broken into smaller functions
-def import_topspin(path, assign_vdlist=False, verbose=False):
+def import_topspin(
+    path, assign_vdlist=False, remove_digital_filter=False, verbose=False
+):
     """Import topspin data and return dnpdata object
 
     Args:
@@ -163,6 +165,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     # Load Acquisition Parameters
     if verbose:
         print("Loading acqus")
+
     acqus_params = load_acqu(os.path.join(path, "acqus"), verbose=verbose)
 
     dims = [
@@ -183,7 +186,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
         endian = ">"
 
     if verbose:
-        print("endian", endian)
+        print("Endian", endian)
 
     topspin_major_version = int(acqus_params["topspin"].split(".")[0])
 
@@ -203,34 +206,56 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     data_type = data_type + str(data_bytes)
 
     if verbose:
-        print("data type:", data_type)
+        print("Data type:", endian + data_type)
 
     raw = load_bin(os.path.join(path, bin_filename), dtype=endian + data_type)
 
-    # Is data always complex?
-    values = raw[0::2] + 1j * raw[1::2]  # convert to complex
-
-    group_delay = find_group_delay(acqus_params)
     if verbose:
-        print("group delay", group_delay)
+        print("Raw data shape:", _np.shape(raw))
 
-    group_delay = int(_np.floor(group_delay))  # should this be floor or ceil?
+    # Convert to complex data depending on AQ_mod
+    if acqus_params["AQ_mod"] == 0 or acqus_params["AQ_mod"] == 2:
+        if verbose:
+            print("Data is not complex")
+
+        values = values = raw[0::2] + 1j * raw[1::2]  # convert to complex
+
+    elif acqus_params["AQ_mod"] == 1 or acqus_params["AQ_mod"] == 3:
+        if verbose:
+            print("Data is complex")
+
+        values = raw
+
+    else:
+        raise ValueError("Unknown format")
+
+    # Option to remove group delay
+    if remove_digital_filter == True:
+        group_delay = find_group_delay(acqus_params)
+        group_delay = int(_np.floor(group_delay))  # should this be floor or ceil?
+
+    else:
+        group_delay = 0
+
+    if verbose:
+        print("Group Delay", group_delay)
 
     # why is dividing by 2 required?
     t2 = 1.0 / acqus_params["SW_h"] * _np.arange(0, int(acqus_params["TD"] / 2))
+
     if verbose:
-        print("points in FID:", acqus_params["TD"] / 2)
+        print("Points in FID:", acqus_params["TD"] / 2)
 
     # Handle t2 group delay
     # t2 = t2[slice(group_delay, int(acqus_params["TD"] / 2))] # Alternative method
     t2 = t2[group_delay:]
-
     coords = [t2]
 
     # This will not work for vdlist data
     if "acqu2s" in dir_list:
         if verbose:
             print("Loading acqu2s")
+
         acqu2s_params = load_acqu(os.path.join(path, "acqu2s"), verbose=verbose)
         dims.insert(0, "t1")
         t1 = 1.0 / acqu2s_params["SW_h"] * _np.arange(0, int(acqu2s_params["TD"]))
@@ -240,6 +265,7 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     if "acqu3s" in dir_list:
         if verbose:
             print("Loading acqu3s")
+
         acqu3s_params = load_acqu(os.path.join(path, "acqu3s"), verbose=verbose)
         dims.insert(0, "t3")
         t3 = 1.0 / acqu3s_params["SW_h"] * _np.arange(0, int(acqu3s_params["TD"]))
@@ -248,11 +274,12 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     new_shape = [len(coords[ix]) if dims[ix] != "t2" else -1 for ix in range(len(dims))]
     if verbose:
         print("Raw Data Shape:", _np.shape(values))
-        print("reshaping data to:", new_shape)
+        print("Reshaping data to:", new_shape)
 
     if assign_vdlist:
         if verbose:
             print("Assigning vdlist to %s dim" % assign_vdlist)
+
         vdlist = topspin_vdlist(path)
         if assign_vdlist in dims:
             index = dims.index(assign_vdlist)
@@ -270,11 +297,18 @@ def import_topspin(path, assign_vdlist=False, verbose=False):
     # create data object
     topspin_data = DNPData(values, dims, coords, attrs=acqus_params)
 
+    # Add import path to attributes
+    topspin_data.attrs["import_path"] = path
+
     # Add NMR Frequency to attrs
     topspin_data.attrs["nmr_frequency"] = acqus_params["SFO1"] * 1e6
 
     # Assign data/spectrum type
     topspin_data.attrs["experiment_type"] = "nmr_spectrum"
+
+    # Assign number of scans
+    if "acqu2s" in dir_list:
+        topspin_data.attrs["scans"] = int(acqu2s_params["TD"])
 
     # reorder so that 't2' is first
     topspin_data.reorder(["t2"])
@@ -360,145 +394,6 @@ def load_acqu(path, required_params=None, verbose=False):
         acqus_params = raw_params
 
     return acqus_params
-
-
-# Legacy
-def load_fid_ser(path, dtype="fid", phase_cycle=None):
-    """This function is deprecated and will be removed from future releases. Please use import_topspin instead. Import topspin fid or ser file
-
-    Args:
-        path (str): Directory of data
-        dtype (str): "fid" for 1D, "ser" or "serPhaseCycle" for 2D
-        phase_cycle (list): list of phases used for phase cycling (deg, multiples of 90)
-
-    Returns:
-        dnpdata: Topspin data
-    """
-
-    warn(
-        "This function is deprecated. Please use load_topspin instead. load_fid_ser will be removed after 01/01/2023",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    if isinstance(phase_cycle, list):
-        for indx, x in enumerate(phase_cycle):
-            if x in [0, 360, 720, 1080]:
-                phase_cycle[indx] = 1
-            elif x in [90, 450, 810, 1170]:
-                phase_cycle[indx] = 1j
-            elif x in [180, 540, 900, 1260]:
-                phase_cycle[indx] = -1
-            elif x in [270, 630, 990, 1350]:
-                phase_cycle[indx] = -1j
-
-    dir_list = os.listdir(path)
-
-    attrs_dict_list = [
-        load_acqu(path, x) for x in ["acqus", "acqu2s", "acqu3s"] if x in dir_list
-    ]
-    attrs_dict = {}
-    for a in attrs_dict_list:
-        attrs_dict.update(a)
-
-    attrs = {
-        "nmr_frequency": attrs_dict["SFO1"] * 1e6,
-        "SW_h": attrs_dict["SW_h"],
-        "TD": attrs_dict["TD"],
-    }
-
-    higher_dim_pars = {
-        x: attrs_dict[x]
-        for x in ["SW_h_2", "TD_2", "SFO1_2", "SW_h_3", "TD_3", "SFO1_3"]
-        if x in attrs_dict.keys()
-    }
-    attrs.update(higher_dim_pars)
-
-    if attrs_dict["BYTORDA"] == 0:
-        endian = "<"
-    else:
-        endian = ">"
-
-    if dtype == "fid":
-        raw = _np.fromfile(os.path.join(path, "fid"), dtype=endian + "i4")
-    else:
-        raw = _np.fromfile(os.path.join(path, "ser"), dtype=endian + "i4")
-
-    data = raw[0::2] + 1j * raw[1::2]  # convert to complex
-
-    group_delay = find_group_delay(attrs_dict)
-    group_delay = int(_np.ceil(group_delay))
-
-    t = (
-        1.0
-        / attrs_dict["SW_h"]
-        * _np.arange(0, int(attrs_dict["TD"] / 2) - group_delay)
-    )
-
-    if "vdlist" in dir_list:
-        attrs.update({"VDLIST": topspin_vdlist(path)})
-
-    if dtype == "fid":
-        data = data[group_delay : int(attrs_dict["TD"] / 2)] / attrs_dict["RG"]
-        coords = [t]
-        dims = ["t2"]
-    elif dtype == "ser":
-        ser_data = data.reshape(int(attrs_dict["TD_2"]), -1).T
-        ser_data = (
-            ser_data[group_delay : int(attrs_dict["TD"] / 2), :] / attrs_dict["RG"]
-        )
-        coords = [t, range(int(attrs_dict["TD_2"]))]
-        dims = ["t2", "t1"]
-        if "acqu2s" in dir_list and "acqu3s" not in dir_list:
-            if "VDLIST" in attrs.keys():
-                if len(attrs["VDLIST"]) == int(attrs_dict["TD_2"]):
-                    coords = [t, attrs["VDLIST"]]
-            else:
-                if isinstance(phase_cycle, list):
-                    length1d = int((_np.ceil(attrs_dict["TD"] / 256.0) * 256) / 2)
-                    ser_data = data.reshape(-1, int(length1d)).T
-                    ser_data = ser_data[group_delay : int(attrs_dict["TD"] / 2), :]
-                    phs_facs = _np.tile(
-                        _np.array(phase_cycle),
-                        int(attrs_dict["TD_2"]) / len(phase_cycle),
-                    )
-                    for indx in range(int(attrs_dict["TD_2"])):
-                        ser_data[:, indx] = phs_facs[indx] * ser_data[:, indx]
-                    ser_data = ser_data.sum(axis=1) / attrs_dict["RG"]
-                    coords = [t]
-                    dims = ["t2"]
-
-        elif "acqu2s" in dir_list and "acqu3s" in dir_list:
-            t = (
-                1.0
-                / attrs_dict["SW_h"]
-                * _np.arange(
-                    0, int(attrs_dict["TD"] / 2 / int(attrs_dict["TD_3"])) - group_delay
-                )
-            )
-            if "VDLIST" in attrs.keys() and len(attrs["VDLIST"]) == int(
-                attrs_dict["TD_2"]
-            ):
-                coords = [
-                    t,
-                    attrs["VDLIST"],
-                    range(int(attrs_dict["TD_3"])),
-                ]
-            else:
-                coords = [
-                    t,
-                    range(int(attrs_dict["TD_2"])),
-                    range(int(attrs_dict["TD_3"])),
-                ]
-            dims = ["t2", "t1", "t0"]
-            ser_data = ser_data.reshape(
-                int(attrs_dict["TD"] / 2 / int(attrs_dict["TD_3"])),
-                int(attrs_dict["TD_2"]),
-                int(attrs_dict["TD_3"]),
-            )
-        data = ser_data
-
-    return DNPData(data, dims, coords, attrs)
 
 
 def topspin_vdlist(path):
