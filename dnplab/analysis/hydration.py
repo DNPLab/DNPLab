@@ -30,14 +30,14 @@ def calculate_smax(spin_C=False):
 def interpolate_T1(
     E_powers=False,
     T1_powers=False,
-    T1_array=False,
+    T1_arrays=False,
     interpolate_method="linear",
     delta_T1_water=False,
     T1_water=False,
     macro_C=False,
     spin_C=1,
-    T10=2.0,
-    T100=2.5,
+    T10=_np.array([2.0]),
+    T100=_np.array([2.5]),
 ):
     """Returns interpolated T1 data.
 
@@ -60,46 +60,55 @@ def interpolate_T1(
     """
 
     # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
-    if interpolate_method == "second_order":
-        if not macro_C:
-            macro_C = spin_C
+    t1p_coeff = []
+    t1p_err = []
+    t1p = []
+    for index, T1_array in enumerate(T1_arrays):
+        if interpolate_method == "second_order":
+            if not macro_C:
+                macro_C = spin_C
 
-        if not delta_T1_water:
-            delta_T1_water = T1_array[-1] - T1_array[0]
-        if not T1_water:
-            T1_water = T100
+            if not delta_T1_water:
+                delta_T1_water = T1_array[-1] - T1_array[0]
+            if not T1_water:
+                T1_water = T100[index]
 
-        kHH = (1.0 / T10 - 1.0 / T1_water) / macro_C
-        krp = (
-            (1.0 / T1_array)
-            - (1.0 / (T1_water + delta_T1_water * T1_powers))
-            - (kHH * (macro_C))
-        ) / (spin_C)
+            kHH = (1.0 / T10[index] - 1.0 / T1_water) / macro_C
+            krp = (
+                (1.0 / T1_array)
+                - (1.0 / (T1_water + delta_T1_water * T1_powers))
+                - (kHH * (macro_C))
+            ) / (spin_C)
 
-        p = _np.polyfit(T1_powers, krp, 2)
-        T1_fit_2order = _np.polyval(p, E_powers)
+            p, cov = _np.polyfit(T1_powers, krp, 2, cov=True)
+            err = _np.sqrt(_np.diag(cov))
+            T1_fit_2order = _np.polyval(p, E_powers)
 
-        interpolated_T1 = 1.0 / (
-            ((spin_C) * T1_fit_2order)
-            + (1.0 / (T1_water + delta_T1_water * E_powers))
-            + (kHH * (macro_C))
-        )
+            interpolated_T1 = 1.0 / (
+                ((spin_C) * T1_fit_2order)
+                + (1.0 / (T1_water + delta_T1_water * E_powers))
+                + (kHH * (macro_C))
+            )
 
-    # linear fit, Franck et al. PNMRS (Eq. 39)
-    elif interpolate_method == "linear":
-        linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
+        # linear fit, Franck et al. PNMRS (Eq. 39)
+        elif interpolate_method == "linear":
+            linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10[index]) + (1.0 / T100[index]))
 
-        p = _np.polyfit(T1_powers, linear_t1, 1)
-        T1_fit_linear = _np.polyval(p, E_powers)
+            p, cov = _np.polyfit(T1_powers, linear_t1, 1, cov=True)
+            err = _np.sqrt(_np.diag(cov))
+            T1_fit_linear = _np.polyval(p, E_powers)
 
-        interpolated_T1 = T1_fit_linear / (
-            1.0 + (T1_fit_linear / T10) - (T1_fit_linear / T100)
-        )
+            interpolated_T1 = T1_fit_linear / (
+                1.0 + (T1_fit_linear / T10[index]) - (T1_fit_linear / T100[index])
+            )
 
-    else:
-        raise Exception("invalid interpolate_method")
-
-    return interpolated_T1
+        else:
+            raise Exception("invalid interpolate_method")
+        
+        t1p_coeff.append(p)
+        t1p_err.append(err)
+        t1p.append(interpolated_T1)
+    return t1p_coeff, t1p_err, t1p
 
 
 def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
@@ -520,7 +529,7 @@ def hydration(data={}, constants={}):
     # But also explained well in:
     # Franck, JM, et. al.; "Anomalously Rapid Hydration Water Diffusion Dynamics
     # Near DNA Surfaces" J. Am. Chem. Soc. 2015, 137, 12013−12023.
-
+ 
     xi_unc, p_12_unc = calculate_uncorrected_xi(
         data["E_array"],
         data["E_powers"],
@@ -563,7 +572,7 @@ def hydration(data={}, constants={}):
 
 
 #### Working on------------------YH-------------------------------------------------
-def hydration_analysis(path, save_file=False, show_result=True):
+def hydration_analysis(path = None, smax_model = 'tethered', interpolate_method = 'second_order', initial_guess_t10 = 2.0, update_constant = {}, save_file=False, show_result=True):
     """
     Perform hydration analysis and return leakage factor, coupling factor, ksigma, krho, etc.
 
@@ -578,27 +587,109 @@ def hydration_analysis(path, save_file=False, show_result=True):
     ..Math::
         see examples of each hydration function
     """
-
-    hydration_info = load(path)
     hydration_results = {}
 
-    check_list = ["odnp_enhancements", "odnp_fit_coefficients", "odnp_ir_coefficients"]
+    default_constants = {
+        "ksigma_bulk": 95.4,
+        "krho_bulk": 353.4,
+        "klow_bulk": 366,
+        "tcorr_bulk": 54e-12,
+        "D_H2O": 2.3e-9,
+        "D_SL": 4.1e-10,
+        "delta_T1_water": False,
+        "T1_water": False,
+        "macro_C": False,
+    }
+    odnp_constants = {**default_constants, **update_constant}
+
+    hydration_info = load(path)
+
+    # read radical concentration
+    if 'radical_concentration' in hydration_info["sample_information"]:
+        radical_concentration = hydration_info["sample_information"]["radical_concentration"]
+    else:
+        radical_concentration = 1
+        warnings.warn("'radical_concentration' was not found in 'sample_information'. The radical_concentration is set to 1 M")
+    
+    # check datasets in hydration info
+    check_list = ["odnp_enhancements", "odnp_ir_coefficients"]
     for key in check_list:
         if key not in hydration_info:
             raise ValueError(
                 "key: %s is missing, please specify the type of radical" % key
             )
-    radical_concentration = hydration_info["sample_information"][
-        "radical_concentration"
-    ]
-    t10n = hydration_info["ir_coefficients"].values[0]
-    if "ir_errors" not in hydration_info:
-        t10n_err = None
+    enh_arrays = hydration_info["odnp_enhancements"].values.T
+    enh_powers = hydration_info["odnp_enhancements"].coords['power']
+    t1_arrays = hydration_info["odnp_ir_coefficients"].values[0].T
+    t1_powers = hydration_info["odnp_ir_coefficients"].coords['power']
+
+    if _np.shape(t1_arrays)[0] != _np.shape(enh_arrays)[0]:
+        raise ValueError("Peaks number is not same in 'odnp_enhancements' and 'odnp_ir_coefficients'")
     else:
-        t10n_err = hydration_info["ir_errors"].values[0]
+        number_of_peaks = _np.shape(t1_arrays)[0]
+
+    # Deal with initial guess t10
+    if isinstance(initial_guess_t10, (float, int)):
+        t10 = _np.full(number_of_peaks, initial_guess_t10)
+    elif isinstance(initial_guess_t10, _np.ndarray):
+        if _np.size(initial_guess_t10) != number_of_peaks:
+            raise warnings("Initial guess t10(s) are provided and the size must be equal number of peaks")
+        else:
+            t10 = _np.array(initial_guess_t10)
+
+    # extract T100 from datasets
+    if "ir_coefficients" in hydration_info:
+        t100 = hydration_info["ir_coefficients"].values[0]
+    else:
+        t100 = _np.full(number_of_peaks, 2.5) # create default an array for T100 
+    if "ir_errors" not in hydration_info:
+        t100_err = _np.zeros(number_of_peaks)
+    else:
+        t100_err = hydration_info["ir_errors"].values[0] # create default an array for T100 errors 
+
+    # determine  s_max    
+    if smax_model == "tethered":
+        # Option 1, tether spin label
+        s_max = 1  # (section 2.2) maximal saturation factor
+
+    elif smax_model == "free":
+        # Option 2, free spin probe
+        s_max = calculate_smax(radical_concentration)  # from:
+        # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
+        # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
+    
+    elif isinstance(smax_model, float):
+        # Option 3, manual input of smax
+        if not (smax_model <= 1 and smax_model > 0):
+            raise ValueError(
+                "if given directly, smax must be type float between 0 and 1"
+            )
+        s_max = smax_model
+
+    else:
+        raise ValueError(
+            "'smax_model' must be 'tethered', 'free', or a float between 0 and 1"
+        )
+    
+    # calculate T1 fit curve coefficents and errors
+    # print(t100)
+    t1_coeff, t1_coeff_err, t1p = interpolate_T1(
+        E_powers=enh_arrays,
+        T1_powers=enh_powers,
+        T1_arrays=t1_arrays,
+        interpolate_method=interpolate_method,
+        delta_T1_water=default_constants["delta_T1_water"],
+        T1_water=odnp_constants["T1_water"],
+        macro_C = odnp_constants["macro_C"],
+        spin_C = radical_concentration,
+        T10 = t10,
+        T100 = t100,
+    )
+    work here!
 
     # find t1 fit curve coeffificent and error
-    t1_coeff, t1_coeff_err = t1_fit_coefficients(hydration_info["odnp_ir_coefficients"])
+    # t1_coeff, t1_coeff_err = t1_fit_coefficients(hydration_info["odnp_ir_coefficients"])
+
     t1n0 = t1_coeff[:, 1][:]
     t1n0_err = t1_coeff_err[:, 1][:]
     hydration_results["t1_coefficients"] = t1_coeff
@@ -622,13 +713,13 @@ def hydration_analysis(path, save_file=False, show_result=True):
 
     else:
         # calcualte coupling factor f
-        f, f_err = calc_f(t1n0, t10n, t1n0_err, t10n_err)
+        f, f_err = calc_f(t1n0, t100, t1n0_err, t100_err)
         hydration_results["leakage_factors"] = f
         hydration_results["leakage_factor_errors"] = f_err
 
         # calculate krho
         krho, krho_err = calc_krho(
-            t1n0, t10n, radical_concentration, t1n0_err, t10n_err
+            t1n0, t100, radical_concentration, t1n0_err, t100_err
         )
         hydration_results["krho"] = krho
         hydration_results["krho_errors"] = krho_err
@@ -745,13 +836,13 @@ def calc_f(t1n0, t10n, t1n0_err=None, t10n_err=None):
 
     """
 
-    if t1n0_err == None:
-        t1n0_err = _np.zeros(_np.size(t1n0))
-        print("t1n0 does not have errors, assigning 0 to all errors")
+    # if t1n0_err == None:
+    #     t1n0_err = _np.zeros(_np.size(t1n0))
+    #     print("t1n0 does not have errors, assigning 0 to all errors")
 
-    if t10n_err == None:
-        t10n_err = _np.zeros(_np.size(t10n))
-        print("t10n does not have errors, assigning 0 to all errors")
+    # if t10n_err == None:
+    #     t10n_err = _np.zeros(_np.size(t10n))
+    #     print("t10n does not have errors, assigning 0 to all errors")
 
     f = [1 - x / y for x, y in zip(t1n0, t10n)]
     f_err = [
@@ -842,14 +933,6 @@ def calc_krho(t1n0, t10n, radical_concentration, t1n0_err=None, t10n_err=None):
     """
 
     c = radical_concentration
-
-    if t1n0_err == None:
-        t1n0_err = _np.zeros(_np.size(t1n0))
-        print("t1n0 does not have errors, assigning 0 to all errors")
-
-    if t10n_err == None:
-        t10n_err = _np.zeros(_np.size(t10n))
-        print("t10n does not have errors, assigning 0 to all errors")
 
     krho = [(x**-1 - y**-1) / c for x, y in zip(t1n0, t10n)]
     krho_array = [
