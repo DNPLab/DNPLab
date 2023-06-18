@@ -101,3 +101,23 @@ def update_axis(data, start_stop, dim=0, new_dims=0, spacing="lin", verbose=Fals
         out.coords[new_dims] = start_stop
 
     return out
+
+
+def get_slice(data, dim, slice_index):
+    """
+    Get data slice of DNPData object
+
+    Args:
+        data (DNPData):     Input data object
+        dim (str):          Selected dimension
+        slice_index (int):  Index of slice to be returned
+
+    Returns:
+        data (DNPData):     DNPData object with selected slice
+
+    """
+
+    out = data.copy()
+    out = out[dim, slice_index]
+
+    return out
