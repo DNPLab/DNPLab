@@ -271,7 +271,7 @@ def normalize(data, amplitude=True):
     out = data.copy()
 
     if amplitude == True:
-        out.values = out.values / _np.max(out.values)
+        out.values = out.values / _np.max(abs(out.values))
     elif amplitude == False:
         out.values = out.values  # Normalize to area = 1, not implemented yet
 
