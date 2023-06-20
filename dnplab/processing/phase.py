@@ -31,7 +31,8 @@ for key, value in fStencil.items():
     else:
         bStencil[key] = -1 * _np.array(list(reversed(value)))
 
-def autophase(inputData, dim="f2", pivot=False, deriv=1, gamma=1e-5,verbose=True):
+
+def autophase(inputData, dim="f2", pivot=False, deriv=1, gamma=1e-5, verbose=True):
     """
     Phase correction according to
     An efficient algorithm for automatic phase correction of
@@ -53,39 +54,65 @@ def autophase(inputData, dim="f2", pivot=False, deriv=1, gamma=1e-5,verbose=True
         DNPData: Autophased data, including attrs "autophase" = {pivot,deriv,dim,(phasetuples)}, phasetuples is only included when pivot is not False or verbose=True
 
     """
-    data=inputData.copy()
+    data = inputData.copy()
 
     if verbose:
-        data.add_proc_attrs("autophase", {"pivot": pivot, "deriv": deriv, "dim": dim, "gamma":gamma, "phasetuples":[]})
+        data.add_proc_attrs(
+            "autophase",
+            {
+                "pivot": pivot,
+                "deriv": deriv,
+                "dim": dim,
+                "gamma": gamma,
+                "phasetuples": [],
+            },
+        )
     else:
-        data.add_proc_attrs("autophase", {"pivot": pivot, "deriv": deriv, "dim": dim, "gamma":gamma})
+        data.add_proc_attrs(
+            "autophase", {"pivot": pivot, "deriv": deriv, "dim": dim, "gamma": gamma}
+        )
 
     if pivot == False:
         data.unfold(dim)
         n_spectra = data.shape[1]
         for k in range(n_spectra):
-            spectrum = data.values[:,k].flatten()
-            coords= data.coords[dim]
-            ph0,ph1 = _autophase(spectrum,coords,dim,deriv,gamma)
-            phasedSpectrum = _np.exp(1.0j * (ph0 + (ph1 * _np.arange(spectrum.size) / spectrum.size))).astype(data.dtype) * spectrum
-            data.values[:,k] = phasedSpectrum
+            spectrum = data.values[:, k].flatten()
+            coords = data.coords[dim]
+            ph0, ph1 = _autophase(spectrum, coords, dim, deriv, gamma)
+            phasedSpectrum = (
+                _np.exp(
+                    1.0j * (ph0 + (ph1 * _np.arange(spectrum.size) / spectrum.size))
+                ).astype(data.dtype)
+                * spectrum
+            )
+            data.values[:, k] = phasedSpectrum
             if verbose:
-                data.proc_attrs[-1][1]["phasetuples"].append((ph0,ph1))
+                data.proc_attrs[-1][1]["phasetuples"].append((ph0, ph1))
         data.fold()
     else:
         # pivot is now a element along an axis, e.g. ('Average',5)
         try:
-            _=pivot
-            tpl=tuple([dim,slice(None,None,None)]+list(pivot))
+            _ = pivot
+            tpl = tuple([dim, slice(None, None, None)] + list(pivot))
             pivot = data.__getitem__(tpl)
         except KeyError as e:
-            raise KeyError("Could not access pivot element at {0}, make sure that it exists! ou do not need to include dim ({1})!\n{2}".format(_,dim,e))
-        pivot = autophase(pivot,dim,deriv=deriv,gamma=gamma,verbose=True)
-        ph0,ph1 = pivot.proc_attrs[-1][1]["phasetuples"][0]
-        data = phase( data, dim=dim, p0=ph0 / 2 / constants.pi * 360, p1=ph1 / 2 / constants.pi * 360 )
+            raise KeyError(
+                "Could not access pivot element at {0}, make sure that it exists! ou do not need to include dim ({1})!\n{2}".format(
+                    _, dim, e
+                )
+            )
+        pivot = autophase(pivot, dim, deriv=deriv, gamma=gamma, verbose=True)
+        ph0, ph1 = pivot.proc_attrs[-1][1]["phasetuples"][0]
+        data = phase(
+            data,
+            dim=dim,
+            p0=ph0 / 2 / constants.pi * 360,
+            p1=ph1 / 2 / constants.pi * 360,
+        )
         if verbose:
-                data.proc_attrs[-2][1]["phasetuples"].append((ph0,ph1))
+            data.proc_attrs[-2][1]["phasetuples"].append((ph0, ph1))
     return data
+
 
 def _deriveF(f, dx, deriv=4):
     df = _np.zeros(f.size)  # f is 1d!
@@ -134,6 +161,7 @@ def _deriveF(f, dx, deriv=4):
 
     return df / dx**deriv
 
+
 def _optimfun(phaseList, data, deriv, gamma, dx, *args):
     ph0, ph1 = phaseList
     phasingFaktor = _np.exp(
@@ -153,13 +181,14 @@ def _optimfun(phaseList, data, deriv, gamma, dx, *args):
 
     return E
 
-def _autophase(data,coords,dim,deriv,gamma):
+
+def _autophase(data, coords, dim, deriv, gamma):
     # assume that data is always a "1d" data object which can be used by raw_data=data.values.flatten()
     # simple and easy for now
     # "simplex" method: https://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method
     # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fmin.html#scipy.optimize.fmin
 
-    raw_data=data
+    raw_data = data
     dx = _np.diff(coords)[0]
 
     # fopt, iterations, funcalls, warnflag, allvecs
@@ -278,9 +307,11 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
 
     return out
 
+
 #
 # deprecated autophase function
 #
+
 
 def autophase_dep(
     data,

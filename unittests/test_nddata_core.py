@@ -149,16 +149,16 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
         data2 = np.random.random(100)
 
         DNPObj1 = dnp.DNPData(data1, dims, coords1)
-        DNPObj2 = dnp.DNPData(data2,["Average"], [coords2[0]])
+        DNPObj2 = dnp.DNPData(data2, ["Average"], [coords2[0]])
 
         # even only 1D objects become atleast 2d
         DNPObj2.unfold("Average")
-        self.assertTrue(len(DNPObj2.values.shape)==2)
-        self.assertEqual(DNPObj2.values.shape,(100,1))
+        self.assertTrue(len(DNPObj2.values.shape) == 2)
+        self.assertEqual(DNPObj2.values.shape, (100, 1))
 
         DNPObj1.unfold("Average")
-        self.assertTrue(len(DNPObj1.values.shape)==2)
-        self.assertEqual(DNPObj1.values.shape,(100,1024))
+        self.assertTrue(len(DNPObj1.values.shape) == 2)
+        self.assertEqual(DNPObj1.values.shape, (100, 1024))
 
 
 class dnplab_ABCData_coord_tester(unittest.TestCase):
