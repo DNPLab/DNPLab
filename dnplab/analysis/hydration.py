@@ -30,14 +30,14 @@ def calculate_smax(spin_C=False):
 def interpolate_T1(
     E_powers=False,
     T1_powers=False,
-    T1_arrays=False,
+    T1_array=False,
     interpolate_method="linear",
     delta_T1_water=False,
     T1_water=False,
     macro_C=False,
     spin_C=1,
-    T10=_np.array([2.0]),
-    T100=_np.array([2.5]),
+    T10=2.0,
+    T100=2.5,
 ):
     """Returns interpolated T1 data.
 
@@ -60,55 +60,46 @@ def interpolate_T1(
     """
 
     # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
-    t1p_coeff = []
-    t1p_err = []
-    t1p = []
-    for index, T1_array in enumerate(T1_arrays):
-        if interpolate_method == "second_order":
-            if not macro_C:
-                macro_C = spin_C
+    if interpolate_method == "second_order":
+        if not macro_C:
+            macro_C = spin_C
 
-            if not delta_T1_water:
-                delta_T1_water = T1_array[-1] - T1_array[0]
-            if not T1_water:
-                T1_water = T100[index]
+        if not delta_T1_water:
+            delta_T1_water = T1_array[-1] - T1_array[0]
+        if not T1_water:
+            T1_water = T100
 
-            kHH = (1.0 / T10[index] - 1.0 / T1_water) / macro_C
-            krp = (
-                (1.0 / T1_array)
-                - (1.0 / (T1_water + delta_T1_water * T1_powers))
-                - (kHH * (macro_C))
-            ) / (spin_C)
+        kHH = (1.0 / T10 - 1.0 / T1_water) / macro_C
+        krp = (
+            (1.0 / T1_array)
+            - (1.0 / (T1_water + delta_T1_water * T1_powers))
+            - (kHH * (macro_C))
+        ) / (spin_C)
 
-            p, cov = _np.polyfit(T1_powers, krp, 2, cov=True)
-            err = _np.sqrt(_np.diag(cov))
-            T1_fit_2order = _np.polyval(p, E_powers)
+        p = _np.polyfit(T1_powers, krp, 2)
+        T1_fit_2order = _np.polyval(p, E_powers)
 
-            interpolated_T1 = 1.0 / (
-                ((spin_C) * T1_fit_2order)
-                + (1.0 / (T1_water + delta_T1_water * E_powers))
-                + (kHH * (macro_C))
-            )
+        interpolated_T1 = 1.0 / (
+            ((spin_C) * T1_fit_2order)
+            + (1.0 / (T1_water + delta_T1_water * E_powers))
+            + (kHH * (macro_C))
+        )
 
-        # linear fit, Franck et al. PNMRS (Eq. 39)
-        elif interpolate_method == "linear":
-            linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10[index]) + (1.0 / T100[index]))
+    # linear fit, Franck et al. PNMRS (Eq. 39)
+    elif interpolate_method == "linear":
+        linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
 
-            p, cov = _np.polyfit(T1_powers, linear_t1, 1, cov=True)
-            err = _np.sqrt(_np.diag(cov))
-            T1_fit_linear = _np.polyval(p, E_powers)
+        p = _np.polyfit(T1_powers, linear_t1, 1)
+        T1_fit_linear = _np.polyval(p, E_powers)
 
-            interpolated_T1 = T1_fit_linear / (
-                1.0 + (T1_fit_linear / T10[index]) - (T1_fit_linear / T100[index])
-            )
+        interpolated_T1 = T1_fit_linear / (
+            1.0 + (T1_fit_linear / T10) - (T1_fit_linear / T100)
+        )
 
-        else:
-            raise Exception("invalid interpolate_method")
-        
-        t1p_coeff.append(p)
-        t1p_err.append(err)
-        t1p.append(interpolated_T1)
-    return t1p_coeff, t1p_err, t1p
+    else:
+        raise Exception("invalid interpolate_method")
+
+    return interpolated_T1
 
 
 def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
@@ -572,7 +563,8 @@ def hydration(data={}, constants={}):
 
 
 #### Working on------------------YH-------------------------------------------------
-def hydration_analysis(path = None, smax_model = 'tethered', interpolate_method = 'second_order', initial_guess_t10 = 2.0, update_constant = {}, save_file=False, show_result=True):
+def hydration_analysis(path = None, smax_model = 'tethered', interpolation_degree = 1,
+                       field = 350, update_constant = {}, save_file=False, show_result=True):
     """
     Perform hydration analysis and return leakage factor, coupling factor, ksigma, krho, etc.
 
@@ -600,7 +592,29 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolate_method 
         "T1_water": False,
         "macro_C": False,
     }
+
     odnp_constants = {**default_constants, **update_constant}
+
+    if field > 3:
+        warnings.warn(
+            "Field (magnetic_field) should be given in T, support for mT will be removed in a future release"
+        )
+        field *= 1e-3
+
+    omega_e = 1.76085963023e-1 * field
+    # gamma_e in 1/ps for the tcorr unit, then correct by magnetic_field in T.
+    # gamma_e is from NIST. The magnetic_field cancels in the following omega_ratio but you
+    # need these individually for the spectral density functions later.
+
+    omega_H = 2.6752218744e-4 * field
+    # gamma_H in 1/ps for the tcorr unit, then correct by magnetic_field in T.
+    # gamma_H is from NIST. The magnetic_field cancels in the following omega_ratio but you
+    # need these individually for the spectral density functions later.
+
+    omega_ratio = (omega_e / (2 * pi)) / (omega_H / (2 * pi))
+    # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular
+    # frequency units in order to correspond to S_0/I_0, this is also ~= to the
+    # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
 
     hydration_info = load(path)
 
@@ -628,16 +642,6 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolate_method 
     else:
         number_of_peaks = _np.shape(t1_arrays)[0]
 
-    # Deal with initial guess t10
-    if isinstance(initial_guess_t10, (float, int)):
-        t10 = _np.full(number_of_peaks, initial_guess_t10)
-    elif isinstance(initial_guess_t10, _np.ndarray):
-        if _np.size(initial_guess_t10) != number_of_peaks:
-            raise warnings("Initial guess t10(s) are provided and the size must be equal number of peaks")
-        else:
-            t10 = _np.array(initial_guess_t10)
-
-    # extract T100 from datasets
     if "ir_coefficients" in hydration_info:
         t100 = hydration_info["ir_coefficients"].values[0]
     else:
@@ -647,7 +651,7 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolate_method 
     else:
         t100_err = hydration_info["ir_errors"].values[0] # create default an array for T100 errors 
 
-    # determine  s_max    
+    # determine s_max    
     if smax_model == "tethered":
         # Option 1, tether spin label
         s_max = 1  # (section 2.2) maximal saturation factor
@@ -671,33 +675,23 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolate_method 
             "'smax_model' must be 'tethered', 'free', or a float between 0 and 1"
         )
     
-    # calculate T1 fit curve coefficents and errors
-    # print(t100)
-    t1_coeff, t1_coeff_err, t1p = interpolate_T1(
-        E_powers=enh_arrays,
-        T1_powers=enh_powers,
-        T1_arrays=t1_arrays,
-        interpolate_method=interpolate_method,
-        delta_T1_water=default_constants["delta_T1_water"],
-        T1_water=odnp_constants["T1_water"],
-        macro_C = odnp_constants["macro_C"],
-        spin_C = radical_concentration,
-        T10 = t10,
-        T100 = t100,
-    )
-    work here!
+    t1_coeff, t1_coeff_err = t1_fit_coefficients(t1_powers, t1_arrays, interpolation_degree)
 
-    # find t1 fit curve coeffificent and error
-    # t1_coeff, t1_coeff_err = t1_fit_coefficients(hydration_info["odnp_ir_coefficients"])
-
-    t1n0 = t1_coeff[:, 1][:]
-    t1n0_err = t1_coeff_err[:, 1][:]
+    t10 = t1_coeff[:, 1][:]
+    t10_err = t1_coeff_err[:, 1][:]
     hydration_results["t1_coefficients"] = t1_coeff
     hydration_results["t1_coefficients_errors"] = t1_coeff_err
-    hydration_results["t1n0"] = t1n0
-    hydration_results["t1n0_errors"] = t1n0_err
+    hydration_results["t10"] = t10
+    hydration_results["t10_errors"] = t10_err
 
     # calculate ksigma_smax
+    ksigma_array = _np.array([(1 - enh_arrays[x]) / (radical_concentration * omega_ratio * _np.poly1d(t1_coeff[x])(enh_powers)) for x in range(number_of_peaks)])
+    
+    Work here!
+    ksigma, ksigma_stdd, ksigma_fit = calculate_ksigma(
+        ksigma_array, enh_powers, s_max
+    )
+    
     ksig_sp_coefficients, ksig_sp_errors, ksig_smax, ksig_smax_err = calc_ksigma_smax(
         hydration_info["odnp_enhancements"], t1_coeff, radical_concentration
     )
@@ -713,13 +707,13 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolate_method 
 
     else:
         # calcualte coupling factor f
-        f, f_err = calc_f(t1n0, t100, t1n0_err, t100_err)
+        f, f_err = calc_f(t10, t100, t10_err, t100_err)
         hydration_results["leakage_factors"] = f
         hydration_results["leakage_factor_errors"] = f_err
 
         # calculate krho
         krho, krho_err = calc_krho(
-            t1n0, t100, radical_concentration, t1n0_err, t100_err
+            t10, t100, radical_concentration, t10_err, t100_err
         )
         hydration_results["krho"] = krho
         hydration_results["krho_errors"] = krho_err
@@ -750,7 +744,7 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolate_method 
         ):
             peak_number = index + 1
             print("Peak NO.%i:" % peak_number)
-            print("T1 at 0 dBm: %0.03f +/- %0.03f s" % (t1n0[index], t1n0_err[index]))
+            print("T1 at 0 dBm: %0.03f +/- %0.03f s" % (t10[index], t10_err[index]))
             print("Leakage Factor: %0.03f +/- %0.03f" % (f[index], f_err[index]))
             print(
                 "ksigma_smax: %0.03f +/- %0.03f"
@@ -775,7 +769,7 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolate_method 
     return hydration_info
 
 
-def t1_fit_coefficients(data):
+def t1_fit_coefficients(t1_powers, t1_arrays, degree):
     """
     Fit t1 vs. power curve and return t1 at the power of 0
 
@@ -789,26 +783,16 @@ def t1_fit_coefficients(data):
     Methods:
         1d polynomials fitting
     """
-    if "popt" not in data.dims or "power" not in data.dims:
-        raise ValueError("The input data is not supported")
-    else:
-        temp = data.copy()
-        power_array = temp.coords["power"]
-        t1_list = temp.values[0].T
-        peak_number = 0
-        while peak_number <= _np.shape(t1_list)[0] - 1:
-            coeff, cov = _np.polyfit(power_array, t1_list[peak_number], 1, cov=True)
-            err = _np.sqrt(_np.diag(cov))
-            if peak_number == 0:
-                coeff_array = _np.array([coeff])
-                err_array = _np.array([err])
-            else:
-                coeff_array = _np.append(coeff_array, [coeff], axis=0)
-                err_array = _np.append(err_array, [err], axis=0)
 
-            peak_number += 1
+    coeff_array = []
+    err_array = []
+    for index, t1_array in enumerate(t1_arrays):
+        coeff, cov = _np.polyfit(t1_powers, t1_array, degree, cov=True)
+        err = _np.sqrt(_np.diag(cov))
+        coeff_array.append(coeff)
+        err_array.append(err)
 
-    return coeff_array, err_array
+    return _np.array(coeff_array), _np.array(err_array)
 
 
 def calc_f(t1n0, t10n, t1n0_err=None, t10n_err=None):
