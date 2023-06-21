@@ -7,7 +7,7 @@ from copy import deepcopy
 
 
 class Coords(object):
-    def __init__(self, dims, coords):
+    def __init__(self, dims, coords, units = None):
         """Object for storing axes information
 
         Attributes:
@@ -24,6 +24,9 @@ class Coords(object):
         for index, coord in enumerate(coords):
             if isinstance(coord, (range, list)):
                 coords[index] = _np.array(coord)
+
+        if units == None:
+            units = [None for x in coords]
 
         if self._check_dims(dims):
             self._dims = deepcopy(dims)
