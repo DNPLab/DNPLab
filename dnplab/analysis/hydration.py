@@ -122,7 +122,7 @@ def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
     return ksig_fit
 
 
-def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
+def calculate_ksigma(ksigma_sps=False, powers=False, smax=1):
     """Get ksigma and E_power at half max of ksig
 
     Args:
@@ -139,26 +139,36 @@ def calculate_ksigma(ksigma_sp=False, powers=False, smax=1):
 
     # curve fitting
     # see https://docs.scipy.org/doc/scipy/reference/optimize.html
-    popt, pcov = optimize.curve_fit(
-        calculate_ksigma_array,
-        powers,
-        ksigma_sp,
-        p0=[95.4 / 2, (max(powers) * 0.1)],
-        method="lm",
-    )
+    
+    ksigma = []
+    ksigma_coeff = []
+    ksigma_stdd = []
+        
+    for ksigma_sp in ksigma_sps:
+        
+        popt, pcov = optimize.curve_fit(
+            calculate_ksigma_array,
+            powers,
+            ksigma_sp,
+            p0=[95.4 / 2, (max(powers) * 0.1)],
+            method="lm",
+        )
 
-    assert popt[0] > 0, "Unexpected ksigma value: %d < 0" % popt[0]
+        assert popt[0] > 0, "Unexpected ksigma value: %d < 0" % popt[0]
+        
+        ksigma_coeff.append(popt)
+        
+        ksigma_smax = popt[0]
+        p_12 = popt[1]
+        
+        ksigma_std = _np.sqrt(_np.diag(pcov))
+        ksigma_stdd.append(ksigma_std[0] / smax)
 
-    ksigma_smax = popt[0]
-    p_12 = popt[1]
-    ksigma_std = _np.sqrt(_np.diag(pcov))
-    ksigma_stdd = ksigma_std[0] / smax
+        ksigma_fit = calculate_ksigma_array(powers, ksigma_smax, p_12)
 
-    ksigma_fit = calculate_ksigma_array(powers, ksigma_smax, p_12)
+        ksigma.append(ksigma_smax / smax)
 
-    ksigma = ksigma_smax / smax
-
-    return ksigma, ksigma_stdd, ksigma_fit
+    return _np.array(ksigma_coeff), _np.array(ksigma), _np.array(ksigma_stdd), 
 
 
 def calculate_xi(tcorr=54e-12, omega_e=0.0614, omega_H=9.3231e-05):
@@ -684,21 +694,21 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolation_degre
     hydration_results["t10"] = t10
     hydration_results["t10_errors"] = t10_err
 
-    # calculate ksigma_smax
+    # # calculate ksigma_smax
     ksigma_array = _np.array([(1 - enh_arrays[x]) / (radical_concentration * omega_ratio * _np.poly1d(t1_coeff[x])(enh_powers)) for x in range(number_of_peaks)])
-    
-    Work here!
-    ksigma, ksigma_stdd, ksigma_fit = calculate_ksigma(
+
+    ksigma_sp_coefficients, ksigma, ksigma_stdd = calculate_ksigma(
         ksigma_array, enh_powers, s_max
     )
-    
-    ksig_sp_coefficients, ksig_sp_errors, ksig_smax, ksig_smax_err = calc_ksigma_smax(
+    print(ksigma_sp_coefficients)
+
+    ksigma_sp_coefficients, ksigma_sp_errors, ksigma_smax, ksigma_smax_err = calc_ksigma_smax(
         hydration_info["odnp_enhancements"], t1_coeff, radical_concentration
     )
-    hydration_info["ksigma_sp_coefficients"] = ksig_sp_coefficients
-    hydration_info["ksigma_sp_errors"] = ksig_sp_errors
-    hydration_results["ksigma_smax"] = ksig_smax
-    hydration_results["ksigma_smax_errors"] = ksig_smax_err
+    print(ksigma_sp_coefficients.values)
+    hydration_info["ksigma_sp_coefficients"] = ksigma_sp_coefficients
+    hydration_results["ksigma"] = ksigma
+    hydration_results["ksigma_errors"] = ksigma_stdd
 
     if "ir_coefficients" not in hydration_info:
         print(
@@ -723,20 +733,20 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolation_degre
         hydration_results["coupling_factor_smax"] = xi_smax
         hydration_results["coupling_factor_smax_errors"] = xi_smax_err
 
-        # if smax exists
-        if "smax" in hydration_info["sample_information"]:
-            smax = hydration_info["sample_information"]["smax"]
-            xi = xi_smax / smax
-            xi_err = xi_smax_err / smax
-            hydration_results["coupling_factor"] = xi
-            hydration_results["coupling_factor_errors"] = xi_err
-            ksig = ksig_smax / smax
-            ksig_err = ksig_smax_err / smax
-            hydration_results["ksigma"] = ksig
-            hydration_results["ksigma_errors"] = ksig_err
+        # # if smax exists
+        # if "smax" in hydration_info["sample_information"]:
+        #     smax = hydration_info["sample_information"]["smax"]
+        #     xi = xi_smax / smax
+        #     xi_err = xi_smax_err / smax
+        #     hydration_results["coupling_factor"] = xi
+        #     hydration_results["coupling_factor_errors"] = xi_err
+        #     ksig = ksig_smax / smax
+        #     ksig_err = ksig_smax_err / smax
+        #     hydration_results["ksigma"] = ksigma
+        #     hydration_results["ksigma_errors"] = ksigma_stdd
 
-        else:
-            print("No smax exists")
+        # else:
+        #     print("No smax exists")
 
     if show_result == True:
         for index, integrals in enumerate(
@@ -746,12 +756,12 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolation_degre
             print("Peak NO.%i:" % peak_number)
             print("T1 at 0 dBm: %0.03f +/- %0.03f s" % (t10[index], t10_err[index]))
             print("Leakage Factor: %0.03f +/- %0.03f" % (f[index], f_err[index]))
-            print(
-                "ksigma_smax: %0.03f +/- %0.03f"
-                % (ksig_smax[index], ksig_smax_err[index])
-            )
+            # print(
+            #     "ksigma_smax: %0.03f +/- %0.03f"
+            #     % (ksig_smax[index], ksig_smax_err[index])
+            # )
             if "smax" in hydration_info["sample_information"]:
-                print("ksigma: %0.03f +/- %0.03f" % (ksig[index], ksig_err[index]))
+                print("ksigma: %0.03f +/- %0.03f" % (ksigma[index], ksigma_err[index]))
             print("krho: %0.03f +/- %0.03f" % (krho[index], krho_err[index]))
             print(
                 "Coupling Factor * smax: %0.03f +/- %0.03f"
