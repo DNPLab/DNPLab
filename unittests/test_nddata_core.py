@@ -138,6 +138,28 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
         except ValueError as e:
             self.fail("Deepcopy of dims most likely failed! Error {0}".format(e))
 
+    def test_001_checkUnfoldDim(self):
+        # test for fold/unfold functionality, and make sure that unfold is 2d
+        import dnplab as dnp
+
+        dims = ["Average", "t2"]
+        coords1 = [np.arange(0, 100), np.arange(0, 1024)]
+        coords2 = [np.arange(0, 100), np.arange(0, 1024)]
+        data1 = np.random.random((100, 1024))
+        data2 = np.random.random(100)
+
+        DNPObj1 = dnp.DNPData(data1, dims, coords1)
+        DNPObj2 = dnp.DNPData(data2, ["Average"], [coords2[0]])
+
+        # even only 1D objects become atleast 2d
+        DNPObj2.unfold("Average")
+        self.assertTrue(len(DNPObj2.values.shape) == 2)
+        self.assertEqual(DNPObj2.values.shape, (100, 1))
+
+        DNPObj1.unfold("Average")
+        self.assertTrue(len(DNPObj1.values.shape) == 2)
+        self.assertEqual(DNPObj1.values.shape, (100, 1024))
+
 
 class dnplab_ABCData_coord_tester(unittest.TestCase):
     def setUp(self):

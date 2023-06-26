@@ -171,6 +171,8 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
+        data.fold()
+
     elif data.attrs["experiment_type"] in fancyplot_sections:
         exp_type = fancyplot_label + ":" + data.attrs["experiment_type"]
         get_key = lambda x, fallback=None: DNPLAB_CONFIG.get(
@@ -258,7 +260,6 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
             _plt.text(xmin * 1.001, ymin * 0.90, prmString, bbox=box_style)
 
+        data.fold()
     else:
         plot(data, *args, **kwargs)
-
-    data.fold()

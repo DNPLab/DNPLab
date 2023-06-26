@@ -1080,12 +1080,18 @@ class ABCData(object):
         folded_shape = self.values.shape
         align_dim_length = folded_shape[0]  # length of dimension to align down
         self.values = self.values.reshape(align_dim_length, -1)  # Reshape to 2d
+
+        # remark: this will fail when unfolding an already unfolded dataset!
+        index_dim = self.values.shape[1]
+        self.coords.append("fold_index", _np.arange(index_dim))
+
         self.attrs["folded_shape"] = folded_shape
         self.attrs["folded_order"] = folded_order
 
     def fold(self):
         """Fold 2d data to original ND shape"""
-
+        # remark: this will fail when unfolding an already unfolded dataset!
+        self.coords.pop("fold_index")
         if "folded_shape" in self.attrs:
             original_shape = self.attrs["folded_shape"]
             self.values = self.values.reshape(original_shape)
