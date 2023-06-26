@@ -92,6 +92,23 @@ class dnpTools_tester(unittest.TestCase):
             remove_background=[(100, 200)],
         )
 
+    def test_002_check_if_data_is_unmodified(self):
+        f = dnp.processing.signal_to_noise
+        data = dnp.fourier_transform(self.data)
+        s1 = data.shape
+
+        # some input checks, just to check that no errors are thrown:
+        snr = f(data, [(300, 400)], [(500, 600)])
+        snr = f(
+            data, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=3
+        )  # works with degree
+        snr = f(
+            data, [(300, 400)], [(500, 600)], remove_background=(100, 200)
+        )  # works without degree
+        snr = f(data, [(300, 400)], [(500, 600)], remove_background=[(100, 200)])
+        s2 = data.shape
+        self.assertEqual(s1, s2)
+
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")
 
