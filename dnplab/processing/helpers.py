@@ -100,9 +100,10 @@ def signal_to_noise(
     """Find signal-to-noise ratio
 
     Simplest implementation: select largest value in a signal_region and divide this value by the estimated std. deviation of another noise_region. If the noise_region list contains (None,None) (the default) then all points except the points +10% and -10% around the maximum are used for the noise_region.
+    When the DNPData object is multidimensional the SNR for every element is returned. This can be changed by
 
     Args:
-        data: Spectrum data
+        data (DNPData): Spectrum data
         signal_region (list): list with a single tuple (start,stop) of a region where a signal should be searched, default is [slice(0,None)] which is the whole spectrum
         noise_region (list): list with tuples (start,stop) of regions that should be taken as noise, default is (None,None)
         dim (str): dimension of data that is used for snr calculation, default is 'f2'
@@ -168,31 +169,42 @@ def signal_to_noise(
     remove_background = _convenience_tuple_to_list(remove_background)
 
     if not (dim in data.dims):
-        raise ValueError("dim {0} not in data.dims ({1})".format(dim, data.dims))
+        raise ValueError("processing.helpers.signal_to_noise: dim {0} not in data.dims ({1})".format(dim, data.dims))
 
     # remove background
     if remove_background is not None:
         deg = kwargs.pop("deg", 1)
         data = dnp_remove_background(data, dim, deg, remove_background)
 
-    # currently only one method avaiable -> absolute value
-    signal = _np.max(_np.abs(data[dim, signal_region[0]]))
+    #unfold data
+    data.unfold(dim)
 
-    if (None, None) in noise_region:
-        signal_arg = _np.argmax(_np.abs(data[dim, signal_region[0]]))
-        datasize = data[dim, :].size
-        noise_region = [
-            slice(0, int(_np.maximum(2, int(signal_arg * 0.9)))),
-            slice(int(_np.minimum(datasize - 2, int(signal_arg * 1.1))), None),
-        ]
+    #loop over second dimension
+    n_spectra = data.shape[1]
+    snr=[]
+    for k in range(n_spectra):
+        # currently only one method available -> absolute value
 
-    # concatenate noise_regions
-    noise_0 = _np.abs(data[dim, noise_region[0]])
 
-    for k in noise_region[1:]:
-        noise_0.concatenate(_np.abs(data[dim, k]), dim)
+        signal = _np.max(_np.abs(data[dim, signal_region[0],"fold_index",k]))
 
-    noise = _np.std(_np.abs(noise_0[dim, slice(0, None)]))
+        if (None, None) in noise_region:
+            signal_arg = _np.argmax(_np.abs(data[dim, signal_region[0],"fold_index",k]))
+            datasize = data[dim, :].size
+            noise_region = [
+                slice(0, int(_np.maximum(2, int(signal_arg * 0.9)))),
+                slice(int(_np.minimum(datasize - 2, int(signal_arg * 1.1))), None),
+            ]
+
+        # concatenate noise_regions
+        noise_0 = _np.abs(data[dim, noise_region[0],"fold_index",k])
+
+        for k in noise_region[1:]:
+            noise_0.concatenate(_np.abs(data[dim, k,"fold_index",k]), dim)
+
+        noise = _np.std(_np.abs(noise_0[dim, slice(0, None)]))
+
+        snr.append(signal/noise)
 
     return signal / noise
 
