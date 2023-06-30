@@ -7,6 +7,10 @@ from ..processing.offset import remove_background as dnp_remove_background
 
 import dnplab as dnp
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=False):
     """Calculate enhancement of a power series. Needs integrals as input
@@ -136,8 +140,6 @@ def signal_to_noise(
     import warnings
     import scipy.optimize as _scipy_optimize
 
-    data = data.copy()
-
     # convenience for signal and noise region
     def _convenience_tuple_to_list(possible_region: list):
         if possible_region is None:
@@ -146,7 +148,7 @@ def signal_to_noise(
         try:
             l = len(possible_region)
             if l != 2:
-                return possible_region  # it seems to be iterable?
+                return possible_region  # it seems to be iterable
         except TypeError:
             return [possible_region]  # return as is in a list, might be slice
         try:
@@ -162,11 +164,11 @@ def signal_to_noise(
 
     signal_region = _convenience_tuple_to_list(signal_region)
     if len(signal_region) > 1:
-        raise ValueError(
-            "More than one signal region ({0}) provided in signal_to_noise. This is not supported.".format(
-                signal_region
-            )
-        )
+        snr=[]
+        #non recursive
+        for sr in signal_region:
+            snr.append(signal_to_noise( data, sr, noise_region, dim, remove_background, **kwargs) )
+        return snr
     noise_region = _convenience_tuple_to_list(noise_region)
     remove_background = _convenience_tuple_to_list(remove_background)
 
@@ -176,6 +178,8 @@ def signal_to_noise(
                 dim, data.dims
             )
         )
+
+    data = data.copy()
 
     # remove background
     if remove_background is not None:
@@ -191,13 +195,15 @@ def signal_to_noise(
     for k in range(n_spectra):
         # currently only one method available -> absolute value
 
+        logger.debug('debug signal calc: dim={0}, signal_region[0]={1}, data shape: {2}'.format(dim,signal_region[0],data._values.shape))
+
         signal = _np.max(_np.abs(data[dim, signal_region[0], "fold_index", k]))
 
         if (None, None) in noise_region:
             signal_arg = _np.argmax(
                 _np.abs(data[dim, signal_region[0], "fold_index", k])
             )
-            datasize = data[dim, :].size
+            datasize = data.shape[0]
             noise_region = [
                 slice(0, int(_np.maximum(2, int(signal_arg * 0.9)))),
                 slice(int(_np.minimum(datasize - 2, int(signal_arg * 1.1))), None),
@@ -209,9 +215,11 @@ def signal_to_noise(
         for l in noise_region[1:]:
             noise_0.concatenate(_np.abs(data[dim, l, "fold_index", k]), dim)
 
-        noise = _np.std(_np.abs(noise_0[dim, slice(0, None)]))
+        noise = _np.std(_np.abs(noise_0[dim, slice(0, None),"fold_index", k]))
 
         snr.append(signal / noise)
+
+    logger.debug('debug data shape before fold: {2}'.format(dim,signal_region[0],data._values.shape))
 
     data.fold()
 

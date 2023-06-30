@@ -12,6 +12,7 @@ from ..version import __version__
 
 version = __version__
 
+logger=logging.getLogger(__name__)
 
 def _replaceClassWithAttribute(replace_class, args, kwargs, target_attr="_values"):
     r_args = []
@@ -130,6 +131,7 @@ class ABCData(object):
                 warnings.warn(
                     "Coords Check Failed. Each coord should be a numpy array matching the length of each dimension in values."
                 )
+        self._is_folded=True
 
     @property
     def __version__(self):
@@ -311,6 +313,17 @@ class ABCData(object):
             else:
                 updated_index_slice.append(slice_)
 
+        # special behaviour for unfolded (internal use):
+        if a._is_folded==False:
+            if len(index_dims) != 2 or 'fold_index' not in index_dims:
+                raise IndexError('Folded state and you requested not fold_index, you need to specifiy exactly two dims! you specified {0}'.format(index_dims))
+            if not self.dims[0] in index_dims:
+                raise IndexError('Folded state, there are only two dimensions and one needs to be the dimension you folded agains!, you specified {0}'.format(index_dims))
+            index_slice_dict = dict(zip(index_dims, updated_index_slice))
+            new_slices = [ index_slice_dict[dim] for dim in index_dims ]
+            a.values=a.values[tuple(new_slices)]
+            return a
+
         index_slice_dict = dict(zip(index_dims, updated_index_slice))
         new_slices = [
             slice(None) if dim not in index_dims else index_slice_dict[dim]
@@ -323,6 +336,7 @@ class ABCData(object):
         a.values = a.values[tuple(new_slices)]
 
         return a
+
 
     def __setitem__(self, args, new_values):
         """Method for setting values by index nddata_core
@@ -1076,7 +1090,7 @@ class ABCData(object):
             dim (str): Dimension to make first (length N), all other dimensions unfolded so that values has shape (N x M)
 
         """
-        if "fold_index" in self.coords.dims:
+        if self._is_folded==False:
             raise ValueError(
                 "Trying to unfold already unfolded object (fold_index in dims!)! Please fold the object before attempting a second unfold!"
             )
@@ -1093,6 +1107,7 @@ class ABCData(object):
 
         self.attrs["folded_shape"] = folded_shape
         self.attrs["folded_order"] = folded_order
+        self._is_folded=False
 
     def fold(self):
         """Fold 2d data to original ND shape"""
@@ -1105,6 +1120,7 @@ class ABCData(object):
         if "folded_order" in self.attrs:
             self.reorder(self.attrs["folded_order"])
             self.attrs.pop("folded_order")
+        self._is_folded=True
 
     def __array_ufunc__(self, ufunc, method, *arrInput, **kwargs):
         """

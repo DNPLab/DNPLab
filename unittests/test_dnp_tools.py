@@ -82,7 +82,6 @@ class dnpTools_tester(unittest.TestCase):
         snr = f(data)
         # with slices
         snr = f(data, slice(0, None), remove_background=[(100, 200)])
-        self.assertRaises(ValueError, f, data, [slice(0, None), (100, 300)])
         snr2 = f(data, (0, 1000), remove_background=[(100, 200)])
 
         snr = f(
@@ -108,6 +107,57 @@ class dnpTools_tester(unittest.TestCase):
         snr = f(data, [(300, 400)], [(500, 600)], remove_background=[(100, 200)])
         s2 = data.shape
         self.assertEqual(s1, s2)
+
+    def test_003_multiple_regions_behaviour(self):
+        from dnplab.core.base import ABCData
+        ABCData.add_proc_attrs=lambda *args,**kwargs: '1'
+        d1 = 512
+        d2 = 10
+
+        d = np.random.random((d1, d2))
+        ax1 = np.arange(d1)
+        ax2=np.arange(d2)
+        Ddata = ABCData(d, dims=["f2", "2"], coords=[ax1, ax2])
+
+        f = dnp.processing.signal_to_noise
+        snr = f(Ddata,[(10,20),(50,60),(100,200)],[(400,500)])
+
+        self.assertEqual(len(snr),3)
+        self.assertEqual(len(snr[0]),10)
+        self.assertEqual(len(snr[1]),10)
+
+    def test_004_multiple_dimensions_beaviour(self):
+        from dnplab.core.base import ABCData
+        ABCData.add_proc_attrs=lambda *args,**kwargs: '1'
+        d1 = 512
+        d2 = 10
+        d = np.random.random((d1, d2))
+        ax1 = np.arange(d1)
+        ax2=np.arange(d2)
+        Ddata = ABCData(d, dims=["f2", "2"], coords=[ax1, ax2])
+        f = dnp.processing.signal_to_noise
+        s1 = Ddata.shape
+
+        # some input checks, just to check that no errors are thrown:
+        snr = f(Ddata, [(300, 400)], [(500, 600)])
+        self.assertEqual(len(snr),10)
+        self.assertEqual(type(snr[0]),np.float64)
+        snr = f(
+            Ddata, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=3
+        )  # works with degree
+        self.assertEqual(len(snr),10)
+        self.assertEqual(type(snr[0]),np.float64)
+        snr = f(
+            Ddata, [(300, 400)], [(500, 600)], remove_background=(100, 200)
+        )  # works without degree
+        self.assertEqual(len(snr),10)
+        self.assertEqual(type(snr[0]),np.float64)
+        snr = f(Ddata, [(300, 400)], [(500, 600)], remove_background=[(100, 200)])
+        self.assertEqual(len(snr),10)
+        self.assertEqual(type(snr[0]),np.float64)
+        s2 = Ddata.shape
+        self.assertEqual(s1, s2)
+
 
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")
