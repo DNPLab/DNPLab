@@ -111,7 +111,7 @@ def signal_to_noise(
         kwargs : parameters for dnp.remove_background
 
     Returns:
-        SNR (float): Signal to noise ratio
+        SNR (list): Signal to noise ratio, is a float when len(SNR)==1
 
     Examples:
 
@@ -215,6 +215,9 @@ def signal_to_noise(
 
     data.fold()
 
+    # backward compability
+    if len(snr) == 1:
+        snr = snr[0]
     return snr
 
 
