@@ -7,6 +7,10 @@ from dnplab.core.coord import Coords
 import numpy as np
 import random
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 test_dims = ["x", "y", "z", "p", "q", "r"]
 num_random_tests = 10
 
@@ -201,6 +205,7 @@ class ABCData_numpy_implementation_test(unittest.TestCase):
         shape = [coord.size for coord in random_coords]
 
         random_values = np.random.randn(*shape)
+        # logger.debug('ABCData has random_dims: {0} and radom_values shape {1}'.format(random_dims,random_values))
         data = ABCData(random_values, random_dims, random_coords)
         return data, random_dims, random_values, random_coords
 
@@ -214,9 +219,9 @@ class ABCData_numpy_implementation_test(unittest.TestCase):
 
         self.ax = np.arange(self.size)
 
-        self.Adata = ABCData(self.a)
-        self.Bdata = ABCData(self.b)
-        self.Cdata = ABCData(self.c)
+        self.Adata = ABCData(self.a, ["dim0"], [np.arange(self.a.size)])
+        self.Bdata = ABCData(self.b, ["dim0"], [np.arange(self.b.size)])
+        self.Cdata = ABCData(self.c, ["dim0"], [np.arange(self.a.size)])
         self.Ddata = ABCData(self.d, dims=["1", "2"], coords=[self.ax, self.ax])
 
     def test_000_replaceAttr(self):
@@ -239,6 +244,10 @@ class ABCData_numpy_implementation_test(unittest.TestCase):
         self.assertEqual(np.sum(f(self.Cdata) - f(self.c)), 0)
         self.assertEqual(type(f(self.Adata)), type(self.Adata))
 
+        # check that dimensions are not deleted!
+        self.assertEqual(f(self.Ddata).dims, self.Ddata.dims)
+        self.assertEqual(f(self.Bdata).dims, self.Bdata.dims)
+
     def test_003_axisKeywordTest_nonufunc(self):
         # testing with function sum, which is often used
         b = np.sum(self.Adata)
@@ -246,7 +255,23 @@ class ABCData_numpy_implementation_test(unittest.TestCase):
 
         rdata, dims, values, coords = self.construct_random_data()
         test_sum = np.sum(values, axis=0)  # corresponds to dim[0]
+
+        logger.debug(
+            "Logging rdata.shape: {0} and dims: {1}".format(
+                rdata._values.shape, rdata.dims
+            )
+        )
+
         b = np.sum(rdata, axis=dims[0])
+
+        logger.debug(
+            "Logging b.shape: {0} and test_sum.shape: {1}".format(
+                b._values.shape, test_sum.shape
+            )
+        )
+        logger.debug(
+            "Logging b dims: {0} and rdata.dims: {1}".format(b.dims, rdata.dims)
+        )
 
         self.assertEqual(type(b), type(rdata))
         self.assertEqual(test_sum.shape, b.shape)

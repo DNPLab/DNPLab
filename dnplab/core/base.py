@@ -122,7 +122,9 @@ class ABCData(object):
             warnings.warn("Data Object Dimensions are not consistent.")
             if not self._check_dims(self.dims):
                 warnings.warn(
-                    "Dims Check Failed. Dims must be list of strings. Length of dims should match number of dimensions in values."
+                    "Dims Check Failed. Dims must be list of strings. Length of dims ({0}) should match number of dimensions in values (values shape: {1})".format(
+                        len(self.dims), self._values.shape
+                    )
                 )
             if not self._check_coords(self._coords):
                 warnings.warn(
@@ -1074,6 +1076,10 @@ class ABCData(object):
             dim (str): Dimension to make first (length N), all other dimensions unfolded so that values has shape (N x M)
 
         """
+        if "fold_index" in self.coords.dims:
+            raise ValueError(
+                "Trying to unfold already unfolded object (fold_index in dims!)! Please fold the object before attempting a second unfold!"
+            )
 
         folded_order = self.dims  # Original order of dims
         self.reorder([dim])  # Move dim to first dimension
@@ -1102,17 +1108,15 @@ class ABCData(object):
 
     def __array_ufunc__(self, ufunc, method, *arrInput, **kwargs):
         """
-        started implementation of numpy comapilibity accoring to
+        started implementation of numpy comapilibity according to
         https://numpy.org/doc/stable/user/basics.dispatch.html
 
-        - copying the methods there to achieve the possibility to use numpy fuctions directly
-        - numpy functions work on all values for now yes?
+        - still need to implement universal function handling:
+        https://numpy.org/doc/stable/user/basics.ufuncs.html#ufuncs-basics
 
-        TODO: add history attribute?
+        - need to implement all methods
         """
-        # need to implement all methods
         if method == "__call__":
-            # a=self.copy() #in accordance with rest of class
             args, kwargs = _replaceClassWithAttribute(self, arrInput, kwargs)
             values = ufunc(*args, **kwargs)
             a = self.copy()
@@ -1122,14 +1126,14 @@ class ABCData(object):
 
     def __array_function__(self, func, types, args, kwargs):
         """
-        started implementation of numpy comapilibity accoring to
+        Basic numpy compability according to
         https://numpy.org/doc/stable/user/basics.dispatch.html
 
-        - copying the methods there to achieve the possibility to use numpy fuctions directly
-        - special handling is done for function that return no array, be aware that this is currently not optimal and possibly slow (copying a array before checking whether copy is necessary?)
+        - special handling is done for function that return no array, be aware that this is currently not optimal and possibly slow
         - numpy functions currently just apply to the values of self, special handling is done for functions in SPECIAL_NP_HANDLED
 
         - default implementation, replaces all  ABCData objects with ABCData.values and calls func with replaced *args,**kwargs
+        - todo: better handling of axis keyword and dimension consume!
         """
         if func in _SPECIAL_NP_HANDLED:
             return_values = _SPECIAL_NP_HANDLED[func](*args, **kwargs)
@@ -1137,7 +1141,7 @@ class ABCData(object):
             # default implementation, replaces all  ABCData objects in args and kwargs with ABCData.values and calls func
             args, kwargs = _replaceClassWithAttribute(self, args, kwargs)
             # check for dims and use dims as axis array, note that this will reduce the output dimensions
-            # better: also automatically convert numerical dimensions to corresponding dimensions ?
+            # NOTE: also automatically convert numerical dimensions to corresponding dimensions ?
             # NOTE the check for the axis keyword types could be placed in a seperate function, but for now it is kept here
             str_or_int = (
                 lambda possible_dim: int(self.index(possible_dim))
@@ -1146,7 +1150,7 @@ class ABCData(object):
             )
             data_dims = []
             proc_dims = []
-            # replace e.g. 'f2' with corresponding dim
+            # replace e.g. 'f2' with corresponding dim index
             while True:
                 if "axis" in kwargs.keys():
                     ax_value = kwargs.pop("axis")
@@ -1162,7 +1166,7 @@ class ABCData(object):
                     data_dims += [ax_value]
                     kwargs["axis"] = indx
                     break
-                # assume we can iteratre over it
+                # assume we can iterate over it
                 indx = []
                 for value in ax_value:
                     _val = str_or_int(value)
@@ -1175,14 +1179,23 @@ class ABCData(object):
 
             # apply function to values
             return_values = func(*args, **kwargs)
+
         if type(return_values) == _np.ndarray:
-            a = self.copy()
+            self_shape = self._values.shape
+            if kwargs.pop("_dnplab_inplace", False):
+                a = self
+            else:
+                a = self.copy()
             # delete dimensions that are removed
-            for dim in data_dims:
-                a.coords.pop(dim)
+            # current temporary fix: when shape of return_values.shape == self._values.shape do not delete dimensions!
+            if return_values.shape != self_shape:
+                for dim in data_dims:
+                    a.coords.pop(dim)
             a.values = return_values
 
-            # add processing attributes
+            # add processing attributes, except when they should be suppressed
+            if kwargs.pop("_dnplab_supress_attr", False):
+                return a
             proc_attr_name = "numpy." + func.__name__
             proc_parameters = {"axis": proc_dims}
             try:
