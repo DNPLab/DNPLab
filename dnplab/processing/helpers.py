@@ -164,10 +164,14 @@ def signal_to_noise(
 
     signal_region = _convenience_tuple_to_list(signal_region)
     if len(signal_region) > 1:
-        snr=[]
-        #non recursive
+        snr = []
+        # non recursive
         for sr in signal_region:
-            snr.append(signal_to_noise( data, sr, noise_region, dim, remove_background, **kwargs) )
+            snr.append(
+                signal_to_noise(
+                    data, sr, noise_region, dim, remove_background, **kwargs
+                )
+            )
         return snr
     noise_region = _convenience_tuple_to_list(noise_region)
     remove_background = _convenience_tuple_to_list(remove_background)
@@ -187,7 +191,7 @@ def signal_to_noise(
         data = dnp_remove_background(data, dim, deg, remove_background)
 
     # unfold data
-    noise_0=data.copy()
+    noise_0 = data.copy()
     data.unfold(dim)
 
     # loop over second dimension
@@ -214,7 +218,7 @@ def signal_to_noise(
             noise_0_k.concatenate(_np.abs(noise_0[dim, l]), dim)
         noise_0_k.unfold(dim)
 
-        noise = _np.std(_np.abs(noise_0_k[dim, slice(0, None),"fold_index", 0]))
+        noise = _np.std(_np.abs(noise_0_k[dim, slice(0, None), "fold_index", 0]))
 
         snr.append(signal / noise)
 
