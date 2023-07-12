@@ -187,6 +187,7 @@ def signal_to_noise(
         data = dnp_remove_background(data, dim, deg, remove_background)
 
     # unfold data
+    noise_0=data.copy()
     data.unfold(dim)
 
     # loop over second dimension
@@ -194,8 +195,6 @@ def signal_to_noise(
     snr = []
     for k in range(n_spectra):
         # currently only one method available -> absolute value
-
-        logger.debug('debug signal calc: dim={0}, signal_region[0]={1}, data shape: {2}'.format(dim,signal_region[0],data._values.shape))
 
         signal = _np.max(_np.abs(data[dim, signal_region[0], "fold_index", k]))
 
@@ -210,16 +209,14 @@ def signal_to_noise(
             ]
 
         # concatenate noise_regions
-        noise_0 = _np.abs(data[dim, noise_region[0], "fold_index", k])
-
+        noise_0_k = _np.abs(noise_0[dim, noise_region[0]])
         for l in noise_region[1:]:
-            noise_0.concatenate(_np.abs(data[dim, l, "fold_index", k]), dim)
+            noise_0_k.concatenate(_np.abs(noise_0[dim, l]), dim)
+        noise_0_k.unfold(dim)
 
-        noise = _np.std(_np.abs(noise_0[dim, slice(0, None),"fold_index", k]))
+        noise = _np.std(_np.abs(noise_0_k[dim, slice(0, None),"fold_index", 0]))
 
         snr.append(signal / noise)
-
-    logger.debug('debug data shape before fold: {2}'.format(dim,signal_region[0],data._values.shape))
 
     data.fold()
 

@@ -97,7 +97,7 @@ def autophase(inputData, dim="f2", pivot=False, deriv=1, gamma=1e-5, verbose=Tru
             pivot = data.__getitem__(tpl)
         except KeyError as e:
             raise KeyError(
-                "Could not access pivot element at {0}, make sure that it exists! ou do not need to include dim ({1})!\n{2}".format(
+                "Could not access pivot element at {0}, make sure that it exists! you do not need to include dim ({1})!\n{2}".format(
                     _, dim, e
                 )
             )
