@@ -652,10 +652,20 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolation_degre
     else:
         number_of_peaks = _np.shape(t1_arrays)[0]
 
-    if "ir_coefficients" in hydration_info:
+    if "T1_Water" in update_constant:
+        t100 = _np.array(update_constant["T1_Water"])
+        if len(t100) != number_of_peaks:
+            t100 = _np.append(t100, _np.full(number_of_peaks - len(t100), 2.5))
+            t100_message = "aren't given in updated constant completely, not given t100s are forces to 2.5 s."
+        else:
+            t100_message = "are given in updated constant completely."
+    elif "ir_coefficients" in hydration_info:
         t100 = hydration_info["ir_coefficients"].values[0]
+        t100_message = 'are calculated from dictionary.' # a message to indicate where T100 comes
     else:
         t100 = _np.full(number_of_peaks, 2.5) # create default an array for T100 
+        t100_given_or_calculated = 'are not given and forced to 2.5 s.'
+
     if "ir_errors" not in hydration_info:
         t100_err = _np.zeros(number_of_peaks)
     else:
@@ -697,79 +707,59 @@ def hydration_analysis(path = None, smax_model = 'tethered', interpolation_degre
     # # calculate ksigma_smax
     ksigma_array = _np.array([(1 - enh_arrays[x]) / (radical_concentration * omega_ratio * _np.poly1d(t1_coeff[x])(enh_powers)) for x in range(number_of_peaks)])
 
-    ksigma_sp_coefficients, ksigma, ksigma_stdd = calculate_ksigma(
+    ksigma_sp_coefficients, ksigma, ksigma_err = calculate_ksigma(
         ksigma_array, enh_powers, s_max
     )
-    print(ksigma_sp_coefficients)
 
-    ksigma_sp_coefficients, ksigma_sp_errors, ksigma_smax, ksigma_smax_err = calc_ksigma_smax(
-        hydration_info["odnp_enhancements"], t1_coeff, radical_concentration
-    )
-    print(ksigma_sp_coefficients.values)
     hydration_info["ksigma_sp_coefficients"] = ksigma_sp_coefficients
     hydration_results["ksigma"] = ksigma
-    hydration_results["ksigma_errors"] = ksigma_stdd
+    hydration_results["ksigma_errors"] = ksigma_err
 
-    if "ir_coefficients" not in hydration_info:
-        print(
-            "For leakage factor, krho and coupling factor calculation, please define t10 data in the dictionary"
-        )
+    # calcualte leakage factor
+    f, f_err = calculate_leakage_factor(t10, t100, t10_err, t100_err)
+    hydration_results["leakage_factors"] = f
+    hydration_results["leakage_factor_errors"] = f_err
 
-    else:
-        # calcualte coupling factor f
-        f, f_err = calc_f(t10, t100, t10_err, t100_err)
-        hydration_results["leakage_factors"] = f
-        hydration_results["leakage_factor_errors"] = f_err
+    # calculate krho
+    krho, krho_err = calculate_krho(
+        t10, t100, radical_concentration, t10_err, t100_err
+    )
+    hydration_results["krho"] = krho
+    hydration_results["krho_errors"] = krho_err
 
-        # calculate krho
-        krho, krho_err = calc_krho(
-            t10, t100, radical_concentration, t10_err, t100_err
-        )
-        hydration_results["krho"] = krho
-        hydration_results["krho_errors"] = krho_err
-
-        # calculate xi_smax
-        xi_smax, xi_smax_err = calc_xi_smax(ksig_smax, krho, ksig_smax_err, krho_err)
-        hydration_results["coupling_factor_smax"] = xi_smax
-        hydration_results["coupling_factor_smax_errors"] = xi_smax_err
-
-        # # if smax exists
-        # if "smax" in hydration_info["sample_information"]:
-        #     smax = hydration_info["sample_information"]["smax"]
-        #     xi = xi_smax / smax
-        #     xi_err = xi_smax_err / smax
-        #     hydration_results["coupling_factor"] = xi
-        #     hydration_results["coupling_factor_errors"] = xi_err
-        #     ksig = ksig_smax / smax
-        #     ksig_err = ksig_smax_err / smax
-        #     hydration_results["ksigma"] = ksigma
-        #     hydration_results["ksigma_errors"] = ksigma_stdd
-
-        # else:
-        #     print("No smax exists")
+    # calculate coupling factors
+    xi, xi_err = calculate_coupling_factor(ksigma, krho, ksigma_err, krho_err)
+    hydration_results["coupling_factor"] = xi
+    hydration_results["coupling_factor_errors"] = xi_err
 
     if show_result == True:
+        print("----------------------------------------------------------")
+        print("Hydration Analysis Results:")
+        print("----------------------------------------------------------")
+        print("Number of Peaks: %d" %number_of_peaks)
+        print("T1 Intepolation Degree: %d" %interpolation_degree)
+        print("Radical Concentration: %0.03f M" %radical_concentration)
+        print("Smax Model: %s" %smax_model)
+        print("T100 %s" %t100_message)
+        print("----------------------------------------------------------")
         for index, integrals in enumerate(
             hydration_info["odnp_enhancements"].coords["integrals"]
         ):
             peak_number = index + 1
             print("Peak NO.%i:" % peak_number)
-            print("T1 at 0 dBm: %0.03f +/- %0.03f s" % (t10[index], t10_err[index]))
+            print("T10: %0.03f +/- %0.03f s" % (t10[index], t10_err[index]))
+            print("T100 %0.03f +/- %0.03f s" %(t100[index], t100_err[index]))
             print("Leakage Factor: %0.03f +/- %0.03f" % (f[index], f_err[index]))
-            # print(
-            #     "ksigma_smax: %0.03f +/- %0.03f"
-            #     % (ksig_smax[index], ksig_smax_err[index])
-            # )
-            if "smax" in hydration_info["sample_information"]:
-                print("ksigma: %0.03f +/- %0.03f" % (ksigma[index], ksigma_err[index]))
+            print(
+                "ksigma: %0.03f +/- %0.03f"
+                % (ksigma[index], ksigma_err[index])
+            )
             print("krho: %0.03f +/- %0.03f" % (krho[index], krho_err[index]))
             print(
-                "Coupling Factor * smax: %0.03f +/- %0.03f"
-                % (xi_smax[index], xi_smax_err[index])
+                "Coupling Factor: %0.03f +/- %0.03f"
+                % (xi[index], xi_err[index])
             )
-            if "smax" in hydration_info["sample_information"]:
-                print("Coupling Factor: %0.03f +/- %0.03f" % (xi[index], xi_err[index]))
-            print("")
+            print("----------------------------------------------------------")
 
     hydration_info["hydration_results"] = hydration_results
 
@@ -796,7 +786,7 @@ def t1_fit_coefficients(t1_powers, t1_arrays, degree):
 
     coeff_array = []
     err_array = []
-    for index, t1_array in enumerate(t1_arrays):
+    for t1_array in t1_arrays:
         coeff, cov = _np.polyfit(t1_powers, t1_array, degree, cov=True)
         err = _np.sqrt(_np.diag(cov))
         coeff_array.append(coeff)
@@ -805,7 +795,7 @@ def t1_fit_coefficients(t1_powers, t1_arrays, degree):
     return _np.array(coeff_array), _np.array(err_array)
 
 
-def calc_f(t1n0, t10n, t1n0_err=None, t10n_err=None):
+def calculate_leakage_factor(t1n0, t10n, t1n0_err=None, t10n_err=None):
     """
     Calculating leakage factor and its error
 
@@ -899,7 +889,7 @@ def calc_ksigma_smax(odnp_enhancements_data, t1_coeff, radical_concentration):
     )
 
 
-def calc_krho(t1n0, t10n, radical_concentration, t1n0_err=None, t10n_err=None):
+def calculate_krho(t1n0, t10n, radical_concentration, t1n0_err=None, t10n_err=None):
     """
     Calculating k rho and its error
 
@@ -937,9 +927,9 @@ def calc_krho(t1n0, t10n, radical_concentration, t1n0_err=None, t10n_err=None):
     return _np.array(krho), _np.array(krho_array)
 
 
-def calc_xi_smax(ksig_smax, krho, ksig_smax_err, krho_err):
+def calculate_coupling_factor(ksig, krho, ksig_err, krho_err):
     """
-    Calculating xi smax and its error
+    Calculating coupling factor xi and its error
 
     Args:
         ksig_smax_array: (numpy array) ksigma*smax
@@ -962,10 +952,10 @@ def calc_xi_smax(ksig_smax, krho, ksig_smax_err, krho_err):
         https://en.wikipedia.org/wiki/Propagation_of_uncertainty
     """
 
-    xi_smax = [x / y for x, y in zip(ksig_smax, krho)]
-    xi_smax_err = [
+    xi = [x / y for x, y in zip(ksig, krho)]
+    xi_err = [
         x / y * _np.sqrt((x_err / x) ** 2 + (y_err / y) ** 2)
-        for x, x_err, y, y_err in zip(ksig_smax, ksig_smax_err, krho, krho_err)
+        for x, x_err, y, y_err in zip(ksig, ksig_err, krho, krho_err)
     ]
 
-    return _np.array(xi_smax), _np.array(xi_smax_err)
+    return _np.array(xi), _np.array(xi_err)
