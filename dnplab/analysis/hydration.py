@@ -7,24 +7,26 @@ from ..core.data import DNPData
 from ..fitting.general import *
 from ..math import *
 from scipy.constants import *
+import dnplab as _dnp
+from ..config.config import DNPLAB_CONFIG
 
 
-def calculate_smax(spin_C=False):
-    r"""Returns maximal saturation factor.
+# def calculate_smax(spin_C=False):
+#     r"""Returns maximal saturation factor.
 
-    Args:
-        spin_C (float): unpaired spin concentration (M)
+#     Args:
+#         spin_C (float): unpaired spin concentration (M)
 
-    Returns:
-        smax (float): maximal saturation factor (unitless)
+#     Returns:
+#         smax (float): maximal saturation factor (unitless)
 
-    .. math::
-        \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
+#     .. math::
+#         \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
 
-    M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
-    """
+#     M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
+#     """
 
-    return 1 - (2 / (3 + (3 * (spin_C * 198.7))))
+#     return 1 - (2 / (3 + (3 * (spin_C * 198.7))))
 
 
 def interpolate_T1(
@@ -150,7 +152,7 @@ def calculate_ksigma(ksigma_sps=False, powers=False, smax=1):
             calculate_ksigma_array,
             powers,
             ksigma_sp,
-            p0=[95.4 / 2, (max(powers) * 0.1)],
+            p0=[max(_np.real(ksigma_sp)) / 2, (max(powers) * 0.1)],
             method="lm",
         )
 
@@ -214,30 +216,42 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
     """Returns translational correlation time (tcorr) in pico second
 
     Args:
-        coupling_factor (float): coupling factor
+        coupling_factor (float or numpy.array): coupling factor
         omega_e (float): electron gyromagnetic ratio
         omega_H (float): proton gyromagnetic ratio
 
     Returns:
-        tcorr (float): translational diffusion correlation time (s)
+        tcorr (numpy.array): translational diffusion correlation time (s)
+
 
     J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
     """
 
     # root finding
     # see https://docs.scipy.org/doc/scipy/reference/optimize.html
-    result = optimize.root_scalar(
-        lambda t_corr: calculate_xi(t_corr, omega_e=omega_e, omega_H=omega_H)
-        - coupling_factor,
-        method="brentq",
-        bracket=[1, 1e5],
-    )
 
-    if not result.converged:
-        raise ValueError("Could not find tcorr")
+    coupling_factor = _np.array(coupling_factor)
 
-    tcorr = result.root
-    return tcorr * 1e-12
+    tcorr = []
+    for index in range(len(coupling_factor)):
+        if coupling_factor[index] > 0.21 and coupling_factor[index] < 0.37:
+            result = optimize.root_scalar(
+                lambda t_corr: calculate_xi(t_corr, omega_e=omega_e, omega_H=omega_H)
+                - coupling_factor[index],
+                method="brentq",
+                bracket=[1, 1e5],
+            )
+
+            if not result.converged:
+                raise ValueError("Could not find tcorr")
+            
+            root = result.root * 1e-12
+            
+        else:
+            root = -99.            
+        
+        tcorr.append(root)
+    return _np.array(tcorr)
 
 
 def calculate_uncorrected_Ep(
@@ -312,7 +326,6 @@ def _residual_Ep(
         smax=smax,
     )
 
-
 def calculate_uncorrected_xi(
     E_array=False,
     E_powers=False,
@@ -356,7 +369,538 @@ def calculate_uncorrected_xi(
 
     return uncorrected_xi, p_12_unc
 
+def calculate_omega_ratio(field):
+    """
+    Calculate omega ratio using magnetic field
 
+    Args:
+        field (float): using magnetic field (T)
+
+    Returns:
+        omega_ratio (float)
+
+    """
+
+    if field > 3:
+        warnings.warn(
+            "Field (magnetic_field) should be given in T, support for mT will be removed in a future release"
+        )
+        field *= 1e-3
+
+    omega_e = 1.76085963023e-1 * field
+    # gamma_e in 1/ps for the tcorr unit, then correct by magnetic_field in T.
+    # gamma_e is from NIST. The magnetic_field cancels in the following omega_ratio but you
+    # need these individually for the spectral density functions later.
+
+    omega_H = 2.6752218744e-4 * field
+    # gamma_H in 1/ps for the tcorr unit, then correct by magnetic_field in T.
+    # gamma_H is from NIST. The magnetic_field cancels in the following omega_ratio but you
+    # need these individually for the spectral density functions later.
+
+    omega_ratio = (omega_e / (2 * pi)) / (omega_H / (2 * pi))
+    # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular
+    # frequency units in order to correspond to S_0/I_0, this is also ~= to the
+    # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
+
+    return omega_ratio, omega_e, omega_H
+
+
+def calculate_smax(spin_C = False, smax_model = 'tethered'):
+    """
+    Calculate smax using radical concentration and model
+
+    Args:
+        spin_C (float): unpaired spin concentration (M)
+        smax_model (str): model to determine smax (default: 'tethered')
+
+    Returns:
+        smax (float): maximal saturation factor (unitless)
+
+    .. math::
+        \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
+
+    M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
+
+    """
+    if smax_model == "tethered":
+        # Option 1, tether spin label
+        smax = 1  # (section 2.2) maximal saturation factor
+
+    elif smax_model == "free":
+        # Option 2, free spin probe
+        smax = 1 - (2 / (3 + (3 * (spin_C * 198.7))))  # from:
+        # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
+        # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
+    
+    elif isinstance(smax_model, float):
+        # Option 3, manual input of smax
+        if not (smax_model <= 1 and smax_model > 0):
+            raise ValueError(
+                "if given directly, smax must be type float between 0 and 1"
+            )
+        smax = smax_model
+
+    else:
+        raise ValueError(
+            "'smax_model' must be 'tethered', 'free', or a float between 0 and 1"
+        )
+    
+    return smax
+
+
+def t1_fit_coefficients(t1_powers, t1_arrays, degree):
+    """
+    Fit t1 vs. power curve and return t1 at the power of 0
+
+    Args:
+        t1_powers (numpy.array): microwave power array for t1s
+        t1_arrays (numpy.array): t1s array
+        degree (int): polynomials degree
+
+    Returns:
+        coeff_array: (numpy array) coefficients of t1 fit
+        err_array: (numpy array) errors of t1 fit
+
+    Methods:
+        n-degree polynomials fitting
+    """
+
+    coeff_array = []
+    err_array = []
+    for t1_array in t1_arrays:
+        coeff, cov = _np.polyfit(t1_powers, t1_array, degree, cov=True)
+        err = _np.sqrt(_np.diag(cov))
+        coeff_array.append(coeff)
+        err_array.append(err)
+
+    return _np.array(coeff_array), _np.array(err_array)
+
+
+def calculate_leakage_factor(t1n0, t10n, t1n0_err=None, t10n_err=None):
+    """
+    Calculating leakage factor and its error
+
+    Args:
+        t1n0: (numpy array) t1 at the power of 0
+        t10n: (numpy array) t10 (no radical)
+        t1n0_err: (numpy array) the error of t1 at the power of 0
+        t10n_err: (numpy array) errors of t10 (no radical)
+
+    Returns:
+        f: (numpy array), leakage factor
+        f_err: (numpy array), leakage factor errors
+
+    ..math::
+        f = t1n0 / t10n
+        f_err = leakage_factor * ((t1n0_err / t1n0) ** 2 +  (t10n_err / t10n) ** 2) ** (1 / 2)
+
+    Reference:
+    [1] 10.1016/j.pnmrs.2013.06.001
+    [2] Wikipedia: 'Propagation of uncertainty'
+    https://en.wikipedia.org/wiki/Propagation_of_uncertainty
+
+    """
+
+    # if t1n0_err == None:
+    #     t1n0_err = _np.zeros(_np.size(t1n0))
+    #     print("t1n0 does not have errors, assigning 0 to all errors")
+
+    # if t10n_err == None:
+    #     t10n_err = _np.zeros(_np.size(t10n))
+    #     print("t10n does not have errors, assigning 0 to all errors")
+
+    f = [1 - x / y for x, y in zip(t1n0, t10n)]
+    f_err = [
+        (1 - x / y) * _np.sqrt((x_err / x) ** 2 + (y_err / y) ** 2)
+        for x, x_err, y, y_err in zip(t1n0, t1n0_err, t10n, t10n_err)
+    ]
+
+    return _np.array(f), _np.array(f_err)
+
+def calculate_krho(t1n0, t10n, radical_concentration, t1n0_err=None, t10n_err=None):
+    """
+    Calculating k rho and its error
+
+    Args:
+        t1n0: (numpy array) t1 at the power of 0
+        t10n: (numpy array) t10 (no radical)
+        radical_concentration (float): radical concentration, unit M
+        t1n0_err: (numpy array) the error of t1 at the power of 0
+        t10n_err: (numpy array) errors of t10 (no radical)
+
+    Returns:
+        krho: (numpy array): krho
+        krho_err: (numpy array): errors of krho
+
+    ..math::
+        krho = (t1n0 ^ -1 - t10n ^ -1) / radical_conc
+        krho_err = ((t1n0_err / (t1n0 ** 2)) ** 2 +  (t10n_err / (t10n ** 2)) ** 2) ** (1 / 2)
+
+
+    Reference:
+    [1] 10.1016/j.pnmrs.2013.06.001
+    [2] Wikipedia: 'Propagation of uncertainty'
+    https://en.wikipedia.org/wiki/Propagation_of_uncertainty
+
+    """
+
+    c = radical_concentration
+
+    krho = [(x**-1 - y**-1) / c for x, y in zip(t1n0, t10n)]
+    krho_array = [
+        _np.sqrt((x_err / x**2) ** 2 + (y_err / y**2) ** 2) / c
+        for x, x_err, y, y_err in zip(t1n0, t1n0_err, t10n, t10n_err)
+    ]
+
+    return _np.array(krho), _np.array(krho_array)
+
+
+def calculate_coupling_factor(ksig, krho, ksig_err, krho_err):
+    """
+    Calculating coupling factor xi and its error
+
+    Args:
+        ksig_smax_array: (numpy array) ksigma*smax
+        krho: (numpy array): krho
+        ksig_smax_err_array: (numpy array) the errors of ksigma*smax
+        krho_err: (numpy array): errors of krho
+
+    Returns:
+        xi_smax: (numpy array) coupling factor
+        xi_smax_err: (numpy array): coupling factor errors
+
+    ..math::
+
+        xi_smax = ksigma_smax / krho
+        xi_smax_err = xi_smax * ((ksigma_smax_err / ksigma_smax) ** 2 +  (krho_err / krho) ** 2) ** (1 / 2)
+
+    Reference:
+        [1] 10.1016/j.pnmrs.2013.06.001
+        [2] Wikipedia: 'Propagation of uncertainty'
+        https://en.wikipedia.org/wiki/Propagation_of_uncertainty
+    """
+
+    xi = [x / y for x, y in zip(ksig, krho)]
+    xi_err = [
+        x / y * _np.sqrt((x_err / x) ** 2 + (y_err / y) ** 2)
+        for x, x_err, y, y_err in zip(ksig, ksig_err, krho, krho_err)
+    ]
+
+    return _np.array(xi), _np.array(xi_err)
+
+def hydration_analysis(path = None, smax_model = 'tethered', t10_method = 'interpolate', interpolation_degree = 1, 
+                       field = 350, update_constant = {}, save_file=False, show_result=True, verbose = False):
+    """
+    Perform hydration analysis and return leakage factor, coupling factor, ksigma, krho, etc.
+
+    Args:
+        path (str): the path to h5 file that contains a dictionary
+        save (binary): True for saving new h5 file
+        print (binary): True for print hydration analysis results
+
+    Returns:
+        hydration_info(dict): DNPData objects and hydration analysis results (dict)
+
+    ..Math::
+        see examples of each hydration function
+    """
+    hydration_results = {}
+
+    default_constants = {
+        "ksigma_bulk": 95.4,
+        "krho_bulk": 353.4,
+        "klow_bulk": 366,
+        "tcorr_bulk": 54e-12,
+        "D_H2O": 2.3e-9,
+        "D_SL": 4.1e-10,
+        "delta_T1_water": False,
+        "T1_water": False,
+        "macro_C": False,
+    }
+
+    odnp_constants = {**default_constants, **update_constant}
+
+    # load dictionary file
+    hydration_info = load(path)
+
+    # extract radical concentration
+    if 'radical_concentration' in hydration_info["sample_information"]:
+        radical_concentration = hydration_info["sample_information"]["radical_concentration"]
+    else:
+        radical_concentration = 1
+        warnings.warn("'radical_concentration' was not found in 'sample_information'. The radical_concentration is set to 1 M")
+    
+    # calculate smax
+    smax = calculate_smax(radical_concentration, smax_model)
+
+    # calculate omega ratio
+    omega_ratio, omega_e, omega_H = calculate_omega_ratio(field)
+    
+    # check datasets in hydration info
+    check_list = ["odnp_enhancements", "odnp_ir_coefficients"] # check enhancements data and t1 vs. power data
+    for key in check_list:
+        if key not in hydration_info:
+            raise ValueError(
+                "key: %s is missing, please specify the type of radical" % key
+            )
+    # get enhancements data 
+    enh_arrays = hydration_info["odnp_enhancements"].values.T
+    enh_powers = hydration_info["odnp_enhancements"].coords['power']
+
+    if 'odnp_fit_coefficients' in hydration_info:
+        enh_max = hydration_info['odnp_fit_coefficients'].values[0]
+        p_half = hydration_info['odnp_fit_coefficients'].values[1]
+
+        if 'odnp_fit_errors' in hydration_info: # if odnp_fit_coefficients doesn't exist, it is meaningless to get errors
+            enh_max_err = hydration_info['odnp_fit_errors'].values[0]
+            p_half_err = hydration_info['odnp_fit_errors'].values[1]
+
+        else:
+            enh_max_err = _np.zeros(len(enh_max))
+            p_half_err = _np.zeros(len(p_half))  
+
+    # get T1s data
+    t1_arrays = hydration_info["odnp_ir_coefficients"].values[0].T
+    t1_powers = hydration_info["odnp_ir_coefficients"].coords['power'] 
+    m0 = hydration_info["odnp_ir_coefficients"].values[1].T
+    m_inf = hydration_info["odnp_ir_coefficients"].values[2].T
+
+    if 'odnp_ir_errors' in hydration_info: # get errors for T1 
+        t1_arrays_err = hydration_info["odnp_ir_errors"].values[0].T
+        m0_err = hydration_info["odnp_ir_errors"].values[1].T
+        m_inf_err = hydration_info["odnp_ir_errors"].values[2].T
+    
+    else:
+        t1_arrays_err = _np.full(_np.shape(t1_arrays), 0)
+        m0_err = _np.full(_np.shape(m0), 0)
+        m_inf_err = _np.full(_np.shape(m_inf), 0)
+
+    # check if enhancements data and t1 vs. power data have the same number of peak
+    if _np.shape(t1_arrays)[0] != _np.shape(enh_arrays)[0]:
+        raise ValueError("Peaks number is not same in 'odnp_enhancements' and 'odnp_ir_coefficients'")
+    else:
+        number_of_peaks = _np.shape(t1_arrays)[0]
+
+    # get T100 
+    if "T1_Water" in update_constant: # force T100 to a user-defined value
+        t100 = _np.array(update_constant["T1_Water"]) 
+        if len(t100) != number_of_peaks: # make the T100 length is equal as the number of peaks
+            t100 = _np.append(t100, _np.full(number_of_peaks - len(t100), 2.5))
+            t100_message = "aren't given in updated constant completely, not given t100s are forces to 2.5 s."
+        else:
+            t100_message = "are given in updated constant completely."
+
+    elif "ir_coefficients" in hydration_info: # T100 from dictionary
+        t100 = hydration_info["ir_coefficients"].values[0]
+        t100_message = 'are calculated from dictionary.' # a message to indicate where T100 comes
+    else: # when T100 is not given
+        t100 = _np.full(number_of_peaks, 2.5) # create default an array for T100 
+        t100_message = 'are not given and forced to 2.5 s.'
+
+    # get T100 errors
+    if "ir_errors" not in hydration_info:
+        t100_err = _np.zeros(number_of_peaks) # force errors to 0
+    else:
+        t100_err = hydration_info["ir_errors"].values[0] # create default an array for T100 errors 
+    
+    # interpolate T1 vs. power curves
+    t1_coeff, t1_coeff_err = t1_fit_coefficients(t1_powers, t1_arrays, interpolation_degree)
+
+    # interpolate T10 (T1 at 0 dBm) from previous curves
+    interp_t10 = t1_coeff[:, 1][:]
+    interp_t10_err = t1_coeff_err[:, 1][:]
+
+    # get t10s from dictionary if t10s exist
+    if _np.min(t1_powers) == 0:
+        raw_t10 = t1_arrays[:, _np.where(t1_powers == 0)]
+        raw_t10_err = t1_arrays_err[:, _np.where(t1_powers == 0)]
+        raw_t10_flag = True
+    else:
+        raw_t10_flag = False
+
+    # select which t10s will be used for hydration analysis
+    if t10_method.lower() == 'interpolate':
+        t10 = interp_t10
+        t10_err = interp_t10_err
+    elif t10_method.lower() == 'raw' and raw_t10_flag:
+        t10 = raw_t10
+        t10_err = raw_t10_err
+    elif t10_method.lower() == 'raw' and raw_t10_flag != False:
+        raise ValueError("T10 method is 'raw', but T10s cannot be found in T1 data.")
+    else:
+        raise ValueError("T10 methods are 'interpolate' or 'raw'.")        
+
+    # find ksigma*s(p)
+    # (Eq. 41) this calculates the array of ksigma*s(p) from the enhancement array,
+    # dividing by the T1 array for the "corrected" analysis
+    ksigma_array = _np.array([(1 - enh_arrays[x]) / (radical_concentration * omega_ratio * _np.poly1d(t1_coeff[x])(enh_powers)) for x in range(number_of_peaks)])
+
+    # calculate ksigma
+    ksigma_sp_coefficients, ksigma, ksigma_err = calculate_ksigma(
+        ksigma_array, enh_powers, smax
+    )
+
+    # calcualte leakage factor
+    f, f_err = calculate_leakage_factor(t10, t100, t10_err, t100_err)
+
+    # calculate krho
+    krho, krho_err = calculate_krho(
+        t10, t100, radical_concentration, t10_err, t100_err
+    )
+
+    # calculate coupling factors
+    xi, xi_err = calculate_coupling_factor(ksigma, krho, ksigma_err, krho_err)
+
+    # calculate translational correction time (tcorr) in pico second
+    tcorr= calculate_tcorr(xi, omega_e, omega_H)
+
+    # calculate D_local
+    Dlocal = (odnp_constants["tcorr_bulk"] / tcorr) * (
+        odnp_constants["D_H2O"] + odnp_constants["D_SL"]
+    )
+
+    if show_result == True:
+        print("----------------------------------------------------------")
+        print("Hydration Analysis Results:")
+        print("----------------------------------------------------------")
+        print("Number of Peaks: %d" %number_of_peaks)
+        print("T1 Intepolation Degree: %d" %interpolation_degree)
+        print("Radical Concentration: %0.03f M" %radical_concentration)
+        print("Smax Model: %s" %smax_model)
+        print("Smax: %0.03f" %smax)
+        print("T100 %s" %t100_message) 
+
+        print("----------------------------------------------------------")
+
+        for index, integrals in enumerate(
+            hydration_info["odnp_enhancements"].coords["integrals"]
+        ):
+            peak_number = index + 1
+            print("Peak NO.%i:" % peak_number)
+            print('Emax: %0.03f +/- %0.03f s' % (enh_max[index], enh_max_err[index]))
+            print('p_half: %0.03f +/- %0.03f s' % (p_half[index], p_half_err[index]))
+            if raw_t10_flag:
+                print("Raw T10: %0.03f +/- %0.03f s" % (raw_t10[index], raw_t10_err[index]))
+            else:
+                print('Raw T10 is not found')
+            print("Interpolated T10: %0.03f +/- %0.03f s" % (interp_t10[index], interp_t10_err[index]))
+            print("T100 %0.03f +/- %0.03f s" %(t100[index], t100_err[index]))
+            print("Leakage Factor: %0.03f +/- %0.03f" % (f[index], f_err[index]))
+            print(
+                "ksigma: %0.03f +/- %0.03f"
+                % (ksigma[index], ksigma_err[index])
+            )
+            print("krho: %0.03f +/- %0.03f" % (krho[index], krho_err[index]))
+            print(
+                "Coupling Factor: %0.03f +/- %0.03f"
+                % (xi[index], xi_err[index])
+            )
+            if tcorr[index] < 0:
+                print('No Translation Correction Time (tcorr) because coupling factor is out of range.')
+            else:
+                print(
+                "Estimated Translation Correlation Time: %0.03f ps"
+                % (tcorr[index]*1e12)
+            )
+                
+            if Dlocal[index] < 0:
+                print('No Dlocal.')
+            else:
+                print(
+                "Dlocal: %0.03fe-9 m^2s-1"
+                % (Dlocal[index]*1e9)
+            )
+
+            print("----------------------------------------------------------")
+    
+    # assign values in hydration results    
+    hydration_results["t1_coefficients"] = t1_coeff
+    hydration_results["t1_coefficients_errors"] = t1_coeff_err
+
+    hydration_results["t10"] = t10
+    hydration_results["t10_errors"] = t10_err
+
+    hydration_results["ksigma_sp_coefficients"] = ksigma_sp_coefficients
+    hydration_results["ksigma"] = ksigma
+    hydration_results["ksigma_errors"] = ksigma_err
+
+    hydration_results["leakage_factors"] = f
+    hydration_results["leakage_factor_errors"] = f_err
+
+    hydration_results["krho"] = krho
+    hydration_results["krho_errors"] = krho_err
+
+    hydration_results["coupling_factor"] = xi
+    hydration_results["coupling_factor_errors"] = xi_err
+
+    hydration_results["translation_correlation_time"] = tcorr
+
+    hydration_results["Dlocal"] = Dlocal
+
+    hydration_info["hydration_results"] = hydration_results
+
+    if verbose == True:
+        color_cycler_list = [
+            DNPLAB_CONFIG.get("COLORS", color_key)
+            for color_key in DNPLAB_CONFIG["COLORS"].keys()
+        ]
+
+        # plot enhancements curves
+        _dnp.plt.figure("odnp_enhancements")
+        hydration_info["odnp_enhancements"].attrs['experiment_type'] = 'enhancements_PW'
+        for index in range(number_of_peaks):
+            _dnp.fancy_plot(hydration_info["odnp_enhancements"]['integrals', index], marker = 'o', ls = '', color = color_cycler_list[index], label = 'Peak No.%d: $E_{max}$ = %0.03f +/- %0.03f' %(index+1, enh_max[index], enh_max_err[index])) 
+            _dnp.plt.plot(_np.linspace(0, _np.max(enh_powers)), _dnp.relaxation.buildup_function(_np.linspace(0, _np.max(enh_powers)), enh_max[index], p_half[index]), color = color_cycler_list[index])
+        _dnp.plt.legend()
+        _dnp.plt.tight_layout()
+
+        # plot t1 curves
+        hydration_info['t1_integrals'].attrs['experiment_type'] = 'inversion_recovery'
+        for index in range(number_of_peaks):
+            _dnp.plt.figure("inversion_recovery, peak No.%d" %(index+1))
+            for i, power in enumerate(t1_powers):
+                _dnp.fancy_plot(hydration_info['t1_integrals']['integrals', index, 'power', power], marker = 'o', ls = '', color = color_cycler_list[i], label = 'MW: %0.01f dBm, $T_1$ = %0.03f +/- %0.03f s' %(_dnp.w2dBm(power), t1_arrays[index,i], t1_arrays_err[index,i])) 
+                _dnp.plt.plot(_np.linspace(0, _np.max(hydration_info['t1_integrals'].coords['t1'])), _dnp.relaxation.t1(_np.linspace(0, _np.max(hydration_info['t1_integrals'].coords['t1'])), t1_arrays[index, i], m0[index, i], m_inf[index, i]), color = color_cycler_list[i])
+            _dnp.plt.legend()
+            _dnp.plt.tight_layout()
+
+        # plot t1 vs.power
+        _dnp.plt.figure("t1_interpolation")
+        for index in range(number_of_peaks):
+            _dnp.plt.plot(t1_powers, t1_arrays[index], color = color_cycler_list[index], marker = 'o', ls = '', fillstyle = 'none')
+            _dnp.plt.plot(0, interp_t10[index], color = color_cycler_list[index], marker = 'o', ls = '',  label = "Peak No.%d: Interpolated $T_{10}$ =  %0.03f +/- %0.03f s" %(index+1, interp_t10[index], interp_t10_err[index]))
+            if raw_t10_flag:
+                _dnp.plt.plot(0, raw_t10[index], color = color_cycler_list[index], marker = 's', ls = '',  label = "Peak No.%d: raw $T_{10}$ =  %0.03f +/- %0.03f s" %(index+1, raw_t10[index], raw_t10_err[index]))
+            _dnp.plt.plot(_np.linspace(0, _np.max(enh_powers)), _np.poly1d(t1_coeff[index])(_np.linspace(0, _np.max(enh_powers))), color = color_cycler_list[index])
+        _dnp.plt.title('$T_1$ Interpolation, degree = %d' %interpolation_degree)
+        _dnp.plt.xlabel('Microwave Power (W)')
+        _dnp.plt.ylabel('$T_1$ (s)')
+        _dnp.plt.grid(ls = ':')
+        _dnp.plt.legend()
+        _dnp.plt.tight_layout()
+          
+
+        # plot ksigma curve
+        _dnp.plt.figure("ksigma")
+        # no fancy plot for ksigma_array
+        for index in range(number_of_peaks):
+            _dnp.plt.plot(enh_powers, ksigma_array[index], color = color_cycler_list[index], marker = 'o', ls = '', fillstyle = 'none', label = 'Peak No.%d: $k_{\sigma}$ = %0.03f +/- %0.03f' %(index +1, ksigma[index], ksigma_err[index]))
+            _dnp.plt.plot(_np.linspace(0, _np.max(enh_powers)), calculate_ksigma_array(_np.linspace(0, _np.max(enh_powers)), ksigma_sp_coefficients[index][0], ksigma_sp_coefficients[index][1]))
+        _dnp.plt.title('$k_{\sigma}$ vs. Power')
+        _dnp.plt.xlabel('Microwave Power (W)')
+        _dnp.plt.ylabel('$k_{\sigma}$S(p) (a.u.)')
+        _dnp.plt.grid(ls = ':')
+        _dnp.plt.legend()
+        _dnp.plt.tight_layout()
+        _dnp.plt.show()  
+
+    if save_file == True:
+        
+        save(hydration_info, path, overwrite=True)
+
+    return hydration_info
+
+## ready to be depreciarted.
 def hydration(data={}, constants={}):
     """Function for performing ODNP calculations
 
@@ -570,392 +1114,3 @@ def hydration(data={}, constants={}):
         "tcorr_bulk_ratio": tcorr / odnp_constants["tcorr_bulk"],
         "Dlocal": Dlocal,
     }
-
-
-#### Working on------------------YH-------------------------------------------------
-def hydration_analysis(path = None, smax_model = 'tethered', interpolation_degree = 1,
-                       field = 350, update_constant = {}, save_file=False, show_result=True):
-    """
-    Perform hydration analysis and return leakage factor, coupling factor, ksigma, krho, etc.
-
-    Args:
-        path (str): the path to h5 file that contains a dictionary
-        save (binary): True for saving new h5 file
-        print (binary): True for print hydration analysis results
-
-    Returns:
-        hydration_info(dict): DNPData objects and hydration analysis results (dict)
-
-    ..Math::
-        see examples of each hydration function
-    """
-    hydration_results = {}
-
-    default_constants = {
-        "ksigma_bulk": 95.4,
-        "krho_bulk": 353.4,
-        "klow_bulk": 366,
-        "tcorr_bulk": 54e-12,
-        "D_H2O": 2.3e-9,
-        "D_SL": 4.1e-10,
-        "delta_T1_water": False,
-        "T1_water": False,
-        "macro_C": False,
-    }
-
-    odnp_constants = {**default_constants, **update_constant}
-
-    if field > 3:
-        warnings.warn(
-            "Field (magnetic_field) should be given in T, support for mT will be removed in a future release"
-        )
-        field *= 1e-3
-
-    omega_e = 1.76085963023e-1 * field
-    # gamma_e in 1/ps for the tcorr unit, then correct by magnetic_field in T.
-    # gamma_e is from NIST. The magnetic_field cancels in the following omega_ratio but you
-    # need these individually for the spectral density functions later.
-
-    omega_H = 2.6752218744e-4 * field
-    # gamma_H in 1/ps for the tcorr unit, then correct by magnetic_field in T.
-    # gamma_H is from NIST. The magnetic_field cancels in the following omega_ratio but you
-    # need these individually for the spectral density functions later.
-
-    omega_ratio = (omega_e / (2 * pi)) / (omega_H / (2 * pi))
-    # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular
-    # frequency units in order to correspond to S_0/I_0, this is also ~= to the
-    # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
-
-    hydration_info = load(path)
-
-    # read radical concentration
-    if 'radical_concentration' in hydration_info["sample_information"]:
-        radical_concentration = hydration_info["sample_information"]["radical_concentration"]
-    else:
-        radical_concentration = 1
-        warnings.warn("'radical_concentration' was not found in 'sample_information'. The radical_concentration is set to 1 M")
-    
-    # check datasets in hydration info
-    check_list = ["odnp_enhancements", "odnp_ir_coefficients"]
-    for key in check_list:
-        if key not in hydration_info:
-            raise ValueError(
-                "key: %s is missing, please specify the type of radical" % key
-            )
-    enh_arrays = hydration_info["odnp_enhancements"].values.T
-    enh_powers = hydration_info["odnp_enhancements"].coords['power']
-    t1_arrays = hydration_info["odnp_ir_coefficients"].values[0].T
-    t1_powers = hydration_info["odnp_ir_coefficients"].coords['power']
-
-    if _np.shape(t1_arrays)[0] != _np.shape(enh_arrays)[0]:
-        raise ValueError("Peaks number is not same in 'odnp_enhancements' and 'odnp_ir_coefficients'")
-    else:
-        number_of_peaks = _np.shape(t1_arrays)[0]
-
-    if "T1_Water" in update_constant:
-        t100 = _np.array(update_constant["T1_Water"])
-        if len(t100) != number_of_peaks:
-            t100 = _np.append(t100, _np.full(number_of_peaks - len(t100), 2.5))
-            t100_message = "aren't given in updated constant completely, not given t100s are forces to 2.5 s."
-        else:
-            t100_message = "are given in updated constant completely."
-    elif "ir_coefficients" in hydration_info:
-        t100 = hydration_info["ir_coefficients"].values[0]
-        t100_message = 'are calculated from dictionary.' # a message to indicate where T100 comes
-    else:
-        t100 = _np.full(number_of_peaks, 2.5) # create default an array for T100 
-        t100_given_or_calculated = 'are not given and forced to 2.5 s.'
-
-    if "ir_errors" not in hydration_info:
-        t100_err = _np.zeros(number_of_peaks)
-    else:
-        t100_err = hydration_info["ir_errors"].values[0] # create default an array for T100 errors 
-
-    # determine s_max    
-    if smax_model == "tethered":
-        # Option 1, tether spin label
-        s_max = 1  # (section 2.2) maximal saturation factor
-
-    elif smax_model == "free":
-        # Option 2, free spin probe
-        s_max = calculate_smax(radical_concentration)  # from:
-        # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
-        # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
-    
-    elif isinstance(smax_model, float):
-        # Option 3, manual input of smax
-        if not (smax_model <= 1 and smax_model > 0):
-            raise ValueError(
-                "if given directly, smax must be type float between 0 and 1"
-            )
-        s_max = smax_model
-
-    else:
-        raise ValueError(
-            "'smax_model' must be 'tethered', 'free', or a float between 0 and 1"
-        )
-    
-    t1_coeff, t1_coeff_err = t1_fit_coefficients(t1_powers, t1_arrays, interpolation_degree)
-
-    t10 = t1_coeff[:, 1][:]
-    t10_err = t1_coeff_err[:, 1][:]
-    hydration_results["t1_coefficients"] = t1_coeff
-    hydration_results["t1_coefficients_errors"] = t1_coeff_err
-    hydration_results["t10"] = t10
-    hydration_results["t10_errors"] = t10_err
-
-    # # calculate ksigma_smax
-    ksigma_array = _np.array([(1 - enh_arrays[x]) / (radical_concentration * omega_ratio * _np.poly1d(t1_coeff[x])(enh_powers)) for x in range(number_of_peaks)])
-
-    ksigma_sp_coefficients, ksigma, ksigma_err = calculate_ksigma(
-        ksigma_array, enh_powers, s_max
-    )
-
-    hydration_info["ksigma_sp_coefficients"] = ksigma_sp_coefficients
-    hydration_results["ksigma"] = ksigma
-    hydration_results["ksigma_errors"] = ksigma_err
-
-    # calcualte leakage factor
-    f, f_err = calculate_leakage_factor(t10, t100, t10_err, t100_err)
-    hydration_results["leakage_factors"] = f
-    hydration_results["leakage_factor_errors"] = f_err
-
-    # calculate krho
-    krho, krho_err = calculate_krho(
-        t10, t100, radical_concentration, t10_err, t100_err
-    )
-    hydration_results["krho"] = krho
-    hydration_results["krho_errors"] = krho_err
-
-    # calculate coupling factors
-    xi, xi_err = calculate_coupling_factor(ksigma, krho, ksigma_err, krho_err)
-    hydration_results["coupling_factor"] = xi
-    hydration_results["coupling_factor_errors"] = xi_err
-
-    if show_result == True:
-        print("----------------------------------------------------------")
-        print("Hydration Analysis Results:")
-        print("----------------------------------------------------------")
-        print("Number of Peaks: %d" %number_of_peaks)
-        print("T1 Intepolation Degree: %d" %interpolation_degree)
-        print("Radical Concentration: %0.03f M" %radical_concentration)
-        print("Smax Model: %s" %smax_model)
-        print("T100 %s" %t100_message)
-        print("----------------------------------------------------------")
-        for index, integrals in enumerate(
-            hydration_info["odnp_enhancements"].coords["integrals"]
-        ):
-            peak_number = index + 1
-            print("Peak NO.%i:" % peak_number)
-            print("T10: %0.03f +/- %0.03f s" % (t10[index], t10_err[index]))
-            print("T100 %0.03f +/- %0.03f s" %(t100[index], t100_err[index]))
-            print("Leakage Factor: %0.03f +/- %0.03f" % (f[index], f_err[index]))
-            print(
-                "ksigma: %0.03f +/- %0.03f"
-                % (ksigma[index], ksigma_err[index])
-            )
-            print("krho: %0.03f +/- %0.03f" % (krho[index], krho_err[index]))
-            print(
-                "Coupling Factor: %0.03f +/- %0.03f"
-                % (xi[index], xi_err[index])
-            )
-            print("----------------------------------------------------------")
-
-    hydration_info["hydration_results"] = hydration_results
-
-    if save_file == True:
-        save(hydration_info, path, overwrite=True)
-
-    return hydration_info
-
-
-def t1_fit_coefficients(t1_powers, t1_arrays, degree):
-    """
-    Fit t1 vs. power curve and return t1 at the power of 0
-
-    Args:
-        odnp_ir_coefficients (dnpdata object): includes dims 'popt' and 'power'
-
-    Returns:
-        coeff_array: (numpy array) coefficients of t1 fit
-        err_array: (numpy array) errors of t1 fit
-
-    Methods:
-        1d polynomials fitting
-    """
-
-    coeff_array = []
-    err_array = []
-    for t1_array in t1_arrays:
-        coeff, cov = _np.polyfit(t1_powers, t1_array, degree, cov=True)
-        err = _np.sqrt(_np.diag(cov))
-        coeff_array.append(coeff)
-        err_array.append(err)
-
-    return _np.array(coeff_array), _np.array(err_array)
-
-
-def calculate_leakage_factor(t1n0, t10n, t1n0_err=None, t10n_err=None):
-    """
-    Calculating leakage factor and its error
-
-    Args:
-        t1n0: (numpy array) t1 at the power of 0
-        t10n: (numpy array) t10 (no radical)
-        t1n0_err: (numpy array) the error of t1 at the power of 0
-        t10n_err: (numpy array) errors of t10 (no radical)
-
-    Returns:
-        f: (numpy array), leakage factor
-        f_err: (numpy array), leakage factor errors
-
-    ..math::
-        f = t1n0 / t10n
-        f_err = leakage_factor * ((t1n0_err / t1n0) ** 2 +  (t10n_err / t10n) ** 2) ** (1 / 2)
-
-    Reference:
-    [1] 10.1016/j.pnmrs.2013.06.001
-    [2] Wikipedia: 'Propagation of uncertainty'
-    https://en.wikipedia.org/wiki/Propagation_of_uncertainty
-
-    """
-
-    # if t1n0_err == None:
-    #     t1n0_err = _np.zeros(_np.size(t1n0))
-    #     print("t1n0 does not have errors, assigning 0 to all errors")
-
-    # if t10n_err == None:
-    #     t10n_err = _np.zeros(_np.size(t10n))
-    #     print("t10n does not have errors, assigning 0 to all errors")
-
-    f = [1 - x / y for x, y in zip(t1n0, t10n)]
-    f_err = [
-        (1 - x / y) * _np.sqrt((x_err / x) ** 2 + (y_err / y) ** 2)
-        for x, x_err, y, y_err in zip(t1n0, t1n0_err, t10n, t10n_err)
-    ]
-
-    return _np.array(f), _np.array(f_err)
-
-
-def calc_ksigma_smax(odnp_enhancements_data, t1_coeff, radical_concentration):
-    """
-    Calculatiing ksigma smax and its error
-
-    Args:
-        odnp_enhancements_data: (dnpdata object): includes enhancements vs. power data
-        t1_coeff: (numpy array): t1 at the power of 0
-        radical_concentration: (float): radical concentration, unit M
-
-    Returns:
-        ksig_sp_coefficients: (dnpdata object) the coefficients for ksigma(p) fitting
-        ksig_sp_errors: (dnpdata object) the errors for ksigma(p) fitting
-        ksig_smax_array: (numpy array) ksigma*smax
-        ksig_smax_err_array: (numpy array) the errors of ksigma*smax
-
-    ..math::
-        ksigma_smax = lim (p > inf) ((1-enhancements_max)/(radical_concentration*t1(p > inf)) * (omega_H/omega_E))
-        where, omega_E/omgea_H = 659.33
-
-    Reference:
-    [1] 10.1016/j.pnmrs.2013.06.001
-    """
-
-    odnp_enhancements = odnp_enhancements_data.copy()
-    temp = 1 - odnp_enhancements
-    for index in temp.coords["integrals"]:
-        fit_coefficients = t1_coeff[index]
-        t1_func = _np.poly1d(fit_coefficients)
-        temp.values[:, index] /= t1_func(temp.coords["power"])
-
-    ksig_sp = temp / (radical_concentration * 659.33)
-    out = fit(relaxation.ksigma_smax, ksig_sp, dim="power", p0=(35, 0))
-    _fit = out["fit"]
-    ksig_sp_coefficients = out["popt"].copy()
-    ksig_sp_coefficients.attrs = _fit.attrs
-    ksig_sp_coefficients.attrs["hydration_name"] = "ksigma_sp_coefficients"
-    ksig_sp_errors = out["err"].copy()
-    ksig_sp_errors.attrs = _fit.attrs
-    ksig_sp_errors.rename("popt", "err")
-    ksig_sp_errors.attrs["hydration_name"] = "ksigma_sp_errors"
-
-    ksig_smax_array = ksig_sp_coefficients.values[0]
-    ksig_smax_err_array = ksig_sp_errors.values[0]
-
-    return (
-        ksig_sp_coefficients,
-        ksig_sp_errors,
-        _np.array(ksig_smax_array),
-        _np.array(ksig_smax_err_array),
-    )
-
-
-def calculate_krho(t1n0, t10n, radical_concentration, t1n0_err=None, t10n_err=None):
-    """
-    Calculating k rho and its error
-
-    Args:
-        t1n0: (numpy array) t1 at the power of 0
-        t10n: (numpy array) t10 (no radical)
-        radical_concentration (float): radical concentration, unit M
-        t1n0_err: (numpy array) the error of t1 at the power of 0
-        t10n_err: (numpy array) errors of t10 (no radical)
-
-    Returns:
-        krho: (numpy array): krho
-        krho_err: (numpy array): errors of krho
-
-    ..math::
-        krho = (t1n0 ^ -1 - t10n ^ -1) / radical_conc
-        krho_err = ((t1n0_err / (t1n0 ** 2)) ** 2 +  (t10n_err / (t10n ** 2)) ** 2) ** (1 / 2)
-
-
-    Reference:
-    [1] 10.1016/j.pnmrs.2013.06.001
-    [2] Wikipedia: 'Propagation of uncertainty'
-    https://en.wikipedia.org/wiki/Propagation_of_uncertainty
-
-    """
-
-    c = radical_concentration
-
-    krho = [(x**-1 - y**-1) / c for x, y in zip(t1n0, t10n)]
-    krho_array = [
-        _np.sqrt((x_err / x**2) ** 2 + (y_err / y**2) ** 2) / c
-        for x, x_err, y, y_err in zip(t1n0, t1n0_err, t10n, t10n_err)
-    ]
-
-    return _np.array(krho), _np.array(krho_array)
-
-
-def calculate_coupling_factor(ksig, krho, ksig_err, krho_err):
-    """
-    Calculating coupling factor xi and its error
-
-    Args:
-        ksig_smax_array: (numpy array) ksigma*smax
-        krho: (numpy array): krho
-        ksig_smax_err_array: (numpy array) the errors of ksigma*smax
-        krho_err: (numpy array): errors of krho
-
-    Returns:
-        xi_smax: (numpy array) coupling factor
-        xi_smax_err: (numpy array): coupling factor errors
-
-    ..math::
-
-        xi_smax = ksigma_smax / krho
-        xi_smax_err = xi_smax * ((ksigma_smax_err / ksigma_smax) ** 2 +  (krho_err / krho) ** 2) ** (1 / 2)
-
-    Reference:
-        [1] 10.1016/j.pnmrs.2013.06.001
-        [2] Wikipedia: 'Propagation of uncertainty'
-        https://en.wikipedia.org/wiki/Propagation_of_uncertainty
-    """
-
-    xi = [x / y for x, y in zip(ksig, krho)]
-    xi_err = [
-        x / y * _np.sqrt((x_err / x) ** 2 + (y_err / y) ** 2)
-        for x, x_err, y, y_err in zip(ksig, ksig_err, krho, krho_err)
-    ]
-
-    return _np.array(xi), _np.array(xi_err)
