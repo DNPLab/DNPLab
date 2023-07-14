@@ -30,7 +30,7 @@ def _escape_split(s, delim=",", escape="\\"):
             # If for current char is escape (True and s[k]=='\\') and previous_escape is False -> set it to True
             # If for current char is escape (True and s[k]=='\\') and previous_escape is True -> case of '\\\\' -> escaping an escape character -> set it back to False
             # if current char is no escape character -> set it to false
-            previous_escape = (not previous_escape) and s[k] == escape
+            previous_escape = (not previous_escape) and (s[k] == escape)
     if len(subtoken) > 0:
         tokens.append(subtoken)
     return tokens
