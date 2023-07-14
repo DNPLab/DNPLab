@@ -11,98 +11,74 @@ import dnplab as _dnp
 from ..config.config import DNPLAB_CONFIG
 
 
-# def calculate_smax(spin_C=False):
-#     r"""Returns maximal saturation factor.
-
-#     Args:
-#         spin_C (float): unpaired spin concentration (M)
-
-#     Returns:
-#         smax (float): maximal saturation factor (unitless)
-
-#     .. math::
-#         \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
-
-#     M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
-#     """
-
-#     return 1 - (2 / (3 + (3 * (spin_C * 198.7))))
-
-
-def interpolate_T1(
-    E_powers=False,
-    T1_powers=False,
-    T1_array=False,
-    interpolate_method="linear",
-    delta_T1_water=False,
-    T1_water=False,
-    macro_C=False,
-    spin_C=1,
-    T10=2.0,
-    T100=2.5,
-):
-    """Returns interpolated T1 data.
+def calculate_smax(spin_C = False, smax_model = 'tethered'):
+    """
+    Calculate smax using radical concentration and model
 
     Args:
-        E_powers (numpy.array): The microwave powers at which to evaluate
-        T1_powers (numpy.array): The microwave powers of the T1s to interpolate
-        T1_array (numpy.array): The original T1s (s)
-        interpolate_method (str): "second_order" or "linear"
-        spin_C (float): unpaired electron spin concentration (M)
-        T10 (float): T1 measured with unpaired electrons (s)
-        T100 (float): T1 measured without unpaired electrons (s)
-        delta_T1_water (optional) (float): change in T1 of water at max microwave power (s)
-        T1_water (optional) (float): T1 of pure water (s)
-        macro_C (optional) (float): concentration of macromolecule (M)
+        spin_C (float): unpaired spin concentration (M)
+        smax_model (str): model to determine smax (default: 'tethered')
 
     Returns:
-        interpolated_T1 (numpy.array): Array of T1 values same shape as E_powers and E_array
+        smax (float): maximal saturation factor (unitless)
 
-    T1 data is interpolated using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
+    .. math::
+        \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
+
+    M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
+
     """
+    if smax_model == "tethered":
+        # Option 1, tether spin label
+        smax = 1  # (section 2.2) maximal saturation factor
 
-    # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
-    if interpolate_method == "second_order":
-        if not macro_C:
-            macro_C = spin_C
-
-        if not delta_T1_water:
-            delta_T1_water = T1_array[-1] - T1_array[0]
-        if not T1_water:
-            T1_water = T100
-
-        kHH = (1.0 / T10 - 1.0 / T1_water) / macro_C
-        krp = (
-            (1.0 / T1_array)
-            - (1.0 / (T1_water + delta_T1_water * T1_powers))
-            - (kHH * (macro_C))
-        ) / (spin_C)
-
-        p = _np.polyfit(T1_powers, krp, 2)
-        T1_fit_2order = _np.polyval(p, E_powers)
-
-        interpolated_T1 = 1.0 / (
-            ((spin_C) * T1_fit_2order)
-            + (1.0 / (T1_water + delta_T1_water * E_powers))
-            + (kHH * (macro_C))
-        )
-
-    # linear fit, Franck et al. PNMRS (Eq. 39)
-    elif interpolate_method == "linear":
-        linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
-
-        p = _np.polyfit(T1_powers, linear_t1, 1)
-        T1_fit_linear = _np.polyval(p, E_powers)
-
-        interpolated_T1 = T1_fit_linear / (
-            1.0 + (T1_fit_linear / T10) - (T1_fit_linear / T100)
-        )
+    elif smax_model == "free":
+        # Option 2, free spin probe
+        smax = 1 - (2 / (3 + (3 * (spin_C * 198.7))))  # from:
+        # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
+        # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
+    
+    elif isinstance(smax_model, float):
+        # Option 3, manual input of smax
+        if not (smax_model <= 1 and smax_model > 0):
+            raise ValueError(
+                "if given directly, smax must be type float between 0 and 1"
+            )
+        smax = smax_model
 
     else:
-        raise Exception("invalid interpolate_method")
+        raise ValueError(
+            "'smax_model' must be 'tethered', 'free', or a float between 0 and 1"
+        )
+    
+    return smax
 
-    return interpolated_T1
+def t1_fit_coefficients(t1_powers, t1_arrays, degree):
+    """
+    Fit t1 vs. power curve and return t1 at the power of 0
 
+    Args:
+        t1_powers (numpy.array): microwave power array for t1s
+        t1_arrays (numpy.array): t1s array
+        degree (int): polynomials degree
+
+    Returns:
+        coeff_array: (numpy array) coefficients of t1 fit
+        err_array: (numpy array) errors of t1 fit
+
+    Methods:
+        n-degree polynomials fitting
+    """
+
+    coeff_array = []
+    err_array = []
+    for t1_array in t1_arrays:
+        coeff, cov = _np.polyfit(t1_powers, t1_array, degree, cov=True)
+        err = _np.sqrt(_np.diag(cov))
+        coeff_array.append(coeff)
+        err_array.append(err)
+
+    return _np.array(coeff_array), _np.array(err_array)
 
 def calculate_ksigma_array(powers=False, ksigma_smax=95.4, p_12=False):
     """Function to calcualte ksig array for any given ksigma and p_12
@@ -171,7 +147,6 @@ def calculate_ksigma(ksigma_sps=False, powers=False, smax=1):
         ksigma.append(ksigma_smax / smax)
 
     return _np.array(ksigma_coeff), _np.array(ksigma), _np.array(ksigma_stdd), 
-
 
 def calculate_xi(tcorr=54e-12, omega_e=0.0614, omega_H=9.3231e-05):
     """Returns coupling_factor for any given tcorr
@@ -253,122 +228,6 @@ def calculate_tcorr(coupling_factor=0.27, omega_e=0.0614, omega_H=9.3231e-05):
         tcorr.append(root)
     return _np.array(tcorr)
 
-
-def calculate_uncorrected_Ep(
-    uncorrected_xi=0.33,
-    p_12_unc=0,
-    E_powers=False,
-    T10=2.0,
-    T100=2.5,
-    omega_ratio=658.5792,
-    smax=1,
-):
-    """Function for E(p) for any given xi and p_12
-
-    Args:
-        uncorrected_xi (float): uncorrected coupling factor
-        p_12_unc (float): power at half max for uncorrected_xi fit
-        E_array (numpy.array): Array of enhancements
-        E_powers (numpy.array): Array of E_powers
-        T10 (float): T1(0), proton T1 with microwave power=0 (s)
-        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
-        omega_ratio (float): ratio of electron & proton gyromagnetic ratios
-        smax (float): maximal saturation factor
-
-    Returns:
-        Ep_fit (numpy.array): uncorrected enhancement curve
-
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-    """
-
-    # Right side of Eq. 42. This function should fit to ksig_sp
-    Ep_fit = 1 - (
-        (uncorrected_xi * (1 - (T10 / T100)) * omega_ratio)
-        * ((E_powers * smax) / (p_12_unc + E_powers))
-    )
-
-    return Ep_fit
-
-
-def _residual_Ep(
-    x,
-    E_array: _np.array,
-    E_powers: _np.array,
-    T10: float,
-    T100: float,
-    omega_ratio: float,
-    smax: float,
-):
-    """Function for residuals between E(p) for any given xi and p_12 and the experimental E_array
-
-    Args:
-        x (list): [uncorrected coupling factor, power at half max for uncorrected_xi fit]
-        E_array (numpy.array): Array of enhancements
-        E_powers (numpy.array): Array of E_power
-        T10 (float): T1(0), proton T1 with microwave power=0 (s)
-        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
-        omega_ratio (float): ratio of electron & proton gyromagnetic ratios
-        smax (float): maximal saturation factor
-
-    Returns:
-        Ep_fit (numpy.array): uncorrected enhancement curve
-
-    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-    """
-
-    return E_array - calculate_uncorrected_Ep(
-        uncorrected_xi=x[0],
-        p_12_unc=x[1],
-        E_powers=E_powers,
-        T10=T10,
-        T100=T100,
-        omega_ratio=omega_ratio,
-        smax=smax,
-    )
-
-def calculate_uncorrected_xi(
-    E_array=False,
-    E_powers=False,
-    T10=2.0,
-    T100=2.5,
-    omega_ratio=658.5792,
-    smax=1,
-):
-    """Get coupling_factor and E_power at half saturation
-
-    Args:
-        E_array (numpy.array): Array of enhancements
-        E_powers (numpy.array): Array of powers
-        T10 (float): T1(0), proton T1 with microwave power=0 (s)
-        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
-        omega_ratio (float): ratio of electron & proton gyromagnetic ratios
-        smax (float): maximal saturation factor
-
-    Returns:
-        uncorrected_xi (float): uncorrected coupling factor
-        p_12_unc (float): power at half max for uncorrected_xi fit
-
-    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-    """
-
-    # least-squares fitting.
-    # see https://docs.scipy.org/doc/scipy/reference/optimize.html
-    results = optimize.least_squares(
-        fun=_residual_Ep,
-        x0=[0.27, (max(E_powers) * 0.1)],
-        args=(E_array, E_powers, T10, T100, omega_ratio, smax),
-        jac="2-point",
-        method="lm",
-    )
-    if not results.success:
-        raise ValueError("Could not fit Ep")
-    assert results.x[0] > 0, "Unexpected coupling_factor value: %d < 0" % results.x[0]
-
-    uncorrected_xi = results.x[0]
-    p_12_unc = results.x[1]
-
-    return uncorrected_xi, p_12_unc
-
 def calculate_omega_ratio(field):
     """
     Calculate omega ratio using magnetic field
@@ -403,78 +262,6 @@ def calculate_omega_ratio(field):
     # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
 
     return omega_ratio, omega_e, omega_H
-
-
-def calculate_smax(spin_C = False, smax_model = 'tethered'):
-    """
-    Calculate smax using radical concentration and model
-
-    Args:
-        spin_C (float): unpaired spin concentration (M)
-        smax_model (str): model to determine smax (default: 'tethered')
-
-    Returns:
-        smax (float): maximal saturation factor (unitless)
-
-    .. math::
-        \mathrm{s_{max}} = 1 - (2 / (3 + (3 * (\mathrm{spin\_C} * 198.7))))
-
-    M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. & J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
-
-    """
-    if smax_model == "tethered":
-        # Option 1, tether spin label
-        smax = 1  # (section 2.2) maximal saturation factor
-
-    elif smax_model == "free":
-        # Option 2, free spin probe
-        smax = 1 - (2 / (3 + (3 * (spin_C * 198.7))))  # from:
-        # M.T. Türke, M. Bennati, Phys. Chem. Chem. Phys. 13 (2011) 3630. &
-        # J. Hyde, J. Chien, J. Freed, J. Chem. Phys. 48 (1968) 4211.
-    
-    elif isinstance(smax_model, float):
-        # Option 3, manual input of smax
-        if not (smax_model <= 1 and smax_model > 0):
-            raise ValueError(
-                "if given directly, smax must be type float between 0 and 1"
-            )
-        smax = smax_model
-
-    else:
-        raise ValueError(
-            "'smax_model' must be 'tethered', 'free', or a float between 0 and 1"
-        )
-    
-    return smax
-
-
-def t1_fit_coefficients(t1_powers, t1_arrays, degree):
-    """
-    Fit t1 vs. power curve and return t1 at the power of 0
-
-    Args:
-        t1_powers (numpy.array): microwave power array for t1s
-        t1_arrays (numpy.array): t1s array
-        degree (int): polynomials degree
-
-    Returns:
-        coeff_array: (numpy array) coefficients of t1 fit
-        err_array: (numpy array) errors of t1 fit
-
-    Methods:
-        n-degree polynomials fitting
-    """
-
-    coeff_array = []
-    err_array = []
-    for t1_array in t1_arrays:
-        coeff, cov = _np.polyfit(t1_powers, t1_array, degree, cov=True)
-        err = _np.sqrt(_np.diag(cov))
-        coeff_array.append(coeff)
-        err_array.append(err)
-
-    return _np.array(coeff_array), _np.array(err_array)
-
 
 def calculate_leakage_factor(t1n0, t10n, t1n0_err=None, t10n_err=None):
     """
@@ -547,13 +334,12 @@ def calculate_krho(t1n0, t10n, radical_concentration, t1n0_err=None, t10n_err=No
     c = radical_concentration
 
     krho = [(x**-1 - y**-1) / c for x, y in zip(t1n0, t10n)]
-    krho_array = [
+    krho_err = [
         _np.sqrt((x_err / x**2) ** 2 + (y_err / y**2) ** 2) / c
         for x, x_err, y, y_err in zip(t1n0, t1n0_err, t10n, t10n_err)
     ]
 
-    return _np.array(krho), _np.array(krho_array)
-
+    return _np.array(krho), _np.array(krho_err)
 
 def calculate_coupling_factor(ksig, krho, ksig_err, krho_err):
     """
@@ -900,7 +686,200 @@ def hydration_analysis(path = None, smax_model = 'tethered', t10_method = 'inter
 
     return hydration_info
 
+
+
 ## ready to be depreciarted.
+def interpolate_T1(
+    E_powers=False,
+    T1_powers=False,
+    T1_array=False,
+    interpolate_method="linear",
+    delta_T1_water=False,
+    T1_water=False,
+    macro_C=False,
+    spin_C=1,
+    T10=2.0,
+    T100=2.5,
+):
+    """Returns interpolated T1 data.
+
+    Args:
+        E_powers (numpy.array): The microwave powers at which to evaluate
+        T1_powers (numpy.array): The microwave powers of the T1s to interpolate
+        T1_array (numpy.array): The original T1s (s)
+        interpolate_method (str): "second_order" or "linear"
+        spin_C (float): unpaired electron spin concentration (M)
+        T10 (float): T1 measured with unpaired electrons (s)
+        T100 (float): T1 measured without unpaired electrons (s)
+        delta_T1_water (optional) (float): change in T1 of water at max microwave power (s)
+        T1_water (optional) (float): T1 of pure water (s)
+        macro_C (optional) (float): concentration of macromolecule (M)
+
+    Returns:
+        interpolated_T1 (numpy.array): Array of T1 values same shape as E_powers and E_array
+
+    T1 data is interpolated using Eq. 39 of http://dx.doi.org/10.1016/j.pnmrs.2013.06.001 for "linear" or Eq. 22 of https://doi.org/10.1016/bs.mie.2018.09.024 for "second_order"
+    """
+
+    # 2nd order fit, Franck and Han MIE (Eq. 22) and (Eq. 23)
+    if interpolate_method == "second_order":
+        if not macro_C:
+            macro_C = spin_C
+
+        if not delta_T1_water:
+            delta_T1_water = T1_array[-1] - T1_array[0]
+        if not T1_water:
+            T1_water = T100
+
+        kHH = (1.0 / T10 - 1.0 / T1_water) / macro_C
+        krp = (
+            (1.0 / T1_array)
+            - (1.0 / (T1_water + delta_T1_water * T1_powers))
+            - (kHH * (macro_C))
+        ) / (spin_C)
+
+        p = _np.polyfit(T1_powers, krp, 2)
+        T1_fit_2order = _np.polyval(p, E_powers)
+
+        interpolated_T1 = 1.0 / (
+            ((spin_C) * T1_fit_2order)
+            + (1.0 / (T1_water + delta_T1_water * E_powers))
+            + (kHH * (macro_C))
+        )
+
+    # linear fit, Franck et al. PNMRS (Eq. 39)
+    elif interpolate_method == "linear":
+        linear_t1 = 1.0 / ((1.0 / T1_array) - (1.0 / T10) + (1.0 / T100))
+
+        p = _np.polyfit(T1_powers, linear_t1, 1)
+        T1_fit_linear = _np.polyval(p, E_powers)
+
+        interpolated_T1 = T1_fit_linear / (
+            1.0 + (T1_fit_linear / T10) - (T1_fit_linear / T100)
+        )
+
+    else:
+        raise Exception("invalid interpolate_method")
+
+    return interpolated_T1
+
+
+def calculate_uncorrected_Ep(
+    uncorrected_xi=0.33,
+    p_12_unc=0,
+    E_powers=False,
+    T10=2.0,
+    T100=2.5,
+    omega_ratio=658.5792,
+    smax=1,
+):
+    """Function for E(p) for any given xi and p_12
+
+    Args:
+        uncorrected_xi (float): uncorrected coupling factor
+        p_12_unc (float): power at half max for uncorrected_xi fit
+        E_array (numpy.array): Array of enhancements
+        E_powers (numpy.array): Array of E_powers
+        T10 (float): T1(0), proton T1 with microwave power=0 (s)
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
+        omega_ratio (float): ratio of electron & proton gyromagnetic ratios
+        smax (float): maximal saturation factor
+
+    Returns:
+        Ep_fit (numpy.array): uncorrected enhancement curve
+
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+    """
+
+    # Right side of Eq. 42. This function should fit to ksig_sp
+    Ep_fit = 1 - (
+        (uncorrected_xi * (1 - (T10 / T100)) * omega_ratio)
+        * ((E_powers * smax) / (p_12_unc + E_powers))
+    )
+
+    return Ep_fit
+
+
+def _residual_Ep(
+    x,
+    E_array: _np.array,
+    E_powers: _np.array,
+    T10: float,
+    T100: float,
+    omega_ratio: float,
+    smax: float,
+):
+    """Function for residuals between E(p) for any given xi and p_12 and the experimental E_array
+
+    Args:
+        x (list): [uncorrected coupling factor, power at half max for uncorrected_xi fit]
+        E_array (numpy.array): Array of enhancements
+        E_powers (numpy.array): Array of E_power
+        T10 (float): T1(0), proton T1 with microwave power=0 (s)
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
+        omega_ratio (float): ratio of electron & proton gyromagnetic ratios
+        smax (float): maximal saturation factor
+
+    Returns:
+        Ep_fit (numpy.array): uncorrected enhancement curve
+
+    J.M. Franck et al. / Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+    """
+
+    return E_array - calculate_uncorrected_Ep(
+        uncorrected_xi=x[0],
+        p_12_unc=x[1],
+        E_powers=E_powers,
+        T10=T10,
+        T100=T100,
+        omega_ratio=omega_ratio,
+        smax=smax,
+    )
+
+def calculate_uncorrected_xi(
+    E_array=False,
+    E_powers=False,
+    T10=2.0,
+    T100=2.5,
+    omega_ratio=658.5792,
+    smax=1,
+):
+    """Get coupling_factor and E_power at half saturation
+
+    Args:
+        E_array (numpy.array): Array of enhancements
+        E_powers (numpy.array): Array of powers
+        T10 (float): T1(0), proton T1 with microwave power=0 (s)
+        T100 (float): T10(0), proton T1 with spin_C=0 and microwave power=0 (s)
+        omega_ratio (float): ratio of electron & proton gyromagnetic ratios
+        smax (float): maximal saturation factor
+
+    Returns:
+        uncorrected_xi (float): uncorrected coupling factor
+        p_12_unc (float): power at half max for uncorrected_xi fit
+
+    J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
+    """
+
+    # least-squares fitting.
+    # see https://docs.scipy.org/doc/scipy/reference/optimize.html
+    results = optimize.least_squares(
+        fun=_residual_Ep,
+        x0=[0.27, (max(E_powers) * 0.1)],
+        args=(E_array, E_powers, T10, T100, omega_ratio, smax),
+        jac="2-point",
+        method="lm",
+    )
+    if not results.success:
+        raise ValueError("Could not fit Ep")
+    assert results.x[0] > 0, "Unexpected coupling_factor value: %d < 0" % results.x[0]
+
+    uncorrected_xi = results.x[0]
+    p_12_unc = results.x[1]
+
+    return uncorrected_xi, p_12_unc
+
+
 def hydration(data={}, constants={}):
     """Function for performing ODNP calculations
 
@@ -1114,3 +1093,4 @@ def hydration(data={}, constants={}):
         "tcorr_bulk_ratio": tcorr / odnp_constants["tcorr_bulk"],
         "Dlocal": Dlocal,
     }
+
