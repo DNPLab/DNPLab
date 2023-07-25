@@ -42,9 +42,9 @@ class dnpDataTester(unittest.TestCase):
 
         tdata = f2(self.Ddata, axis="1")
 
-        if not ("numpy.amax" in tdata.proc_attrs[0]):
+        if not ("numpy.max" in tdata.proc_attrs[0]):
             self.fail(
-                "Assertion that np.max is in proc_attrs is False, proc_attrs:{0}".format(
+                "Assertion that numpy.max is in proc_attrs is False, proc_attrs:{0}".format(
                     tdata.proc_attrs
                 )
             )
