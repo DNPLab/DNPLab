@@ -27,12 +27,6 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
 
     proc_parameters = {"dim": dim}
 
-    original_order = out.dims  # Original order of dims
-
-    out.reorder([dim])  # Move dim to first dimension
-
-    all_values = out.values  # Extract Data Values for alignment
-
     if center != None and width != None:
         start = center - 0.5 * width
         stop = center + 0.5 * width
@@ -42,25 +36,17 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
     else:
         raise ValueError("selected range is not acceptable")
 
-    values = out[dim, (start, stop)].values
+    temp_out = out[dim, (start, stop)].copy()
+    temp_out.unfold(dim)
+    temp_values = temp_out.values.T
 
-    all_original_shape = all_values.shape
-    original_shape = values.shape  # Preserve original shape
+    out.unfold(dim)
+    all_values = out.values.T
 
-    all_align_dim_length = all_original_shape[0]
-    align_dim_length = original_shape[0]  # length of dimension to align down
-
-    all_values = all_values.reshape(all_align_dim_length, -1)
-    values = values.reshape(align_dim_length, -1)  # Reshape to 2d
-
-    new_shape = _np.shape(values)
-
-    dim2 = new_shape[1]
-
-    abs_values = _np.abs(values)
+    abs_temp_values = _np.abs(temp_values)
 
     if reference is None:
-        reference = _np.abs(values[:, -1])
+        reference = _np.abs(temp_values[-1])
     elif isinstance(reference, DNPData):
         reference = _np.abs(reference.values)
         if average != None:
@@ -68,32 +54,28 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
 
     ref_max_ix = _np.argmax(reference)
 
-    all_aligned_values = _np.zeros_like(all_values)
+    aligned_all_values = _np.zeros_like(all_values)
 
-    for ix in range(dim2):
+    for ix in range(len(abs_temp_values)):
         if average != None:
-            abs_values[:, ix] = (
-                _np.convolve(abs_values[:, ix], _np.ones(average), "same") / average
+            abs_temp_values[ix] = (
+                _np.convolve(abs_temp_values[ix], _np.ones(average), "same") / average
             )
         cor = _np.correlate(
-            abs_values[:, ix], reference, mode="same"
+            abs_temp_values[ix], reference, mode="same"
         )  # calculate cross-correlation
         max_ix = _np.argmax(cor)  # Maximum of cross correlation
         delta_max_ix = max_ix - ref_max_ix  # Calculate how many points to shift
         if ix == 0:
             first_shift = delta_max_ix
         delta_max_ix -= first_shift
-        all_aligned_values[:, ix] = _np.roll(
-            all_values[:, ix], -1 * delta_max_ix
+        aligned_all_values[ix] = _np.roll(
+            all_values[ix], -1 * delta_max_ix
         )  # shift values
 
-    all_aligned_values = all_aligned_values.reshape(
-        all_original_shape
-    )  # reshape to original values shape
+    out.values = aligned_all_values.T  # Add aligned values back to data object
 
-    out.values = all_aligned_values  # Add aligned values back to data object
-
-    out.reorder(original_order)  # Back to original order
+    out.fold()  # Back to original order
 
     proc_attr_name = "ndalign"
     out.add_proc_attrs(proc_attr_name, proc_parameters)
