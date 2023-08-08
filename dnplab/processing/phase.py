@@ -92,13 +92,13 @@ def autophase(inputData, dim="f2", pivot=False, deriv=1, gamma=1e-5, verbose=Tru
     else:
         # pivot is now a element along an axis, e.g. ('Average',5)
         try:
-            _ = pivot
+            tmp = pivot
             tpl = tuple([dim, slice(None, None, None)] + list(pivot))
             pivot = data.__getitem__(tpl)
         except KeyError as e:
             raise KeyError(
-                "Could not access pivot element at {0}, make sure that it exists! ou do not need to include dim ({1})!\n{2}".format(
-                    _, dim, e
+                "Could not access pivot element at {0}, make sure that it exists! you do not need to include dim ({1})!\n{2}".format(
+                    tmp, dim, e
                 )
             )
         pivot = autophase(pivot, dim, deriv=deriv, gamma=gamma, verbose=True)
@@ -199,13 +199,9 @@ def _autophase(data, coords, dim, deriv, gamma):
         disp=False,
         full_output=True,
     )
-    if warnflags == 1:
+    if warnflags in [1,2]:
         warnings.warn(
-            "Optimization reached maximum number of function evaluations, solution might not be optimal!"
-        )
-    if warnflags == 2:
-        warnings.warn(
-            "Optimization reached maximum number of iterations, solution might not be optimal!"
+            "warnflag ({0}): Optimization reached maximum number of function evaluations (1) or maximum number of iterations (2), solution might not be optimal!".format(warnflags)
         )
     ph0, ph1 = xopt
     return ph0, ph1
