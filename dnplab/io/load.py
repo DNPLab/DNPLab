@@ -286,7 +286,6 @@ def _scale_dnplab_attrs(unit):
     unit = unit.strip()
     # check for unit and return 1 if no prefix
     units = [k.strip() for k in DNPLAB_CONFIG.getlist("UNITS", "units", fallback=[])]
-    print(units)
     for u in units:
         if u in unit:
             if u == unit:
