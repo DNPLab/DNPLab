@@ -32,7 +32,7 @@ def array_coords(attrs):
         if array_dim != 1 and array_value!='':
             coord = _np.r_[array_start : array_dim + array_delta : array_delta]
             dim = array_value
-        if array_dim != 1 and array_value=='':
+        elif array_dim != 1 and array_value=='':
             coord = _np.r_[array_start : array_stop + array_delta : array_delta]
             dim = 't1'
         else:
