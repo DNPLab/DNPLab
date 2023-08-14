@@ -200,7 +200,7 @@ def _autophase(data, coords, dim, deriv, gamma):
         full_output=True,
     )
     if warnflags in [1, 2]:
-        warnings.warn(
+        warn(
             "warnflag ({0}): Optimization reached maximum number of function evaluations (1) or maximum number of iterations (2), solution might not be optimal!".format(
                 warnflags
             )
