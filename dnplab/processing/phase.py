@@ -218,14 +218,14 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
     """Apply phase correction to DNPData object
 
     Args:
-        data (DNPData): Data object to phase
-        dim (str): Dimension to phase, default is "f2"
-        p0 (float, array): Zero order phase correction (degree)
-        p1 (float, array): First order phase correction (degree)
-        picot (float): Pivot point for first order phase correction
+        data (DNPData):     Data object to phase
+        dim (str):          Dimension to phase, default is "f2"
+        p0 (float, array):  Zero order phase correction (degree, 0 - 360)
+        p1 (float, array):  First order phase correction (degree, 0 - 360)
+        picot (float):      Pivot point for first order phase correction
 
     Returns:
-        data (DNPData): Phased data, including new attributes "p0", "p1", and "pivot"
+        data (DNPData):     Phased data, including new attributes "p0", "p1", and "pivot"
 
     Examples:
 
@@ -242,6 +242,9 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
         A 2D DNPData object can either be phase using a single p0 (p1) value, or using an array of phases. When using an array, the size of the phase array has to be equal to the number of spectra to be phased.
 
     """
+
+    p0 = _np.mod(p0, 360)
+    p1 = _np.mod(p1, 360)
 
     p0 = _np.array(p0 * pi / 180.0)  # p0 in radians
     p1 = _np.array(p1 * pi / 180.0)  # p1 in radians
