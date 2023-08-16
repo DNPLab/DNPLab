@@ -30,7 +30,7 @@ def array_coords(attrs):
         array_value=attrs['array']
 
         if array_dim != 1 and array_value!='':
-            coord = _np.r_[array_start : array_dim + array_delta : array_delta]
+            coord = _np.array(attrs[array_value])
             dim = array_value
         if array_dim != 1 and array_value=='':
             coord = _np.r_[array_start : array_stop + array_delta : array_delta]
