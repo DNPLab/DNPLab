@@ -110,7 +110,7 @@ class dnpTools_tester(unittest.TestCase):
         s2 = data.shape
         self.assertEqual(s1, s2)
 
-    def test_003_multiple_regions_behaviour(self):
+    def test_003_multiple_regions_behavior(self):
         from dnplab.core.base import ABCData
         ABCData.add_proc_attrs=lambda *args,**kwargs: '1'
         d1 = 512
@@ -129,7 +129,7 @@ class dnpTools_tester(unittest.TestCase):
         self.assertEqual(len(snr[1]),10)
         self.assertFalse(np.any(np.isnan(snr)))
 
-    def test_004_multiple_dimensions_beaviour(self):
+    def test_004_multiple_dimensions_beavior(self):
         from dnplab.core.base import ABCData
         ABCData.add_proc_attrs=lambda *args,**kwargs: '1'
         d1 = 512
