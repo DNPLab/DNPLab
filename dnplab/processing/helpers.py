@@ -260,12 +260,14 @@ def left_shift(data, dim="t2", shift_points=0):
 def normalize(data, amplitude=True):
     """Normalize spectrum
 
+    The function is used to normalize the amplitude (or area) of a spectrum to a value of 1. The sign of the original data will be conserved.
+
     Args:
-        data (DNPData): Data object
-        amplitude (boolean): True: normalize amplitude, false: normalize area. The default is True
+        data (DNPData):         Data object
+        amplitude (boolean):    True: normalize amplitude, false: normalize area. The default is True
 
     Returns:
-        data (DNPDdata): Normalized data object
+        data (DNPDdata):        Normalized data object
     """
 
     out = data.copy()
