@@ -112,56 +112,58 @@ class dnpTools_tester(unittest.TestCase):
 
     def test_003_multiple_regions_behavior(self):
         from dnplab.core.base import ABCData
-        ABCData.add_proc_attrs=lambda *args,**kwargs: '1'
+
+        ABCData.add_proc_attrs = lambda *args, **kwargs: "1"
         d1 = 512
         d2 = 10
 
         d = np.random.random((d1, d2))
         ax1 = np.arange(d1)
-        ax2=np.arange(d2)
+        ax2 = np.arange(d2)
         Ddata = ABCData(d, dims=["f2", "2"], coords=[ax1, ax2])
 
         f = dnp.processing.signal_to_noise
-        snr = f(Ddata,[(10,20),(50,60),(100,200)],[(400,500)])
+        snr = f(Ddata, [(10, 20), (50, 60), (100, 200)], [(400, 500)])
 
-        self.assertEqual(len(snr),3)
-        self.assertEqual(len(snr[0]),10)
-        self.assertEqual(len(snr[1]),10)
+        self.assertEqual(len(snr), 3)
+        self.assertEqual(len(snr[0]), 10)
+        self.assertEqual(len(snr[1]), 10)
         self.assertFalse(np.any(np.isnan(snr)))
 
     def test_004_multiple_dimensions_beavior(self):
         from dnplab.core.base import ABCData
-        ABCData.add_proc_attrs=lambda *args,**kwargs: '1'
+
+        ABCData.add_proc_attrs = lambda *args, **kwargs: "1"
         d1 = 512
         d2 = 10
         d = np.random.random((d1, d2))
-        d[:20,...]=np.linspace(0,10,20)[:,np.newaxis] # noise = 3.03488489333442
-        d[150,...]=200 #signal
-        snr_r1 = 200/ 3.03488489333442
+        d[:20, ...] = np.linspace(0, 10, 20)[:, np.newaxis]  # noise = 3.03488489333442
+        d[150, ...] = 200  # signal
+        snr_r1 = 200 / 3.03488489333442
         ax1 = np.arange(d1)
-        ax2=np.arange(d2)
+        ax2 = np.arange(d2)
         Ddata = ABCData(d, dims=["f2", "2"], coords=[ax1, ax2])
         f = dnp.processing.signal_to_noise
         s1 = Ddata.shape
 
         # some input checks, just to check that no errors are thrown:
         snr = f(Ddata, [(100, 300)], [(0, 20)])
-        self.assertEqual(len(snr),10)
-        self.assertEqual(type(snr[0]),np.float64)
-        self.assertTrue(np.isclose(snr_r1,snr[0]))
+        self.assertEqual(len(snr), 10)
+        self.assertEqual(type(snr[0]), np.float64)
+        self.assertTrue(np.isclose(snr_r1, snr[0]))
         snr = f(
             Ddata, [(300, 400)], [(500, 600)], remove_background=(100, 200), deg=3
         )  # works with degree
-        self.assertEqual(len(snr),10)
-        self.assertEqual(type(snr[0]),np.float64)
+        self.assertEqual(len(snr), 10)
+        self.assertEqual(type(snr[0]), np.float64)
         snr = f(
             Ddata, [(300, 400)], [(500, 600)], remove_background=(100, 200)
         )  # works without degree
-        self.assertEqual(len(snr),10)
-        self.assertEqual(type(snr[0]),np.float64)
+        self.assertEqual(len(snr), 10)
+        self.assertEqual(type(snr[0]), np.float64)
         snr = f(Ddata, [(300, 400)], [(500, 600)], remove_background=[(100, 200)])
-        self.assertEqual(len(snr),10)
-        self.assertEqual(type(snr[0]),np.float64)
+        self.assertEqual(len(snr), 10)
+        self.assertEqual(type(snr[0]), np.float64)
         s2 = Ddata.shape
         self.assertEqual(s1, s2)
         # no nan values are returned
@@ -169,39 +171,39 @@ class dnpTools_tester(unittest.TestCase):
 
     def test_005_multiple_dimensions_and_multiple_regions(self):
         from dnplab.core.base import ABCData
-        ABCData.add_proc_attrs=lambda *args,**kwargs: '1'
+
+        ABCData.add_proc_attrs = lambda *args, **kwargs: "1"
         d1 = 512
         d2 = 5
-        d3=10
-        d = np.random.random((d1, d2,d3))
-        d[:20,...]=np.linspace(0,10,20)[:,np.newaxis,np.newaxis] # noise = 3.03488489333442
-        d[150,...]=200 #signal
-        snr_r1 = 200/ 3.03488489333442
+        d3 = 10
+        d = np.random.random((d1, d2, d3))
+        d[:20, ...] = np.linspace(0, 10, 20)[
+            :, np.newaxis, np.newaxis
+        ]  # noise = 3.03488489333442
+        d[150, ...] = 200  # signal
+        snr_r1 = 200 / 3.03488489333442
         ax1 = np.arange(d1)
-        ax2=np.arange(d2)
-        ax3=np.arange(d3)
-        Ddata = ABCData(d, dims=["f2", "2","3"], coords=[ax1, ax2,ax3])
+        ax2 = np.arange(d2)
+        ax3 = np.arange(d3)
+        Ddata = ABCData(d, dims=["f2", "2", "3"], coords=[ax1, ax2, ax3])
         f = dnp.processing.signal_to_noise
 
-         # works with degree & 2 regions & noise region specified
+        # works with degree & 2 regions & noise region specified
         snr = f(
-            Ddata, [(100,200),(300, 400)], [(0, 20)], remove_background=(0, 95), deg=1
+            Ddata, [(100, 200), (300, 400)], [(0, 20)], remove_background=(0, 95), deg=1
         )
-        self.assertEqual(len(snr),2)
-        self.assertEqual(len(snr[0]),d2*d3)
-        self.assertEqual(len(snr[1]),d3*d2)
+        self.assertEqual(len(snr), 2)
+        self.assertEqual(len(snr[0]), d2 * d3)
+        self.assertEqual(len(snr[1]), d3 * d2)
         self.assertFalse(np.any(np.isnan(snr)))
-        self.assertTrue( np.all(np.isclose(k,snr_r1) for k in snr[0]) )
+        self.assertTrue(np.all(np.isclose(k, snr_r1) for k in snr[0]))
 
-         # works with degree & 2 regions & noise region not specified
-        snr = f(
-            Ddata, [(100,200),(300, 400)], remove_background=(0, 95), deg=1
-        )
-        self.assertEqual(len(snr),2)
-        self.assertEqual(len(snr[0]),d2*d3)
-        self.assertEqual(len(snr[1]),d3*d2)
+        # works with degree & 2 regions & noise region not specified
+        snr = f(Ddata, [(100, 200), (300, 400)], remove_background=(0, 95), deg=1)
+        self.assertEqual(len(snr), 2)
+        self.assertEqual(len(snr[0]), d2 * d3)
+        self.assertEqual(len(snr[1]), d3 * d2)
         self.assertFalse(np.any(np.isnan(snr)))
-
 
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")
