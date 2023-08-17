@@ -326,6 +326,8 @@ def autophase_dep(
 ):
     """Automatically phase correct data, or apply manual phase correction
 
+    This function is deprecated and will be removed from DNPLab on 10/01/2023ß
+
     Args:
         data (DNPData): Data object to autophase
         dim (str): Dimension to autophase
