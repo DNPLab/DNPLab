@@ -215,7 +215,7 @@ def mr_properties(nucleus, *args):
                 print("Keyword not recognize")
 
         else:
-            vLarmor = args[0] * gmr * 1e7 / 2 / pi
+            vLarmor = args[0] * gmr
             return vLarmor
 
     elif len(args) == 2:
