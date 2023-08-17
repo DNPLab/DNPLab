@@ -33,7 +33,7 @@ for key, value in fStencil.items():
 
 
 def autophase(
-    inputData, dim="f2", reference_slice=False, deriv=1, gamma=1e-5, verbose=True
+    inputData, dim="f2", reference_slice=False, deriv=1, gamma=1e-5, full_proc_attr=True
 ):
     """Autophase function to phase spectral data
 
@@ -47,7 +47,7 @@ def autophase(
         reference_slice (bool,tuple):   Tuple of (dimension, index) to select reference slice. The default value is 'False'
         deriv (int):                    Integer for derivative value (1-4, default=1)
         gamma (float):                  Scaling factor for phase optimization (default=1e-5)
-        verbose (bool):                 when this is true the phase tuple for each single autphased spectrum will be added. Default True.
+        full_proc_attr (bool):                 when this is true the phase tuple for each single autphased spectrum will be added. Default True.
 
     Returns:
         data (DNPData):                 Phased data. The function will add the attribute "autophase" = {pivot,deriv,dim,(phasetuples)}. phasetuples is only included if reference_slice is True
@@ -55,7 +55,7 @@ def autophase(
     """
     data = inputData.copy()
 
-    if verbose:
+    if full_proc_attr:
         data.add_proc_attrs(
             "autophase",
             {
@@ -91,8 +91,12 @@ def autophase(
                 * spectrum
             )
             data.values[:, k] = phasedSpectrum
-            if verbose:
+            if full_proc_attr:
                 data.proc_attrs[-1][1]["phasetuples"].append((ph0, ph1))
+        for phastpl,indx in zip(data.proc_attrs[-1][1]["phasetuples"],PUT_INDEX_DIM_HERE):
+            # make phasing here
+            pass
+
         data.fold()
     else:
         # reference_slice is now a element along an axis, e.g. ('Average',5)
@@ -107,7 +111,7 @@ def autophase(
                 )
             )
         reference_slice = autophase(
-            reference_slice, dim, deriv=deriv, gamma=gamma, verbose=True
+            reference_slice, dim, deriv=deriv, gamma=gamma, full_proc_attr=True
         )
         ph0, ph1 = reference_slice.proc_attrs[-1][1]["phasetuples"][0]
         data = phase(
