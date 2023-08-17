@@ -32,7 +32,7 @@ for key, value in fStencil.items():
         bStencil[key] = -1 * _np.array(list(reversed(value)))
 
 
-def autophase(inputData, dim="f2", pivot=False, deriv=1, gamma=1e-5, verbose=True):
+def autophase(inputData, dim="f2", reference_slice=False, deriv=1, gamma=1e-5, verbose=True):
     """
     Phase correction according to
     An efficient algorithm for automatic phase correction of
@@ -45,7 +45,7 @@ def autophase(inputData, dim="f2", pivot=False, deriv=1, gamma=1e-5, verbose=Tru
     Args:
         data (DNPData): Data object to autophase
         dim (str): Dimension to autophase, default = 'f2'
-        pivot (bool,tuple): if this is not False it must point to an element (dimension,element)
+        reference_slice (bool,tuple): if this is not False it must point to an element (dimension,element)
         deriv (int): Integer for derivative value (1-4, default=1)
         gamma (float): scaling factor for phase optimization (default=1e-5)
         verbose (bool): when this is true the phase tuple for each single autphased spectrum will be added. Default True.
@@ -60,7 +60,7 @@ def autophase(inputData, dim="f2", pivot=False, deriv=1, gamma=1e-5, verbose=Tru
         data.add_proc_attrs(
             "autophase",
             {
-                "pivot": pivot,
+                "reference_slice": reference_slice,
                 "deriv": deriv,
                 "dim": dim,
                 "gamma": gamma,
@@ -69,10 +69,10 @@ def autophase(inputData, dim="f2", pivot=False, deriv=1, gamma=1e-5, verbose=Tru
         )
     else:
         data.add_proc_attrs(
-            "autophase", {"pivot": pivot, "deriv": deriv, "dim": dim, "gamma": gamma}
+            "autophase", {"reference_slice": reference_slice, "deriv": deriv, "dim": dim, "gamma": gamma}
         )
 
-    if pivot == False:
+    if reference_slice == False:
         data.unfold(dim)
         n_spectra = data.shape[1]
         for k in range(n_spectra):
@@ -90,19 +90,19 @@ def autophase(inputData, dim="f2", pivot=False, deriv=1, gamma=1e-5, verbose=Tru
                 data.proc_attrs[-1][1]["phasetuples"].append((ph0, ph1))
         data.fold()
     else:
-        # pivot is now a element along an axis, e.g. ('Average',5)
+        # reference_slice is now a element along an axis, e.g. ('Average',5)
         try:
-            tmp = pivot
-            tpl = tuple([dim, slice(None, None, None)] + list(pivot))
-            pivot = data.__getitem__(tpl)
+            tmp = reference_slice
+            tpl = tuple([dim, slice(None, None, None)] + list(reference_slice))
+            reference_slice = data.__getitem__(tpl)
         except KeyError as e:
             raise KeyError(
-                "Could not access pivot element at {0}, make sure that it exists! you do not need to include dim ({1})!\n{2}".format(
+                "Could not access reference_slice element at {0}, make sure that it exists! you do not need to include dim ({1})!\n{2}".format(
                     tmp, dim, e
                 )
             )
-        pivot = autophase(pivot, dim, deriv=deriv, gamma=gamma, verbose=True)
-        ph0, ph1 = pivot.proc_attrs[-1][1]["phasetuples"][0]
+        reference_slice = autophase(reference_slice, dim, deriv=deriv, gamma=gamma, verbose=True)
+        ph0, ph1 = reference_slice.proc_attrs[-1][1]["phasetuples"][0]
         data = phase(
             data,
             dim=dim,
