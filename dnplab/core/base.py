@@ -1155,7 +1155,7 @@ class ABCData(object):
                 a = self.copy()
             a.values = values
             proc_attr_name = "numpy." + ufunc.__name__
-            proc_parameters = {"args": args,"kwargs:",kwargs}
+            proc_parameters = {"args": args,"kwargs":kwargs}
             try:
                 a.add_proc_attrs(proc_attr_name, proc_parameters)
             except AttributeError:
