@@ -281,6 +281,8 @@ class ABCData_numpy_implementation_test(unittest.TestCase):
         self.assertFalse(dims[0] in b.dims)
         self.assertRaises(ValueError, np.sum, b, axis="doesnotexist")
 
-        d=np.sum(self.Ddata,axis='2')
-        self.assertEqual(d.dims,['1'])
-        self.assertTrue( np.all(np.isclose(d.values-self.Ddata.values.sum(axis=-1),0)) )
+        d = np.sum(self.Ddata, axis="2")
+        self.assertEqual(d.dims, ["1"])
+        self.assertTrue(
+            np.all(np.isclose(d.values - self.Ddata.values.sum(axis=-1), 0))
+        )

@@ -32,9 +32,10 @@ def _replaceClassWithAttribute(replace_class, args, kwargs, target_attr="_values
             r_kwargs[key] = val
     return tuple(r_args), r_kwargs
 
-#utility funtion to return integer index of string or int if input is integer
+
+# utility funtion to return integer index of string or int if input is integer
 _str_to_int_index = (
-    lambda possible_dim,dnpdat: int(dnpdat.index(possible_dim))
+    lambda possible_dim, dnpdat: int(dnpdat.index(possible_dim))
     if isinstance(possible_dim, str)
     else possible_dim
 )
@@ -1155,7 +1156,7 @@ class ABCData(object):
                 a = self.copy()
             a.values = values
             proc_attr_name = "numpy." + ufunc.__name__
-            proc_parameters = {"args": args,"kwargs":kwargs}
+            proc_parameters = {"args": args, "kwargs": kwargs}
             try:
                 a.add_proc_attrs(proc_attr_name, proc_parameters)
             except AttributeError:
@@ -1182,7 +1183,7 @@ class ABCData(object):
 
             data_dims = []
             proc_dims = []
-            #the following construction is needed as axis default value is not always None in numpy
+            # the following construction is needed as axis default value is not always None in numpy
             # handle axis keyword, if existent
             if "axis" in kwargs.keys():
                 # pop axis keyword and if it is None stop here
@@ -1190,13 +1191,13 @@ class ABCData(object):
                 proc_dims.append(ax_value)
                 if ax_value is None:
                     kwargs["axis"] = None
-                elif type(ax_value)==int:
+                elif type(ax_value) == int:
                     kwargs["axis"] = ax_value
 
                 else:
                     # axis could now be a string or a tuple
                     if isinstance(ax_value, str):
-                        #in case of string: find corresponding axis index and add to data dims
+                        # in case of string: find corresponding axis index and add to data dims
                         indx = tuple([int(self.index(ax_value))])
                         data_dims += [ax_value]
                         kwargs["axis"] = indx
@@ -1210,7 +1211,7 @@ class ABCData(object):
                         indx = tuple(indx)
                         kwargs["axis"] = indx
             else:
-                #use default value for axis argument
+                # use default value for axis argument
                 pass
             # forbid out keyword as this is not implemented
             if "out" in kwargs.keys():
@@ -1219,7 +1220,7 @@ class ABCData(object):
             # apply function to values
             return_values = func(*args, **kwargs)
 
-        if (type(return_values) == _np.ndarray):
+        if type(return_values) == _np.ndarray:
             self_shape = self._values.shape
             if kwargs.pop("_dnplab_inplace", False):
                 a = self
