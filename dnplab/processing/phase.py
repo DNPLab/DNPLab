@@ -218,14 +218,14 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
     """Apply phase correction to DNPData object
 
     Args:
-        data (DNPData): Data object to phase
-        dim (str): Dimension to phase, default is "f2"
-        p0 (float, array): Zero order phase correction (degree)
-        p1 (float, array): First order phase correction (degree)
-        picot (float): Pivot point for first order phase correction
+        data (DNPData):         Data object to phase
+        dim (str):              Dimension to phase, default is "f2"
+        p0 (float, array):      Zero order phase correction (degree)
+        p1 (float, array):      First order phase correction (degree)
+        pivot (float):          Pivot point for first order phase correction
 
     Returns:
-        data (DNPData): Phased data, including new attributes "p0", "p1", and "pivot"
+        data (DNPData):         Phased data, including new attributes "p0", "p1", and "pivot"
 
     Examples:
 
