@@ -32,6 +32,12 @@ def _replaceClassWithAttribute(replace_class, args, kwargs, target_attr="_values
             r_kwargs[key] = val
     return tuple(r_args), r_kwargs
 
+#utility funtion to return integer index of string or int if input is integer
+_str_to_int_index = (
+    lambda possible_dim,dnpdat: int(dnpdat.index(possible_dim))
+    if isinstance(possible_dim, str)
+    else possible_dim
+)
 
 _SPECIAL_NP_HANDLED = {}  # numpy functions that need special handling, will
 
@@ -1143,8 +1149,17 @@ class ABCData(object):
         if method == "__call__":
             args, kwargs = _replaceClassWithAttribute(self, arrInput, kwargs)
             values = ufunc(*args, **kwargs)
-            a = self.copy()
+            if kwargs.pop("_dnplab_inplace", False):
+                a = self
+            else:
+                a = self.copy()
             a.values = values
+            proc_attr_name = "numpy." + ufunc.__name__
+            proc_parameters = {"args": args,"kwargs:",kwargs}
+            try:
+                a.add_proc_attrs(proc_attr_name, proc_parameters)
+            except AttributeError:
+                pass  # would log error here
             return a
         return NotImplemented
 
@@ -1164,53 +1179,54 @@ class ABCData(object):
         else:
             # default implementation, replaces all  ABCData objects in args and kwargs with ABCData.values and calls func
             args, kwargs = _replaceClassWithAttribute(self, args, kwargs)
-            # check for dims and use dims as axis array, note that this will reduce the output dimensions
-            # NOTE: also automatically convert numerical dimensions to corresponding dimensions ?
-            # NOTE the check for the axis keyword types could be placed in a seperate function, but for now it is kept here
-            str_or_int = (
-                lambda possible_dim: int(self.index(possible_dim))
-                if isinstance(possible_dim, str)
-                else possible_dim
-            )
+
             data_dims = []
             proc_dims = []
-            # replace e.g. 'f2' with corresponding dim index
-            while True:
-                if "axis" in kwargs.keys():
-                    ax_value = kwargs.pop("axis")
-                    proc_dims.append(ax_value)
-                else:
-                    break
+            #the following construction is needed as axis default value is not always None in numpy
+            # handle axis keyword, if existent
+            if "axis" in kwargs.keys():
+                # pop axis keyword and if it is None stop here
+                ax_value = kwargs.pop("axis")
+                proc_dims.append(ax_value)
                 if ax_value is None:
-                    indx = None
-                    kwargs["axis"] = indx
-                    break
-                if isinstance(ax_value, str):
-                    indx = tuple([int(self.index(ax_value))])
-                    data_dims += [ax_value]
-                    kwargs["axis"] = indx
-                    break
-                # assume we can iterate over it
-                indx = []
-                for value in ax_value:
-                    _val = str_or_int(value)
-                    if isinstance(value, str):
-                        data_dims += [value]
-                    indx += [_val]
-                indx = tuple(indx)
-                kwargs["axis"] = indx
-                break
+                    kwargs["axis"] = None
+                elif type(ax_value)==int:
+                    kwargs["axis"] = ax_value
+
+                else:
+                    # axis could now be a string or a tuple
+                    if isinstance(ax_value, str):
+                        #in case of string: find corresponding axis index and add to data dims
+                        indx = tuple([int(self.index(ax_value))])
+                        data_dims += [ax_value]
+                        kwargs["axis"] = indx
+                    else:
+                        indx = []
+                        for value in ax_value:
+                            _val = _str_to_int_index(value)
+                            if isinstance(value, str):
+                                data_dims += [value]
+                            indx += [_val]
+                        indx = tuple(indx)
+                        kwargs["axis"] = indx
+            else:
+                #use default value for axis argument
+                pass
+            # forbid out keyword as this is not implemented
+            if "out" in kwargs.keys():
+                raise NotImplemented
 
             # apply function to values
             return_values = func(*args, **kwargs)
 
-        if type(return_values) == _np.ndarray:
+        if (type(return_values) == _np.ndarray):
             self_shape = self._values.shape
             if kwargs.pop("_dnplab_inplace", False):
                 a = self
             else:
                 a = self.copy()
             # delete dimensions that are removed
+            # beware: case not handled: when only partial dimensions are deleted
             # current temporary fix: when shape of return_values.shape == self._values.shape do not delete dimensions!
             if return_values.shape != self_shape:
                 for dim in data_dims:
@@ -1228,5 +1244,6 @@ class ABCData(object):
                 pass  # would log error here
 
             return a
+
         # if not ndarray then return as is
         return return_values
