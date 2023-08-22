@@ -84,19 +84,14 @@ def autophase(
             spectrum = data.values[:, k].flatten()
             coords = data.coords[dim]
             ph0, ph1 = _autophase(spectrum, coords, dim, deriv, gamma)
-            phasedSpectrum = (
-                _np.exp(
-                    1.0j * (ph0 + (ph1 * _np.arange(spectrum.size) / spectrum.size))
-                ).astype(data.dtype)
-                * spectrum
-            )
-            data.values[:, k] = phasedSpectrum
             if full_proc_attr:
                 data.proc_attrs[-1][1]["phasetuples"].append((ph0, ph1))
-        for phastpl,indx in zip(data.proc_attrs[-1][1]["phasetuples"],PUT_INDEX_DIM_HERE):
+        for phasetpl,indx in zip(data.proc_attrs[-1][1]["phasetuples"],range(n_spectra)):
             # make phasing here
-            pass
-
+            buff=data['fold_index',indx]
+            p0,p1=phasetpl
+            buff=phase(buff,dim=dim,p0=p0,p1=p1) # gibt fehler weil buff unfolded ist
+            data.values[:,indx]=buff.values.flatten() # this
         data.fold()
     else:
         # reference_slice is now a element along an axis, e.g. ('Average',5)
@@ -106,13 +101,8 @@ def autophase(
             reference_slice = data.__getitem__(tpl)
         except KeyError as e:
             raise KeyError(
-<<<<<<< HEAD
                 "Could not access reference_slice element at {0}, make sure that it exists! you do not need to include dim ({1})!\n{2}".format(
                     tmp, dim, e
-=======
-                "Could not access pivot element at {0}, make sure that it exists! you do not need to include dim ({1})!\n{2}".format(
-                    _, dim, e
->>>>>>> develop
                 )
             )
         reference_slice = autophase(
@@ -270,7 +260,7 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
         dim (str): Dimension to phase, default is "f2"
         p0 (float, array): Zero order phase correction (degree)
         p1 (float, array): First order phase correction (degree)
-        picot (float): Pivot point for first order phase correction
+        pivot (float): Pivot point for first order phase correction
 
     Returns:
         data (DNPData): Phased data, including new attributes "p0", "p1", and "pivot"

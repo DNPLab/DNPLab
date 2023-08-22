@@ -321,23 +321,33 @@ class ABCData(object):
             else:
                 updated_index_slice.append(slice_)
 
-        # special behaviour for unfolded (internal use):
+        # special behavior for unfolded (internal use):
         if a._is_folded == False:
-            if len(index_dims) != 2 or "fold_index" not in index_dims:
+            if len(index_dims) > 2:
                 raise IndexError(
-                    "Unfolded state and you requested not fold_index, you need to specifiy exactly two dims! you specified {0}".format(
+                    "Unfolded state, can request at maximum 2 dimensions, you requested {0}".format(
                         index_dims
                     )
                 )
-            if not self.dims[0] in index_dims:
-                raise IndexError(
-                    "Unfolded state, there are only two dimensions and one needs to be the dimension you folded agains!, you specified {0}".format(
-                        index_dims
-                    )
-                )
+            for k in index_dims:
+                if (not k in ["fold_index",self.dims[0]]):
+                    raise IndexError(
+                        "Unfolded state, there are only two dimensions, you specified {0} but you can only request {1}/{2}".format(
+                            index_dims,self.dims[0],'fold_index')
+                        )
+            # now some random slices have been selected, it is only useful to consider this as a new object which is considered as folded
+            # pop coords except self.dims[0] and "fold_index"
+            for d in self.dims[1:]:
+                if d=="fold_index":
+                    continue
+                a.coords.pop(d)
             index_slice_dict = dict(zip(index_dims, updated_index_slice))
-            new_slices = [index_slice_dict[dim] for dim in index_dims]
+            new_slices = [slice(None) if (dim not in index_dims) else index_slice_dict[dim] for dim in a.dims]
             a.values = a.values[tuple(new_slices)]
+
+            a.coords.pop('fold_index')
+            a.coords['fi']=_np.arange(a.shape[1])
+            a._is_folded=True
             return a
 
         index_slice_dict = dict(zip(index_dims, updated_index_slice))
@@ -1107,7 +1117,7 @@ class ABCData(object):
         """
         if self._is_folded == False:
             raise ValueError(
-                "Trying to unfold already unfolded object (fold_index in dims!)! Please fold the object before attempting a second unfold!"
+                "Trying to unfold already unfolded object (self._is_folded == False)! Please fold the object before attempting a second unfold!"
             )
 
         folded_order = self.dims  # Original order of dims
@@ -1235,7 +1245,7 @@ class ABCData(object):
             a.values = return_values
 
             # add processing attributes, except when they should be suppressed
-            if kwargs.pop("_dnplab_supress_attr", False):
+            if kwargs.pop("_dnplab_suppress_attr", False):
                 return a
             proc_attr_name = "numpy." + func.__name__
             proc_parameters = {"axis": proc_dims}
