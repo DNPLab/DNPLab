@@ -63,20 +63,27 @@ def apodize(data, dim="t2", kind="exponential", **kwargs):
                f2(t)   &=  \exp((t - T) * \pi * \mathrm{linewidth[1]}) &
     """
 
-    data = data.copy()
+    out = data.copy()
 
-    coord = data.coords[dim]
-    index = data.index(dim)
+    index = out.index(dim)
+    coord = out.coords[dim]
 
+    kind = str(kind).lower()  # kind of apodization is a lower case string
+
+    if kind not in _windows:
+        raise ValueError(
+            'Window function "%s" not valid. Available window functions are: %s.  See documentation for more details.'
+            % (kind, list(_windows.keys()))
+        )
     window = _windows[kind]
     apwin = window(coord, **kwargs)
 
-    data_shape = data.shape
+    out_shape = out.shape
 
-    new_shape = [1 if ix != index else data_shape[index] for ix in range(data.ndim)]
+    new_shape = [1 if ix != index else out_shape[index] for ix in range(out.ndim)]
     apwin = _np.reshape(apwin, new_shape)
 
-    data *= apwin
+    out *= apwin
 
     proc_parameters = {
         "kind": kind,
@@ -84,6 +91,6 @@ def apodize(data, dim="t2", kind="exponential", **kwargs):
     for key in kwargs:
         proc_parameters[key] = kwargs[key]
     proc_attr_name = "window"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out

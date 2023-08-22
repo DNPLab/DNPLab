@@ -30,7 +30,7 @@ def exponential(x, lw):
         array: exponential window function
 
     .. math::
-        f(x) =  e^{-2t * lw}
+        \mathrm{exponential} =  e^{-\pi * x * lw}
     """
     return _np.exp(-pi * (x - x[0]) * lw)
 
@@ -65,7 +65,7 @@ def hann(x):
         ndarray: hann window function
 
     .. math::
-        \mathrm{han} = 0.5 + 0.5\cos(\pi * n / (N-1))
+        \mathrm{hann} = 0.5 + 0.5\cos(\pi * n / (N-1))
     """
     N = _handle_array(x)
 

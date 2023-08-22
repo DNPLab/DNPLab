@@ -49,27 +49,27 @@ def autophase(
 
     """
 
-    data = data.copy()
+    out = data.copy()
     if reference_slice == 0:
         raise ValueError(
             "please use indices from 1 to number of slices, i.e. use 1 instead of 0"
         )
 
-    shape_data = _np.shape(data.values)
-    index = data.dims.index(dim)
+    shape_data = _np.shape(out.values)
+    index = out.dims.index(dim)
 
     if phase is not None:
         method = "manual"
 
     if method == "manual":
         if order == "zero" and isinstance(phase, (int, float)):
-            data.attrs["phase0"] = phase
+            out.attrs["phase0"] = phase
         elif order == "zero" and not isinstance(phase, (int, float)):
             raise ValueError(
                 "for a zero order phase correction you must supply a single phase"
             )
         elif order == "first" and isinstance(phase, (int, float)):
-            data.attrs["phase0"] = phase
+            out.attrs["phase0"] = phase
             order = "zero"
             warn(
                 "method=manual and order=first but only a single phase was given, switching to order=zero"
@@ -79,14 +79,14 @@ def autophase(
             and isinstance(phase, (list, _np.ndarray))
             and len(phase) == shape_data[index]
         ):
-            data.attrs["phase1"] = _np.array(phase)
+            out.attrs["phase1"] = _np.array(phase)
         else:
             raise ValueError(
                 "Invalid combination of phase order and phase value(s). Supply float for zero order, array or list for first order"
             )
     else:
         if isinstance(reference_range, (list, tuple)) and len(reference_range) == 2:
-            check_data = data[dim, (reference_range[0], reference_range[1])]
+            check_data = out[dim, (reference_range[0], reference_range[1])]
         else:
             check_data = data.copy()
             if reference_range is not None:
@@ -103,7 +103,7 @@ def autophase(
             temp_data = check_data.values
 
         if method == "arctan":
-            data.attrs["phase0"] = _np.arctan(
+            out.attrs["phase0"] = _np.arctan(
                 _np.sum(_np.imag(temp_data.reshape(-1, 1)))
                 / _np.sum(_np.real(temp_data.reshape(-1, 1)))
             )
@@ -120,8 +120,8 @@ def autophase(
                             phasing_x, check_data.coords[dim], check_data.values
                         ).reshape(-1)
                     else:
-                        ind_dim = list(set(data.dims) - set([dim]))[0]
-                        ind_shape = data.shape[data.index(ind_dim)]
+                        ind_dim = list(set(out.dims) - set([dim]))[0]
+                        ind_shape = out.shape[out.index(ind_dim)]
                         temp_data = _np.array(
                             [
                                 _np.interp(
@@ -137,30 +137,30 @@ def autophase(
             real_imag_ratio = (_np.real(rotated_data) ** 2).sum(axis=0) / (
                 (_np.imag(rotated_data) ** 2).sum(axis=0)
             )
-            data.attrs["phase0"] = phases_0[_np.argmax(real_imag_ratio)]
+            out.attrs["phase0"] = phases_0[_np.argmax(real_imag_ratio)]
         else:
             raise TypeError("Invalid autophase method")
 
     if order == "zero":
-        data.values *= _np.exp(-1j * data.attrs["phase0"])
+        out.values *= _np.exp(-1j * out.attrs["phase0"])
     elif order == "first":
         if method == "manual":
-            data.attrs["phase1"] = phase
+            out.attrs["phase1"] = phase
         else:
-            pivot_ratio = pivot / len(data.values)
-            data.attrs["phase1"] = _np.linspace(
-                data.attrs["phase0"] - delta * pivot_ratio,
-                data.attrs["phase0"] + delta * (1 - pivot_ratio),
-                len(data.values),
+            pivot_ratio = pivot / len(out.values)
+            out.attrs["phase1"] = _np.linspace(
+                out.attrs["phase0"] - delta * pivot_ratio,
+                out.attrs["phase0"] + delta * (1 - pivot_ratio),
+                len(out.values),
             )
-        data.values.T.dot(_np.exp(-1j * data.attrs["phase1"]))
+        out.values.T.dot(_np.exp(-1j * out.attrs["phase1"]))
 
     else:
         raise TypeError("Invalid order or order & phase pair")
 
     if force_positive:
-        if _np.sum(data.values) < 0:
-            data.values *= -1
+        if _np.sum(out.values) < 0:
+            out.values *= -1
 
     proc_parameters = {
         "method": method,
@@ -172,9 +172,9 @@ def autophase(
         "delta": delta,
     }
     proc_attr_name = "autophase"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out
 
 
 def phase_cycle(data, dim, receiver_phase):
@@ -189,43 +189,43 @@ def phase_cycle(data, dim, receiver_phase):
         dnpdata: data object after phase cycle applied
     """
 
-    data = data.copy()
+    out = data.copy()
 
-    if dim not in data.dims:
+    if dim not in out.dims:
         raise ValueError("dim not in dims")
 
-    coord = data.coords[dim]
+    coord = out.coords[dim]
     receiver_phase = _np.array(receiver_phase).ravel()
 
     proc_parameters = {"dim": dim, "receiver_phase": receiver_phase}
 
     receiver_phase = _np.tile(receiver_phase, int(coord.size / receiver_phase.size))
 
-    index = data.dims.index(dim)
+    index = out.dims.index(dim)
 
-    reshape_size = [1 for k in data.dims]
-    reshape_size[index] = len(data.coords[dim])
+    reshape_size = [1 for k in out.dims]
+    reshape_size[index] = len(out.coords[dim])
 
-    data *= _np.exp(-1j * (pi / 2.0) * receiver_phase.reshape(reshape_size))
+    out *= _np.exp(-1j * (pi / 2.0) * receiver_phase.reshape(reshape_size))
 
     proc_attr_name = "phasecycle"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out
 
 
 def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
     """Apply phase correction to DNPData object
 
     Args:
-        data (DNPData): Data object to phase
-        dim (str): Dimension to phase, default is "f2"
-        p0 (float, array): Zero order phase correction (degree)
-        p1 (float, array): First order phase correction (degree)
-        picot (float): Pivot point for first order phase correction
+        data (DNPData):         Data object to phase
+        dim (str):              Dimension to phase, default is "f2"
+        p0 (float, array):      Zero order phase correction (degree)
+        p1 (float, array):      First order phase correction (degree)
+        pivot (float):          Pivot point for first order phase correction
 
     Returns:
-        data (DNPData): Phased data, including new attributes "p0", "p1", and "pivot"
+        data (DNPData):         Phased data, including new attributes "p0", "p1", and "pivot"
 
     Examples:
 
@@ -269,6 +269,6 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
     }
 
     proc_attr_name = "phase_correction"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return out

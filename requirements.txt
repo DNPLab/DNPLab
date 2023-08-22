@@ -1,4 +1,4 @@
-numpy>=1.19
-scipy>=1.5
-matplotlib>=3.3
-h5py>=2.10
+numpy>=1.24
+scipy>=1.10
+matplotlib>=3.7
+h5py>=3.8

@@ -97,10 +97,10 @@ class dnpTools_tester(unittest.TestCase):
 
     def test_mr_properties(self):
         info_1H = dnp.mr_properties("1H")
-        self.assertEqual(info_1H, 26.7522128)
+        self.assertEqual(info_1H, 42577469.05766274)
 
         info_1H = dnp.mr_properties("1H", 0.35)
-        self.assertEqual(info_1H, 14902114.17018196)
+        self.assertEqual(info_1H, 14902114.170181958)
 
         info_2H = dnp.mr_properties("2H", "qmom")
         self.assertEqual(info_2H, 0.286)

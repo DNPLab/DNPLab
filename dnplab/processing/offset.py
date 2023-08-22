@@ -21,19 +21,21 @@ def remove_background(data, dim="t2", deg=0, regions=None):
 
     """
 
+    out = data.copy()
+
     proc_parameters = {
         "dim": dim,
         "deg": deg,
         "regions": regions,
     }
 
-    fit = background(data, dim=dim, deg=deg, regions=regions)
-    data = data - fit
+    fit = background(out, dim=dim, deg=deg, regions=regions)
+    out = out - fit
 
     proc_attr_name = "remove_background"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out
 
 
 def background(data, dim="t2", deg=0, regions=None):
@@ -50,6 +52,13 @@ def background(data, dim="t2", deg=0, regions=None):
     """
 
     out = data.copy()
+
+    proc_parameters = {
+        "dim": dim,
+        "deg": deg,
+        "regions": regions,
+    }
+
     out.unfold(dim)
 
     coord = out.coords[dim]
@@ -70,5 +79,8 @@ def background(data, dim="t2", deg=0, regions=None):
         out.values[:, ix] = fit
 
     out.fold()
+
+    proc_attr_name = "background"
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return out
