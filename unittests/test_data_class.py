@@ -42,7 +42,7 @@ class dnpDataTester(unittest.TestCase):
 
         tdata = f2(self.Ddata, axis="1")
 
-        #numpy.amax is only there because in python 3.8 on ubuntu the np.max function gets the same name as amax???
+        # numpy.amax is only there because in python 3.8 on ubuntu the np.max function gets the same name as amax???
         if not ("numpy.max" or "numpy.amax" in tdata.proc_attrs[0]):
             self.fail(
                 "Assertion that numpy.max is in proc_attrs is False, proc_attrs:{0}".format(

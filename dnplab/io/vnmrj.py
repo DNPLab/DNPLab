@@ -230,4 +230,7 @@ def import_vnmrj(path, fidFilename="fid", paramFilename="procpar"):
     else:
         data = data.reshape(-1)
 
+    # Assign data/spectrum type
+    attrs["experiment_type"] = "nmr_spectrum"
+
     return DNPData(data, dims, coords, attrs)

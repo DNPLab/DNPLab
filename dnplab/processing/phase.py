@@ -106,8 +106,13 @@ def autophase(
             reference_slice = data.__getitem__(tpl)
         except KeyError as e:
             raise KeyError(
+<<<<<<< HEAD
                 "Could not access reference_slice element at {0}, make sure that it exists! you do not need to include dim ({1})!\n{2}".format(
                     tmp, dim, e
+=======
+                "Could not access pivot element at {0}, make sure that it exists! you do not need to include dim ({1})!\n{2}".format(
+                    _, dim, e
+>>>>>>> develop
                 )
             )
         reference_slice = autophase(
@@ -495,3 +500,4 @@ def autophase_dep(
     out.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return out
+
