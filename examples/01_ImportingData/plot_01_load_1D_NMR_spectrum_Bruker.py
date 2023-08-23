@@ -41,6 +41,22 @@ data = dnp.phase(data, p0=145, p1=0)
 # data = dnp.autophase(data, force_positive=True)
 
 # %%
+# The subset data can be selected by using this select function. The example keeps slices: 1, 5, 6, 7, 8, 9, and 15
+
+# data = data.select((1, range(5,10), 15)) 
+
+# %%
+# Or by using one of the following methods. They return data indexing down 'x' dim with index if the second element in the list is integer number only, or with coords if contains float number.
+
+# data = data['x', 1] # return data indexing down "x" dim with index 1
+
+# data = data['x', 4.5] # return data indexing down "x" dim with "x" coords nearest to 4.5
+
+# data = data['x', 2:5] # return data indexing down "x" dim with index from 2 to 5
+
+# data = data['x', (100., 150.)] # return data indexing down "x" dim where coords are range from 100 to 150
+
+# %%
 # Plot Processed Data
 # -------------------
 
