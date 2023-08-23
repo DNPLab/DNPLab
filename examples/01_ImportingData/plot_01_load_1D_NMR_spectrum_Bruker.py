@@ -35,26 +35,6 @@ data = dnp.fourier_transform(data)
 # NMR spectra are typically phase sensitive (complex data) and the final processing step is to phase the spectrum. In DNPLab you can either manually phase correct the spectrum using the 'phase' function and by giving a phase explicitly:
 
 data = dnp.phase(data, p0=145, p1=0)
-# %%
-# Or by using the autophase function to automatically search for and apply the best phase angle (for reference only)
-
-# data = dnp.autophase(data, force_positive=True)
-
-# %%
-# The subset data can be selected by using this select function. The example keeps slices: 1, 5, 6, 7, 8, 9, and 15
-
-# data = data.select((1, range(5,10), 15)) 
-
-# %%
-# Or by using one of the following methods. They return data indexing down 'x' dim with index if the second element in the list is integer number only, or with coords if contains float number.
-
-# data = data['x', 1] # return data indexing down "x" dim with index 1
-
-# data = data['x', 4.5] # return data indexing down "x" dim with "x" coords nearest to 4.5
-
-# data = data['x', 2:5] # return data indexing down "x" dim with index from 2 to 5
-
-# data = data['x', (100., 150.)] # return data indexing down "x" dim where coords are range from 100 to 150
 
 # %%
 # Plot Processed Data

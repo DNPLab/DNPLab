@@ -274,8 +274,6 @@ class DNPData(ABCData):
 
         Example:
             data.select((1, range(5,10), 15)) # keeps slices: 1, 5, 6, 7, 8, 9, and 15
-            
-            data = data['x', (100., 150.)] # please refer to example Load 1D NMR spectrum in TopSpin format
 
         """
         if len(self.dims) == 1:
