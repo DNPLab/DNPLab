@@ -3,9 +3,6 @@ from warnings import warn
 import numpy as _np
 from scipy.constants import *
 
-
-logger = logging.getLogger(__name__)
-
 # nonsymetric stencils and nonuniform stencils would be possible but might only come at a later point
 # https://en.wikipedia.org/wiki/Finite_difference_coefficient
 cStencil = {
