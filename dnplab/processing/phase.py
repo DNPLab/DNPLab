@@ -1,319 +1,10 @@
 from warnings import warn
 
 import numpy as _np
-import scipy.optimize
-from ..constants import constants
+from scipy.constants import *
 
-import logging
 
-logger = logging.getLogger(__name__)
-
-# nonsymetric stencils and nonuniform stencils would be possible but might only come at a later point
-# https://en.wikipedia.org/wiki/Finite_difference_coefficient
-cStencil = {
-    1: [1 / 12, -2 / 3, 0, 2 / 3, -1 / 12],
-    2: [-1 / 12, 4 / 3, -5 / 2, 4 / 3, -1 / 12],
-    3: [1 / 8, -1, 13 / 8, 0, -13 / 8, 1, -1 / 8],
-    4: [-1 / 6, 2, -13 / 2, 28 / 3, -13 / 2, 2, -1 / 6],
-}
-# forward and backward parts for endings
-fStencil = {
-    1: [-25 / 12, 4, -3, 4 / 3, -1 / 4],
-    2: [15 / 4, -77 / 6, 107 / 6, -13, 61 / 12, -5 / 6],
-    3: [-49 / 8, 29, -461 / 8, 62, -307 / 8, 13, -15 / 8],
-    4: [28 / 3, -111 / 2, 142, -1219 / 6, 176, -185 / 2, 82 / 3, -7 / 2],
-}
-bStencil = {}
-for key, value in fStencil.items():
-    value = _np.array(value)
-    if key % 2 == 0:
-        bStencil[key] = _np.array(list(reversed(value)))
-    else:
-        bStencil[key] = -1 * _np.array(list(reversed(value)))
-
-
-def autophase(inputData, dim="f2", pivot=False, deriv=1, gamma=1e-5, verbose=True):
-    """
-    Phase correction according to
-    An efficient algorithm for automatic phase correction of
-    NMR spectra based on entropy minimization
-    By Li Chen et Al
-    JMR 158 (2002) 164-168
-
-    Default behaviour is that all spectra are phased along dim (default='f2') independently. This can be changed by providing a specific dataset with pivot.
-
-    Args:
-        data (DNPData): Data object to autophase
-        dim (str): Dimension to autophase, default = 'f2'
-        pivot (bool,tuple): if this is not False it must point to an element (dimension,element)
-        deriv (int): Integer for derivative value (1-4, default=1)
-        gamma (float): scaling factor for phase optimization (default=1e-5)
-        verbose (bool): when this is true the phase tuple for each single autphased spectrum will be added. Default True.
-
-    Returns:
-        DNPData: Autophased data, including attrs "autophase" = {pivot,deriv,dim,(phasetuples)}, phasetuples is only included when pivot is not False or verbose=True
-
-    """
-    data = inputData.copy()
-
-    if verbose:
-        data.add_proc_attrs(
-            "autophase",
-            {
-                "pivot": pivot,
-                "deriv": deriv,
-                "dim": dim,
-                "gamma": gamma,
-                "phasetuples": [],
-            },
-        )
-    else:
-        data.add_proc_attrs(
-            "autophase", {"pivot": pivot, "deriv": deriv, "dim": dim, "gamma": gamma}
-        )
-
-    if pivot == False:
-        data.unfold(dim)
-        n_spectra = data.shape[1]
-        for k in range(n_spectra):
-            spectrum = data.values[:, k].flatten()
-            coords = data.coords[dim]
-            ph0, ph1 = _autophase(spectrum, coords, dim, deriv, gamma)
-            phasedSpectrum = (
-                _np.exp(
-                    1.0j * (ph0 + (ph1 * _np.arange(spectrum.size) / spectrum.size))
-                ).astype(data.dtype)
-                * spectrum
-            )
-            data.values[:, k] = phasedSpectrum
-            if verbose:
-                data.proc_attrs[-1][1]["phasetuples"].append((ph0, ph1))
-        data.fold()
-    else:
-        # pivot is now a element along an axis, e.g. ('Average',5)
-        try:
-            _ = pivot
-            tpl = tuple([dim, slice(None, None, None)] + list(pivot))
-            pivot = data.__getitem__(tpl)
-        except KeyError as e:
-            raise KeyError(
-                "Could not access pivot element at {0}, make sure that it exists! you do not need to include dim ({1})!\n{2}".format(
-                    _, dim, e
-                )
-            )
-        pivot = autophase(pivot, dim, deriv=deriv, gamma=gamma, verbose=True)
-        ph0, ph1 = pivot.proc_attrs[-1][1]["phasetuples"][0]
-        data = phase(
-            data,
-            dim=dim,
-            p0=ph0 / 2 / constants.pi * 360,
-            p1=ph1 / 2 / constants.pi * 360,
-        )
-        if verbose:
-            data.proc_attrs[-2][1]["phasetuples"].append((ph0, ph1))
-    return data
-
-
-def _deriveF(f, dx, deriv=4):
-    df = _np.zeros(f.size)  # f is 1d!
-
-    global cStencil
-    global fStencil
-    global bStencil
-    # central part
-    try:
-        cStencil_loc = cStencil[deriv]
-        fStencil_loc = fStencil[deriv]
-        bStencil_loc = bStencil[deriv]
-    except KeyError:
-        raise NotImplementedError(
-            "only the following derivatives orders are implemented: {0}, but {1} was selected".format(
-                cStencil.keys(), deriv
-            )
-        )
-
-    n = len(cStencil_loc)
-
-    startInd = n // 2
-    stopInd = -(n // 2)
-    for k in range(n):
-        if k != n - 1:
-            df[startInd:stopInd] = df[startInd:stopInd] + (
-                cStencil_loc[k] * f[k : -(n - k - 1)]
-            )
-        else:
-            df[startInd:stopInd] = df[startInd:stopInd] + (cStencil_loc[k] * f[k:])
-
-    # forward & backward part
-    fwLen = len(fStencil_loc)
-    for k in range(fwLen):
-        df[:startInd] = df[:startInd] + fStencil_loc[k] * f[k : startInd + k]
-
-    bwLen = len(bStencil_loc)  # should be same as fwLen
-    for k in range(bwLen):
-        if k != (bwLen - 1):
-            df[stopInd:] = (
-                df[stopInd:]
-                + bStencil_loc[k] * f[-(bwLen - k - 1) + stopInd : -(bwLen - k - 1)]
-            )
-        else:
-            df[stopInd:] = df[stopInd:] + bStencil_loc[k] * f[stopInd:]
-
-    return df / dx**deriv
-
-
-def _optimfun(phaseList, data, deriv, gamma, dx, *args):
-    ph0, ph1 = phaseList
-    phasingFaktor = _np.exp(
-        1.0j * (ph0 + (ph1 * _np.arange(data.size) / data.size))
-    ).astype(data.dtype)
-
-    # phase and take real part
-    R = _np.real(data * phasingFaktor)
-    dR = _deriveF(R, dx, deriv=deriv)
-
-    h = _np.abs(dR) / _np.sum(_np.abs(dR))
-    h = h + _np.max(h) * 1e-12  # ensure positivity
-
-    P = gamma * _np.sum((R - _np.abs(R)) ** 2 / 4)
-
-    E = _np.sum(-_np.log(h) * h + P)
-
-    return E
-
-
-def _autophase(data, coords, dim, deriv, gamma):
-    # assume that data is always a "1d" data object which can be used by raw_data=data.values.flatten()
-    # simple and easy for now
-    # "simplex" method: https://en.wikipedia.org/wiki/Nelder%E2%80%93Mead_method
-    # https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.fmin.html#scipy.optimize.fmin
-
-    raw_data = data
-    dx = _np.diff(coords)[0]
-
-    # fopt, iterations, funcalls, warnflag, allvecs
-    xopt, fopt, iter, funcalls, warnflags = scipy.optimize.fmin(
-        _optimfun,
-        [0, 0],
-        args=(raw_data, deriv, gamma, dx),
-        disp=False,
-        full_output=True,
-    )
-    if warnflags == 1:
-        warnings.warn(
-            "Optimization reached maximum number of function evaluations, solution might not be optimal!"
-        )
-    if warnflags == 2:
-        warnings.warn(
-            "Optimization reached maximum number of iterations, solution might not be optimal!"
-        )
-    ph0, ph1 = xopt
-    return ph0, ph1
-
-
-def phase_cycle(data, dim, receiver_phase):
-    """Apply phase cycle to data
-
-    Args:
-        all_data (dnpdata_collection, dnpdata): data to process
-        dim (str): dimension to perform phase cycle
-        receiver_phase (numpy.array, list): Receiver Phase 0 (x), 1 (y), 2 (-x), 3 (-y)
-
-    Returns:
-        dnpdata: data object after phase cycle applied
-    """
-
-    out = data.copy()
-
-    if dim not in out.dims:
-        raise ValueError("dim not in dims")
-
-    coord = out.coords[dim]
-    receiver_phase = _np.array(receiver_phase).ravel()
-
-    proc_parameters = {"dim": dim, "receiver_phase": receiver_phase}
-
-    receiver_phase = _np.tile(receiver_phase, int(coord.size / receiver_phase.size))
-
-    index = out.dims.index(dim)
-
-    reshape_size = [1 for k in out.dims]
-    reshape_size[index] = len(out.coords[dim])
-
-    out *= _np.exp(-1j * (pi / 2.0) * receiver_phase.reshape(reshape_size))
-
-    proc_attr_name = "phasecycle"
-    out.add_proc_attrs(proc_attr_name, proc_parameters)
-
-    return out
-
-
-def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
-    """Apply phase correction to DNPData object
-
-    Args:
-        data (DNPData): Data object to phase
-        dim (str): Dimension to phase, default is "f2"
-        p0 (float, array): Zero order phase correction (degree)
-        p1 (float, array): First order phase correction (degree)
-        picot (float): Pivot point for first order phase correction
-
-    Returns:
-        data (DNPData): Phased data, including new attributes "p0", "p1", and "pivot"
-
-    Examples:
-
-        0th-order phase correction of 1D or 2D DNPData object. If the DNPData object has multiple 1D spectra the same phase p0 is applied to all spectra.
-
-        >>> data = dnp.phase(data,p0)
-
-        0th-order phase correction of all spectra of a 2D DNPData object using a (numpy) array p0 of phases:
-
-        >>> p0 = np.array([15, 15, 5, -5, 0])
-        >>> data = dnp.phase(data, p0)
-
-    .. Note::
-        A 2D DNPData object can either be phase using a single p0 (p1) value, or using an array of phases. When using an array, the size of the phase array has to be equal to the number of spectra to be phased.
-
-    """
-
-    p0 = _np.array(p0 * constants.pi / 180.0)  # p0 in radians
-    p1 = _np.array(p1 * constants.pi / 180.0)  # p1 in radians
-
-    out = data.copy()
-    out.unfold(dim)
-    coord = out.coords[dim]
-
-    phase = _np.exp(
-        1.0j
-        * (
-            p0.reshape(1, -1)
-            + (p1.reshape(1, -1) * _np.arange(coord.size).reshape(-1, 1) / coord.size)
-        )
-    )
-
-    out *= phase
-
-    out.fold()
-
-    proc_parameters = {
-        "p0": p0,
-        "p1": p1,
-        "pivot": pivot,
-    }
-
-    proc_attr_name = "phase_correction"
-    out.add_proc_attrs(proc_attr_name, proc_parameters)
-
-    return out
-
-
-#
-# deprecated autophase function
-#
-
-
-def autophase_dep(
+def autophase(
     data,
     dim="f2",
     method="search",
@@ -485,3 +176,105 @@ def autophase_dep(
 
     return out
 
+<<<<<<< HEAD
+=======
+
+def phase_cycle(data, dim, receiver_phase):
+    """Apply phase cycle to data
+
+    Args:
+        all_data (dnpdata_collection, dnpdata): data to process
+        dim (str): dimension to perform phase cycle
+        receiver_phase (numpy.array, list): Receiver Phase 0 (x), 1 (y), 2 (-x), 3 (-y)
+
+    Returns:
+        dnpdata: data object after phase cycle applied
+    """
+
+    out = data.copy()
+
+    if dim not in out.dims:
+        raise ValueError("dim not in dims")
+
+    coord = out.coords[dim]
+    receiver_phase = _np.array(receiver_phase).ravel()
+
+    proc_parameters = {"dim": dim, "receiver_phase": receiver_phase}
+
+    receiver_phase = _np.tile(receiver_phase, int(coord.size / receiver_phase.size))
+
+    index = out.dims.index(dim)
+
+    reshape_size = [1 for k in out.dims]
+    reshape_size[index] = len(out.coords[dim])
+
+    out *= _np.exp(-1j * (pi / 2.0) * receiver_phase.reshape(reshape_size))
+
+    proc_attr_name = "phasecycle"
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    return out
+
+
+def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
+    """Apply phase correction to DNPData object
+
+    Args:
+        data (DNPData): Data object to phase
+        dim (str): Dimension to phase, default is "f2"
+        p0 (float, array): Zero order phase correction (degree, 0 - 360)
+        p1 (float, array): First order phase correction (degree, 0 - 360)
+        picot (float): Pivot point for first order phase correction
+
+    Returns:
+        data (DNPData):         Phased data, including new attributes "p0", "p1", and "pivot"
+
+    Examples:
+
+        0th-order phase correction of 1D or 2D DNPData object. If the DNPData object has multiple 1D spectra the same phase p0 is applied to all spectra.
+
+        >>> data = dnp.phase(data,p0)
+
+        0th-order phase correction of all spectra of a 2D DNPData object using a (numpy) array p0 of phases:
+
+        >>> p0 = np.array([15, 15, 5, -5, 0])
+        >>> data = dnp.phase(data, p0)
+
+    .. Note::
+        A 2D DNPData object can either be phase using a single p0 (p1) value, or using an array of phases. When using an array, the size of the phase array has to be equal to the number of spectra to be phased.
+
+    """
+
+    p0 = _np.mod(p0, 360)
+    p1 = _np.mod(p1, 360)
+
+    p0 = _np.array(p0 * pi / 180.0)  # p0 in radians
+    p1 = _np.array(p1 * pi / 180.0)  # p1 in radians
+
+    out = data.copy()
+    out.unfold(dim)
+    coord = out.coords[dim]
+
+    phase = _np.exp(
+        1.0j
+        * (
+            p0.reshape(1, -1)
+            + (p1.reshape(1, -1) * _np.arange(coord.size).reshape(-1, 1) / coord.size)
+        )
+    )
+
+    out *= phase
+
+    out.fold()
+
+    proc_parameters = {
+        "p0": p0,
+        "p1": p1,
+        "pivot": pivot,
+    }
+
+    proc_attr_name = "phase_correction"
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    return out
+>>>>>>> 8c0623688d0aa09befe5a323d3b563b9beaf4658
