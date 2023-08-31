@@ -1,11 +1,10 @@
 from warnings import warn
 
 import numpy as _np
-import scipy.optimize
-from ..constants import constants
+from scipy.constants import *
 
-import logging
 
+<<<<<<< HEAD
 logger = logging.getLogger(__name__)
 
 # nonsymetric stencils and nonuniform stencils would be possible but might only come at a later point
@@ -491,3 +490,105 @@ def autophase_dep(
 
     return out
 
+<<<<<<< HEAD
+=======
+
+def phase_cycle(data, dim, receiver_phase):
+    """Apply phase cycle to data
+
+    Args:
+        all_data (dnpdata_collection, dnpdata): data to process
+        dim (str): dimension to perform phase cycle
+        receiver_phase (numpy.array, list): Receiver Phase 0 (x), 1 (y), 2 (-x), 3 (-y)
+
+    Returns:
+        dnpdata: data object after phase cycle applied
+    """
+
+    out = data.copy()
+
+    if dim not in out.dims:
+        raise ValueError("dim not in dims")
+
+    coord = out.coords[dim]
+    receiver_phase = _np.array(receiver_phase).ravel()
+
+    proc_parameters = {"dim": dim, "receiver_phase": receiver_phase}
+
+    receiver_phase = _np.tile(receiver_phase, int(coord.size / receiver_phase.size))
+
+    index = out.dims.index(dim)
+
+    reshape_size = [1 for k in out.dims]
+    reshape_size[index] = len(out.coords[dim])
+
+    out *= _np.exp(-1j * (pi / 2.0) * receiver_phase.reshape(reshape_size))
+
+    proc_attr_name = "phasecycle"
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    return out
+
+
+def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
+    """Apply phase correction to DNPData object
+
+    Args:
+        data (DNPData): Data object to phase
+        dim (str): Dimension to phase, default is "f2"
+        p0 (float, array): Zero order phase correction (degree, 0 - 360)
+        p1 (float, array): First order phase correction (degree, 0 - 360)
+        picot (float): Pivot point for first order phase correction
+
+    Returns:
+        data (DNPData):         Phased data, including new attributes "p0", "p1", and "pivot"
+
+    Examples:
+
+        0th-order phase correction of 1D or 2D DNPData object. If the DNPData object has multiple 1D spectra the same phase p0 is applied to all spectra.
+
+        >>> data = dnp.phase(data,p0)
+
+        0th-order phase correction of all spectra of a 2D DNPData object using a (numpy) array p0 of phases:
+
+        >>> p0 = np.array([15, 15, 5, -5, 0])
+        >>> data = dnp.phase(data, p0)
+
+    .. Note::
+        A 2D DNPData object can either be phase using a single p0 (p1) value, or using an array of phases. When using an array, the size of the phase array has to be equal to the number of spectra to be phased.
+
+    """
+
+    p0 = _np.mod(p0, 360)
+    p1 = _np.mod(p1, 360)
+
+    p0 = _np.array(p0 * pi / 180.0)  # p0 in radians
+    p1 = _np.array(p1 * pi / 180.0)  # p1 in radians
+
+    out = data.copy()
+    out.unfold(dim)
+    coord = out.coords[dim]
+
+    phase = _np.exp(
+        1.0j
+        * (
+            p0.reshape(1, -1)
+            + (p1.reshape(1, -1) * _np.arange(coord.size).reshape(-1, 1) / coord.size)
+        )
+    )
+
+    out *= phase
+
+    out.fold()
+
+    proc_parameters = {
+        "p0": p0,
+        "p1": p1,
+        "pivot": pivot,
+    }
+
+    proc_attr_name = "phase_correction"
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    return out
+>>>>>>> 8c0623688d0aa09befe5a323d3b563b9beaf4658
