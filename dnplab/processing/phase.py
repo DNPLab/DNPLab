@@ -4,7 +4,6 @@ import numpy as _np
 from scipy.constants import *
 
 
-<<<<<<< HEAD
 logger = logging.getLogger(__name__)
 
 # nonsymetric stencils and nonuniform stencils would be possible but might only come at a later point
@@ -89,8 +88,8 @@ def autophase(
             # make phasing here
             buff=data['fold_index',indx]
             p0,p1=phasetpl
-            buff=phase(buff,dim=dim,p0=p0,p1=p1) # gibt fehler weil buff unfolded ist
-            data.values[:,indx]=buff.values.flatten() # this
+            buff=phase(buff,dim=dim,p0=p0,p1=p1)
+            data.values[:,indx]=buff.values.flatten()
         data.fold()
     else:
         # reference_slice is now a element along an axis, e.g. ('Average',5)
