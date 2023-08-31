@@ -15,6 +15,7 @@ This example demonstrates how to import DNP-NMR data in form of a 2D dnpdata obj
 # Some 2D ODNP data is loaded from the examples folder
 #
 # First, load the ovnmrj data into a DNPData object, by loading all folders. This is faciliated by using the standard library pathlib
+# The data is located relative to the examples -> 04_Tools folder in the dnplab structure
 import dnplab as dnp
 import pathlib
 
@@ -60,12 +61,12 @@ dnp.plt.gca().set_ylabel("Real part of spectrum", fontsize=22)
 dnp.show()
 
 # %%
-# now with the last experiment (3) as pivot element.
+# now with the last experiment (3) as reference slice element.
 
-dnpAutophase_pivot = autophase(
-    dnpData, dim="f2", pivot=("experiment_number", 2), deriv=1
+dnpAutophase_ref = autophase(
+    dnpData, dim="f2", reference_slice=("experiment_number", 2), deriv=1
 )
-dnp.fancy_plot(dnpAutophase_pivot, title="Individually autophased data")
+dnp.fancy_plot(dnpAutophase_ref, title="Individually autophased data")
 dnp.plt.gca().set_xlabel("Offset (a.u.)", fontsize=22)
 dnp.plt.gca().set_ylabel("Real part of spectrum", fontsize=22)
 dnp.show()

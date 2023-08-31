@@ -82,12 +82,14 @@ def autophase(
             ph0, ph1 = _autophase(spectrum, coords, dim, deriv, gamma)
             if full_proc_attr:
                 data.proc_attrs[-1][1]["phasetuples"].append((ph0, ph1))
-        for phasetpl,indx in zip(data.proc_attrs[-1][1]["phasetuples"],range(n_spectra)):
+        for phasetpl, indx in zip(
+            data.proc_attrs[-1][1]["phasetuples"], range(n_spectra)
+        ):
             # make phasing here
-            buff=data['fold_index',indx]
-            p0,p1=phasetpl
-            buff=phase(buff,dim=dim,p0=p0,p1=p1)
-            data.values[:,indx]=buff.values.flatten()
+            buff = data["fold_index", indx]
+            p0, p1 = phasetpl
+            buff = phase(buff, dim=dim, p0=p0, p1=p1)
+            data.values[:, indx] = buff.values.flatten()
         data.fold()
     else:
         # reference_slice is now a element along an axis, e.g. ('Average',5)
@@ -309,6 +311,7 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
     out.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return out
+
 
 #
 # deprecated autophase function
