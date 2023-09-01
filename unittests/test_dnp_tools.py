@@ -82,7 +82,13 @@ class dnpTools_tester(unittest.TestCase):
         snr = f(data)
         # with slices
         snr = f(data, slice(0, None), remove_background=[(100, 200)])
-        self.assertRaises(ValueError, f, data, [slice(0, None), (100, 300)])
+        #self.assertRaises(ValueError, f, data, [slice(0, None), (100, 300)])
+        # with more than one signal region:
+        snr = f( data, [slice(0, None), (100, 300)])
+        self.assertEqual(len(snr),2)
+        self.assertEqual(len(snr[0]),1)
+        self.assertEqual(len(snr[1]),1)
+
         snr2 = f(data, (0, 1000), remove_background=[(100, 200)])
 
         snr = f(
@@ -91,6 +97,19 @@ class dnpTools_tester(unittest.TestCase):
             [slice(0, 100), slice(500, 600)],
             remove_background=[(100, 200)],
         )
+
+    def test_002_SNR_on_higherDimensionalData(self):
+        import dnplab as dnp
+
+        coords3 = [np.arange(0, 100), np.arange(0, 20), np.arange(0, 40)]
+        data3 = np.random.random((100, 20, 40))
+        DNPObj3 = dnp.DNPData(data3, ["t2", "t3", "t4"], coords3)
+        f = dnp.processing.signal_to_noise
+        snr = f(DNPObj3, [(10, 20),(30,40),(50,60)], [(80, 90)],dim="t2")
+        self.assertEqual(len(snr),3)
+        self.assertEqual(len(snr[0]),800)
+        self.assertEqual(len(snr[1]),800)
+        self.assertEqual(len(snr[2]),800)
 
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")

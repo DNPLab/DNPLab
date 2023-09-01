@@ -159,11 +159,11 @@ def signal_to_noise(
 
     signal_region = _convenience_tuple_to_list(signal_region)
     if len(signal_region) > 1:
-        raise ValueError(
-            "More than one signal region ({0}) provided in signal_to_noise. This is not supported.".format(
-                signal_region
-            )
-        )
+        snr=[]
+        for sr in signal_region:
+            snr.append( signal_to_noise(data,sr,noise_region,dim,remove_background,**kwargs) )
+        return snr
+
     noise_region = _convenience_tuple_to_list(noise_region)
     remove_background = _convenience_tuple_to_list(remove_background)
 
@@ -175,26 +175,35 @@ def signal_to_noise(
         deg = kwargs.pop("deg", 1)
         data = dnp_remove_background(data, dim, deg, remove_background)
 
-    # currently only one method avaiable -> absolute value
-    signal = _np.max(_np.abs(data[dim, signal_region[0]]))
+    #unfold and calculate snr for each fold_index
+    sdata = _np.abs(data)
+    sdata.unfold(dim)
 
-    if (None, None) in noise_region:
-        signal_arg = _np.argmax(_np.abs(data[dim, signal_region[0]]))
-        datasize = data[dim, :].size
-        noise_region = [
-            slice(0, int(_np.maximum(2, int(signal_arg * 0.9)))),
-            slice(int(_np.minimum(datasize - 2, int(signal_arg * 1.1))), None),
-        ]
+    # currently only absolute value comparison
+    signal = []
+    for indx in range(sdata.shape[1]):
+        signal.append(_np.max(sdata[dim,signal_region[0],'fold_index',indx]))
 
-    # concatenate noise_regions
-    noise_0 = _np.abs(data[dim, noise_region[0]])
+    # now calculate noise
+    noise = []
+    for indx in range(sdata.shape[1]):
+        idata=sdata[dim, :,'fold_index',indx]
+        if (None, None) in noise_region:
+            signal_arg = _np.argmax(idata[dim, signal_region[0],'fi',0])
+            datasize = idata[dim, :,'fi',0].size
+            noise_region = [
+                slice(0, int(_np.maximum(2, int(signal_arg * 0.9)))),
+                slice(int(_np.minimum(datasize - 2, int(signal_arg * 1.1))), None),
+            ]
 
-    for k in noise_region[1:]:
-        noise_0.concatenate(_np.abs(data[dim, k]), dim)
+        # concatenate noise_regions
+        noise_0 = idata[dim, noise_region[0],'fi',0]
+        for k in noise_region[1:]:
+            noise_0.concatenate(idata[dim, k,'fi',0], dim)
 
-    noise = _np.std(_np.abs(noise_0[dim, slice(0, None)]))
+        noise.append( _np.std(noise_0[dim, slice(0, None)])) #check hier weil koennte evt von den dimensionen nicht passen/ wweggeschnitten
 
-    return signal / noise
+    return _np.array(signal) / _np.array(noise)
 
 
 def smooth(data, dim="t2", window_length=11, polyorder=3):
