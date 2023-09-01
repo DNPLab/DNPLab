@@ -159,9 +159,13 @@ def signal_to_noise(
 
     signal_region = _convenience_tuple_to_list(signal_region)
     if len(signal_region) > 1:
-        snr=[]
+        snr = []
         for sr in signal_region:
-            snr.append( signal_to_noise(data,sr,noise_region,dim,remove_background,**kwargs) )
+            snr.append(
+                signal_to_noise(
+                    data, sr, noise_region, dim, remove_background, **kwargs
+                )
+            )
         return snr
 
     noise_region = _convenience_tuple_to_list(noise_region)
@@ -175,33 +179,35 @@ def signal_to_noise(
         deg = kwargs.pop("deg", 1)
         data = dnp_remove_background(data, dim, deg, remove_background)
 
-    #unfold and calculate snr for each fold_index
+    # unfold and calculate snr for each fold_index
     sdata = _np.abs(data)
     sdata.unfold(dim)
 
     # currently only absolute value comparison
     signal = []
     for indx in range(sdata.shape[1]):
-        signal.append(_np.max(sdata[dim,signal_region[0],'fold_index',indx]))
+        signal.append(_np.max(sdata[dim, signal_region[0], "fold_index", indx]))
 
     # now calculate noise
     noise = []
     for indx in range(sdata.shape[1]):
-        idata=sdata[dim, :,'fold_index',indx]
+        idata = sdata[dim, :, "fold_index", indx]
         if (None, None) in noise_region:
-            signal_arg = _np.argmax(idata[dim, signal_region[0],'fi',0])
-            datasize = idata[dim, :,'fi',0].size
+            signal_arg = _np.argmax(idata[dim, signal_region[0], "fi", 0])
+            datasize = idata[dim, :, "fi", 0].size
             noise_region = [
                 slice(0, int(_np.maximum(2, int(signal_arg * 0.9)))),
                 slice(int(_np.minimum(datasize - 2, int(signal_arg * 1.1))), None),
             ]
 
         # concatenate noise_regions
-        noise_0 = idata[dim, noise_region[0],'fi',0]
+        noise_0 = idata[dim, noise_region[0], "fi", 0]
         for k in noise_region[1:]:
-            noise_0.concatenate(idata[dim, k,'fi',0], dim)
+            noise_0.concatenate(idata[dim, k, "fi", 0], dim)
 
-        noise.append( _np.std(noise_0[dim, slice(0, None)])) #check hier weil koennte evt von den dimensionen nicht passen/ wweggeschnitten
+        noise.append(
+            _np.std(noise_0[dim, slice(0, None)])
+        )  # check hier weil koennte evt von den dimensionen nicht passen/ wweggeschnitten
 
     return _np.array(signal) / _np.array(noise)
 
