@@ -26,7 +26,7 @@ data.attrs["experiment_type"] = "nmr_spectrum"
 data = dnp.remove_background(data)
 data = dnp.apodize(data, lw=100)
 data = dnp.fourier_transform(data)
-data = dnp.autophase_dep(data, method="manual", phase=90)
+data = dnp.phase(data, p0 = 90)
 
 dnp.fancy_plot(data, xlim=[-50, 80], title="Inversion Recovery")
 dnp.plt.show()
