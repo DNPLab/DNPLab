@@ -88,6 +88,35 @@ def create_complex(data, real, imag):
 
     return out
 
+def complexify(data, dim, flip = False):
+    """Squeeze dimension containing real part and complex part of data into single dimension.
+    For example, dim "x" contains real part at index 0 and imaginary part at index 1.
+    This function will combine the real and imaginary part into a complex array and remove the dimension.
+
+    Args:
+        data (DNPData): DNPData input object
+        dim (str): dimension with real and imaginary part
+
+    Returns:
+        data (DNPData): Complexified DNPData object
+
+    """
+
+    if dim not in data.dims:
+        raise IndexError('Dimension name "%s is not in dims. Dims are:%s'%(dim, str(data.dims)))
+
+    coord = data.coords[dim]
+
+    if len(coord) != 2:
+        raise ValueError('Length of Dimension to Complexify Must be 2.')
+
+    data_real = data[dim,0].sum(dim) #extract real part
+    data_imag = data[dim,1].sum(dim) #extract imag part
+
+    out = data_real + 1j * data_imag # Create complex data
+
+    return out
+
 
 def signal_to_noise(
     data: DNPData,
