@@ -171,29 +171,29 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
         dims = ["Average", "t2"]
         coords1 = [np.arange(0, 100), np.arange(0, 1024)]
         coords2 = [np.arange(0, 100), np.arange(0, 1024)]
-        coords3 = [np.arange(0,100), np.arange(0,20), np.arange(0,40)]
+        coords3 = [np.arange(0, 100), np.arange(0, 20), np.arange(0, 40)]
         data1 = np.random.random((100, 1024))
         data2 = np.random.random(100)
-        data3 = np.random.random((100,20,40))
+        data3 = np.random.random((100, 20, 40))
 
         DNPObj1 = dnp.DNPData(data1, dims, coords1)
         DNPObj2 = dnp.DNPData(data2, ["Average"], [coords2[0]])
-        DNPObj3 = dnp.DNPData(data3, ["t2","t3","t4"], coords3)
+        DNPObj3 = dnp.DNPData(data3, ["t2", "t3", "t4"], coords3)
 
-        orig_shape=DNPObj3.shape
+        orig_shape = DNPObj3.shape
 
         DNPObj2.unfold("Average")
         DNPObj1.unfold("Average")
         DNPObj3.unfold("t3")
-        b=DNPObj3['fold_index',2000]
-        c=DNPObj3['fold_index',100:500]
-        self.assertEqual(b.shape,(20,1))
-        self.assertEqual(c.shape,(20,400))
-        self.assertEqual(c.dims,['t3','fi'])
-        self.assertTrue(np.all(np.isclose(c.coords['fi']-np.arange(0,400),0)))
+        b = DNPObj3["fold_index", 2000]
+        c = DNPObj3["fold_index", 100:500]
+        self.assertEqual(b.shape, (20, 1))
+        self.assertEqual(c.shape, (20, 400))
+        self.assertEqual(c.dims, ["t3", "fi"])
+        self.assertTrue(np.all(np.isclose(c.coords["fi"] - np.arange(0, 400), 0)))
         DNPObj3.fold()
-        self.assertEqual(DNPObj3.shape,orig_shape)
-        self.assertTrue(np.all(np.isclose(DNPObj3.values-data3,0)))
+        self.assertEqual(DNPObj3.shape, orig_shape)
+        self.assertTrue(np.all(np.isclose(DNPObj3.values - data3, 0)))
 
 
 class dnplab_ABCData_coord_tester(unittest.TestCase):
