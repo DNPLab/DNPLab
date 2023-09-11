@@ -209,6 +209,8 @@ def signal_to_noise(
             _np.std(noise_0[dim, slice(0, None)])
         )  # check hier weil koennte evt von den dimensionen nicht passen/ wweggeschnitten
 
+    sdata.fold()
+
     return _np.array(signal) / _np.array(noise)
 
 

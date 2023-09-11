@@ -1,0 +1,10 @@
+type   LIB
+status   Completed
+lock   on
+title   PROTON_11 
+exp   PROTON
+time   
+macro   return
+data   /home/vnmr1/vnmrsys/data/ODNP_ENHANCEMENT_XBANDRESONATOR_20230616_01/PROTON_11
+CPnode   PROTON_001
+tooltext   ODNP_ENHANCEMENT_XBANDRESONATOR_20230616_01
