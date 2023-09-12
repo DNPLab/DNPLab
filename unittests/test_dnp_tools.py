@@ -8,6 +8,8 @@ import logging
 import sys
 import pathlib
 
+logger = logging.getLogger(__name__)
+
 
 class dnpTools_tester(unittest.TestCase):
     def setUp(self):
@@ -46,13 +48,15 @@ class dnpTools_tester(unittest.TestCase):
             snr = f(data, (300, 400), (500, 600))
         except ValueError as e:
             self.fail("signal_to_noise reported ValueError {0}".format(e))
-        self.assertTrue(not np.isnan(snr))
+        self.assertTrue(not np.isnan(snr._values))
 
         snr = f(
             data,
             (300, 400),
             (500, 600),
         )
+        # dnpdata object as output
+        self.assertTrue(type(snr), type(self.data))
 
     def test_001_using_different_dimensions(self):
         f = dnp.processing.signal_to_noise
@@ -78,19 +82,21 @@ class dnpTools_tester(unittest.TestCase):
             [(632.5, 1264.2)],
             remove_background=[(-1300.1, -500.0)],
         )
+        self.assertEqual(snr.shape, (1,))
+
         # with defaults
         snr = f(data)
         # with slices
         snr = f(data, slice(0, None), remove_background=[(100, 200)])
-        # self.assertRaises(ValueError, f, data, [slice(0, None), (100, 300)])
+
         # with more than one signal region:
         snr = f(data, [slice(0, None), (100, 300)])
-        self.assertEqual(len(snr), 2)
-        self.assertEqual(len(snr[0]), 1)
-        self.assertEqual(len(snr[1]), 1)
+        self.assertEqual(snr.shape[0], 2)
 
+        self.assertEqual(snr.shape, (2,))
+
+        # multiple noise regions
         snr2 = f(data, (0, 1000), remove_background=[(100, 200)])
-
         snr = f(
             data,
             slice(0, None),
@@ -99,17 +105,48 @@ class dnpTools_tester(unittest.TestCase):
         )
 
     def test_002_SNR_on_higherDimensionalData(self):
-        import dnplab as dnp
-
         coords3 = [np.arange(0, 100), np.arange(0, 20), np.arange(0, 40)]
         data3 = np.random.random((100, 20, 40))
         DNPObj3 = dnp.DNPData(data3, ["t2", "t3", "t4"], coords3)
         f = dnp.processing.signal_to_noise
+
+        # single snr region
+        snr0 = f(DNPObj3, (10, 20), [(80, 90)], dim="t2")
+        logger.info("snr0 (single regions) value shape is {0}".format(snr0.shape))
+        self.assertEqual(len(snr0.shape), 3)
+        self.assertEqual(snr0.shape, (1, 20, 40))
+
         snr = f(DNPObj3, [(10, 20), (30, 40), (50, 60)], [(80, 90)], dim="t2")
-        self.assertEqual(len(snr), 3)
-        self.assertEqual(len(snr[0]), 800)
-        self.assertEqual(len(snr[1]), 800)
-        self.assertEqual(len(snr[2]), 800)
+        self.assertEqual(snr.shape[0], 3)
+        self.assertEqual(len(snr.shape), 3)
+        self.assertEqual(snr.shape[1], 20)
+        self.assertEqual(snr.shape[2], 40)
+
+    def test_003_correct_snr_attribution(self):
+        # create artificial testdata
+        data = np.empty((100, 5, 8))
+        for u in range(100):
+            for k in range(5):
+                for l in range(8):
+                    # idea: [0,1,2,3,4] + [l*10+k+u*100 if x==50 else 0 for x in range(95)] along u
+                    if u < 5:
+                        data[u, k, l] = u
+                    elif u == 50:
+                        data[u, k, l] = l * 10 + k + u * 100
+                    else:
+                        data[u, k, l] = 0
+        dims = ["f2", "a1", "a2"]
+        coords = [np.arange(100), np.arange(5), np.arange(8)]
+        DNPObj = dnp.DNPData(data, dims, coords)
+
+        snr = dnp.processing.signal_to_noise(DNPObj, (45, 55), (0, 5), dim="f2")
+
+        noise = np.std(np.arange(5))
+        signal_10_2_5 = 5 * 10 + 2 + 100 * 10
+
+        self.assertTrue(
+            snr["signal_region", 0, "a1", 2, "a2", 5], signal_10_2_5 / noise
+        )
 
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")

@@ -162,11 +162,22 @@ def signal_to_noise(
         snr = []
         for sr in signal_region:
             snr.append(
-                signal_to_noise(
-                    data, sr, noise_region, dim, remove_background, **kwargs
+                _np.squeeze(
+                    signal_to_noise(
+                        data, sr, noise_region, dim, remove_background, **kwargs
+                    )._values
                 )
             )
-        return snr
+
+        # return DNPData object with dims: signal_region and all other dimensions copied from data
+        dims = ["signal_region" if x == dim else x for x in data.dims]
+        coords_new = [
+            _np.arange(len(signal_region)) if x == dim else data.coords[x]
+            for x in data.dims
+        ]
+        data_new = _np.array(snr)
+        snrData = dnp.DNPData(data_new, dims, coords_new)
+        return snrData
 
     noise_region = _convenience_tuple_to_list(noise_region)
     remove_background = _convenience_tuple_to_list(remove_background)
@@ -205,13 +216,20 @@ def signal_to_noise(
         for k in noise_region[1:]:
             noise_0.concatenate(idata[dim, k, "fi", 0], dim)
 
-        noise.append(
-            _np.std(noise_0[dim, slice(0, None)])
-        )  # check hier weil koennte evt von den dimensionen nicht passen/ wweggeschnitten
+        noise.append(_np.std(noise_0[dim, slice(0, None)]))
 
     sdata.fold()
 
-    return _np.array(signal) / _np.array(noise)
+    # return DNPData object
+    dims = ["signal_region" if x == dim else x for x in sdata.dims]
+    coords_new = [
+        _np.arange(1) if x == dim else sdata.coords[x] for x in sdata.dims
+    ]  # we know that only one sr is there
+    data_new = (_np.array(signal) / _np.array(noise)).reshape(
+        [x.size for x in coords_new]
+    )
+    snrData = dnp.DNPData(data_new, dims, coords_new)
+    return snrData
 
 
 def smooth(data, dim="t2", window_length=11, polyorder=3):
