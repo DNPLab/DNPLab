@@ -100,6 +100,11 @@ def complexify(data, dim, flip = False):
     Returns:
         data (DNPData): Complexified DNPData object
 
+    Examples:
+
+        data_complex = dnp.complexify(data, 'x2') # convert data with real, imaginary part in 'x2' dimension to complex data and remove 'x2' dimension
+
+
     """
 
     if dim not in data.dims:
