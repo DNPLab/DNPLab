@@ -110,7 +110,7 @@ def signal_to_noise(
         kwargs : parameters for dnp.remove_background
 
     Returns:
-        SNR (float): Signal to noise ratio
+        SNR (DNPData): DNPData object that contains SNR values, the axis dim is replaced by an axis named "signal_region"
 
     Examples:
 
