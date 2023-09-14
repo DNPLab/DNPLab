@@ -216,15 +216,15 @@ def import_topspin(
     # Convert to complex data depending on AQ_mod
     if acqus_params["AQ_mod"] == 0 or acqus_params["AQ_mod"] == 2:
         if verbose:
-            print("Data is not complex")
+            print("Data is complex")
 
-        values = values = raw[0::2] + 1j * raw[1::2]  # convert to complex
+        values = raw 
 
     elif acqus_params["AQ_mod"] == 1 or acqus_params["AQ_mod"] == 3:
         if verbose:
-            print("Data is complex")
+            print("Data is not complex")
 
-        values = raw
+        values = raw[0::2] + 1j * raw[1::2]  # convert to complex
 
     else:
         raise ValueError("Unknown format")
