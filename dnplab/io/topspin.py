@@ -218,7 +218,7 @@ def import_topspin(
         if verbose:
             print("Data is complex")
 
-        values = raw 
+        values = raw
 
     elif acqus_params["AQ_mod"] == 1 or acqus_params["AQ_mod"] == 3:
         if verbose:
