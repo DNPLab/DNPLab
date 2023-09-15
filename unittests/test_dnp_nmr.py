@@ -2,6 +2,10 @@ import unittest
 from numpy.testing import assert_array_equal
 import dnplab as dnp
 import numpy as np
+import logging
+
+# logging.basicConfig(filename='phase_debug.log', encoding='utf-8', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class dnpNMR_tester(unittest.TestCase):
