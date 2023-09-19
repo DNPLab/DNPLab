@@ -230,6 +230,37 @@ def smooth(data, dim="t2", window_length=11, polyorder=3):
 
     return out
 
+def pseudo_modulation(data, dim = "B0", modulation_amplitude, order = 1, zero_padding = 2)
+    """ Calculate the first derivative of an EPR spectrum due to field modulation
+    
+    Calculation is based on: Hyde et al., “Pseudo Field Modulation in EPR Spectroscopy.”, 
+    Applied Magnetic Resonance 1 (1990): 483–96.
+
+    Args:
+        data (DNPData):         DNPData object (typically an absorption line EPR spectrum)
+        dim:                    Dimension to pseudo modulate (default is B0)
+        modulation_amplitude:   Peak to peak modulation amplitude. This value depends on
+                                the unit of the axis
+        order:                  Harmonic of field modulation (default is 1, 1st derivative)
+        zero_padding:           
+
+    Returns:
+        data (DNPData):         Pseudo modulated spectrum
+    """
+
+    out = data.copy()
+
+
+    return out
+
+
+
+
+
+
+
+
+
 
 def left_shift(data, dim="t2", shift_points=0):
     """Remove points from the left
