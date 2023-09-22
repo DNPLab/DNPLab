@@ -250,6 +250,17 @@ def pseudo_modulation(data, dim = "B0", modulation_amplitude, order = 1, zero_pa
 
     out = data.copy()
 
+    out.unfold(dim)
+
+
+
+    out.fold()
+
+
+
+
+    # proc_attr_name = "smooth"
+    # out.add_proc_attrs(proc_attr_name, proc_parameters)
 
     return out
 
