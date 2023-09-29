@@ -263,3 +263,5 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         data.fold()
     else:
         plot(data, *args, **kwargs)
+
+    _plt.tight_layout()
