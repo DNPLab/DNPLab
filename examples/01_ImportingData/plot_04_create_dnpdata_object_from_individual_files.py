@@ -20,7 +20,7 @@ import numpy as np
 
 filepath_prefix = "../../data/prospa/toluene_10mM_Tempone/"
 
-filenames = [filepath_prefix + "%d/data.1d" %i for i in range(1, 42)]
+filenames = [filepath_prefix + "%d/data.1d" % i for i in range(1, 42)]
 
 # %%
 # In addition, create an array with the power levels. In this example we use numpy to create the array. The length of this array should match the number of spectra. The Python list "filenames" and the array of power levels will become input arguments to the load function. Here, the dimension is called "Power" and the values stored in "powers" serves as the "coord" input argument. When importing the spectra DNPLab will automatically create a 2D object with a new dimension namend "Power" and the data is concatenated into a single 2D dnpdata object. In this example the power is given in units of dBm.

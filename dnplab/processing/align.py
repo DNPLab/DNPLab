@@ -3,7 +3,7 @@ from ..core.data import DNPData
 import warnings
 
 
-def ndalign(data, dim="f2", reference=None, center=None, width=None, average=None):
+def ndalign(data, dim="f2", reference=None, center=None, width=None):
     """Alignment of NMR spectra using FFT Cross Correlation
 
     Args:
@@ -12,7 +12,6 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         reference (numpy) : Reference spectra for alignment
         center (float) : Center of alignment range, by default entire range
         width (float) : Width of alignment range, by default entire range
-        average (int) : Number of averages to use for reference
 
     Returns:
         DNPData: Aligned data
@@ -49,18 +48,12 @@ def ndalign(data, dim="f2", reference=None, center=None, width=None, average=Non
         reference = _np.abs(temp_values[-1])
     elif isinstance(reference, DNPData):
         reference = _np.abs(reference.values)
-        if average != None:
-            reference = _np.convolve(reference, _np.ones(average), "same") / average
 
     ref_max_ix = _np.argmax(reference)
 
     aligned_all_values = _np.zeros_like(all_values)
 
     for ix in range(len(abs_temp_values)):
-        if average != None:
-            abs_temp_values[ix] = (
-                _np.convolve(abs_temp_values[ix], _np.ones(average), "same") / average
-            )
         cor = _np.correlate(
             abs_temp_values[ix], reference, mode="same"
         )  # calculate cross-correlation

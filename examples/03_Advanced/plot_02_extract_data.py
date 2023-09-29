@@ -30,7 +30,7 @@ dnp.plt.show()
 # -----------------------
 # Let's start with the simplest way to extract (index) a single spectrum from a 2D NMR data set. The data set imported here are ODNP-enhanced 1H NMR spectra of toluene. One dimension contains the NMR spectrum (``dim = 'f2'``) and the microwave power is increased throughout the second dimension (``dim = 'power'``). To extract data from the dnpdata object, the user has to specify the name of the dimension and the index of the spectrum. This index has to be an integer and follows the Python convention for indexing (0 is the first index, -1 is the last index). For example, the 4th NMR spectrum at a given microwave power can be extracted from the 2D data set by:
 
-single_spectrum = data['Power', 3]
+single_spectrum = data["Power", 3]
 
 # %%
 # Next, we can plot the spectrum (Note, that the spectrum is not referenced correctly).
@@ -41,7 +41,7 @@ dnp.plt.show()
 # %%
 # The above command creates a new dnpdata object named ``single_spectrum``. If you just want to plot a a specific trace, this can be done by indexing the dnpdata object directly:
 
-dnp.fancy_plot(data['Power', -1], xlim=[-10, 20])
+dnp.fancy_plot(data["Power", -1], xlim=[-10, 20])
 dnp.plt.show()
 
 # %%
@@ -50,7 +50,7 @@ dnp.plt.show()
 # %%
 # In some situations it is useful to select a subset of spectra from the data set e.g. for further data processing. For example, the first 5 spectra of the dnpdata object ``data`` can be selected by:
 
-sub_data = data['Power', 0:5] 
+sub_data = data["Power", 0:5]
 
 # %%
 # Indexing Using Floats
@@ -59,12 +59,16 @@ sub_data = data['Power', 0:5]
 
 # %% For example, the NMR spectrum for a chemical shift range from -8 to 18 ppm can be extracted by executing the following command:
 
-sub_data = data['f2', (-8., 18.)]
+sub_data = data["f2", (-8.0, 18.0)]
 
 # %%
 # The spectra are plotted below. Note the range of the data set is -8 to 18 ppm. The new dnpdata object ``sub_data`` only contains the selected data region, the remaining data points are discarded.
 
-dnp.fancy_plot(sub_data, xlim=[-15, 25], title="ODNP, 10 mM TEMPO in Toluene, Slice Spectra Using Floats")
+dnp.fancy_plot(
+    sub_data,
+    xlim=[-15, 25],
+    title="ODNP, 10 mM TEMPO in Toluene, Slice Spectra Using Floats",
+)
 dnp.plt.show()
 
 # %%
@@ -72,7 +76,7 @@ dnp.plt.show()
 # ----------------------------
 # For multi-dimensional data sets, the user can specify multiple dimensions at once. For example ``data['x', 1:10, 'y', :, 'z', (3.5, 7.5)]``. In the following example we will select only one single NMR spectrum (e.g. ``'Power' , 0``) within a spectral range of -8 to 18 ppm.
 
-sub_data = data['f2', (-8., 18.), 'Power', 0]
+sub_data = data["f2", (-8.0, 18.0), "Power", 0]
 
 dnp.fancy_plot(sub_data)
 dnp.plt.show()
