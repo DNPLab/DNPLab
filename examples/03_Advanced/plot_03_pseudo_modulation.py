@@ -24,14 +24,16 @@ import numpy as np
 file_name_path = "../../data/specman/Nitroxide_Q_Band.d01"
 data = dnp.load(file_name_path)
 
-data = dnp.left_shift(data,'x0',1)
+data = dnp.left_shift(data, "x0", 1)
 
-field = data['x1',2].values.squeeze()
-p = np.polyfit(data.coords['x0'],field, deg = 3)
-field_fit = np.polyval(p, data.coords['x0'])
+field = data["x1", 2].values.squeeze()
+p = np.polyfit(data.coords["x0"], field, deg=3)
+field_fit = np.polyval(p, data.coords["x0"])
 
-data = data['x1',0].sum('x1') + 1j * data['x1',1].sum('x1')
-data = dnp.update_axis(data, start_stop = [field_fit[0], field_fit[-1]], dim = 0, new_dims = "B0")
+data = data["x1", 0].sum("x1") + 1j * data["x1", 1].sum("x1")
+data = dnp.update_axis(
+    data, start_stop=[field_fit[0], field_fit[-1]], dim=0, new_dims="B0"
+)
 
 # %%
 # The imported EPR spectrum is shown in the figure below. It is an echo-detected field-sweep EPR spectrum of a nitroxide bi-radical, recorded at Q-Band frequencies.
@@ -41,9 +43,9 @@ dnp.fancy_plot(data)
 dnp.plt.show()
 
 # %%
-# To calculated the pseudo-modulated spectrum of the absorption spectrum use the DNPLab function ``pseudo_modulation``. 
+# To calculated the pseudo-modulated spectrum of the absorption spectrum use the DNPLab function ``pseudo_modulation``.
 
-data_mod = dnp.pseudo_modulation(data, modulation_amplitude = 0.001)
+data_mod = dnp.pseudo_modulation(data, modulation_amplitude=0.001)
 
 # %%
 # The field axis of this example spectrum is given in (T). Therefore, the unit for the modulation_amplitude also needs to be given in (T). In the above example, the pseudo-modulation spectrum is calculated using a modulation amplitude of 1 mT (10 G).
@@ -55,7 +57,7 @@ dnp.plt.show()
 # %%
 # Just like in a real cw experiment, the spectrum will show too broad lines, if the modulation amplitude is too large. The spectrum will be overmodulated. Below, the effect is shown for a modulation amplitude of 5 mT (50 G).
 
-data_mod = dnp.pseudo_modulation(data, modulation_amplitude = 0.005)
+data_mod = dnp.pseudo_modulation(data, modulation_amplitude=0.005)
 
 dnp.plt.figure()
 dnp.fancy_plot(data_mod)
