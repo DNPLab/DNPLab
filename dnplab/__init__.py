@@ -20,6 +20,7 @@ from .processing import *
 from .widgets import *
 from .plotting import *
 from .reporting import *
+from .theory import *
 from .version import __version__
 
 # config
