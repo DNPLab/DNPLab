@@ -26,7 +26,7 @@ def chirp(tp, BW, resolution=1.0e-9):
     return t, pulse
 
 
-def wurst(tp, N, BW, amp=1, resolution=1.0e-9):
+def wurst(tp, N, BW, B1, resolution=1.0e-9):
     """Calculate complex WURST pulse shape
 
     The WURST pulse can be constructed from two parts: 1) a hyperbolic secant, and 2) a frequency chirp.
@@ -38,7 +38,7 @@ def wurst(tp, N, BW, amp=1, resolution=1.0e-9):
         tp (float): Pulse length
         N (float): Exponent
         BW (float): Bandwidth in (Hz)
-        amp (float): Pulse amplitude
+        B1 (float): Pulse strength in (Hz)
         resolution: Resolution (time increment) in (s). Default is 1 ns
 
     Returns:
@@ -62,6 +62,6 @@ def wurst(tp, N, BW, amp=1, resolution=1.0e-9):
 
     t, pulse_chirp = _dnp.chirp(tp, BW, resolution=resolution)
 
-    pulse = amp * pulse_wurst * pulse_chirp
+    pulse = B1 * pulse_wurst * pulse_chirp
 
     return t, pulse

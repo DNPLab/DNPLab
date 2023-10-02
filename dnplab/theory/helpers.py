@@ -62,7 +62,7 @@ def Jz(spin=1 / 2):
     return out
 
 
-def Jx(spin=1 / 2):
+def Jy(spin=1 / 2):
     """
     Single spin operator Jx
 
@@ -77,7 +77,7 @@ def Jx(spin=1 / 2):
     return out
 
 
-def Jy(spin=1 / 2):
+def Jx(spin=1 / 2):
     """
     Single spin operator Jy
 
