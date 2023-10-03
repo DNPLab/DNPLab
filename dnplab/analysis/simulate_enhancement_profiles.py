@@ -4,7 +4,7 @@ import numpy as _np
 from scipy import optimize
 import dnplab as _dnp
 import warnings
-from scipy.constants import *
+import scipy.constants as _const
 
 
 def sim_dnp_profile(
@@ -67,7 +67,7 @@ def sim_dnp_profile(
     ## Calculate number of points to shift
     dnpLarmorFrequency = _dnp.mr_properties(nucleus, B0)  # Nuclear Larmor Frequency
     dnpLarmorFrequency_G = dnpLarmorFrequency / (
-        1000 * _dnp.mr_properties("0e") / 2 / pi
+        1000 * _dnp.mr_properties("0e") / 2 / _const.pi
     )  # Nuclear Larmor Frequency in [G]
     deltaB0_G = (out.coords["B0"][1] - out.coords["B0"][0]) * 10
     points_to_shift = round(dnpLarmorFrequency_G / deltaB0_G)

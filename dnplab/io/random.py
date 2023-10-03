@@ -1,6 +1,6 @@
 import numpy as _np
 from ..core.data import DNPData
-from scipy.constants import *
+import scipy.constants as _const
 
 
 def fid(points=1024, snr=100.0):
@@ -17,7 +17,7 @@ def fid(points=1024, snr=100.0):
     t2 = _np.r_[0 : 1 : 1j * points]
 
     values = (
-        _np.exp(1j * 2 * pi * 100.0 * t2) * _np.exp(-1 * t2 / 0.10)
+        _np.exp(1j * 2 * _const.pi * 100.0 * t2) * _np.exp(-1 * t2 / 0.10)
         + _np.random.randn(points) / snr
     )
 
