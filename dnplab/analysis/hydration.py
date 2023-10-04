@@ -3,6 +3,7 @@ from scipy import optimize
 import warnings
 from ..constants import constants as _const
 
+
 def calculate_smax(spin_C=False):
     r"""Returns maximal saturation factor.
 

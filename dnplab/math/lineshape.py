@@ -1,7 +1,8 @@
 import numpy as _np
 from scipy.special import wofz
 from ..constants import constants as _const
-#import scipy.constants as _const
+
+# import scipy.constants as _const
 
 
 def voigtian(x, x0, sigma, gamma, integral=1.0):

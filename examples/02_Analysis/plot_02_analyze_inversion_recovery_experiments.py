@@ -27,7 +27,7 @@ data = dnp.remove_background(data)
 data = dnp.apodize(data, lw=100)
 data = dnp.fourier_transform(data)
 
-data = dnp.phase(data, p0 = 65)
+data = dnp.phase(data, p0=65)
 
 dnp.fancy_plot(data, xlim=[-50, 80], title="Inversion Recovery")
 dnp.plt.show()
