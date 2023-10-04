@@ -4,8 +4,9 @@ from scipy.signal import savgol_filter
 from ..core.data import DNPData
 from ..processing.integration import integrate
 from ..processing.offset import remove_background as dnp_remove_background
+from ..constants import constants as _const
 
-import dnplab as dnp
+# import dnplab as dnp
 
 from scipy.special import jv as _jv
 from scipy.fft import fft as _fft
@@ -88,7 +89,7 @@ def create_complex(data, real, imag):
 
     attrs = data.attrs
 
-    out = dnp.DNPData(complexData, dims, coords, attrs)
+    out = DNPData(complexData, dims, coords, attrs)
 
     return out
 
@@ -180,7 +181,7 @@ def signal_to_noise(
             for x in data.dims
         ]
         data_new = _np.array(snr)
-        snrData = dnp.DNPData(data_new, dims, coords_new)
+        snrData = DNPData(data_new, dims, coords_new)
         return snrData
 
     noise_region = _convenience_tuple_to_list(noise_region)
@@ -232,7 +233,7 @@ def signal_to_noise(
     data_new = (_np.array(signal) / _np.array(noise)).reshape(
         [x.size for x in coords_new]
     )
-    snrData = dnp.DNPData(data_new, dims, coords_new)
+    snrData = DNPData(data_new, dims, coords_new)
     return snrData
 
 
@@ -311,7 +312,7 @@ def pseudo_modulation(data, modulation_amplitude, dim="B0", order=1, zero_paddin
     n = len(out.coords[dim])
     delta_B = out.coords[dim][2] - out.coords[dim][1]
     Zmin = 0
-    Zmax = pi * modulation_amplitude / delta_B
+    Zmax = _const.pi * modulation_amplitude / delta_B
     Z = _np.linspace(Zmin, Zmax, zero_padding * n)
 
     spec = out.values
