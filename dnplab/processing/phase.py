@@ -1,7 +1,7 @@
 from warnings import warn
 
 import numpy as _np
-from scipy.constants import *
+from ..constants import constants as _const
 import scipy.optimize
 
 # nonsymetric stencils and nonuniform stencils would be possible but might only come at a later point
@@ -110,8 +110,8 @@ def autophase(
         data = phase(
             data,
             dim=dim,
-            p0=ph0 / 2 / constants.pi * 360,
-            p1=ph1 / 2 / constants.pi * 360,
+            p0=ph0 / 2 / _const.pi * 360,
+            p1=ph1 / 2 / _const.pi * 360,
         )
         if verbose:
             data.proc_attrs[-2][1]["phasetuples"].append((ph0, ph1))
@@ -242,7 +242,7 @@ def phase_cycle(data, dim, receiver_phase):
     reshape_size = [1 for k in out.dims]
     reshape_size[index] = len(out.coords[dim])
 
-    out *= _np.exp(-1j * (pi / 2.0) * receiver_phase.reshape(reshape_size))
+    out *= _np.exp(-1j * (_const.pi / 2.0) * receiver_phase.reshape(reshape_size))
 
     proc_attr_name = "phasecycle"
     out.add_proc_attrs(proc_attr_name, proc_parameters)
@@ -282,8 +282,8 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
     p0 = _np.mod(p0, 360)
     p1 = _np.mod(p1, 360)
 
-    p0 = _np.array(p0 * pi / 180.0)  # p0 in radians
-    p1 = _np.array(p1 * pi / 180.0)  # p1 in radians
+    p0 = _np.array(p0 * _const.pi / 180.0)  # p0 in radians
+    p1 = _np.array(p1 * _const.pi / 180.0)  # p1 in radians
 
     out = data.copy()
     out.unfold(dim)

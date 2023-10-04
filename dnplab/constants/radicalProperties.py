@@ -1,6 +1,5 @@
 import numpy as _np
 from . import mr_properties
-import scipy.constants as _const
 
 
 #######################################
@@ -98,8 +97,8 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     """
 
     # http://physics.nist.gov/constants
-    mub = 9.27400968e-24
-    planck = 6.62606957e-34
+    mub = _const.mub
+    planck = _const.h
 
     # Get radical properties
     glist = radicalProperties.get(radical)[0]
@@ -117,7 +116,7 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     AisoMHz = _np.sum(A) / A.size
 
     gmr_e = mr_properties("0e")
-    AisoT = AisoMHz / gmr_e / 2 / _const.pi
+    AisoT = AisoMHz / gmr_e / 2 / pi
 
     if nucleus != None:
         nucSpin = mr_properties(nucleus, "spin")

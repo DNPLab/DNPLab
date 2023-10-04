@@ -1,5 +1,5 @@
 import numpy as _np
-from scipy.constants import *
+from . import constants as _const
 
 #####################################
 # Gyromagnetic Properties of nuclei #
@@ -174,7 +174,7 @@ def mr_properties(nucleus, *args):
 
     if isinstance(nucleus, str):
         if nucleus in gmrProperties:
-            gmr = gmrProperties.get(nucleus)[1] * 1e7 / 2 / _np.pi
+            gmr = gmrProperties.get(nucleus)[1] * 1e7 / 2 / _const.pi
         else:
             print("Isotope doesn't exist in list")
             return
@@ -209,7 +209,7 @@ def mr_properties(nucleus, *args):
 
             elif args[0] == "hzt":
                 # return gyromagnetic ration in Hz/T
-                return gmrProperties.get(nucleus)[1] * 1e7 / 2 / _np.pi
+                return gmrProperties.get(nucleus)[1] * 1e7 / 2 / _const.pi
 
             else:
                 print("Keyword not recognize")
@@ -225,7 +225,7 @@ def mr_properties(nucleus, *args):
             print("Spin                       : ", gmrProperties.get(nucleus)[0])
             print(
                 "Gyromagnetic Ratio [kHz/T] : %5.2f"
-                % (gmrProperties.get(nucleus)[1] * 10 / 2 / pi)
+                % (gmrProperties.get(nucleus)[1] * 10 / 2 / _const.pi)
             )
             print(
                 "Natural Abundance      [%%] : %5.2f" % (gmrProperties.get(nucleus)[3])

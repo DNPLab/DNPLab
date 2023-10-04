@@ -1,5 +1,5 @@
 import numpy as _np
-import scipy.constants as _const
+from ..constants import constants as _const
 
 
 def _handle_array(x):

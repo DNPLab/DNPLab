@@ -1,8 +1,7 @@
 import numpy as _np
 from scipy import optimize
 import warnings
-import scipy.constants as _const
-
+from ..constants import constants as _const
 
 def calculate_smax(spin_C=False):
     r"""Returns maximal saturation factor.

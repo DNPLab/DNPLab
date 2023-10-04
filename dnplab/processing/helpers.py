@@ -311,7 +311,7 @@ def pseudo_modulation(data, modulation_amplitude, dim="B0", order=1, zero_paddin
     n = len(out.coords[dim])
     delta_B = out.coords[dim][2] - out.coords[dim][1]
     Zmin = 0
-    Zmax = _np.pi * modulation_amplitude / delta_B
+    Zmax = pi * modulation_amplitude / delta_B
     Z = _np.linspace(Zmin, Zmax, zero_padding * n)
 
     spec = out.values
