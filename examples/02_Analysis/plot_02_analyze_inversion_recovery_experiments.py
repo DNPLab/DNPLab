@@ -17,7 +17,7 @@ import numpy as np
 import dnplab as dnp
 
 file_name_path = "../../data/topspin/304"
-data = dnp.load(file_name_path, assign_vdlist="t1", remove_digital_filter = True)
+data = dnp.load(file_name_path, assign_vdlist="t1", remove_digital_filter=True)
 data.attrs["experiment_type"] = "nmr_spectrum"
 
 # %%
