@@ -28,6 +28,47 @@ class dnpTools_tester(unittest.TestCase):
         )
         self.data.attrs["nmr_frequency"] = 14.86e6
 
+        self.rnd_data=self.data.copy()
+
+    def test_999_quicktests(self):
+
+        # create_complex
+        data_r=np.ones(100)
+        data_c=np.ones(100)*2
+        #
+        x = np.r_[0:100]
+        y = np.array([x**2.0,x**3.0]).T
+
+        #leads to warning
+        rnd_data=dnp.DNPData(y, ["t2",'bla'], [x])
+        dnp.processing.create_complex(rnd_data,data_r,data_c)
+
+        #needs integrals:
+        x = np.r_[0:100]
+        y = np.array([x**2.0,x**3.0]).T
+        data = dnp.DNPData(y, ["t2","Power"], [x,np.array([0,1])])
+
+        ft_data=dnp.fourier_transform(data)
+        integrals = dnp.integrate(ft_data)
+        dnp.processing.calculate_enhancement(integrals)
+
+        #makes data not consistent!
+        # smooth
+        dnp.processing.smooth(data,window_length=3,polyorder=2)
+
+        # left_shift
+        dnp.processing.left_shift(self.data,shift_points=5)
+
+        # normalize
+        dnp.processing.normalize(self.data)
+
+        #reference
+        dnp.processing.reference(self.data,dim='t2')
+
+        #pseudo_modulation
+        dnp.processing.pseudo_modulation(self.data,0.1,dim='t2')
+
+
     def test_000_funcionality_signal_to_noise(self):
         """
         check only whether the function raises no error with DNPData input, not whether rsults are useful
