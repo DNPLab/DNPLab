@@ -17,7 +17,7 @@ import numpy as np
 import dnplab as dnp
 
 file_name_path = "../../data/topspin/304"
-data = dnp.load(file_name_path, assign_vdlist="t1", remove_digital_filter = True)
+data = dnp.load(file_name_path, assign_vdlist="t1", remove_digital_filter=True)
 data.attrs["experiment_type"] = "nmr_spectrum"
 
 # %%
@@ -27,7 +27,7 @@ data = dnp.remove_background(data)
 data = dnp.apodize(data, lw=100)
 data = dnp.fourier_transform(data)
 
-data = dnp.phase(data, p0 = 65)
+data = dnp.phase(data, p0=65)
 
 dnp.fancy_plot(data, xlim=[-50, 80], title="Inversion Recovery")
 dnp.plt.show()
