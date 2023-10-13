@@ -1,6 +1,8 @@
 import numpy as _np
 from scipy.special import wofz
-from scipy.constants import *
+from ..constants import constants as _const
+
+# import scipy.constants as _const
 
 
 def voigtian(x, x0, sigma, gamma, integral=1.0):
@@ -29,7 +31,7 @@ def voigtian(x, x0, sigma, gamma, integral=1.0):
 
     """
     z = ((x0 - x) + 1j * gamma) / (sigma * _np.sqrt(2.0))
-    out = _np.real(wofz(z)) / (sigma * _np.sqrt(2 * pi))
+    out = _np.real(wofz(z)) / (sigma * _np.sqrt(2 * _const.pi))
     return integral * out
 
 
@@ -54,7 +56,7 @@ def gaussian(x, x0, sigma, integral=1.0):
     """
     return (
         integral
-        / (sigma * _np.sqrt(2 * pi))
+        / (sigma * _np.sqrt(2 * _const.pi))
         * _np.exp(-((x - x0) ** 2) / (2 * sigma**2))
     )
 
@@ -77,4 +79,9 @@ def lorentzian(x, x0, gamma, integral=1.0):
 
         f(x) = \frac{1}{\pi \gamma} \left[\frac{\gamma^2}{(x-x_0)^2 + \gamma^2}\right]
     """
-    return integral * (1.0 / (pi * gamma)) * gamma**2 / ((x - x0) ** 2 + gamma**2)
+    return (
+        integral
+        * (1.0 / (_const.pi * gamma))
+        * gamma**2
+        / ((x - x0) ** 2 + gamma**2)
+    )
