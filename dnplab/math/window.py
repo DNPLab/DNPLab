@@ -32,7 +32,7 @@ def exponential(x, lw):
     .. math::
         \mathrm{exponential} =  e^{-\pi * x * lw}
     """
-    return _np.exp(_const.pi * (x - x[0]) * lw)
+    return _np.exp(-_const.pi * (x - x[0]) * lw)
 
 
 def gaussian(x, lw):
