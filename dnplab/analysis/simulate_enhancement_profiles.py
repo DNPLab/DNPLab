@@ -4,7 +4,7 @@ import numpy as _np
 from scipy import optimize
 import dnplab as _dnp
 import warnings
-from scipy.constants import *
+from ..constants import constants
 
 
 def sim_dnp_profile(
