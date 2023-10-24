@@ -85,11 +85,11 @@ def create_complex(data, real, imag):
         4000 x 2 ndarray (float32)
 
     With the first dimension ([...,0]) being the real data and the second ([...,1]) the imaginary data. Using the function create_complex the dnpdaa object is converted into a complex data set.
-        
+
         .. code-block:: python
 
             data = dnp.load("MyFile.exp")       # Load example data
-            
+
             data_complex = dnp.create_complex(data, data.values[..., 0], data.values[..., 1])
 
     """
