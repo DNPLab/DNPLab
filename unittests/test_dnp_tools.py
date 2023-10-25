@@ -32,6 +32,9 @@ class dnpTools_tester(unittest.TestCase):
     def test_integrate(self):
         dnp.integrate(self.data, dim="t2")
 
+    def test_cumulative_integrate(self):
+        dnp.cumulative_integrate(self.data, dim="t2")
+
     def test_mr_properties(self):
         info_1H = dnp.mr_properties("1H")
         self.assertEqual(info_1H, 42577469.05766274)
