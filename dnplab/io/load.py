@@ -1,15 +1,18 @@
 import os
 from . import *
+import re
+import warnings
 
 from ..core.util import concat
+from ..config.config import DNPLAB_CONFIG
 
 
-def load(path, data_type=None, dim=None, coord=[], verbose=False, *args, **kwargs):
+def load(path, data_format=None, dim=None, coord=[], verbose=False, *args, **kwargs):
     """Import data from different spectrometer formats
 
     Args:
         path (str, list): Path to data directory or list of directories
-        data_type (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+        data_format (str): format of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
         dim (str): If giving directories as list, name of dimension to concatenate data along
         coord (numpy.ndarray): If giving directories as list, coordinates of new dimension
         verbose (bool): If true, print debugging output
@@ -41,25 +44,29 @@ def load(path, data_type=None, dim=None, coord=[], verbose=False, *args, **kwarg
             dim = "unnamed"
         for filename in path:
             data = load_file(
-                filename, data_type=data_type, verbose=verbose, *args, **kwargs
+                filename, data_format=data_format, verbose=verbose, *args, **kwargs
             )
             data_list.append(data)
         # coord could be empty list
         if len(coord) == 0:
             coord = None  # to not break concat call signature
 
-        return concat(data_list, dim=dim, coord=coord)
+        data = concat(data_list, dim=dim, coord=coord)
+
+        return data
 
     else:
-        return load_file(path, data_type=data_type, verbose=verbose, *args, **kwargs)
+        return load_file(
+            path, data_format=data_format, verbose=verbose, *args, **kwargs
+        )
 
 
-def load_file(path, data_type=None, verbose=False, *args, **kwargs):
+def load_file(path, data_format=None, verbose=False, *args, **kwargs):
     """Import data from different spectrometer formats
 
     Args:
         path (str): Path to data directory or file
-        data_type (str): Type of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+        data_format (str): Format of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
         verbose (bool): If true, print additional debug outputs
         args: Arguments passed to spectrometer specific import function
         kwargs: Key word arguments passed to spectrometer specific import function
@@ -72,66 +79,68 @@ def load_file(path, data_type=None, verbose=False, *args, **kwargs):
     if os.path.isdir(path) and path[-1] != os.sep:
         path = path + os.sep
 
-    if data_type == None:
-        data_type = autodetect(path, verbose=verbose)
+    if data_format == None:
+        data_format = autodetect(path, verbose=verbose)
 
-    if data_type == "prospa":
-        return prospa.import_prospa(path, *args, **kwargs)
+    if data_format == "prospa":
+        data = prospa.import_prospa(path, *args, **kwargs)
 
-    elif data_type == "topspin":
-        return topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
+    elif data_format == "topspin":
+        data = topspin.import_topspin(path, verbose=verbose, *args, **kwargs)
 
-    elif data_type == "topspin pdata":
-        # import_topspin should also handle this type, this is a workaround
-        return topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
+    elif data_format == "topspin pdata":
+        # import_topspin should also handle this format, this is a workaround
+        data = topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
 
-    elif data_type == "topspin dir":
-        return topspin.import_topspin_dir(path, *args, **kwargs)
+    elif data_format == "delta":
+        data = delta.import_delta(path, *args, **kwargs)
 
-    elif data_type == "delta":
-        return delta.import_delta(path, *args, **kwargs)
+    elif data_format == "vnmrj":
+        data = vnmrj.import_vnmrj(path, *args, **kwargs)
 
-    elif data_type == "vnmrj":
-        return vnmrj.import_vnmrj(path, *args, **kwargs)
+    elif data_format == "tnmr":
+        data = tnmr.import_tnmr(path, *args, **kwargs)
 
-    elif data_type == "tnmr":
-        return tnmr.import_tnmr(path, *args, **kwargs)
+    elif data_format == "specman":
+        data = specman.import_specman(path, *args, **kwargs)
 
-    elif data_type == "specman":
-        return specman.import_specman(path, *args, **kwargs)
+    elif data_format in ["xepr", "xenon"]:
+        data = bes3t.import_bes3t(path, *args, **kwargs)
 
-    elif data_type in ["xepr", "xenon"]:
-        return bes3t.import_bes3t(path, *args, **kwargs)
+    elif data_format in ["winepr", "esp"]:
+        data = winepr.import_winepr(path, *args, **kwargs)
 
-    elif data_type in ["winepr", "esp"]:
-        return winepr.import_winepr(path, *args, **kwargs)
+    elif data_format == "h5":
+        data = h5.load_h5(path, *args, **kwargs)
 
-    elif data_type == "h5":
-        return h5.load_h5(path, *args, **kwargs)
+    elif data_format == "power":
+        data = power.import_power(path, *args, **kwargs)
 
-    elif data_type == "power":
-        return power.importPower(path, *args, **kwargs)
+    elif data_format == "vna":
+        data = vna.import_vna(path, *args, **kwargs)
 
-    elif data_type == "vna":
-        return vna.import_vna(path, *args, **kwargs)
-
-    elif data_type == "cnsi_powers":
-        return cnsi.get_powers(path, *args, **kwargs)
+    elif data_format == "cnsi_powers":
+        data = cnsi.get_powers(path, *args, **kwargs)
 
     else:
-        raise ValueError("Invalid data type: %s" % data_type)
+        raise ValueError("Invalid data format: %s" % data_format)
+
+    if data_format not in ["h5", "power", "vna", "cnsi_powers"]:
+        data = _assign_dnplab_attrs(data, data_format)
+
+    return data
 
 
 # TODO rename to detect_file_format
 def autodetect(test_path, verbose=False):
-    """Automatically detect spectrometer format
+    """Automatically detect data format
 
     Args:
         test_path (str): Test directory
         verbose (bool): If true, print output for debugging
 
     Returns:
-        str: Spectrometer type as string
+        str: Data format as string
 
     """
 
@@ -152,43 +161,157 @@ def autodetect(test_path, verbose=False):
         print("Extension:", path_exten)
 
     if path_exten == ".DSC" or path_exten == ".DTA" or path_exten == ".YGF":
-        spectrometer_format = "xepr"
+        data_format = "xepr"
     elif path_exten in [".par", ".spc"]:
-        spectrometer_format = "winepr"
+        data_format = "winepr"
     elif path_exten in [".d01", ".exp"]:
-        spectrometer_format = "specman"
+        data_format = "specman"
     elif path_exten == ".jdf":
-        spectrometer_format = "delta"
+        data_format = "delta"
     elif (
         os.path.isdir(test_path)
         #        and ("fid" in os.listdir(test_path) or "ser" in os.listdir(test_path))
         and ("acqu" in os.listdir(test_path) or "acqus" in os.listdir(test_path))
     ):
-        spectrometer_format = "topspin"
+        data_format = "topspin"
     elif os.path.isdir(test_path) and (
         "proc" in os.listdir(test_path) or "procss" in os.listdir(test_path)
     ):
-        spectrometer_format = "topspin pdata"
+        data_format = "topspin pdata"
     elif os.path.isdir(test_path) and path_exten == ".fid":
-        spectrometer_format = "vnmrj"
+        data_format = "vnmrj"
     elif path_exten in [".1d", ".2d", ".3d", ".4d"]:
-        spectrometer_format = "prospa"
+        data_format = "prospa"
     elif path_exten == ".tnt":
-        spectrometer_format = "tnmr"
+        data_format = "tnmr"
     elif (
         os.path.isdir(test_path)
         and "acqu.par" in os.listdir(test_path)
         and "data.csv" in os.listdir(test_path)
     ):
-        spectrometer_format = "prospa"
+        data_format = "prospa"
     elif path_exten == ".h5":
-        spectrometer_format = "h5"
+        data_format = "h5"
     else:
         raise TypeError(
-            "No data type given and autodetect failed to detect format, please specify a format"
+            "No data format given and autodetect failed to detect format, please specify a format"
         )
 
     if verbose:
-        print("Spectrometer Format:", spectrometer_format)
+        print("Data Format:", data_format)
 
-    return spectrometer_format
+    return data_format
+
+
+def _assign_dnplab_attrs(data, data_format):
+    """Load and assign experiment attributes to dnplab attributes
+
+    Args:
+        data (dnpData): Data object
+        data_format (str): Format of spectrometer data to import
+
+    Returns:
+        data (dnpData): Data object
+
+    """
+    if data_format == None:
+        raise TypeError(
+            "No data format given and autodetect failed to detect format, please specify a format"
+        )
+
+    else:
+        dnplab_attrs_data_info = DNPLAB_CONFIG.getlist(
+            "DNPLAB_ATTRS_COMMON", "dnplab_attrs_data_info"
+        )
+        dnplab_attrs_data_info = [x.strip() for x in dnplab_attrs_data_info]
+        dnplab_attrs_label = DNPLAB_CONFIG.get(
+            "DNPLAB_ATTRS_COMMON", "dnplab_attrs_label", fallback="DNPLAB_ATTRS"
+        )
+        dnplab_attrs_label += ":" + data_format
+        for key, val in DNPLAB_CONFIG[dnplab_attrs_label].items():
+            if val != "None":
+                try:
+                    if key not in dnplab_attrs_data_info:
+                        params = _convert_dnplab_attrs(data, val)
+                    else:
+                        params = val
+                    data.dnplab_attrs[key] = params
+                except:
+                    continue
+        return data
+
+
+def _convert_dnplab_attrs(data, exp_key):
+    """Load and calculate the value assigned to dnplab attributes
+
+    Args:
+        data (dnpData): Data object
+        exp_key (str): A string of experiment attributes possibly with multiplication sign and unit
+
+    Returns:
+        new_params (int or float): dnplab attributes values
+    """
+    if "," in exp_key:
+        [params, unit] = exp_key.split(",")
+        scaling_factor = _scale_dnplab_attrs(unit)
+    else:
+        params = exp_key
+        scaling_factor = 1
+
+    params_list = params.split("*")
+    new_params = 1
+    for key in params_list:
+        params = data.attrs["".join(key.split())]
+        if isinstance(params, str):
+            try:
+                new_params *= int(re.findall("\d+", params)[0])
+            except:
+                new_params *= float(
+                    re.findall("[+-]?\d+\.\d+", params)[0]
+                )  # remove unexpected characters
+        else:
+            new_params *= params
+    return new_params * scaling_factor
+
+
+def _scale_dnplab_attrs(unit):
+    """Scale all dnplab attributes value to SI unit
+
+    Args:
+        unit (str): an unit
+
+    Returns:
+        scaling_factor (float): scaling factor
+    """
+    unit = unit.strip()
+    # check for unit and return 1 if no prefix
+    units = [k.strip() for k in DNPLAB_CONFIG.getlist("UNITS", "units", fallback=[])]
+
+    for u in units:
+        if u in unit:
+            if u == unit:
+                return 1
+            else:
+                scaling_letter = unit[0]
+                if scaling_letter == "m":
+                    scaling_letter = "mm"  # for configuration purpose
+                scaling_letter = scaling_letter.lower()
+                scaling_list = list(DNPLAB_CONFIG["SI_SCALING"].keys())
+                if scaling_letter not in scaling_list:
+                    warnings.warn(
+                        "Unit scaling letter {0} is not in scaling list {1}, force scaling factor to 1".format(
+                            scaling_letter, scaling_list
+                        )
+                    )
+                    scaling_factor = 1
+                else:
+                    scaling_factor = DNPLAB_CONFIG.get(
+                        "SI_SCALING", scaling_letter, fallback=None
+                    )
+                return float(scaling_factor)
+    warnings.warn(
+        "no valid unit and prefix found ({0}), will return 1 as scaling factor".format(
+            unit
+        )
+    )
+    return 1

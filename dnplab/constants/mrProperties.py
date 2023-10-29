@@ -1,5 +1,5 @@
 import numpy as _np
-from scipy.constants import *
+from . import constants as _const
 
 #####################################
 # Gyromagnetic Properties of nuclei #
@@ -145,24 +145,17 @@ def mr_properties(nucleus, *args):
 
     Args:
 
-        nucleus (str): '1H', '2H', '6Li', '13C', 14N', etc.
-        B0 (float): (optional) B0 field in (mT)
+        nucleus (str):          '0e', '1H', '2H', '6Li', '13C', 14N', etc.
+        B0 (float):             (optional) B0 field in (mT)
 
-        Additional flags (see examples below)
-
-            gamma: Return Gyromagnetic Ration (radians/T/s)
-
-            spin: Return spin number of selected nucleus
-
-            qmom: Resturn quadrupole moment [fm^2] (100 barns)
-
-            natAbundance: Return natural abundance (%)
-
-            relSensitivity: Return relative sensitiviy with respect to 1H at constant B0
-
-            moment: Return magnetic dipole moment, abs(u)/uN = abs(gamma)*hbar[I(I + 1)]^1/2/uN
-
-            qlw: Return quadrupolar line-width factor, Qlw = Q^2(2I + 3)/[I^2(2I + 1)]
+        Additional flags (see examples below):
+            gamma:              Return Gyromagnetic Ratio (Hz/T)
+            spin:               Return spin number of selected nucleus
+            qmom:               Return quadrupole moment [fm^2] (100 barns)
+            natAbundance:       Return natural abundance (%)
+            relSensitivity:     Return relative sensitivity with respect to 1H at constant B0
+            moment:             Return magnetic dipole moment, abs(u)/uN = abs(gamma)*hbar[I(I + 1)]^1/2/uN
+            qlw:                Return quadrupolar line-width factor, Qlw = Q^2(2I + 3)/[I^2(2I + 1)]
 
     Examples:
         .. code-block:: python
@@ -181,7 +174,7 @@ def mr_properties(nucleus, *args):
 
     if isinstance(nucleus, str):
         if nucleus in gmrProperties:
-            gmr = gmrProperties.get(nucleus)[1]
+            gmr = gmrProperties.get(nucleus)[1] * 1e7 / 2 / _const.pi
         else:
             print("Isotope doesn't exist in list")
             return
@@ -214,11 +207,15 @@ def mr_properties(nucleus, *args):
             elif args[0] == "qlw":
                 return gmrProperties.get(nucleus)[6]
 
+            elif args[0] == "hzt":
+                # return gyromagnetic ration in Hz/T
+                return gmrProperties.get(nucleus)[1] * 1e7 / 2 / _const.pi
+
             else:
                 print("Keyword not recognize")
 
         else:
-            vLarmor = args[0] * gmr * 1e7 / 2 / pi
+            vLarmor = args[0] * gmr
             return vLarmor
 
     elif len(args) == 2:
@@ -228,7 +225,7 @@ def mr_properties(nucleus, *args):
             print("Spin                       : ", gmrProperties.get(nucleus)[0])
             print(
                 "Gyromagnetic Ratio [kHz/T] : %5.2f"
-                % (gmrProperties.get(nucleus)[1] * 10 / 2 / pi)
+                % (gmrProperties.get(nucleus)[1] * 10 / 2 / _const.pi)
             )
             print(
                 "Natural Abundance      [%%] : %5.2f" % (gmrProperties.get(nucleus)[3])

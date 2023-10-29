@@ -5,15 +5,45 @@ import configparser
 from pathlib import Path
 import warnings
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def _escape_split(s, delim=",", escape="\\"):
+    tokens = []
+    previous_escape = False
+    subtoken = ""
+    for k in range(len(s)):
+        if s[k] == delim and (not previous_escape):
+            if len(subtoken) > 0:
+                tokens.append(subtoken)
+            subtoken = ""  # reset subtoken
+        else:
+            # ESCAPE DELIM  -> DELIM
+            if previous_escape and s[k] != escape and s[k] == delim:
+                subtoken = subtoken[:-1] + s[k]
+            else:
+                # add to subtoken
+                subtoken += s[k]
+            # set previous_escape flag:
+            # If for current char is escape (True and s[k]=='\\') and previous_escape is False -> set it to True
+            # If for current char is escape (True and s[k]=='\\') and previous_escape is True -> case of '\\\\' -> escaping an escape character -> set it back to False
+            # if current char is no escape character -> set it to false
+            previous_escape = (not previous_escape) and (s[k] == escape)
+    if len(subtoken) > 0:
+        tokens.append(subtoken)
+    return tokens
+
 
 def _kwarg_converter(s: str):
-    tokens = s.strip("[").strip("]").split(",")
+    tokens = _escape_split(s, ",", escape="\\")
     args = []
     kwargs = {}
     for k in tokens:
-        subtokens = k.split("=")
+        subtokens = _escape_split(k, "=", escape="\\")
         if len(subtokens) == 1:
-            args.append(k[0])
+            args.append(subtokens[0])
         else:
             kwargs[subtokens[0].strip()] = subtokens[1].strip()
     return args, kwargs

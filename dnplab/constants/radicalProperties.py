@@ -1,6 +1,6 @@
 import numpy as _np
 from . import mr_properties
-from scipy.constants import *
+
 
 #######################################
 # EPR Properties of Selected Radicals #
@@ -97,8 +97,8 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     """
 
     # http://physics.nist.gov/constants
-    mub = 9.27400968e-24
-    planck = 6.62606957e-34
+    mub = _const.mub
+    planck = _const.h
 
     # Get radical properties
     glist = radicalProperties.get(radical)[0]
@@ -141,7 +141,7 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     for b in B:
         print("Transition: ", m)
         print("B                    (T) :  %6.4f" % b)
-        nmr = mr_properties("1H") * b * 10 / 2 / pi
+        nmr = mr_properties("1H") * b * 10 / 2 / _const.pi
         print("NMR Frequency      (MHz) :  %6.3f" % nmr)
         print("")
         m += 1
