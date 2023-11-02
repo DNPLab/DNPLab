@@ -85,3 +85,31 @@ def lorentzian(x, x0, gamma, integral=1.0):
         * gamma**2
         / ((x - x0) ** 2 + gamma**2)
     )
+
+
+def deriv_lorentzian(x, x0, gamma, integral=1.0):
+    r"""Derivative of a Lorentzian Distribution (Imaginary part of a correctly phased spectrum).
+
+    Args:
+        x (array_like): input x
+        x0 (float): Center of distribution
+        gamma (float): Lorentzian width. 2*gamma is full width at half maximum (FWHM).
+        integral (float): Integral of distribution
+
+    Returns:
+        ndarray: Lorentzian derivative distribution
+
+    Defined as the derivative of the Lorentzian:
+
+    .. math::
+
+        f(x) = \frac{1}{\pi \gamma} \left[\frac{- 2\gamma^2 (x-x_0)}{\left( (x-x_0)^2 + \gamma^2 \right)^2}\right]
+    """
+    return (
+        integral
+        * (-1.0 / (_const.pi * gamma))
+        * gamma**2
+        / ((x - x0) ** 2 + gamma**2) ** 2
+        * 2.0
+        * (x - x0)
+    )
