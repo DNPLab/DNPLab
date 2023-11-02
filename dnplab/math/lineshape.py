@@ -121,7 +121,7 @@ def deriv_voigtian(x, x0, sigma, gamma, integral=1.0):
     out = (
         1
         / sigma**3
-        / _np.sqrt(2 * _const * pi)
+        / _np.sqrt(2 * _const.pi)
         * (gamma * _np.imag(wofz(z)) - xc * _np.real(wofz(z)))
     )
     return integral * out
