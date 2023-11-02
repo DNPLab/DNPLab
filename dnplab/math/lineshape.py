@@ -113,3 +113,15 @@ def deriv_lorentzian(x, x0, gamma, integral=1.0):
         * 2.0
         * (x - x0)
     )
+
+
+def deriv_voigtian(x, x0, sigma, gamma, integral=1.0):
+    z = ((x - x0) + 1j * gamma) / (sigma * _np.sqrt(2.0))
+    xc = x - x0
+    out = (
+        1
+        / sigma**3
+        / _np.sqrt(2 * _const * pi)
+        * (gamma * _np.imag(wofz(z)) - xc * _np.real(wofz(z)))
+    )
+    return integral * out
