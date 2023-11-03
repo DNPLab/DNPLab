@@ -88,7 +88,7 @@ def lorentzian(x, x0, gamma, integral=1.0):
 
 
 def deriv_lorentzian(x, x0, gamma, integral=1.0):
-    r"""Derivative of a Lorentzian Distribution (Imaginary part of a correctly phased spectrum).
+    r"""Derivative of a Lorentzian Distribution (Imaginary part of a phased spectrum).
 
     Args:
         x (array_like): input x
@@ -116,6 +116,25 @@ def deriv_lorentzian(x, x0, gamma, integral=1.0):
 
 
 def deriv_voigtian(x, x0, sigma, gamma, integral=1.0):
+    r"""Derivative of a Voigtian distribution (Gaussian broadened imaginary part of a phased spectrum).
+
+    Args:
+        x (array_like): input x
+        x0 (float): Center of distribution
+        sigma (float): Gaussian Linewidth. Standard deviation of Gaussian distribution.
+        gamma (float): Lorentzian width. 2*gamma is full width at half maximum (FWHM).
+        integral (float): Integral of distribution
+
+    Returns:
+        ndarray: Voigtian derivative distribution
+
+    Defined as the derivative of the Voigtian:
+
+    .. math::
+
+        z = \frac{\left( \left( x - x0 \right)  + 1j \gamma \right)}{\sigma \sqrt{2}}
+        f(x) = \frac{1}{\sigma^3 \sqrt{2 \pi}} \left[ \gamma \operatorname{Im}[w(z)] - \left(x - x0\right) \operatorname{Re}[w(z)] \right]
+    """
     z = ((x - x0) + 1j * gamma) / (sigma * _np.sqrt(2.0))
     xc = x - x0
     out = (
