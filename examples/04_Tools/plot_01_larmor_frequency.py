@@ -1,6 +1,6 @@
 # %%
 """
-.. _plot_01_lamor_frequency:
+.. _plot_01_larmor_frequency:
 
 =======================================
 Calculate/Plot Nuclear Larmor Frequency
