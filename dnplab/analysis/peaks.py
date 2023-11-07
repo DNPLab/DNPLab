@@ -10,6 +10,10 @@ def find_peaks(
     normalize=True,
     threshold=0.05,
     height=0.5,
+    distance = None,
+    prominence = None,
+    width = None,
+    wlen = None,
     regions=None,
     peak_info=False
 ):
@@ -44,51 +48,82 @@ def find_peaks(
 
     """
 
-    out = data.copy()
-    out.attrs["experiment_type"] = "peak_list"
-    out.attrs["data_type"] = "peak_list"
+    if len(data.dims) > 2:
+        return
+    
+    elif len(data.dims) == 2:
+        data_list = []
+        second_dim = data.dims[-1]
+        second_coord = data.coords[second_dim]
+        for i in second_coord:
+            sub_data = data[second_dim, int(i)].sum(data.dims[-1])
+            data_list.append(find_peaks(sub_data, dims, normalize, regions = regions, height=height, distance = distance, prominence = prominence, width = width, wlen = wlen, peak_info = False))
+        return _dnp.concat(data_list, dim=second_dim, coord=second_coord)
+    
+    elif len(data.dims) == 1: 
+        out = data.copy()
+        out.attrs["experiment_type"] = "peak_list"
+        out.attrs["data_type"] = "peak_list"
 
-    coords = []
+        resolution = _np.sum(_np.diff(out.coords)) / _np.size(out.coords)
+        frequency = out.attrs["nmr_frequency"]
 
-    resolution = _np.sum(_np.diff(out.coords)) / _np.size(out.coords)
-    frequency = out.attrs["nmr_frequency"]
+        coords = out.coords[dims]
+        append_index = 0
 
-    if normalize == True:
-        out = _dnp.normalize(out)
+        if regions:
+            out = out[dims, regions]
+            append_index = _np.where(coords == out.coords[dims][0])[0][0]
 
-    if regions == None:
-        peak_index, _ = _spsig.find_peaks(out.values.real, height=threshold)
+        if normalize == True:
+            # out = _dnp.normalize(out)
+            real_array = out.values.real
+            max_value = _np.max(real_array)
+            min_value = _np.min(real_array)
+            if _np.abs(max_value) < _np.abs(min_value):
+                out.values = out.values / min_value
+            else:
+                out = _dnp.normalize(out)
+        
+        peak_index, _ = _spsig.find_peaks(out.values.real, height=height, distance = distance, prominence = prominence, width = width, wlen = wlen) ## work here
         peak_width_height = _spsig.peak_widths(
-            out.values.real, peaks=peak_index, rel_height=height
+           out.values.real, peaks=peak_index, rel_height=height
         )
-
         peak_width = peak_width_height[0] * resolution * 1e-6 * frequency
-        peak_height = peak_width_height[1]
+        peak_width_height = peak_width_height[1]
 
-        out.values = _np.vstack((_np.vstack((peak_index, peak_width)), peak_height))
+        peak_index = [x + append_index for x in peak_index]
+        peak_values = [data.values.real[x] for x in peak_index]
+        peak_shift = [coords[int(x)] for x in peak_index]
 
-    out = _dnp.update_axis(out, new_dims="index", start_stop=(0, len(out.values)))
+        out.values = _np.vstack((peak_index, peak_shift, peak_values, peak_width, peak_width_height))
 
-    # else:
-    #     data_list = []
-    #     Not yet implemented for dimensions > 1
+        out = _dnp.update_axis(out, dim = 0, new_dims="peak_info", start_stop=(0, len(out.values) - 1))
+        out.coords.append(dim = 'index', coord = _np.arange(0,len(peak_index),1))
 
-    proc_attr_name = "peak_list"
-    proc_parameters = {
-        "dims": dims,
-        "regions": regions,
-        "normalize": normalize,
-        "threshold": threshold,
-        "height": height,
-    }
+        # else:
+        #     data_list = []
+        #     Not yet implemented for dimensions > 1
 
-    out.add_proc_attrs(proc_attr_name, proc_parameters)
+        proc_attr_name = "peak_list"
+        proc_parameters = {
+            "dims": dims,
+            "regions": regions,
+            "normalize": normalize,
+            "threshold": threshold,
+            "height": height,
+        }
 
-    if peak_info == True:
+        out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-        _dnp.peak_info(out)
+        if peak_info == True:
 
-    return out
+            _dnp.peak_info(out)
+
+        return out
+    else:
+
+        return 
 
 
 def peak_info(data):
