@@ -8,8 +8,8 @@ def find_peaks(
     data,
     dims="f2",
     normalize=True,
-    threshold=0.05,
     height=0.5,
+    threshold=None,
     distance = None,
     prominence = None,
     width = None,
@@ -25,8 +25,8 @@ def find_peaks(
         data (DNPData):         Data object
         dims (str):             Dimension to find peaks
         normalize (boolean):    Normalize data to a maximum value of 1. Default is True
-        threshold (float):      Threshold of minimum peak height to be counted. Default is 0.05. This value is impacted by the normalize argument
         height (float):         Relative height at which peak width is measured. Default is 0.5 for FWHH
+        threshold (float):      Threshold of minimum peak height to be counted. Default is 0.05. This value is impacted by the normalize argument
         regions (None, list):   List of tuples defining the region to find peaks (not implemented yet)
         peak_info (boolean):    If True print output to terminal
 
@@ -55,9 +55,11 @@ def find_peaks(
         data_list = []
         second_dim = data.dims[-1]
         second_coord = data.coords[second_dim]
-        for i in second_coord:
-            sub_data = data[second_dim, int(i)].sum(data.dims[-1])
-            data_list.append(find_peaks(sub_data, dims, normalize, regions = regions, height=height, distance = distance, prominence = prominence, width = width, wlen = wlen, peak_info = False))
+        for i in range(len(second_coord)):
+            sub_data = data[second_dim, i].sum(data.dims[-1])
+            data_list.append(find_peaks(sub_data, dims, normalize, regions = regions, height=height, threshold = threshold, distance = distance, prominence = prominence, width = width, wlen = wlen, peak_info = False))
+            
+
         return _dnp.concat(data_list, dim=second_dim, coord=second_coord)
     
     elif len(data.dims) == 1: 
@@ -85,7 +87,7 @@ def find_peaks(
             else:
                 out = _dnp.normalize(out)
         
-        peak_index, _ = _spsig.find_peaks(out.values.real, height=height, distance = distance, prominence = prominence, width = width, wlen = wlen) ## work here
+        peak_index, _ = _spsig.find_peaks(out.values.real, height=height, threshold = threshold, distance = distance, prominence = prominence, width = width, wlen = wlen) ## work here
         peak_width_height = _spsig.peak_widths(
            out.values.real, peaks=peak_index, rel_height=height
         )
