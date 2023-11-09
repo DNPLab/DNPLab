@@ -1,7 +1,7 @@
 import numpy as _np
 from scipy import optimize
 import warnings
-from scipy.constants import *
+from ..constants import constants as _const
 
 
 def calculate_smax(spin_C=False):
@@ -454,7 +454,7 @@ def hydration(data={}, constants={}):
     # gamma_H is from NIST. The magnetic_field cancels in the following omega_ratio but you
     # need these individually for the spectral density functions later.
 
-    omega_ratio = (omega_e / (2 * pi)) / (omega_H / (2 * pi))
+    omega_ratio = (omega_e / (2 * _const.pi)) / (omega_H / (2 * _const.pi))
     # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular
     # frequency units in order to correspond to S_0/I_0, this is also ~= to the
     # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq
