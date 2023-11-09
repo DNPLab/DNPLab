@@ -25,7 +25,6 @@ This example demonstrates how to use the tool to calculate the nuclear Larmor fr
 # To get started, first, setup the python environment:
 
 import dnplab as dnp
-import numpy as np
 import matplotlib.pyplot as plt
 
 # %%
@@ -49,13 +48,7 @@ print(dnp.mr_properties("13C", "natAbundance"), " %")
 # %%
 # **Plot Gyromagnetic Ratios for Elements in the Periodic Table**
 
-gmr = np.empty(121)
-k = 0
-
-for each in dnp.gmrProperties.keys():
-    gmr[k] = dnp.gmrProperties[each][1]
-
-    k = k + 1
+gmr = [value[1] for value in dnp.gmrProperties.values()]
 
 plt.figure()
 plt.plot(gmr[1:-1])
