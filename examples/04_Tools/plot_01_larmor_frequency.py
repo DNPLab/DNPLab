@@ -1,6 +1,6 @@
 # %%
 """
-.. _plot_01_lamor_frequency:
+.. _plot_01_larmor_frequency:
 
 =======================================
 Calculate/Plot Nuclear Larmor Frequency
@@ -25,7 +25,6 @@ This example demonstrates how to use the tool to calculate the nuclear Larmor fr
 # To get started, first, setup the python environment:
 
 import dnplab as dnp
-import numpy as np
 import matplotlib.pyplot as plt
 
 # %%
@@ -49,17 +48,11 @@ print(dnp.mr_properties("13C", "natAbundance"), " %")
 # %%
 # **Plot Gyromagnetic Ratios for Elements in the Periodic Table**
 
-gmr = np.empty(121)
-k = 0
-
-for each in dnp.gmrProperties.keys():
-    gmr[k] = dnp.gmrProperties[each][1]
-
-    k = k + 1
+gmr = [value[1] for value in dnp.gmrProperties.values()]
 
 plt.figure()
 plt.plot(gmr[1:-1])
-plt.xlabel("Atomic Number")
+plt.xlabel("Index")
 plt.ylabel("Gyromagnetic Ratio (10^7r/Ts)")
 plt.grid(True)
 plt.show()
