@@ -52,7 +52,7 @@ gmr = [value[1] for value in dnp.gmrProperties.values()]
 
 plt.figure()
 plt.plot(gmr[1:-1])
-plt.xlabel("Atomic Number")
+plt.xlabel("Index")
 plt.ylabel("Gyromagnetic Ratio (10^7r/Ts)")
 plt.grid(True)
 plt.show()
