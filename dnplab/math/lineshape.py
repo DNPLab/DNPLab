@@ -41,6 +41,9 @@ def voigtian(x, x0, sigma, gamma, integral=1.0, deriv=False):
         z = \frac{\left( \left( x - x0 \right)  + 1j \gamma \right)}{\sigma \sqrt{2}}
 
     """
+    if (not isinstance(deriv, bool) and isinstance(deriv, (float, int))):
+        deriv = True if int(deriv) == 1 else False # the scipy.optimize.curve_fit passing bool to an float
+
     if deriv == False:
         z = ((x0 - x) + 1j * gamma) / (sigma * _np.sqrt(2.0))
         out = _np.real(wofz(z)) / (sigma * _np.sqrt(2 * _const.pi))
@@ -112,6 +115,9 @@ def lorentzian(x, x0, gamma, integral=1.0, deriv=False):
 
         f(x) = \frac{1}{\pi \gamma} \left[\frac{- 2\gamma^2 (x-x_0)}{\left( (x-x_0)^2 + \gamma^2 \right)^2}\right]
     """
+    if (not isinstance(deriv, bool) and isinstance(deriv, (float, int))):
+        deriv = True if int(deriv) == 1 else False # the scipy.optimize.curve_fit passing bool to an float
+
     if deriv == False:
         return (
             integral
