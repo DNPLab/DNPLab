@@ -50,5 +50,6 @@ dnp.peak_info(peaks)
 peaks = dnp.find_peaks(data, height = 0.6)
 dnp.peak_info(peaks)
 
+
 # %%
 # Now, only peaks with a relative intensity > 0.6 are included in the peak list.
