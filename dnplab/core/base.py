@@ -303,11 +303,14 @@ class ABCData(object):
                     updated_index_slice.append(slice(start, start + 1))
                 else:
                     start = _np.argmin(_np.abs(slice_[0] - a.get_coord(dim)))
-                    stop = _np.argmin(_np.abs(slice_[1] - a.get_coord(dim)))
-                    if start == stop:
-                        stop = start + 1
-                    if stop < start:
-                        start, stop = stop, start
+                    if slice_[1] > a._coords[dim][-1]:
+                        stop = None
+                    else:
+                        stop = _np.argmin(_np.abs(slice_[1] - a.get_coord(dim)))
+                        if start == stop:
+                            stop = start + 1
+                        if stop < start:
+                            start, stop = stop, start
                     updated_index_slice.append(slice(start, stop))
             elif isinstance(slice_, int):
                 start = slice_
