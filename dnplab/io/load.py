@@ -143,47 +143,55 @@ def autodetect(test_path, verbose=False):
         str: Data format as string
 
     """
-
+    attempt = 0
+    data_format = "unknown"
     if verbose == True:
         print("current directory:", os.getcwd())
         print("data path:", test_path)
         abs_path = os.path.abspath(test_path)
         print("absolute path:", abs_path)
 
-    # Remove trailing separator
-    if test_path[-1] == os.sep:
-        test_path = test_path[:-1]
-        if verbose:
-            print("removed trailing separator:", os.sep)
+    while (attempt <= 2):
+    # Remove trailing separator \
+        
+        attempt += 1
+        if test_path[-1] == os.sep:
+            test_path = test_path[:-1]
+            if verbose:
+                print("removed trailing separator:", os.sep)
+        path_exten = os.path.splitext(test_path)[1]
+        if path_exten != "" and verbose:
+            print("Extension:", path_exten)
 
-    path_exten = os.path.splitext(test_path)[1]
-    if path_exten != "" and verbose:
-        print("Extension:", path_exten)
-
-    if path_exten == ".DSC" or path_exten == ".DTA" or path_exten == ".YGF":
-        data_format = "xepr"
-    elif path_exten in [".par", ".spc"]:
-        data_format = "winepr"
-    elif path_exten in [".d01", ".exp"]:
-        data_format = "specman"
-    elif path_exten == ".jdf":
-        data_format = "delta"
-    elif path_exten == ".h5":
-        data_format = "h5"
-    elif path_exten in [".1d", ".2d", ".3d", ".4d"]:
-        data_format = "prospa"
-    elif path_exten == ".tnt":
-        data_format = "tnmr"
-
-    elif os.path.isdir(test_path):
-        if "acqu" in os.listdir(test_path) or "acqus" in os.listdir(test_path):
-            data_format = "topspin"
-        elif "proc" in os.listdir(test_path) or "procss" in os.listdir(test_path):
-            data_format = "topspin pdata"
-        elif os.path.isdir(test_path) and path_exten == ".fid":
-            data_format = "vnmrj"
-        elif "acqu.par" in os.listdir(test_path) and "data.csv" in os.listdir(test_path):
+        if path_exten == ".DSC" or path_exten == ".DTA" or path_exten == ".YGF":
+            data_format = "xepr"
+        elif path_exten in [".par", ".spc"]:
+            data_format = "winepr"
+        elif path_exten in [".d01", ".exp"]:
+            data_format = "specman"
+        elif path_exten == ".jdf":
+            data_format = "delta"
+        elif path_exten == ".h5":
+            data_format = "h5"
+        elif path_exten in [".1d", ".2d", ".3d", ".4d"]:
             data_format = "prospa"
+        elif path_exten == ".tnt":
+            data_format = "tnmr"
+
+        elif os.path.isdir(test_path):
+            if "acqu" in os.listdir(test_path) or "acqus" in os.listdir(test_path):
+                data_format = "topspin"
+            elif "proc" in os.listdir(test_path) or "procss" in os.listdir(test_path):
+                data_format = "topspin pdata"
+            elif os.path.isdir(test_path) and path_exten == ".fid":
+                data_format = "vnmrj"
+            elif "acqu.par" in os.listdir(test_path) and "data.csv" in os.listdir(test_path):
+                data_format = "prospa"
+            else: # get into deeper folder
+                test_path += ('/' + os.listdir(test_path)[0])
+        
+        if data_format != "unknown":
+            break
 
     else:
         raise TypeError(
@@ -192,7 +200,7 @@ def autodetect(test_path, verbose=False):
 
     if verbose:
         print("Data Format:", data_format)
-
+        
     return data_format
 
 
