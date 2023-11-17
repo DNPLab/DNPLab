@@ -7,7 +7,9 @@ from ..core.util import concat
 from ..config.config import DNPLAB_CONFIG
 
 
-def load(path, data_format=None, dim=None, coord=[], verbose=False, *args, **kwargs):
+def load(
+    path, data_format=None, dim="unnamed", coord=[], verbose=False, *args, **kwargs
+):
     """Import data from different spectrometer formats
 
     Args:
@@ -40,25 +42,26 @@ def load(path, data_format=None, dim=None, coord=[], verbose=False, *args, **kwa
             )
 
         data_list = []
-        if dim is None:
-            dim = "unnamed"
+
         for filename in path:
             data = load_file(
                 filename, data_format=data_format, verbose=verbose, *args, **kwargs
             )
             data_list.append(data)
-        # coord could be empty list
-        if len(coord) == 0:
-            coord = None  # to not break concat call signature
 
         data = concat(data_list, dim=dim, coord=coord)
 
         return data
 
     else:
-        return load_file(
+        data = load_file(
             path, data_format=data_format, verbose=verbose, *args, **kwargs
         )
+
+        if isinstance(data, list):  # only valid for Kea right now
+            data = concat(data, dim=dim, coord=coord)
+
+        return data
 
 
 def load_file(path, data_format=None, verbose=False, *args, **kwargs):
@@ -151,9 +154,9 @@ def autodetect(test_path, verbose=False):
         abs_path = os.path.abspath(test_path)
         print("absolute path:", abs_path)
 
-    while (attempt <= 2):
-    # Remove trailing separator \
-        
+    while attempt <= 2:
+        # Remove trailing separator \
+
         attempt += 1
         if test_path[-1] == os.sep:
             test_path = test_path[:-1]
@@ -185,11 +188,13 @@ def autodetect(test_path, verbose=False):
                 data_format = "topspin pdata"
             elif os.path.isdir(test_path) and path_exten == ".fid":
                 data_format = "vnmrj"
-            elif "acqu.par" in os.listdir(test_path) and "data.csv" in os.listdir(test_path):
+            elif "acqu.par" in os.listdir(test_path) and "data.csv" in os.listdir(
+                test_path
+            ):
                 data_format = "prospa"
-            else: # get into deeper folder
-                test_path += ('/' + os.listdir(test_path)[0])
-        
+            else:  # get into deeper folder
+                test_path += "/" + os.listdir(test_path)[0]
+
         if data_format != "unknown":
             break
 
@@ -200,7 +205,7 @@ def autodetect(test_path, verbose=False):
 
     if verbose:
         print("Data Format:", data_format)
-        
+
     return data_format
 
 

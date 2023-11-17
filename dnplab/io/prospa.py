@@ -29,11 +29,28 @@ def import_prospa(path, parameters_filename=None, experiment=None, verbose=False
     elif os.path.isdir(path):
         filesList = glob.glob(os.path.join(path, "*.[1-4]d"))
         if len(filesList) == 0:
-            raise ValueError("No binary data file in directory:", path)
-        elif len(filesList) > 1:
-            raise ValueError("More than one binary data file in directory:", filesList)
+            # check if the folder in the directory is valid for prospa
+            dir_list = os.listdir(path)
+            dir_list = [int(num) for num in os.listdir(path) if num.isdigit()]
+            if len(dir_list) == []:
+                raise ValueError("No binary data file in directory:", path)
+            else:
+                dir_list.sort()
+                kea_data_list = []
+                for num in dir_list:
+                    kea_data_list.append(
+                        import_prospa(
+                            path + str(num),
+                            parameters_filename=parameters_filename,
+                            experiment=experiment,
+                            verbose=verbose,
+                        )
+                    )
+                return kea_data_list
+
         else:
-            data_filename = filesList[0]
+            filesList.sort()  # sort list with order of data.1d to data.4d
+            data_filename = filesList[-1]  # use the higher dimension data for analysis
             filename, extension = os.path.splitext(os.path.split(data_filename)[-1])
     else:
         raise OSError("%s not found" % path)
