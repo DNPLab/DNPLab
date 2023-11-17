@@ -168,30 +168,23 @@ def autodetect(test_path, verbose=False):
         data_format = "specman"
     elif path_exten == ".jdf":
         data_format = "delta"
-    elif (
-        os.path.isdir(test_path)
-        #        and ("fid" in os.listdir(test_path) or "ser" in os.listdir(test_path))
-        and ("acqu" in os.listdir(test_path) or "acqus" in os.listdir(test_path))
-    ):
-        data_format = "topspin"
-    elif os.path.isdir(test_path) and (
-        "proc" in os.listdir(test_path) or "procss" in os.listdir(test_path)
-    ):
-        data_format = "topspin pdata"
-    elif os.path.isdir(test_path) and path_exten == ".fid":
-        data_format = "vnmrj"
+    elif path_exten == ".h5":
+        data_format = "h5"
     elif path_exten in [".1d", ".2d", ".3d", ".4d"]:
         data_format = "prospa"
     elif path_exten == ".tnt":
         data_format = "tnmr"
-    elif (
-        os.path.isdir(test_path)
-        and "acqu.par" in os.listdir(test_path)
-        and "data.csv" in os.listdir(test_path)
-    ):
-        data_format = "prospa"
-    elif path_exten == ".h5":
-        data_format = "h5"
+
+    elif os.path.isdir(test_path):
+        if "acqu" in os.listdir(test_path) or "acqus" in os.listdir(test_path):
+            data_format = "topspin"
+        elif "proc" in os.listdir(test_path) or "procss" in os.listdir(test_path):
+            data_format = "topspin pdata"
+        elif os.path.isdir(test_path) and path_exten == ".fid":
+            data_format = "vnmrj"
+        elif "acqu.par" in os.listdir(test_path) and "data.csv" in os.listdir(test_path):
+            data_format = "prospa"
+
     else:
         raise TypeError(
             "No data format given and autodetect failed to detect format, please specify a format"
