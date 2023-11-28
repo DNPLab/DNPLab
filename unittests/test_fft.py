@@ -7,6 +7,7 @@ import logging
 # logging.basicConfig(filename='phase_debug.log', encoding='utf-8', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class dnpNMR_tester(unittest.TestCase):
     def setUp(self):
         pts = 1024
@@ -18,8 +19,9 @@ class dnpNMR_tester(unittest.TestCase):
         self.data.attrs["nmr_frequency"] = 400e6
 
     def test_fourier_transform_functions(self):
-        self.data = dnp.fourier_transform(self.data, zero_fill_factor = 4)
+        self.data = dnp.fourier_transform(self.data, zero_fill_factor=4)
         self.data = dnp.inverse_fourier_transform(self.data)
+
 
 if __name__ == "__main__":
     unittest.main()
