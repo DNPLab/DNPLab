@@ -212,13 +212,15 @@ def signal_to_noise(
         data = dnp_remove_background(data, dim, deg, remove_background)
 
     # unfold and calculate snr for each fold_index
-    sdata = _np.abs(data)
+    sdata = data
     sdata.unfold(dim)
 
     # currently only absolute value comparison
     signal = []
     for indx in range(sdata.shape[1]):
-        signal.append(_np.max(sdata[dim, signal_region[0], "fold_index", indx]))
+        signal.append(
+            _np.max(_np.abs(sdata[dim, signal_region[0], "fold_index", indx]))
+        )
 
     # now calculate noise
     noise = []

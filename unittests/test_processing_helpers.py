@@ -186,3 +186,25 @@ class dnpTools_tester(unittest.TestCase):
         self.assertTrue(
             snr["signal_region", 0, "a1", 2, "a2", 5], signal_10_2_5 / noise
         )
+
+    def test_004_abs_signal_test(self):
+        pts = 100
+        x = np.r_[0.0 : 99.0 : 1j * pts]
+        y = dnp.lineshape.gaussian(x, 50, 5, integral=1.0)
+
+        y /= np.max(y)
+        np.random.seed(100)
+        y += np.random.randn(pts) * 0.1
+
+        signal = np.max(y)
+        noise = np.std(y[70:100])
+
+        data = dnp.DNPData(y, ["x"], [x])
+        snr = dnp.signal_to_noise(data, [(0, 100)], dim="x", noise_region=[(70, 100)])
+
+        self.assertTrue(np.isclose(snr["signal_region", 0].values, signal / noise))
+        # negative peak:
+        data = -1 * data
+        snr2 = dnp.signal_to_noise(data, [(0, 100)], dim="x", noise_region=[(70, 100)])
+
+        self.assertTrue(np.isclose(snr2["signal_region", 0].values, signal / noise))
