@@ -26,7 +26,7 @@ data.attrs["experiment_type"] = "nmr_spectrum"
 # %%
 # The spectral data is now stored in the data object. DNPLab uses object oriented programming, therefore, data is not just a variable. It is a dnpData object. Next, we will perform some basic data processing, methods that are pretty standard in NMR spectroscopy. For this just pass the dnpData object from one function to the next.
 
-data = dnp.apodize(data, lw=100)
+data = dnp.apodize(data, lw=100, remove_digital_filter = True)
 data = dnp.fourier_transform(data)
 
 # %%
