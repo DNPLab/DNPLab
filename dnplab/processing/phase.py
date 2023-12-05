@@ -113,8 +113,7 @@ def autophase(
             p0=ph0 / 2 / _const.pi * 360,
             p1=ph1 / 2 / _const.pi * 360,
         )
-        # if verbose:
-        #    data.proc_attrs[-2][1]["phasetuples"].append((ph0, ph1))
+
     return data
 
 
