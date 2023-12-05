@@ -22,10 +22,10 @@ data.attrs["experiment_type"] = "nmr_spectrum"
 
 data = dnp.apodize(data, lw=2)
 data = dnp.fourier_transform(data)
-data = dnp.phase(data, p0 = 175)
+data = dnp.phase(data, p0=175)
 
 dnp.plt.figure()
-dnp.fancy_plot(data, xlim = [-20,20])
+dnp.fancy_plot(data, xlim=[-20, 20])
 dnp.plt.title("ODNP-Enhanced NMR Spectrum of 10 mM TEMPONE in Toluene")
 dnp.plt.show()
 
@@ -49,7 +49,6 @@ dnp.peak_info(peaks)
 
 peaks = dnp.find_peaks(data, height = 0.6)
 dnp.peak_info(peaks)
-
 
 # %%
 # Now, only peaks with a relative intensity > 0.6 are included in the peak list.
