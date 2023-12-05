@@ -144,7 +144,7 @@ def find_group_delay(attrs_dict):
 
 # This function does too much, should be broken into smaller functions
 def import_topspin(
-    path, assign_vdlist=False, remove_digital_filter=False, verbose=False
+    path, assign_vdlist=False, remove_digital_filter=True, verbose=False
 ):
     """Import topspin data and return dnpdata object
 
