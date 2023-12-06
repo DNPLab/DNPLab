@@ -25,7 +25,7 @@ data = dnp.load("../../data/prospa/water_phase_cycled/data.2d")
 # we are interested in the spectra
 # and only the arbitrary part from -900 to -100 ppm
 
-data = dnp.fourier_transform(data)['f2',(-900.0,-100.0)]
+data = dnp.fourier_transform(data)["f2", (-900.0, -100.0)]
 
 # %%
 # we look at the real part of the spectra
