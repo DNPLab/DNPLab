@@ -81,7 +81,9 @@ def autophase(
             coords = data.coords[dim]
             ph0, ph1 = _autophase(spectrum, coords, dim, deriv, gamma)
             if full_proc_attr:
-                data.proc_attrs[-1][1]["phasetuples"].append((ph0/_const.pi*180, ph1/_const.pi*180))
+                data.proc_attrs[-1][1]["phasetuples"].append(
+                    (ph0 / _const.pi * 180, ph1 / _const.pi * 180)
+                )
         for phasetpl, indx in zip(
             data.proc_attrs[-1][1]["phasetuples"], range(n_spectra)
         ):
