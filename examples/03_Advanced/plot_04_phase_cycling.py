@@ -35,7 +35,7 @@ data_real = data.real
 # %%
 # lets plot the spectrum for all 4 cycles
 
-# dnp.fancy_plot(data_real)
+dnp.fancy_plot(data_real)
 
 # %%
 # clearly the spectra are phase cycled, but we'd like to have them phased all the same
