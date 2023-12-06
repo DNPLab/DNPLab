@@ -27,6 +27,7 @@ data = dnp.phase(data, p0=175)
 dnp.plt.figure()
 dnp.fancy_plot(data, xlim=[-20, 20])
 dnp.plt.title("ODNP-Enhanced NMR Spectrum of 10 mM TEMPONE in Toluene")
+dnp.plt.tight_layout()
 dnp.plt.show()
 
 # %%

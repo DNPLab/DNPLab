@@ -51,6 +51,7 @@ dnp.plt.figure()
 dnp.fancy_plot(data, xlim=[-10, 20])
 dnp.plt.title(sampleTag)
 dnp.plt.show()
+dnp.plt.tight_layout()
 
 # %%
 # Saving the Processed Data
