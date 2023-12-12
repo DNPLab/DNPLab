@@ -151,6 +151,7 @@ def import_topspin(
     Args:
         path (str): Directory of data
         assign_vdlist: False, or the name of dimension to assign topspin vdlist
+        remove_digital_filter (bool): option to remove group delay
         verbose (bool): Print additional output for troubleshooting
 
     Returns:
