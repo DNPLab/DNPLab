@@ -20,13 +20,13 @@ import matplotlib.pylab as plt
 # ---------------------------------
 # In this example we use a 1D NMR spectrum acquired using TopSpin. Example data is located in the data folder. All data enters into the same object structure so this example applies to any NMR format. DNPLab will try to identify the format of the NMR spectrum (e.g. TopSpin, VnmrJ, Kea, etc.). This will work in most cases. If the autodetect fails, the format can be explicitly given using the data_type attribute of the load function (e.g. data_type = "topspin").
 
-data = dnp.load("../../data/topspin/1")
+data = dnp.load("../../data/topspin/1", remove_digital_filter = True)
 data.attrs["experiment_type"] = "nmr_spectrum"
 
 # %%
 # The spectral data is now stored in the data object. DNPLab uses object oriented programming, therefore, data is not just a variable. It is a dnpData object. Next, we will perform some basic data processing, methods that are pretty standard in NMR spectroscopy. For this just pass the dnpData object from one function to the next.
 
-data = dnp.apodize(data, lw=100, remove_digital_filter = True)
+data = dnp.apodize(data, lw=100)
 data = dnp.fourier_transform(data)
 
 # %%
