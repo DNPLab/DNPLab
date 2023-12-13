@@ -57,3 +57,6 @@ tight_layout()
 # Similarly, we can also slice by specifying a range of values. To do this, we use a tuple specify the minimum and maximum values for the index.
 
 data_slice_range = data['sample', (-3, 3)]
+
+# %%
+# For an advanced tutorial how indexing works and how to extract individual data slice from a multi-dimensional dnpData object see the :ref:`plot_02_extract_data` tutorial.
