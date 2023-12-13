@@ -22,7 +22,7 @@ import dnplab as dnp
 # %%
 # Load and Process Off-Signal
 # -----------------------------
-# The next section demonstrates how the FID is imported into DNPLab and processed. Processing involves removing any DC offset, followed by a 15 Hz linewidth appodization, prior to performing the Fourier transformation.
+# The next section demonstrates how the FID is imported into DNPLab and processed. Processing involves removing any DC offset, followed by a 15 Hz linewidth apodization, prior to performing the Fourier transformation.
 
 ########## OFF Signal (P = 0 W) ##########
 data_off = dnp.load("../../data/prospa/10mM_TEMPO_Water/1Pulse_20200929/35/data.1d")

@@ -8,7 +8,7 @@ Create a 2D dnpdata object from set of individual spectra
 
 This example demonstrates how to import a list of DNP-NMR spectra and create a 2D dnpdata object.
 
-Depending on how you record a set of DNP-NMR experiments, you will either end up with a single file corresponding to a 2D array of spectra (in which case you can skip to the next example ...) or with a set of individual files recorded for example at different microwave power levels. A common example is recording the NMR signal at different levels of microwave power to determine the enhancement at maximum power. Processing each spectrum individually is tedious and time-consuming. To make processing more convenient, the individual NMR spectra can be concatanated in a single dnpdata object for easy processing and analyzing of the data.
+Depending on how you record a set of DNP-NMR experiments, you will either end up with a single file corresponding to a 2D array of spectra (in which case you can skip to the next example ...) or with a set of individual files recorded for example at different microwave power levels. A common example is recording the NMR signal at different levels of microwave power to determine the enhancement at maximum power. Processing each spectrum individually is tedious and time-consuming. To make processing more convenient, the individual NMR spectra can be concatenated in a single dnpdata object for easy processing and analyzing of the data.
 """
 # %%
 # Load NMR Spectra
@@ -23,7 +23,7 @@ filepath_prefix = "../../data/prospa/toluene_10mM_Tempone/"
 filenames = [filepath_prefix + "%d/data.1d" % i for i in range(1, 42)]
 
 # %%
-# In addition, create an array with the power levels. In this example we use numpy to create the array. The length of this array should match the number of spectra. The Python list "filenames" and the array of power levels will become input arguments to the load function. Here, the dimension is called "Power" and the values stored in "powers" serves as the "coord" input argument. When importing the spectra DNPLab will automatically create a 2D object with a new dimension namend "Power" and the data is concatenated into a single 2D dnpdata object. In this example the power is given in units of dBm.
+# In addition, create an array with the power levels. In this example we use numpy to create the array. The length of this array should match the number of spectra. The Python list "filenames" and the array of power levels will become input arguments to the load function. Here, the dimension is called "Power" and the values stored in "powers" serves as the "coord" input argument. When importing the spectra DNPLab will automatically create a 2D object with a new dimension named "Power" and the data is concatenated into a single 2D dnpdata object. In this example the power is given in units of dBm.
 
 powers = np.linspace(0, 40, 41)
 

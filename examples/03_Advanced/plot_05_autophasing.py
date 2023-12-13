@@ -2,15 +2,15 @@
 """
 .. _plot_05_autophasing:
 
-=======================================
-Using the dnplab autophase function
-=======================================
+===================================
+Using the DNPLab autophase function
+===================================
 
-This example demonstrates how to use the autophase function on DNPData.
+This example demonstrates how to use the DNPLab autophase function on a dnpdata object.
 
 """
+# %%
 # The following example shows how the autophase function can be conveniently used.
-#
 # To get started, first, setup the python environment:
 
 import dnplab as dnp

@@ -32,7 +32,7 @@ data = dnp.DNPData(values, ['f2','sample'], [x, y])
 
 data_slice_integer = data['sample', 3] # get slice by index
 
-# Taking the slice does not remove the sample dimension. We can remove dimensions of length 1 with the sqeeze method
+# Taking the slice does not remove the sample dimension. We can remove dimensions of length 1 with the squeeze method
 data_slice_integer.squeeze() # remove "sample" dimension
 
 # %%

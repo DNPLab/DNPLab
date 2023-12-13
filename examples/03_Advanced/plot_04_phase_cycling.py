@@ -6,7 +6,7 @@
 Using the dnplab phase cycling function
 =======================================
 
-This example demonstrates how to use the phase cycling function on DNPData.
+This example demonstrates how to use the phase cycling function on dnpdata objects.
 
 """
 # The following example shows how and when the phase_cycle function can be conveniently used.
