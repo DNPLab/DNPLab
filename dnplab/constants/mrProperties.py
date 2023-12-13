@@ -1,5 +1,5 @@
 import numpy as _np
-from scipy.constants import *
+from . import constants as _const
 
 #####################################
 # Gyromagnetic Properties of nuclei #
@@ -36,7 +36,7 @@ gmrProperties["29Si"] = [0.5, -5.319, 0, 4.6832, 0.000368, -0.96179, 0]
 gmrProperties["31P"] = [0.5, 10.8394, 0, 100, 0.0665, 1.95999, 0]
 gmrProperties["33S"] = [1.5, 2.055685, -6.78, 0.76, 1.72e-05, 0.8311696, 61]
 gmrProperties["35Cl"] = [1.5, 2.624198, -8.165, 75.78, 3580, 1.061035, 89]
-gmrProperties["37C1"] = [1.5, 2.184368, -6.435, 24.22, 0.000659, 0.8831998, 55]
+gmrProperties["37Cl"] = [1.5, 2.184368, -6.435, 24.22, 0.000659, 0.8831998, 55]
 gmrProperties["39K"] = [1.5, 1.2500608, 5.85, 93.2581, 0.000476, 0.50543376, 46]
 gmrProperties["40K"] = [4, -1.5542854, -7.3, 0.0117, 6.12e-07, -1.4513203, 5.2]
 gmrProperties["41K"] = [1.5, 0.68606808, 7.11, 6.7302, 5.68e-06, 0.27739609, 67]
@@ -174,7 +174,7 @@ def mr_properties(nucleus, *args):
 
     if isinstance(nucleus, str):
         if nucleus in gmrProperties:
-            gmr = gmrProperties.get(nucleus)[1] * 1e7 / 2 / _np.pi
+            gmr = gmrProperties.get(nucleus)[1] * 1e7 / 2 / _const.pi
         else:
             print("Isotope doesn't exist in list")
             return
@@ -209,7 +209,7 @@ def mr_properties(nucleus, *args):
 
             elif args[0] == "hzt":
                 # return gyromagnetic ration in Hz/T
-                return gmrProperties.get(nucleus)[1] * 1e7 / 2 / _np.pi
+                return gmrProperties.get(nucleus)[1] * 1e7 / 2 / _const.pi
 
             else:
                 print("Keyword not recognize")
@@ -225,7 +225,7 @@ def mr_properties(nucleus, *args):
             print("Spin                       : ", gmrProperties.get(nucleus)[0])
             print(
                 "Gyromagnetic Ratio [kHz/T] : %5.2f"
-                % (gmrProperties.get(nucleus)[1] * 10 / 2 / pi)
+                % (gmrProperties.get(nucleus)[1] * 10 / 2 / _const.pi)
             )
             print(
                 "Natural Abundance      [%%] : %5.2f" % (gmrProperties.get(nucleus)[3])

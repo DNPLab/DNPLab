@@ -4,8 +4,13 @@ from scipy.signal import savgol_filter
 from ..core.data import DNPData
 from ..processing.integration import integrate
 from ..processing.offset import remove_background as dnp_remove_background
+from ..constants import constants as _const
 
-import dnplab as dnp
+# import dnplab as dnp
+
+from scipy.special import jv as _jv
+from scipy.fft import fft as _fft
+from scipy.fft import ifft as _ifft
 
 
 def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=False):
@@ -71,6 +76,22 @@ def create_complex(data, real, imag):
 
     Returns:
         data (DNPData): New DNPData object
+
+
+
+    Examples:
+    In this example, first a data set is loaded. The data set is of the size
+    values:
+        4000 x 2 ndarray (float32)
+
+    With the first dimension ([...,0]) being the real data and the second ([...,1]) the imaginary data. Using the function create_complex the dnpdaa object is converted into a complex data set.
+
+        .. code-block:: python
+
+            data = dnp.load("MyFile.exp")       # Load example data
+
+            data_complex = dnp.create_complex(data, data.values[..., 0], data.values[..., 1])
+
     """
 
     complexData = _np.vectorize(complex)(real, imag)
@@ -84,7 +105,7 @@ def create_complex(data, real, imag):
 
     attrs = data.attrs
 
-    out = dnp.DNPData(complexData, dims, coords, attrs)
+    out = DNPData(complexData, dims, coords, attrs)
 
     return out
 
@@ -110,7 +131,7 @@ def signal_to_noise(
         kwargs : parameters for dnp.remove_background
 
     Returns:
-        SNR (float): Signal to noise ratio
+        SNR (DNPData): DNPData object that contains SNR values, the axis dim is replaced by an axis named "signal_region"
 
     Examples:
 
@@ -159,11 +180,26 @@ def signal_to_noise(
 
     signal_region = _convenience_tuple_to_list(signal_region)
     if len(signal_region) > 1:
-        raise ValueError(
-            "More than one signal region ({0}) provided in signal_to_noise. This is not supported.".format(
-                signal_region
+        snr = []
+        for sr in signal_region:
+            snr.append(
+                _np.squeeze(
+                    signal_to_noise(
+                        data, sr, noise_region, dim, remove_background, **kwargs
+                    )._values
+                )
             )
-        )
+
+        # return DNPData object with dims: signal_region and all other dimensions copied from data
+        dims = ["signal_region" if x == dim else x for x in data.dims]
+        coords_new = [
+            _np.arange(len(signal_region)) if x == dim else data.coords[x]
+            for x in data.dims
+        ]
+        data_new = _np.array(snr)
+        snrData = DNPData(data_new, dims, coords_new)
+        return snrData
+
     noise_region = _convenience_tuple_to_list(noise_region)
     remove_background = _convenience_tuple_to_list(remove_background)
 
@@ -175,26 +211,48 @@ def signal_to_noise(
         deg = kwargs.pop("deg", 1)
         data = dnp_remove_background(data, dim, deg, remove_background)
 
-    # currently only one method avaiable -> absolute value
-    signal = _np.max(_np.abs(data[dim, signal_region[0]]))
+    # unfold and calculate snr for each fold_index
+    sdata = data
+    sdata.unfold(dim)
 
-    if (None, None) in noise_region:
-        signal_arg = _np.argmax(_np.abs(data[dim, signal_region[0]]))
-        datasize = data[dim, :].size
-        noise_region = [
-            slice(0, int(_np.maximum(2, int(signal_arg * 0.9)))),
-            slice(int(_np.minimum(datasize - 2, int(signal_arg * 1.1))), None),
-        ]
+    # currently only absolute value comparison
+    signal = []
+    for indx in range(sdata.shape[1]):
+        signal.append(
+            _np.max(_np.abs(sdata[dim, signal_region[0], "fold_index", indx]))
+        )
 
-    # concatenate noise_regions
-    noise_0 = _np.abs(data[dim, noise_region[0]])
+    # now calculate noise
+    noise = []
+    for indx in range(sdata.shape[1]):
+        idata = sdata[dim, :, "fold_index", indx]
+        if (None, None) in noise_region:
+            signal_arg = _np.argmax(idata[dim, signal_region[0], "fi", 0])
+            datasize = idata[dim, :, "fi", 0].size
+            noise_region = [
+                slice(0, int(_np.maximum(2, int(signal_arg * 0.9)))),
+                slice(int(_np.minimum(datasize - 2, int(signal_arg * 1.1))), None),
+            ]
 
-    for k in noise_region[1:]:
-        noise_0.concatenate(_np.abs(data[dim, k]), dim)
+        # concatenate noise_regions
+        noise_0 = idata[dim, noise_region[0], "fi", 0]
+        for k in noise_region[1:]:
+            noise_0.concatenate(idata[dim, k, "fi", 0], dim)
 
-    noise = _np.std(_np.abs(noise_0[dim, slice(0, None)]))
+        noise.append(_np.std(noise_0[dim, slice(0, None)]))
 
-    return signal / noise
+    sdata.fold()
+
+    # return DNPData object
+    dims = ["signal_region" if x == dim else x for x in sdata.dims]
+    coords_new = [
+        _np.arange(1) if x == dim else sdata.coords[x] for x in sdata.dims
+    ]  # we know that only one sr is there
+    data_new = (_np.array(signal) / _np.array(noise)).reshape(
+        [x.size for x in coords_new]
+    )
+    snrData = DNPData(data_new, dims, coords_new)
+    return snrData
 
 
 def smooth(data, dim="t2", window_length=11, polyorder=3):
@@ -231,6 +289,73 @@ def smooth(data, dim="t2", window_length=11, polyorder=3):
     return out
 
 
+def pseudo_modulation(data, modulation_amplitude, dim="B0", order=1, zero_padding=2):
+    """Calculate the first derivative of an EPR spectrum due to field modulation
+
+    Calculation is based on: Hyde et al., “Pseudo Field Modulation in EPR Spectroscopy.”,
+    Applied Magnetic Resonance 1 (1990): 483–96.
+
+    Args:
+        data (DNPData): DNPData object (typically an absorption line EPR spectrum)
+        modulation_amplitude: Peak to peak modulation amplitude. The unit is equal to the unit of the axis. E.g. if the spectrum axis is given in (T), the unit of the modulation amplitude is in (T) as well.
+        dim: Dimension to pseudo modulate (default is B0)
+        order: Harmonic of field modulation (default is 1, 1st derivative)
+        zero_padding: Number of points for zero-padding (multiples of spectrum vector length). Default is 2. Increase this number for short signal vectors.
+
+    Returns:
+        data (DNPData): Pseudo modulated spectrum
+
+
+    Examples:
+        .. code-block:: python
+
+            # Calculate pseudo_modulated spectrum (1st derivative). Field axis given in (T)
+            spec_mod = dnp.pseudo_modulation(spec, modulation_amplitude = 0.001)
+
+            # Calculate pseudo_modulated spectrum (2nd derivative). Field axis given in (T)
+            spec_mod = dnp.pseudo_modulation(spec, modulation_amplitude = 0.001, order = 2)
+
+    """
+
+    out = data.copy()
+    out.unfold(dim)
+
+    proc_parameters = {
+        "dim": dim,
+        "modulation_amplitude": modulation_amplitude,
+        "order": order,
+        "zero_padding": zero_padding,
+    }
+
+    n = len(out.coords[dim])
+    delta_B = out.coords[dim][2] - out.coords[dim][1]
+    Zmin = 0
+    Zmax = _const.pi * modulation_amplitude / delta_B
+    Z = _np.linspace(Zmin, Zmax, zero_padding * n)
+
+    spec = out.values
+    spec = _np.squeeze(spec)
+
+    fft_spec = _fft(spec, zero_padding * n)  # Zero pad data
+    fft_spec[int(n) + 1 : zero_padding * n] = 0
+
+    fft_spec_mod = fft_spec * _jv(order, Z)
+    # Convolute fft spectrum with bessel function
+
+    spec_mod = _ifft(fft_spec_mod)
+    spec_mod = 1j**order * spec_mod[0:n]  # Pick the right dimension for higher orders
+    spec_mod = _np.real(spec_mod)  # Only return real part
+
+    out.values = spec_mod
+
+    out.fold()
+
+    proc_attr_name = "pseudo_modulation"
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    return out
+
+
 def left_shift(data, dim="t2", shift_points=0):
     """Remove points from the left
 
@@ -257,21 +382,30 @@ def left_shift(data, dim="t2", shift_points=0):
     return out
 
 
-def normalize(data, amplitude=True):
+def normalize(data, amplitude=True, dim="f2", regions=None):
     """Normalize spectrum
 
+    The function is used to normalize the amplitude (or area) of a spectrum to a value of 1. The sign of the original data will be conserved.
+
     Args:
-        data (DNPData): Data object
-        amplitude (boolean): True: normalize amplitude, false: normalize area. The default is True
+        data (DNPData):         Data object
+        amplitude (boolean):    True: normalize amplitude, false: normalize area. The default is True
+        dim (str):              The dimension to normalize
+        regions (None, list):   List of tuples to specify range of normalize [(-99., 99.)]
 
     Returns:
-        data (DNPDdata): Normalized data object
+        data (DNPDdata):        Normalized data object
     """
 
     out = data.copy()
 
     if amplitude == True:
-        out.values = out.values / _np.max(out.values)
+        if regions:
+            factor = _np.max(abs(out["f2", regions].values))
+        else:
+            factor = _np.max(abs(out.values))
+
+        out.values = out.values / factor
     elif amplitude == False:
         out.values = out.values  # Normalize to area = 1, not implemented yet
 

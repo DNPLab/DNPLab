@@ -157,7 +157,7 @@ def load_spc(path, attrs):
             coords = [
                 _np.linspace(
                     attrs["sweep_start"],
-                    attrs["sweep_extent"],
+                    attrs["sweep_start"] + attrs["sweep_extent"],
                     attrs["x_points"],
                 )
             ]

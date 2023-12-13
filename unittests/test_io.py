@@ -273,7 +273,7 @@ class dnplab_configparse_tester(unittest.TestCase):
         )
 
         string1 = "Contact Time t$_c$ [s]"
-        string2 = "abc=1,def\=2,ghi=3"
+        string2 = r"abc=1,def\=2,ghi=3"
 
         cfg_file = str(Path(__file__).parent.joinpath("data_testconfig.cfg"))
         cfg.read(cfg_file)
