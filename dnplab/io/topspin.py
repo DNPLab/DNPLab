@@ -149,10 +149,13 @@ def import_topspin(
     """Import topspin data and return dnpdata object
 
     Args:
-        path (str): Directory of data
-        assign_vdlist: False, or the name of dimension to assign topspin vdlist
-        remove_digital_filter (bool): option to remove group delay
-        verbose (bool): Print additional output for troubleshooting
+        path (str):                     Directory of data
+        assign_vdlist:                  False, or the name of dimension to assign topspin vdlist
+        remove_digital_filter (bool):   Option to remove group delay (see note below)
+        verbose (bool):                 Print additional output for troubleshooting
+
+    Note:
+        The group delay is a consequence of the oversampling and digital filtering in Bruker spectrometers. For more details see these blog posts https://nmr-analysis.blogspot.com/2010/05/bruker-smiles.html and https://nmr-analysis.blogspot.com/2010/05/bruker-smiles.html
 
     Returns:
         dnpdata: topspin data
