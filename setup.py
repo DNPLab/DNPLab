@@ -31,7 +31,7 @@ setup(
         "numpy>=1.24",
         "scipy>=1.10",
         "matplotlib>=3.7",
-        "h5py>=3.8",
+        "h5py>=3.10",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",

@@ -77,14 +77,10 @@ def create_complex(data, real, imag):
     Returns:
         data (DNPData): New DNPData object
 
-
-
     Examples:
-    In this example, first a data set is loaded. The data set is of the size
-    values:
-        4000 x 2 ndarray (float32)
+    In this example, first a data set is loaded. The data set is of the size 4000 x 2 (ndarray, float32)
 
-    With the first dimension ([...,0]) being the real data and the second ([...,1]) the imaginary data. Using the function create_complex the dnpdaa object is converted into a complex data set.
+    With the first dimension ([...,0]) being the real data and the second ([...,1]) the imaginary data. Using the function create_complex the dnpdata object is converted into a complex data set.
 
         .. code-block:: python
 

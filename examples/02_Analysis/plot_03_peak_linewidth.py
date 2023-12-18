@@ -27,6 +27,7 @@ data = dnp.phase(data, p0=175)
 dnp.plt.figure()
 dnp.fancy_plot(data, xlim=[-20, 20])
 dnp.plt.title("ODNP-Enhanced NMR Spectrum of 10 mM TEMPONE in Toluene")
+dnp.plt.tight_layout()
 dnp.plt.show()
 
 # %%
@@ -47,7 +48,7 @@ dnp.peak_info(peaks)
 # ---------------------
 # By default, *find_peaks* will identify every feature in the spectrum with a amplitude > 5 % of the maximum intensity as a peak. For this, the spectrum is first normalized to a maximum amplitude of 1. This default value can be change as shown in the next line
 
-peaks = dnp.find_peaks(data, height = 0.6)
+peaks = dnp.find_peaks(data, height=0.6)
 dnp.peak_info(peaks)
 
 # %%
