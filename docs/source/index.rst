@@ -7,7 +7,7 @@ Welcome to the DNPLab documentation. DNPLab is an object-oriented |OpenSource| P
 DNPLab is a collaborative project created by:
 
 * |B12TLink|
-* The |HanLabLink| at University of California, Santa Barbara
+* The |HanLabLink| at Northwestern University
 * The |FranckLabLink| at Syracuse University
 
 DNPLab is distributed free of charge under the |MITLicense|. 
