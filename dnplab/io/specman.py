@@ -6,15 +6,16 @@ import dnplab as _dnp
 def import_specman(path):
     """Import SpecMan data and return DNPData object
 
-    DNPLab function to import SpecMan4EPR data (https://specman4epr.com/). The function returns a DNPdata object with the spectra data.
+    DNPLab function to import SpecMan4EPR data (https://specman4epr.com/). The function returns a DNPdata object with the spectral data.
+
     The structure of the DNPdata object can be complex and the variables saved by SpecMan depend on the individual spectrometer configuration. Therefore, the import function returns a numpy array with the dimension "x0", "x1", "x2", "x3", "x4". In any case, the dimension "x0" corresponds to the variables stored in the data file. The spectroscopic data is stored in "x1" to "x4", depending on how many dimensions were recorded.
     The import function will require a parser script to properly assign the spectroscopic data and proper coordinates.
 
     Args:
-        path (str) : Path to either .d01 or .exp file
+        path (str):         Path to either .exp file
 
     Returns:
-        data (DNPData) : DNPData object containing SpecMan EPR data
+        data (DNPData):     DNPData object containing SpecMan EPR data
     """
 
     if path[-1] == os.sep:
@@ -43,13 +44,15 @@ def import_specman(path):
 
 
 def load_specman_exp(path):
-    """Import SpecMan parameter fields
+    """Import SpecMan parameters
+
+    DNPLab function to read and import the SpecMan exp file. The .exp file is a text file that stores the experimental data, the pulse program, and other spectrometer configuration files.
 
     Args:
-        path (str) : Path to either .d01 or .exp file
+        path (str):     Path to either .d01 or .exp file
 
     Returns:
-        attrs (dict) : dictionary of parameter fields and values (DNPLab attributes)
+        attrs (dict):   Dictionary of parameter fields and values (DNPLab attributes)
 
     """
     exp_file_opened = open(path, encoding="utf8", errors="ignore")
@@ -80,12 +83,14 @@ def load_specman_exp(path):
 def load_specman_d01(path, attrs, verbose=False):
     """Import SpecMan d01 data file
 
+    DNPLab function to import the SpecMan d01 data file.
+
     Args:
-        path (str) : Path to either .d01 or .exp file
+        path (str):         Path to either .d01 or .exp file
 
     Returns:
-        data (ndarray) :    SpecMan data as numpy array
-        params (dict) :     Dictionary with import updated parameters dictionary
+        data (ndarray):     SpecMan data as numpy array
+        params (dict):      Dictionary with import updated parameters dictionary
     """
 
     file_opened = open(path, "rb")
