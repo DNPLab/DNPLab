@@ -97,20 +97,20 @@ class vnmrj_import_tester(unittest.TestCase):
         self.assertAlmostEqual(datas[0].values[365, 3], (-1263136 - 1063328.5j))
 
 
-# class specman_import_tester(unittest.TestCase):
-#     def setUp(self):
-#         self.test_data_2D = os.path.join(".", "data", "specman", "test_specman2D.exp")
-#         self.test_data_4D = os.path.join(".", "data", "specman", "test_specman4D.d01")
+class specman_import_tester(unittest.TestCase):
+    def setUp(self):
+        self.test_data_2D = os.path.join(".", "data", "specman", "test_specman2D.exp")
+        self.test_data_4D = os.path.join(".", "data", "specman", "test_specman4D.d01")
 
-#     def test_import_specman_2D(self):
-#         data = dnp.load(self.test_data_2D, data_format="specman")
-#         self.assertEqual(data.dims, ["t2", "t1"])
-#         self.assertEqual(data.values.shape, (1500, 80))
+    def test_import_specman_2D(self):
+        data = dnp.load(self.test_data_2D, data_format="specman")
+        self.assertEqual(data.dims, ["x0", "x1", "x2"])
+        self.assertEqual(data.values.shape, (1500, 80, 2))
 
-#     def test_import_specman_4D(self):
-#         data = dnp.load(self.test_data_4D, data_format="specman")
-#         self.assertEqual(data.dims, ["t2", "t1", "t0", "t"])
-#         self.assertEqual(data.values.shape, (1500, 40, 5, 3))
+    # def test_import_specman_4D(self):
+    #     data = dnp.load(self.test_data_4D, data_format="specman")
+    #     self.assertEqual(data.dims, ["x0", "x1", "x2", "x3"])
+        # self.assertEqual(data.values.shape, (1500, 40, 5, 3))
 
 
 class bes3t_import_tester(unittest.TestCase):
