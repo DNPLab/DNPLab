@@ -107,10 +107,10 @@ class specman_import_tester(unittest.TestCase):
         self.assertEqual(data.dims, ["x0", "x1", "x2"])
         self.assertEqual(data.values.shape, (1500, 80, 2))
 
-    # def test_import_specman_4D(self):
-    #     data = dnp.load(self.test_data_4D, data_format="specman")
-    #     self.assertEqual(data.dims, ["x0", "x1", "x2", "x3"])
-        # self.assertEqual(data.values.shape, (1500, 40, 5, 3))
+    def test_import_specman_4D(self):
+        data = dnp.load(self.test_data_4D, data_format="specman")
+        self.assertEqual(data.dims, ["x0", "x1", "x2", "x3", "x4"])
+        self.assertEqual(data.values.shape, (1500, 40, 5, 3, 2))
 
 
 class bes3t_import_tester(unittest.TestCase):
