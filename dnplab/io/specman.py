@@ -80,7 +80,7 @@ def load_specman_exp(path):
     return attrs
 
 
-def load_specman_d01(path, attrs, verbose=True):
+def load_specman_d01(path, attrs, verbose=False):
     """Import SpecMan d01 data file
 
     DNPLab function to import the SpecMan d01 data file. The format of the SpecMan data file is described here:
