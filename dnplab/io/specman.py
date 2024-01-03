@@ -80,10 +80,11 @@ def load_specman_exp(path):
     return attrs
 
 
-def load_specman_d01(path, attrs, verbose=False):
+def load_specman_d01(path, attrs, verbose=True):
     """Import SpecMan d01 data file
 
-    DNPLab function to import the SpecMan d01 data file.
+    DNPLab function to import the SpecMan d01 data file. The format of the SpecMan data file is described here:
+
 
     Args:
         path (str):         Path to either .d01 or .exp file
@@ -108,20 +109,24 @@ def load_specman_d01(path, attrs, verbose=False):
     # 0 - data stored in double format, 1 -data stored in float format
     attrs["dataFormat"] = uint_read[1]
 
-    # Number of dimensions of stored data
+    # Number of dimensions of stored data. Note: Not clear why this is repeated for every dimension. This seems to be the same number for all dimensions, but is repeated.
     attrs["dims"] = uint_read[2]
 
-    dataShape = uint_read[2 : 2 + uint_read[2] * 6]
+    dataShape = uint_read[2 : 2 + uint_read[0] * 6]
 
     attrs["dataStreamShape"] = dataShape
 
-    attrs["dataStartIndex"] = 2 + attrs["numberOfVariables"] * 6 - 1
+    attrs["dataStartIndex"] = 2 + attrs["numberOfVariables"] * 6
 
     if verbose == True:
-        print("Data paramters:")
-        print(attrs)
+        print("** Data paramters **")
+        print("numberOfVariables : ", attrs["numberOfVariables"])
+        print("dataFormat        : ", attrs["dataFormat"])
+        print("dims              : ", attrs["dims"])
+        print("dataStreamShape   : ", attrs["dataStreamShape"])
+        print("dataStartIndex    : ", attrs["dataStartIndex"])
 
-    data = float_read[attrs["dataStartIndex"] : -1]
+    data = float_read[attrs["dataStartIndex"] :]
 
     if attrs["dims"] == 1:
         data = _np.reshape(data, (attrs["numberOfVariables"], uint_read[3]))
