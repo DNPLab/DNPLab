@@ -95,6 +95,7 @@ def plot(data, *args, **kwargs):
         f(coord, data.values.real, *args, **kwargs)
     if use_default:
         _plt.plot(coord, data.values.real, *args, **kwargs)
+    _plt.xlabel(dim)
     data.fold()
 
 
