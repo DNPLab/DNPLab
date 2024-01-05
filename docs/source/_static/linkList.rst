@@ -74,8 +74,7 @@
 
 .. |HanLabLink| raw:: html
 
-   <a href="https://han.chem.ucsb.edu/" target="_blank"> Han Lab</a>
-
+   <a href="https://hanlab.northwestern.edu/" target="_blank"> Han Lab</a>
 
 .. |tcaseyLink| raw:: html
 

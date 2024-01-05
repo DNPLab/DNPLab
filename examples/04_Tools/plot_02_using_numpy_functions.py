@@ -2,13 +2,13 @@
 """
 .. _plot_02_using_numpy_functions:
 
-=======================================
-Using common numpy functions on DNPData
-=======================================
+===============================================
+Using common NumPy functions on dnpdata objects
+===============================================
 
-This example demonstrates how to use common numpy funtions on DNPData.
+This example demonstrates how to use common numpy functions to manipulate dnpdata objects.
 
-N.B.: This is still an experimental feature!
+Note, this is still an experimental feature.
 
 """
 # %%
@@ -16,12 +16,12 @@ N.B.: This is still an experimental feature!
 # How numpy array functions are operating on DNPData
 # ===================================================
 #
-# Many numpy functions can directly be used on DNPData. What the functio returns depends on the result:
+# Many numpy functions can directly be used on DNPData. What the function returns depends on the result:
 #
 # * when the result is a scalar a salar is returned
 # * when the result is a ndarray a DNPData object is returned
 #
-# when the axis keyword is support by the numpy function one can provide the dimension (e.g. np.sum(mydata,axis='f2'))
+# when the axis keyword is support by the numpy function one can provide the dimension (e.g. np.sum(mydata, axis='f2'))
 # The corresponding axis is consumed and no longer in the returned DNPData object.
 # The following example shows how this can be conveniently used.
 #
@@ -43,7 +43,7 @@ data = dnp.load("../../data/prospa/water_phase_cycled/data.2d")
 data = dnp.fourier_transform(data)
 
 # %%
-# since we don't know what the spectra is made of, we want to have a qick look at the magnitude:
+# since we don't know what the spectra is made of, we want to have a quick look at the magnitude:
 
 data_magn = np.abs(data)
 
