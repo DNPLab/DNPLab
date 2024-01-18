@@ -18,7 +18,10 @@ DNPLab is distributed free of charge under the |MITLicense|.
 
 Please report all issues on the |dnpLabGitIssueTrackerLink|.
 
+Citing DNPLab
+=============
 
+If you are using DNPLab to process your DNP, NMR, or EPR data please add a link to this documentation (http://dnplab.net/) to your Materials and Methods section.
 
 .. toctree::
    :caption: Overview
