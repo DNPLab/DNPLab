@@ -25,7 +25,7 @@ print(sys.path)
 # -- Project information -----------------------------------------------------
 
 project = "DNPLab"
-copyright = "2023, DNPLab"
+copyright = "2024, DNPLab"
 author = "DNPLab Team"
 
 from datetime import datetime
@@ -90,6 +90,10 @@ extensions = [
     "sphinx.ext.ifconfig",
     "sphinx.ext.intersphinx",
     "sphinx_gallery.gen_gallery",
+    "sphinx.ext.viewcode",
+    "sphinx_tabs.tabs",
+    "sphinx-prompt",
+    "sphinx_toolbox.source",
 ]
 
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
