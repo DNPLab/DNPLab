@@ -93,7 +93,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_tabs.tabs",
     "sphinx-prompt",
-    # "sphinx_toolbox.source",
+    # "sphinx_toolbox",
 ]
 
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
