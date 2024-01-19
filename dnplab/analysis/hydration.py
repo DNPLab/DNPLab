@@ -353,10 +353,10 @@ def hydration(data={}, constants={}):
         (dict)                        : keys and values are described in the example
 
     J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-    http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
+    https://www.sciencedirect.com/science/article/abs/pii/S0079656513000629
 
     J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
-    https://doi.org/10.1016/bs.mie.2018.09.024
+    https://www.sciencedirect.com/science/article/abs/pii/S0076687918303872
     """
 
     if not data:
