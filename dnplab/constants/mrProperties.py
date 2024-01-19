@@ -6,7 +6,7 @@ from . import constants as _const
 #####################################
 #
 #     Reference: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818.
-#     Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants .
+#     Electron value comes from 1998 CODATA values, https://physics.nist.gov/cuu/Constants/.
 #        or  http://physics.nist.gov/PhysRefData/codata86/codata86.html
 #        or  http://www.isis.rl.ac.uk/neutronSites/constants.htm
 #     Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
@@ -141,7 +141,7 @@ def mr_properties(nucleus, *args):
 
     This function is modeled after the Matlab function gmr written by Mirko Hrovat: https://www.mathworks.com/matlabcentral/fileexchange/12078-gmr-m-nmr-mri-properties
 
-    Also see: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818. Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants, http://physics.nist.gov/PhysRefData/codata86/codata86.html, or http://www.isis.rl.ac.uk/neutronSites/constants.htm. Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
+    Also see: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818. Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants, or https://physics.nist.gov/cuu/Constants/index.html. Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
 
     Args:
 
