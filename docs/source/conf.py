@@ -90,10 +90,6 @@ extensions = [
     "sphinx.ext.ifconfig",
     "sphinx.ext.intersphinx",
     "sphinx_gallery.gen_gallery",
-    "sphinx.ext.viewcode",
-    "sphinx_tabs.tabs",
-    "sphinx-prompt",
-    # "sphinx_toolbox",
 ]
 
 autosummary_generate = True  # Turn on sphinx.ext.autosummary
