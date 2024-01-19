@@ -71,6 +71,9 @@ Computation times
    * - :ref:`sphx_glr_auto_examples_02_Analysis_plot_01_load_2D_calculate_DNP_enhancements.py` (``../../examples/02_Analysis/plot_01_load_2D_calculate_DNP_enhancements.py``)
      - 00:00.146
      - 0.0
+   * - :ref:`sphx_glr_auto_examples_02_Analysis_plot_03_peak_linewidth.py` (``../../examples/02_Analysis/plot_03_peak_linewidth.py``)
+     - 00:00.154
+     - 0.0
    * - :ref:`sphx_glr_auto_examples_01_ImportingData_plot_05_indexing_dnpdata_objects.py` (``../../examples/01_ImportingData/plot_05_indexing_dnpdata_objects.py``)
      - 00:00.097
      - 0.0
