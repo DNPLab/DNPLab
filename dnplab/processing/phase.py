@@ -29,7 +29,7 @@ for key, value in fStencil.items():
 
 
 def autophase(
-    inputData, dim="f2", reference_slice=False, deriv=1, gamma=1e-5, full_proc_attr=True
+    inputData, dim="f2", reference_slice=False, deriv=1, gamma=5e-3, full_proc_attr=True
 ):
     """Autophase function to phase spectral data
 
@@ -42,7 +42,7 @@ def autophase(
         dim (str):                      Dimension to autophase, default = 'f2'
         reference_slice (bool,tuple):   Tuple of (dimension, index) to select reference slice. The default value is 'False'
         deriv (int):                    Integer for derivative value (1-4, default=1)
-        gamma (float):                  Scaling factor for phase optimization (default=1e-5)
+        gamma (float):                  Scaling factor for phase optimization (default=5e-3)
         full_proc_attr (bool):                 when this is true the phase tuple for each single autphased spectrum will be added. Default True.
 
     Returns:
@@ -280,9 +280,14 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
         A 2D DNPData object can either be phase using a single p0 (p1) value, or using an array of phases. When using an array, the size of the phase array has to be equal to the number of spectra to be phased.
 
     """
+    # get rid of discontuity of mod @0
+    p0_neg = _np.where(p0<0)
+    p1_neg = _np.where(p1<0)
 
-    p0 = _np.mod(p0, 360)
-    p1 = _np.mod(p1, 360)
+    p0 = _np.atleast_1d ( _np.array( _np.mod(_np.abs(p0), 360) ) )
+    p1 = _np.atleast_1d ( _np.array( _np.mod(_np.abs(p1), 360) ) )
+    p0[p0_neg] = p0[p0_neg]*-1
+    p0[p1_neg] = p0[p1_neg]*-1
 
     p0 = _np.array(p0 * _const.pi / 180.0)  # p0 in radians
     p1 = _np.array(p1 * _const.pi / 180.0)  # p1 in radians
@@ -290,6 +295,8 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
     out = data.copy()
     out.unfold(dim)
     coord = out.coords[dim]
+
+    #print(p1,(p1.reshape(1, -1) * _np.arange(coord.size).reshape(-1, 1) / coord.size)[-1] )
 
     phase = _np.exp(
         1.0j
