@@ -281,13 +281,13 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
 
     """
     # get rid of discontuity of mod @0
-    p0_neg = _np.where(p0<0)
-    p1_neg = _np.where(p1<0)
+    p0_neg = _np.where(p0 < 0)
+    p1_neg = _np.where(p1 < 0)
 
-    p0 = _np.atleast_1d ( _np.array( _np.mod(_np.abs(p0), 360) ) )
-    p1 = _np.atleast_1d ( _np.array( _np.mod(_np.abs(p1), 360) ) )
-    p0[p0_neg] = p0[p0_neg]*-1
-    p0[p1_neg] = p0[p1_neg]*-1
+    p0 = _np.atleast_1d(_np.array(_np.mod(_np.abs(p0), 360)))
+    p1 = _np.atleast_1d(_np.array(_np.mod(_np.abs(p1), 360)))
+    p0[p0_neg] = p0[p0_neg] * -1
+    p0[p1_neg] = p0[p1_neg] * -1
 
     p0 = _np.array(p0 * _const.pi / 180.0)  # p0 in radians
     p1 = _np.array(p1 * _const.pi / 180.0)  # p1 in radians
@@ -296,7 +296,7 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
     out.unfold(dim)
     coord = out.coords[dim]
 
-    #print(p1,(p1.reshape(1, -1) * _np.arange(coord.size).reshape(-1, 1) / coord.size)[-1] )
+    # print(p1,(p1.reshape(1, -1) * _np.arange(coord.size).reshape(-1, 1) / coord.size)[-1] )
 
     phase = _np.exp(
         1.0j
