@@ -205,7 +205,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         )
 
         if xlim != []:
-            _plt.xlim(xlim[1], xlim[0])
+            _plt.xlim(xlim[0], xlim[1])
 
         ax = _plt.gca()
         fig = _plt.gcf()
