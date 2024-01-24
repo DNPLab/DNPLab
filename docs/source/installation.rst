@@ -77,7 +77,7 @@ If you wish to install a specific version of DNPLab typ the following comman in 
     
     $ pip install dnplab==1.0.11
 
-install Preliminary Release
+Install Preliminary Release
 ---------------------------
 If you wish to use a pre-release version of DNPLab (downloaded from the GitHub repository) we recommend first uninstalling the current DNPLab version. Clone (or download or fork ...) the desired branch from the GitHub website. In a terminal window navigate into the directory that contains the setup.py file and type the following command into the terminal window:
 
