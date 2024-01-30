@@ -144,7 +144,7 @@ def find_group_delay(attrs_dict):
 
 # This function does too much, should be broken into smaller functions
 def import_topspin(
-    path, assign_vdlist=False, remove_digital_filter=False, verbose=False
+    path, assign_vdlist=False, remove_digital_filter=False, verbose=False, **kwargs
 ):
     """Import topspin data and return dnpdata object
 
@@ -316,6 +316,18 @@ def import_topspin(
 
     # reorder so that 't2' is first
     topspin_data.reorder(["t2"])
+
+    try:
+        experiment = int(kwargs.get("pdata",1))
+        proc_n = int(kwargs.get("proc",1))
+        if proc_n == 1:
+            proc_n=""
+        else:
+            proc_n = str(proc_n)
+        proc_params = load_acqu(os.path.join(path, "pdata/" + str(experiment) + "/proc" + proc_n +"s"), verbose=verbose)
+        topspin_data.attrs["_topspin_procs_offset"] = float(proc_params["OFFSET"])
+    except FileNotFoundError as e:
+        warnings.warn("procs file " + os.path.join(path, "pdata/" + str(experiment) + "/proc" + proc_n +"s") + "not found, ppm value conversion will happen with nmr_frequency")
 
     return topspin_data
 
