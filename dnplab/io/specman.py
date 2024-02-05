@@ -162,6 +162,6 @@ def load_specman_d01(path, attrs, verbose=False):
     shape = _np.shape(data)
 
     for index in range(data.ndim):
-        coords.append(_np.arange(0, shape[index]))
+        coords.append(_np.arange(0.0, shape[index]))
 
     return data, dims, coords, attrs
