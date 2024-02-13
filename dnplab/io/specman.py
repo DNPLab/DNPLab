@@ -179,7 +179,7 @@ def analyze_attrs(attrs):
             new_key = key.split("params_")[1]  # get key value for temp dictionary
             val = val.split(";")[0]  # remove non value related information
             val_list = val.split(" ")  # split value string for further analyze
-            val = val_list[0].strip(',')
+            val = val_list[0].strip(",")
             temp[new_key] = int(val) if "." not in val else float(val)
             if "step" in val_list:  # when it indicate the step
                 step_index = (
@@ -221,15 +221,17 @@ def specman_coords(attrs):
     lengths.append(2)
     for index, dim in enumerate(dims):
         length = lengths[index]
-        if dim in attrs and dim + '_step' in attrs: 
+        if dim in attrs and dim + "_step" in attrs:
             start = attrs[dim]
             step = attrs[dim + "_step"]
             stop = start + step * length
             coord = _np.arange(start, stop, step)
-        elif dim in attrs and dim + '_step' not in attrs:
-            val_string = attrs['params_' + dim].split(';')[0]
-            coord = _np.array([float(f) for f in val_string.split() if f.replace('.', '').isdigit()])
-        
+        elif dim in attrs and dim + "_step" not in attrs:
+            val_string = attrs["params_" + dim].split(";")[0]
+            coord = _np.array(
+                [float(f) for f in val_string.split() if f.replace(".", "").isdigit()]
+            )
+
         else:
             coord = _np.arange(0, length)
         coords.append(_np.array(coord))
