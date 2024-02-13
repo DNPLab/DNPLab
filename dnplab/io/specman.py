@@ -3,6 +3,7 @@ import os
 import dnplab as _dnp
 import re
 
+
 def import_specman(path):
     """Import SpecMan data and return DNPData object
 
@@ -76,7 +77,7 @@ def load_specman_exp(path):
             attrs[c + "_" + str(i)] = splt_exp_content
         else:
             pass
-    
+
     attrs = analyze_attrs(attrs)
     return attrs
 
@@ -155,12 +156,10 @@ def load_specman_d01(path, attrs, verbose=False):
     data = _np.swapaxes(data, 0, -1)
 
     # SpecMan data can have a maximum of four dimensions
-    dims_full = ["x0", "x1", "x2", "x3", "x4"]
-    dims = dims_full[0 : dataShape[0] + 1]
+    dims, coords = specman_coords(attrs)
 
-    dims, coords = specman_coords(attrs, data, dims)
-    
     return data, dims, coords, attrs
+
 
 def analyze_attrs(attrs):
     """
@@ -168,65 +167,71 @@ def analyze_attrs(attrs):
 
     Args:
         attrs (dict): Dictionary of specman acqusition parameters
-    
+
     Returns:
         attrs (dict): The dictionary of specman acqusition parameters and added parameters
 
     """
-    
+
     temp = {}
     for key, val in attrs.items():
-        if 'params_' in key:
-            new_key = key.split('params_')[1] # get key value for temp dictionary
-            val = val.split(';')[0] # remove non value related information
-            val_list = val.split(' ') # split value string for further analyze
-            val = val_list[0]
-            temp[new_key] = int(val) if '.' not in val else float(val)
-            if 'step' in val_list: # when it indicate the step
-                step_index = val_list.index('step') + 1 # the index of the value of 'step' is equal to the index of string 'index' + 1
+        if "params_" in key:
+            new_key = key.split("params_")[1]  # get key value for temp dictionary
+            val = val.split(";")[0]  # remove non value related information
+            val_list = val.split(" ")  # split value string for further analyze
+            val = val_list[0].strip(',')
+            temp[new_key] = int(val) if "." not in val else float(val)
+            if "step" in val_list:  # when it indicate the step
+                step_index = (
+                    val_list.index("step") + 1
+                )  # the index of the value of 'step' is equal to the index of string 'index' + 1
                 step = float(val_list[step_index])
-                temp[new_key + '_step'] = step
+                temp[new_key + "_step"] = step
 
-        if 'sweep_' in key:
-            val_list = val.split(',')
-            val = val_list[1] # get value
-            new_key = 'sweep_' + val_list[0]
-            temp[new_key + '_length'] = int(val)
+        if "sweep_" in key:
+            val_list = val.split(",")
+            val = val_list[1]  # get value
+            new_key = "sweep_" + val_list[0]
+            temp[new_key + "_length"] = int(val)
             # new_key += '_dim' # last item is the key to the parameters, such as t, p...
-            temp[new_key + '_dim'] = val_list[-1]
-        
+            temp[new_key + "_dim"] = val_list[-1]
 
     attrs = {**attrs, **temp}
     return attrs
 
-def specman_coords(attrs, data: _dnp.DNPData, dims):
+
+def specman_coords(attrs):
     """Generate coords from specman acquisition parameters
 
     Args:
         attrs (dict): Dictionary of specman acqusition parameters
-        data (DNPData Object): The specman data
-        dims (list): the list of current dims
 
     Returns:
         tuple: dims and coords
     """
-    shape = _np.shape(data)
-    length = attrs['sweep_X_length']
-    new_dims = [attrs['sweep_X_dim']] # new dim name list
+    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
     coords = []
-    for index in range(data.ndim):
-        if index < len(new_dims):
-            dim = new_dims[index]
-            dims[index] = dim
+    dims = [
+        attrs[key + "_dim"] if key != "sweep_T" else "t2"
+        for key in kw
+        if key + "_dim" in attrs
+    ]
+    lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
+    dims.append("x")
+    lengths.append(2)
+    for index, dim in enumerate(dims):
+        length = lengths[index]
+        if dim in attrs and dim + '_step' in attrs: 
             start = attrs[dim]
-            step = attrs[dim + '_step']
-            coord = []
-            for i in range(length):
-                coord.append(start + step * i)
+            step = attrs[dim + "_step"]
+            stop = start + step * length
+            coord = _np.arange(start, stop, step)
+        elif dim in attrs and dim + '_step' not in attrs:
+            val_string = attrs['params_' + dim].split(';')[0]
+            coord = _np.array([float(f) for f in val_string.split() if f.replace('.', '').isdigit()])
+        
         else:
-            coord = _np.arange(0, shape[index])
-
+            coord = _np.arange(0, length)
         coords.append(_np.array(coord))
+
     return dims, coords
-
-
