@@ -184,16 +184,17 @@ def analyze_attrs(attrs):
             temp[new_key] = int(val) if '.' not in val else float(val)
             if 'step' in val_list: # when it indicate the step
                 step_index = val_list.index('step') + 1 # the index of the value of 'step' is equal to the index of string 'index' + 1
-                step = int(val_list[step_index])
+                step = float(val_list[step_index])
                 temp[new_key + '_step'] = step
 
         if 'sweep_' in key:
             val_list = val.split(',')
             val = val_list[1] # get value
             new_key = 'sweep_' + val_list[0]
-            temp[new_key] = int(val)
-            new_key += '_dim' # last item is the key to the parameters, such as t, p...
-            temp[new_key] = val_list[-1]
+            temp[new_key + '_length'] = int(val)
+            # new_key += '_dim' # last item is the key to the parameters, such as t, p...
+            temp[new_key + '_dim'] = val_list[-1]
+        
 
     attrs = {**attrs, **temp}
     return attrs
@@ -210,7 +211,7 @@ def specman_coords(attrs, data: _dnp.DNPData, dims):
         tuple: dims and coords
     """
     shape = _np.shape(data)
-    length = attrs['sweep_X']
+    length = attrs['sweep_X_length']
     new_dims = [attrs['sweep_X_dim']] # new dim name list
     coords = []
     for index in range(data.ndim):
