@@ -318,16 +318,23 @@ def import_topspin(
     topspin_data.reorder(["t2"])
 
     try:
-        experiment = int(kwargs.get("pdata",1))
-        proc_n = int(kwargs.get("proc",1))
+        experiment = int(kwargs.get("pdata", 1))
+        proc_n = int(kwargs.get("proc", 1))
         if proc_n == 1:
-            proc_n=""
+            proc_n = ""
         else:
             proc_n = str(proc_n)
-        proc_params = load_acqu(os.path.join(path, "pdata/" + str(experiment) + "/proc" + proc_n +"s"), verbose=verbose)
+        proc_params = load_acqu(
+            os.path.join(path, "pdata/" + str(experiment) + "/proc" + proc_n + "s"),
+            verbose=verbose,
+        )
         topspin_data.attrs["_topspin_procs_offset"] = float(proc_params["OFFSET"])
     except FileNotFoundError as e:
-        warnings.warn("procs file " + os.path.join(path, "pdata/" + str(experiment) + "/proc" + proc_n +"s") + "not found, ppm value conversion will happen with nmr_frequency")
+        warnings.warn(
+            "procs file "
+            + os.path.join(path, "pdata/" + str(experiment) + "/proc" + proc_n + "s")
+            + "not found, ppm value conversion will happen with nmr_frequency"
+        )
 
     return topspin_data
 
