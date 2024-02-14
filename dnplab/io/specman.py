@@ -4,7 +4,7 @@ import dnplab as _dnp
 import re
 
 
-def import_specman(path):
+def import_specman(path, convert_coords: bool = False, convert_dims: bool = False):
     """Import SpecMan data and return DNPData object
 
     DNPLab function to import SpecMan4EPR data (https://specman4epr.com/). The function returns a DNPdata object with the spectral data.
@@ -13,10 +13,11 @@ def import_specman(path):
     The import function will require a parser script to properly assign the spectroscopic data and proper coordinates.
 
     Args:
-        path (str):         Path to either .exp file
-
+        path (str):             Path to either .exp file
+        convert_coords(bool):   Convert coords based on attrs
+        convert_dims(bool):     Convert dims based on attrs
     Returns:
-        data (DNPData):     DNPData object containing SpecMan EPR data
+        data (DNPData):         DNPData object containing SpecMan EPR data
     """
 
     if path[-1] == os.sep:
@@ -32,6 +33,18 @@ def import_specman(path):
 
     attrs = load_specman_exp(file_name_exp)
     data, dims, coords, attrs = load_specman_d01(file_name_d01, attrs)
+
+    if convert_coords or convert_dims:
+        attrs = analyze_attrs(attrs)
+
+    if convert_dims:
+        new_dims = generate_dims(attrs)
+        dims = new_dims
+    else:
+        new_dims = None
+
+    if convert_coords:
+        coords = calculate_specman_coords(attrs, new_dims)
 
     # Add import path
     attrs["import_path"] = path
@@ -78,7 +91,6 @@ def load_specman_exp(path):
         else:
             pass
 
-    attrs = analyze_attrs(attrs)
     return attrs
 
 
@@ -155,8 +167,15 @@ def load_specman_d01(path, attrs, verbose=False):
     # Swap first axis with last
     data = _np.swapaxes(data, 0, -1)
 
+    dims_full = ["x0", "x1", "x2", "x3", "x4"]
+    dims = dims_full[0 : dataShape[0] + 1]
+
+    coords = []
+    shape = _np.shape(data)
+    for index in range(data.ndim):
+        coords.append(_np.arange(0.0, shape[index]))
+
     # SpecMan data can have a maximum of four dimensions
-    dims, coords = specman_coords(attrs)
 
     return data, dims, coords, attrs
 
@@ -200,25 +219,47 @@ def analyze_attrs(attrs):
     return attrs
 
 
-def specman_coords(attrs):
-    """Generate coords from specman acquisition parameters
+def generate_dims(attrs):
+    """Generate dims from specman acquisition parameters
 
     Args:
         attrs (dict): Dictionary of specman acqusition parameters
 
     Returns:
-        tuple: dims and coords
+        dims (list): a new dims
+
     """
     kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
-    coords = []
     dims = [
         attrs[key + "_dim"] if key != "sweep_T" else "t2"
         for key in kw
         if key + "_dim" in attrs
     ]
-    lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
     dims.append("x")
+
+    return dims
+
+
+def calculate_specman_coords(attrs, dims=None):
+    """Generate coords from specman acquisition parameters
+
+    Args:
+        attrs (dict): Dictionary of specman acqusition parameters
+        dims (list): (Optional) a list of dims
+
+    Returns:
+        coords (list): a calculated coords
+    """
+
+    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
+    coords = []
+    lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
     lengths.append(2)
+
+    if not dims:
+        dims = generate_dims(attrs)
+        print("Warning: the coords might not be correct")
+
     for index, dim in enumerate(dims):
         length = lengths[index]
         if dim in attrs and dim + "_step" in attrs:
@@ -236,4 +277,4 @@ def specman_coords(attrs):
             coord = _np.arange(0, length)
         coords.append(_np.array(coord))
 
-    return dims, coords
+    return coords
