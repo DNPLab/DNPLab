@@ -4,7 +4,9 @@ import dnplab as _dnp
 import re
 
 
-def import_specman(path, autodetect_coords: bool = False, autodetect_dims: bool = False):
+def import_specman(
+    path, autodetect_coords: bool = False, autodetect_dims: bool = False
+):
     """Import SpecMan data and return DNPData object
 
     DNPLab function to import SpecMan4EPR data (https://specman4epr.com/). The function returns a DNPdata object with the spectral data.
