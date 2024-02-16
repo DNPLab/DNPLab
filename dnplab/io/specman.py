@@ -4,7 +4,7 @@ import dnplab as _dnp
 import re
 
 
-def import_specman(path, convert_coords: bool = False, convert_dims: bool = False):
+def import_specman(path, autodetect_coords: bool = False, autodetect_dims: bool = False):
     """Import SpecMan data and return DNPData object
 
     DNPLab function to import SpecMan4EPR data (https://specman4epr.com/). The function returns a DNPdata object with the spectral data.
@@ -13,9 +13,9 @@ def import_specman(path, convert_coords: bool = False, convert_dims: bool = Fals
     The import function will require a parser script to properly assign the spectroscopic data and proper coordinates.
 
     Args:
-        path (str):             Path to either .exp file
-        convert_coords(bool):   Convert coords based on attrs
-        convert_dims(bool):     Convert dims based on attrs
+        path (str):                 Path to either .exp file
+        autodetect_coords(bool):    Autodetect coords based on attrs
+        autodetect_dims(bool):      Autodetect dims based on attrs
     Returns:
         data (DNPData):         DNPData object containing SpecMan EPR data
     """
@@ -34,16 +34,16 @@ def import_specman(path, convert_coords: bool = False, convert_dims: bool = Fals
     attrs = load_specman_exp(file_name_exp)
     data, dims, coords, attrs = load_specman_d01(file_name_d01, attrs)
 
-    if convert_coords or convert_dims:
+    if autodetect_coords or autodetect_dims:
         attrs = analyze_attrs(attrs)
 
-    if convert_dims:
+    if autodetect_dims:
         new_dims = generate_dims(attrs)
         dims = new_dims
     else:
         new_dims = None
 
-    if convert_coords:
+    if autodetect_coords:
         coords = calculate_specman_coords(attrs, new_dims)
 
     # Add import path
