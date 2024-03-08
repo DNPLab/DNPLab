@@ -93,7 +93,7 @@ def plot(data, *args, **kwargs):
             use_default = False
             plot_return = []
     for f in plot_function_list:
-        plot_return.append( f(coord, data.values.real, *args, **kwargs) )
+        plot_return.append(f(coord, data.values.real, *args, **kwargs))
     if use_default:
         plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
     _plt.xlabel(dim)
