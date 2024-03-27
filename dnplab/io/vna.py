@@ -8,9 +8,9 @@ from matplotlib.pylab import *
 from .. import DNPData
 
 
-def import_vna(path):
+def import_vna(path, *args, **kwargs):
     """Import VNA data and return dnpdata object"""
-    x, value, attrs = import_snp(path)
+    x, value, attrs = import_snp(path, *args, **kwargs)
     # Not General
     dnpDataObject = DNPData(
         value, coords=[x], dims=["f"], attrs=attrs, dnplab_attrs=attrs
@@ -70,7 +70,7 @@ def import_vna(path):
 #     return x, data
 
 
-def import_snp(path):
+def import_snp(path, *args, **kwargs):
     """Import sNp file and return numpy array"""
     _, extension = os.path.splitext(path)
 
@@ -84,7 +84,7 @@ def import_snp(path):
     if num > 1:
         raise ValueError("Currently on s1p is supported")
 
-    data = _rf.Network(path)
+    data = _rf.Network(path, *args, **kwargs)
 
     attrs = {
         "data_format": "VNA",
