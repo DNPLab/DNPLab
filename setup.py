@@ -34,9 +34,6 @@ setup(
         "h5py>=3.10",
         "scikit-rf>=0.30.0", 
     ],
-    tests_require = [
-        'scikit-rf',
-    ],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: MIT License",
