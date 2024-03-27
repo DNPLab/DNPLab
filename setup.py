@@ -36,7 +36,7 @@ setup(
     ],
     tests_require = [
         'scikit-rf',
-    ]
+    ],
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: MIT License",
