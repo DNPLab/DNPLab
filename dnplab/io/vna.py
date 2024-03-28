@@ -17,7 +17,6 @@ try:
 
         return dnpDataObject
 
-
     # # TODO: remove prints or make them optional
     # def import_snp(path):
     #     """Import sNp file and return numpy array"""
@@ -67,7 +66,6 @@ try:
     #                 data[:, n, m] = raw[n::num, 1 + 2 * m] + 1j * raw[n::num, 2 * (1 + m)]
 
     #     return x, data
-
 
     def import_snp(path, *args, **kwargs):
         """Import sNp file and return numpy array"""
