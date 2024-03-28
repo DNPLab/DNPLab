@@ -6,9 +6,10 @@ from .. import DNPData
 
 try:
     import skrf as _rf
-    
+
 except Exception as e:
     raise ImportError("Please install scikit-rf first.")
+
 
 def import_vna(path, *args, **kwargs):
     """Import VNA data and return dnpdata object"""
@@ -19,6 +20,7 @@ def import_vna(path, *args, **kwargs):
     )
 
     return dnpDataObject
+
 
 # # TODO: remove prints or make them optional
 # def import_snp(path):
@@ -70,6 +72,7 @@ def import_vna(path, *args, **kwargs):
 
 #     return x, data
 
+
 def import_snp(path, *args, **kwargs):
     """Import sNp file and return numpy array"""
     _, extension = os.path.splitext(path)
@@ -98,4 +101,3 @@ def import_snp(path, *args, **kwargs):
     x = data.f
 
     return x, value, attrs
-
