@@ -184,6 +184,8 @@ def autodetect(test_path, verbose=False):
         data_format = "prospa"
     elif path_exten == ".tnt":
         data_format = "tnmr"
+    elif path_exten in [".s1p", ".s2p"]:
+        data_format = "vna"
     elif (
         os.path.isdir(test_path)
         and "acqu.par" in os.listdir(test_path)
