@@ -235,7 +235,7 @@ def signal_to_noise(
         for k in noise_region[1:]:
             noise_0.concatenate(idata[dim, k, "fi", 0], dim)
 
-        noise.append(_np.std(noise_0[dim, slice(0, None)]))
+        noise.append( _np.std(_np.real(noise_0[dim, slice(0, None)])) )
 
     sdata.fold()
 
