@@ -112,6 +112,7 @@ def signal_to_noise(
     noise_region: list = (None, None),
     dim: str = "f2",
     remove_background: list = None,
+    complex_noise=False,
     **kwargs
 ):
     """Find signal-to-noise ratio
@@ -124,6 +125,7 @@ def signal_to_noise(
         noise_region (list): list with tuples (start,stop) of regions that should be taken as noise, default is (None,None)
         dim (str): dimension of data that is used for snr calculation, default is 'f2'
         remove_background (list): if this is not None (a list of tuples, or a single tuple) this will be forwarded to dnp.remove_background, together with any kwargs
+        complex_noise (bool): Flag that indicates whether the noise should be calculated on the real part of the noise or on the complex data (default = False)
         kwargs : parameters for dnp.remove_background
 
     Returns:
@@ -234,8 +236,10 @@ def signal_to_noise(
         noise_0 = idata[dim, noise_region[0], "fi", 0]
         for k in noise_region[1:]:
             noise_0.concatenate(idata[dim, k, "fi", 0], dim)
-
-        noise.append(_np.std(noise_0[dim, slice(0, None)]))
+        if complex_noise:
+            noise.append(_np.std(noise_0[dim, slice(0, None)]))
+        else:
+            noise.append(_np.std(_np.real(noise_0[dim, slice(0, None)])))
 
     sdata.fold()
 
