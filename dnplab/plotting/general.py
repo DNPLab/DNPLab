@@ -91,12 +91,15 @@ def plot(data, *args, **kwargs):
         if bool(kwargs.pop(k, None)):
             plot_function_list.append(getattr(_plt, k))
             use_default = False
+            plot_return = []
     for f in plot_function_list:
-        f(coord, data.values.real, *args, **kwargs)
+        plot_return.append(f(coord, data.values.real, *args, **kwargs))
     if use_default:
-        _plt.plot(coord, data.values.real, *args, **kwargs)
+        plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
     _plt.xlabel(dim)
     data.fold()
+
+    return plot_return
 
 
 def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
@@ -155,7 +158,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         coord = data.coords[dim]
         data.unfold(dim)
 
-        _plt.plot(coord, data.values.real, *args, **kwargs)
+        plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
         _plt.xlabel("Chemical Shift $\delta$ (ppm)")
         _plt.ylabel("NMR Signal Intensity (a.u.)")
 
@@ -197,7 +200,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             kwargs
         )  # calling values take precedence over config values
 
-        _plt.plot(
+        plot_return = _plt.plot(
             coord,
             data.values.real * get_float_key("value_scaling"),
             *args,
@@ -262,7 +265,10 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             _plt.text(xmin * 1.001, ymin * 0.90, prmString, bbox=box_style)
 
         data.fold()
+
     else:
-        plot(data, *args, **kwargs)
+        plot_return = plot(data, *args, **kwargs)
 
     _plt.tight_layout()
+
+    return plot_return
