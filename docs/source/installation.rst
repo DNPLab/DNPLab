@@ -45,6 +45,40 @@ or simply just:
 
 If you prefer to install DNPLab from the source code, check out our GitHub repository: |dnpLabGitLink|. The newest developments are merged into the *Development* branch.
 
+Installing with a virtual enviroment
+--------------------
+Starting from Ubuntu 23.10 pip3 will issue a warning when trying to install dnplab from pypy.
+It is recommended to not do a global install but use a virtual enviroment (venv).
+If you do not have already have a virtual enviroment you can create a folder at a convenient location where the enviroment will be located.
+
+In this example this will be in our home folder and the folder will be named DNPLab.
+To create this enviroment use the command
+
+.. code-block:: bash
+
+   $ python3 -m venv ~/DNPLab
+
+Note that you need to activate the venv when you want to use it and install packages via pip3.
+You can activate the venv by sourcing the activate script that should now be created under ~/DNPLab/bin
+
+.. code-block:: bash
+
+  $ source ~/DNPLab/bin/activate
+
+you have to do this everytime you start this enviroment, to ease this you can create an alias "dnplab" and add it to your .bash_aliases file
+
+.. code-block:: bash
+
+  $ echo "dnplab = 'source ~/DNPLab/bin/activate'" >> ~/.bash_aliases
+
+to deactivate the enviroment just enter
+
+.. code-block:: bash
+
+  $ deactivate
+
+into your terminal.
+
 Confirm Successful Installation
 -------------------------------
 To confirm that your installation of DNPLab was successful type the following command:
