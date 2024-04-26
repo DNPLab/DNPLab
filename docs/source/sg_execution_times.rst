@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:07.969** total execution time for 15 files **from all galleries**:
+**00:06.826** total execution time for 15 files **from all galleries**:
 
 .. container::
 
@@ -33,47 +33,47 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_auto_examples_03_Advanced_plot_01_align_nmr_spectra.py` (``../../examples/03_Advanced/plot_01_align_nmr_spectra.py``)
-     - 00:02.345
+     - 00:01.929
      - 0.0
    * - :ref:`sphx_glr_auto_examples_03_Advanced_plot_02_extract_data.py` (``../../examples/03_Advanced/plot_02_extract_data.py``)
-     - 00:00.896
+     - 00:00.759
      - 0.0
    * - :ref:`sphx_glr_auto_examples_02_Analysis_plot_02_analyze_inversion_recovery_experiments.py` (``../../examples/02_Analysis/plot_02_analyze_inversion_recovery_experiments.py``)
-     - 00:00.667
+     - 00:00.611
      - 0.0
    * - :ref:`sphx_glr_auto_examples_01_ImportingData_plot_04_create_dnpdata_object_from_individual_files.py` (``../../examples/01_ImportingData/plot_04_create_dnpdata_object_from_individual_files.py``)
-     - 00:00.575
+     - 00:00.498
      - 0.0
    * - :ref:`sphx_glr_auto_examples_01_ImportingData_plot_02_load_1D_NMR_spectrum_Kea.py` (``../../examples/01_ImportingData/plot_02_load_1D_NMR_spectrum_Kea.py``)
-     - 00:00.530
+     - 00:00.429
      - 0.0
    * - :ref:`sphx_glr_auto_examples_03_Advanced_plot_03_pseudo_modulation.py` (``../../examples/03_Advanced/plot_03_pseudo_modulation.py``)
-     - 00:00.501
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_01_ImportingData_plot_03_load_EPR_Spectrum_Bruker.py` (``../../examples/01_ImportingData/plot_03_load_EPR_Spectrum_Bruker.py``)
-     - 00:00.402
+     - 00:00.418
      - 0.0
    * - :ref:`sphx_glr_auto_examples_01_ImportingData_plot_01_load_1D_NMR_spectrum_Bruker.py` (``../../examples/01_ImportingData/plot_01_load_1D_NMR_spectrum_Bruker.py``)
-     - 00:00.379
+     - 00:00.386
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_01_ImportingData_plot_03_load_EPR_Spectrum_Bruker.py` (``../../examples/01_ImportingData/plot_03_load_EPR_Spectrum_Bruker.py``)
+     - 00:00.378
      - 0.0
    * - :ref:`sphx_glr_auto_examples_03_Advanced_plot_05_autophasing.py` (``../../examples/03_Advanced/plot_05_autophasing.py``)
-     - 00:00.368
+     - 00:00.348
      - 0.0
    * - :ref:`sphx_glr_auto_examples_04_Tools_plot_02_using_numpy_functions.py` (``../../examples/04_Tools/plot_02_using_numpy_functions.py``)
-     - 00:00.330
+     - 00:00.283
      - 0.0
    * - :ref:`sphx_glr_auto_examples_03_Advanced_plot_04_phase_cycling.py` (``../../examples/03_Advanced/plot_04_phase_cycling.py``)
-     - 00:00.315
+     - 00:00.276
      - 0.0
    * - :ref:`sphx_glr_auto_examples_02_Analysis_plot_03_peak_linewidth.py` (``../../examples/02_Analysis/plot_03_peak_linewidth.py``)
-     - 00:00.246
+     - 00:00.161
      - 0.0
    * - :ref:`sphx_glr_auto_examples_02_Analysis_plot_01_load_2D_calculate_DNP_enhancements.py` (``../../examples/02_Analysis/plot_01_load_2D_calculate_DNP_enhancements.py``)
-     - 00:00.187
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_01_ImportingData_plot_05_indexing_dnpdata_objects.py` (``../../examples/01_ImportingData/plot_05_indexing_dnpdata_objects.py``)
-     - 00:00.120
+     - 00:00.153
      - 0.0
    * - :ref:`sphx_glr_auto_examples_04_Tools_plot_01_larmor_frequency.py` (``../../examples/04_Tools/plot_01_larmor_frequency.py``)
-     - 00:00.108
+     - 00:00.102
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_01_ImportingData_plot_05_indexing_dnpdata_objects.py` (``../../examples/01_ImportingData/plot_05_indexing_dnpdata_objects.py``)
+     - 00:00.095
      - 0.0
