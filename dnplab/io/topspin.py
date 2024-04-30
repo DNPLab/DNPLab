@@ -144,14 +144,23 @@ def find_group_delay(attrs_dict):
 
 # This function does too much, should be broken into smaller functions
 def import_topspin(
-    path, assign_vdlist=False, remove_digital_filter=False, verbose=False
+    path,
+    assign_vdlist=False,
+    remove_digital_filter=False,
+    read_offset=False,
+    verbose=False,
+    **kwargs
 ):
     """Import topspin data and return dnpdata object
 
     Args:
-        path (str): Directory of data
-        assign_vdlist: False, or the name of dimension to assign topspin vdlist
-        verbose (bool): Print additional output for troubleshooting
+        path (str):                     Directory of data
+        assign_vdlist:                  False, or the name of dimension to assign topspin vdlist
+        remove_digital_filter (bool):   Option to remove group delay (see note below)
+        verbose (bool):                 Print additional output for troubleshooting
+
+    Note:
+        The group delay is a consequence of the oversampling and digital filtering in Bruker spectrometers. For more details see these blog posts https://nmr-analysis.blogspot.com/2010/05/bruker-smiles.html and https://nmr-analysis.blogspot.com/2010/05/bruker-smiles.html
 
     Returns:
         dnpdata: topspin data
@@ -312,6 +321,27 @@ def import_topspin(
 
     # reorder so that 't2' is first
     topspin_data.reorder(["t2"])
+    if read_offset:
+        try:
+            experiment = int(kwargs.get("pdata", 1))
+            proc_n = int(kwargs.get("proc", 1))
+            if proc_n == 1:
+                proc_n = ""
+            else:
+                proc_n = str(proc_n)
+            proc_params = load_acqu(
+                os.path.join(path, "pdata/" + str(experiment) + "/proc" + proc_n + "s"),
+                verbose=verbose,
+            )
+            topspin_data.attrs["_topspin_procs_offset"] = float(proc_params["OFFSET"])
+        except FileNotFoundError as e:
+            Warning.warn(
+                "procs file "
+                + os.path.join(
+                    path, "pdata/" + str(experiment) + "/proc" + proc_n + "s"
+                )
+                + "not found, ppm value conversion will happen with nmr_frequency"
+            )
 
     return topspin_data
 

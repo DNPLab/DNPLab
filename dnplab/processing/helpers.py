@@ -76,6 +76,18 @@ def create_complex(data, real, imag):
 
     Returns:
         data (DNPData): New DNPData object
+
+    Examples:
+    In this example, first a data set is loaded. The data set is of the size 4000 x 2 (ndarray, float32)
+
+    With the first dimension ([...,0]) being the real data and the second ([...,1]) the imaginary data. Using the function create_complex the dnpdata object is converted into a complex data set.
+
+        .. code-block:: python
+
+            data = dnp.load("MyFile.exp")       # Load example data
+
+            data_complex = dnp.create_complex(data, data.values[..., 0], data.values[..., 1])
+
     """
 
     complexData = _np.vectorize(complex)(real, imag)
@@ -100,6 +112,7 @@ def signal_to_noise(
     noise_region: list = (None, None),
     dim: str = "f2",
     remove_background: list = None,
+    complex_noise=False,
     **kwargs
 ):
     """Find signal-to-noise ratio
@@ -112,6 +125,7 @@ def signal_to_noise(
         noise_region (list): list with tuples (start,stop) of regions that should be taken as noise, default is (None,None)
         dim (str): dimension of data that is used for snr calculation, default is 'f2'
         remove_background (list): if this is not None (a list of tuples, or a single tuple) this will be forwarded to dnp.remove_background, together with any kwargs
+        complex_noise (bool): Flag that indicates whether the noise should be calculated on the real part of the noise or on the complex data (default = False)
         kwargs : parameters for dnp.remove_background
 
     Returns:
@@ -196,13 +210,15 @@ def signal_to_noise(
         data = dnp_remove_background(data, dim, deg, remove_background)
 
     # unfold and calculate snr for each fold_index
-    sdata = _np.abs(data)
+    sdata = data
     sdata.unfold(dim)
 
     # currently only absolute value comparison
     signal = []
     for indx in range(sdata.shape[1]):
-        signal.append(_np.max(sdata[dim, signal_region[0], "fold_index", indx]))
+        signal.append(
+            _np.max(_np.abs(sdata[dim, signal_region[0], "fold_index", indx]))
+        )
 
     # now calculate noise
     noise = []
@@ -220,8 +236,10 @@ def signal_to_noise(
         noise_0 = idata[dim, noise_region[0], "fi", 0]
         for k in noise_region[1:]:
             noise_0.concatenate(idata[dim, k, "fi", 0], dim)
-
-        noise.append(_np.std(noise_0[dim, slice(0, None)]))
+        if complex_noise:
+            noise.append(_np.std(noise_0[dim, slice(0, None)]))
+        else:
+            noise.append(_np.std(_np.real(noise_0[dim, slice(0, None)])))
 
     sdata.fold()
 
@@ -364,21 +382,30 @@ def left_shift(data, dim="t2", shift_points=0):
     return out
 
 
-def normalize(data, amplitude=True):
+def normalize(data, amplitude=True, dim="f2", regions=None):
     """Normalize spectrum
 
+    The function is used to normalize the amplitude (or area) of a spectrum to a value of 1. The sign of the original data will be conserved.
+
     Args:
-        data (DNPData): Data object
-        amplitude (boolean): True: normalize amplitude, false: normalize area. The default is True
+        data (DNPData):         Data object
+        amplitude (boolean):    True: normalize amplitude, false: normalize area. The default is True
+        dim (str):              The dimension to normalize
+        regions (None, list):   List of tuples to specify range of normalize [(-99., 99.)]
 
     Returns:
-        data (DNPDdata): Normalized data object
+        data (DNPDdata):        Normalized data object
     """
 
     out = data.copy()
 
     if amplitude == True:
-        out.values = out.values / _np.max(out.values)
+        if regions:
+            factor = _np.max(abs(out["f2", regions].values))
+        else:
+            factor = _np.max(abs(out.values))
+
+        out.values = out.values / factor
     elif amplitude == False:
         out.values = out.values  # Normalize to area = 1, not implemented yet
 

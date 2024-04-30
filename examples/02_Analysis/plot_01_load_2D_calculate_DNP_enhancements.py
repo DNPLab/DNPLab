@@ -6,13 +6,13 @@
 Load a 2D dnpdata object and calculate enhancements
 ===================================================
 
-This example demonstrates how to import DNP-NMR data in form of a 2D dnpdata object from an hdf5 file, calculate the DNP enhancement factors and plot the enhancment vs. the applied microwave power. This example uses the 2D data object that was created in a previous tutorial (:ref:`plot_04_create_dnpdata_object_from_individual_files`). The sample is 10 mM TEMPO in Toluene measured at 14.5MHz (X-Band ODNP spectroscopy).
+This example demonstrates how to import DNP-NMR data in form of a 2D dnpdata object from an hdf5 file, calculate the DNP enhancement factors and plot the enhancement vs. the applied microwave power. This example uses the 2D data object that was created in a previous tutorial (:ref:`plot_04_create_dnpdata_object_from_individual_files`). The sample is 10 mM TEMPO in Toluene measured at 14.5MHz (X-Band ODNP spectroscopy).
 
 """
 # %%
 # Load NMR Spectra
 # ----------------
-# In this example, we will calculate the DNP enhancement factor for each individual DNP spectrum and create a figure showing the DNP enhancement versus the applied microwave power. For this, we will import the 2D dnpdata object created in the previous sample. If you are not yet familiar with how to concatenate individual spectra into the 2D danpdata object, check out this tutorial: :ref:`plot_04_create_dnpdata_object_from_individual_files`.
+# In this example, we will calculate the DNP enhancement factor for each individual DNP spectrum and create a figure showing the DNP enhancement versus the applied microwave power. For this, we will import the 2D dnpdata object created in the previous sample. If you are not yet familiar with how to concatenate individual spectra into the 2D dnpdata object, check out this tutorial: :ref:`plot_04_create_dnpdata_object_from_individual_files`.
 #
 # First, load the 2D dnplab data object:
 

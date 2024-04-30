@@ -6,7 +6,7 @@ from . import constants as _const
 #####################################
 #
 #     Reference: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818.
-#     Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants .
+#     Electron value comes from 1998 CODATA values, https://physics.nist.gov/cuu/Constants/.
 #        or  http://physics.nist.gov/PhysRefData/codata86/codata86.html
 #        or  http://www.isis.rl.ac.uk/neutronSites/constants.htm
 #     Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
@@ -36,7 +36,7 @@ gmrProperties["29Si"] = [0.5, -5.319, 0, 4.6832, 0.000368, -0.96179, 0]
 gmrProperties["31P"] = [0.5, 10.8394, 0, 100, 0.0665, 1.95999, 0]
 gmrProperties["33S"] = [1.5, 2.055685, -6.78, 0.76, 1.72e-05, 0.8311696, 61]
 gmrProperties["35Cl"] = [1.5, 2.624198, -8.165, 75.78, 3580, 1.061035, 89]
-gmrProperties["37C1"] = [1.5, 2.184368, -6.435, 24.22, 0.000659, 0.8831998, 55]
+gmrProperties["37Cl"] = [1.5, 2.184368, -6.435, 24.22, 0.000659, 0.8831998, 55]
 gmrProperties["39K"] = [1.5, 1.2500608, 5.85, 93.2581, 0.000476, 0.50543376, 46]
 gmrProperties["40K"] = [4, -1.5542854, -7.3, 0.0117, 6.12e-07, -1.4513203, 5.2]
 gmrProperties["41K"] = [1.5, 0.68606808, 7.11, 6.7302, 5.68e-06, 0.27739609, 67]
@@ -141,7 +141,7 @@ def mr_properties(nucleus, *args):
 
     This function is modeled after the Matlab function gmr written by Mirko Hrovat: https://www.mathworks.com/matlabcentral/fileexchange/12078-gmr-m-nmr-mri-properties
 
-    Also see: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818. Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants, http://physics.nist.gov/PhysRefData/codata86/codata86.html, or http://www.isis.rl.ac.uk/neutronSites/constants.htm. Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
+    Also see: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818. Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants, or https://physics.nist.gov/cuu/Constants/index.html. Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
 
     Args:
 
