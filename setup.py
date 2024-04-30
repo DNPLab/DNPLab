@@ -8,7 +8,7 @@ with open("dnplab/version.py", "r") as f:
     # Define __version__
     exec(f.read())
 
-with open("requirements.txt", "r") as f:
+with open("docs/requirements.txt", "r") as f:
     _all_packages_ = []
     for line in f:
         _all_packages_.append(line)
