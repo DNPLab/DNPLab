@@ -208,3 +208,33 @@ class dnpTools_tester(unittest.TestCase):
         snr2 = dnp.signal_to_noise(data, [(0, 100)], dim="x", noise_region=[(70, 100)])
 
         self.assertTrue(np.isclose(snr2["signal_region", 0].values, signal / noise))
+
+
+    def test_005_xomplex_data_test(self):
+        #
+        # test on complex dataset
+        #
+
+        pts = 100
+        x = np.r_[0.0 : 99.0 : 1j * pts]
+        y = dnp.lineshape.gaussian(x, 50, 5, integral=1.0)
+        y= y.astype(complex)+ 1j* np.random.randn(pts) * 0.1
+
+        y /= np.max(y)
+        np.random.seed(100)
+        y += np.random.randn(pts) * 0.1
+
+        #complex SNR
+        signal = np.max(np.abs(y))
+        noise = np.std(y[70:100])
+
+        data = dnp.DNPData(y, ["x"], [x])
+        snr = dnp.signal_to_noise(data, [(0, 100)], dim="x", noise_region=[(70, 100)],complex_noise=True)
+        self.assertTrue(np.isclose(snr["signal_region", 0].values, signal / noise))
+
+        #real SNR
+        snr = dnp.signal_to_noise(data, [(0, 100)], dim="x", noise_region=[(70, 100)],complex_noise=False)
+        self.assertTrue(np.isclose(snr["signal_region", 0].values, np.real(np.max(np.abs(y))) / np.std(np.real(y[70:100])) ) )
+
+
+
