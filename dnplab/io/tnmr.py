@@ -91,12 +91,14 @@ def import_tnmr_data(path):
     magnet_field = struct.unpack("<d", tecmag_struct[76:84])
 
     # Reference: https://github.com/chatcannon/pytnt/blob/master/pytnt/TNTdtypes.py
-    
-    ob_freq = struct.unpack("<4d", tecmag_struct[84:116]) # the first one is NMR frequency in MHz.
-    base_freq = struct.unpack("<4d", tecmag_struct[116:148]) 
+
+    ob_freq = struct.unpack(
+        "<4d", tecmag_struct[84:116]
+    )  # the first one is NMR frequency in MHz.
+    base_freq = struct.unpack("<4d", tecmag_struct[116:148])
     offset_freq = struct.unpack("<4d", tecmag_struct[148:180])
-    attrs['nmr_frequency'] = ob_freq[0] * 1e6
-    
+    attrs["nmr_frequency"] = ob_freq[0] * 1e6
+
     # ref_freq = struct.unpack("<d", tecmag_struct[180:188])
     # nmr_frequency = struct.unpack("<d", tecmag_struct[188:196])
     # actual_scans = int.from_bytes(tecmag_struct[40:44], byteorder = 'little')
@@ -104,7 +106,7 @@ def import_tnmr_data(path):
 
     sw = struct.unpack("<4d", tecmag_struct[240:272])
     dwell_time = struct.unpack("<4d", tecmag_struct[272:304])
-    
+
     # dwell_time = float.from_bytes(tecmag_struct[272:304], byteorder = 'little')
 
     data = data.reshape(npts, order="F")
