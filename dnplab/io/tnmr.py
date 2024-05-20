@@ -15,8 +15,8 @@ def import_tnmr(path, squeeze=True):
         tnmr_data (object) : DNPData object containing tnmr data
     """
 
-    attrs = import_tnmr_pars(path)
-    values, dims, coords = import_tnmr_data(path)
+    # attrs = import_tnmr_pars(path)
+    values, dims, coords, attrs = import_tnmr_data(path)
 
     tnmr_data = DNPData(values, dims, coords, attrs)
 
@@ -26,7 +26,7 @@ def import_tnmr(path, squeeze=True):
     return tnmr_data
 
 
-def import_tnmr_pars(path):
+def import_tnmr_pars(pathm):
     """Import parameter fields of tnmr data
 
     Args:
@@ -87,6 +87,15 @@ def import_tnmr_data(path):
 
     acq_pts = int.from_bytes(tecmag_struct[32:36], byteorder="little")
     scans = int.from_bytes(tecmag_struct[36:40], byteorder="little")
+    magnet_field = struct.unpack("<d", tecmag_struct[76:84])
+    # Reference: https://github.com/chatcannon/pytnt/blob/master/pytnt/TNTdtypes.py
+    ob_freq = struct.unpack("<4d", tecmag_struct[84:116]) # the first one is NMR frequency in MHz.
+    base_freq = struct.unpack("<4d", tecmag_struct[116:148]) 
+    offset_freq = struct.unpack("<4d", tecmag_struct[148:180])
+    tmag_attrs['nmr_frequency'] = ob_freq[0] * 1e6
+    # ref_freq = struct.unpack("<d", tecmag_struct[180:188])
+    # nmr_frequency = struct.unpack("<d", tecmag_struct[188:196])
+    print(ob_freq, base_freq, offset_freq)
     # actual_scans = int.from_bytes(tecmag_struct[40:44], byteorder = 'little')
     # dummy_scans = int.from_bytes(tecmag_struct[44:48], byteorder = 'little')
 
@@ -104,4 +113,4 @@ def import_tnmr_data(path):
 
     dims = ["t2", "t1", "t3", "t4"]  # t2 dim is first
 
-    return data, dims, coords
+    return data, dims, coords, tmag_attrs
