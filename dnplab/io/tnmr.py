@@ -113,12 +113,12 @@ def import_tnmr(path, squeeze=True):
 
     values, dims, coords, attrs = import_tnmr_data(path)
 
-    tnmr_data = DNPData(values, dims, coords, attrs)
+    data = DNPData(values, dims, coords, attrs)
 
     if squeeze:
-        tnmr_data.squeeze()
+        data.squeeze()
 
-    return tnmr_data
+    return data
 
 
 def import_tnmr_data(path):
@@ -136,9 +136,9 @@ def import_tnmr_data(path):
     with open(path, "rb") as f:
         raw = f.read()
 
-    tmag_attrs = {}
-    tmag_attrs["version"] = str(raw[0:8].decode("utf-8")).replace('\x00', '')
-    tmag_attrs["experiment_type"] = "nmr_spectrum"
+    attrs = {}
+    attrs["version"] = str(raw[0:8].decode("utf-8")).replace('\x00', '')
+    attrs["experiment_type"] = "nmr_spectrum"
 
     len_tecmag_struct = int.from_bytes(raw[16:20], "little")
     tecmag_struct = raw[20 : 20 + len_tecmag_struct]
@@ -158,17 +158,17 @@ def import_tnmr_data(path):
     # Parse tecmag struct
     for key, val in TMAG_ATTRS.items():
         if 'c' not in val[0]:
-            tmag_attrs[key] = struct.unpack(val[0], tecmag_struct[val[1]:val[2]])
+            attrs[key] = struct.unpack(val[0], tecmag_struct[val[1]:val[2]])
         else:
-            tmag_attrs[key] = str(tecmag_struct[val[1]:val[2]].decode("utf-8")).replace('\x00', '')
+            attrs[key] = str(tecmag_struct[val[1]:val[2]].decode("utf-8")).replace('\x00', '')
 
     # points in x0, x1, x2, x3
-    npts = tmag_attrs['npts']
+    npts = attrs['npts']
 
     # Array of points in each dimension (x0, x1, x2, x3)
-    tmag_attrs['nmr_frequency'] = tmag_attrs['ob_freq'][0] * 1e6 # nmr_frequency is equal to ob_freq in MHz
+    attrs['nmr_frequency'] = attrs['ob_freq'][0] * 1e6 # nmr_frequency is equal to ob_freq in MHz
 
-    dwell = tmag_attrs['dwell']
+    dwell = attrs['dwell']
 
     data = data.reshape(npts, order="F")
 
@@ -180,4 +180,4 @@ def import_tnmr_data(path):
 
     dims = ["t2", "t1", "t3", "t4"]  # t2 dim is first
 
-    return data, dims, coords, tmag_attrs
+    return data, dims, coords, attrs
