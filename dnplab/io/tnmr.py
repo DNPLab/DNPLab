@@ -180,4 +180,4 @@ def import_tnmr_data(path):
 
     dims = ["t2", "t1", "t3", "t4"]  # t2 dim is first
 
-    return data, dims, coords, attrs
+    return data, dims, coords, tmag_attrs
