@@ -138,7 +138,7 @@ def import_tnmr_data(path):
 
     tmag_attrs = {}
     tmag_attrs["version"] = str(raw[0:8].decode("utf-8")).replace('\x00', '')
-    attrs["experiment_type"] = "nmr_spectrum"
+    tmag_attrs["experiment_type"] = "nmr_spectrum"
 
     len_tecmag_struct = int.from_bytes(raw[16:20], "little")
     tecmag_struct = raw[20 : 20 + len_tecmag_struct]
