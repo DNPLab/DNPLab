@@ -1,6 +1,5 @@
 import setuptools
 from distutils.core import setup
-import os
 
 with open("README.md", "r") as f:
     long_description = f.read()
@@ -9,10 +8,7 @@ with open("dnplab/version.py", "r") as f:
     # Define __version__
     exec(f.read())
 
-dir, filename = os.path.split(__file__)
-requirement_file = os.path.join(dir, "docs", "requirements.txt")
-print(os.listdir(dir))
-with open(requirement_file, "r") as f:
+with open( "requirements.txt", "r") as f:
     _all_packages_ = []
     for line in f:
         _all_packages_.append(line)
