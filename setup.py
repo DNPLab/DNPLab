@@ -46,7 +46,7 @@ setup(
                         "scipy>=1.10",
                         "matplotlib>=3.7",
                         "h5py>=3.10",],
-    install_requires = _install_requires_,
+    # install_requires = _install_requires_,
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: MIT License",
