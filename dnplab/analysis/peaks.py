@@ -81,6 +81,7 @@ def find_peaks(
         new_data_list, new_coord = _peak_list_checker(
             data_list, second_coord, second_dim
         )
+
         return _dnp.concat(new_data_list, dim=second_dim, coord=new_coord)
 
     elif len(data.dims) == 1:
