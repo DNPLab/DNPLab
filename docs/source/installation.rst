@@ -46,7 +46,7 @@ or simply just:
 If you prefer to install DNPLab from the source code, check out our GitHub repository: |dnpLabGitLink|. The newest developments are merged into the *Development* branch.
 
 Installing with a virtual enviroment
---------------------
+------------------------------------
 Starting from Ubuntu 23.10 pip3 will issue a warning when trying to install dnplab from pypy.
 It is recommended to not do a global install but use a virtual enviroment (venv).
 If you do not have already have a virtual enviroment you can create a folder at a convenient location where the enviroment will be located.
