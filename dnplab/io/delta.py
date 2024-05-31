@@ -7,19 +7,21 @@ from .. import DNPData
 def import_delta(path):
     """Import Delta data and return DNPData object
 
+    Currently only 1D and 2D data sets are supported.
+
     Args:
-        path (str) : Path to .jdf file
+        path (str)          : Path to .jdf file
 
     Returns:
-        delta_data (object) : DNPData object containing Delta data
+        dnpdata (DNPData)   : DNPData object containing Delta data
     """
 
-    pars = import_delta_pars(path)
-    values, dims, coords, attrs = import_delta_data(path, pars)
+    params = import_delta_pars(path)
+    values, dims, coords, attrs = import_delta_data(path, params)
 
-    delta_data = DNPData(values, dims, coords, attrs)
+    out = DNPData(values, dims, coords, attrs)
 
-    return delta_data
+    return out
 
 
 def import_delta_pars(path):
@@ -58,8 +60,10 @@ def import_delta_pars(path):
     return params
 
 
-def import_delta_data(path, params):
+def import_delta_data(path, params, verbose = True):
     """Import spectrum or spectra of Delta data
+
+    Currently only 1D and 2D data sets are supported.
 
     Args:
         path (str) : Path to .jdf file
@@ -76,93 +80,182 @@ def import_delta_data(path, params):
         params = {}
 
     file_opened = open(path, "rb")
-    file_contents = file_opened.read(1296)
+    file_contents = file_opened.read(1360)
     file_opened.close()
 
-    num_dims = [
+    ##### Reading field header section #####
+    Endian = [unpack(">B", file_contents[8 + ix : 9 + ix])[0] for ix in range(0, 1, 1)][
+        0
+    ]
+    if Endian == 0:
+        Endian = ">d"
+    elif Endian == 1:
+        Endian = "<d"
+    else:
+        raise UnicodeTranslateError("Failed to determine endianness")
+
+    Data_Dimension_Number = [
         unpack(">B", file_contents[12 + ix : 13 + ix])[0] for ix in range(0, 1, 1)
     ][0]
+
+    # Data_Type =  int.from_bytes(file_contents[14:16], byteorder="big")
+
+    Data_Type = [
+        unpack(">B", file_contents[14 + ix : 15 + ix])[0] for ix in range(0, 1, 1)
+    ][0]
+
+
+    # Data_Axis_Type = [
+    #     unpack(">B", file_contents[24 + ix : 25 + ix])[0] for ix in range(0, 8, 1)
+    # ][:Data_Dimension_Number]
+
+
+    Data_Axis_Type = [
+        unpack(">B", file_contents[24 + ix : 25 + ix])[0] for ix in range(0, 8, 1)
+    ]
+
+    # Data_Units = [
+    #     unpack(">B", file_contents[32 + ix : 33 + ix])[0] for ix in range(1, 16, 2)
+    # ][:Data_Dimension_Number]
+
+    Data_Units = [
+        unpack(">B", file_contents[32 + ix : 33 + ix])[0] for ix in range(1, 16, 2)
+    ]
+
+    params["units"] = []
+    for ix in range(Data_Dimension_Number):
+        if Data_Units[ix] == 1:
+            params["units"].append("abundance")
+        elif Data_Units[ix] == 13:
+            params["units"].append("Hz")
+        elif Data_Units[ix] == 26:
+            params["units"].append("ppm")
+        elif Data_Units[ix] == 27:
+            params["units"].append("rad")
+        elif Data_Units[ix] == 28:
+            params["units"].append("s")
+        else:
+            params["units"].append("indexed")
+
+
+    Data_Points = [
+        unpack(">I", file_contents[176 + ix : 180 + ix])[0] for ix in range(0, 32, 4)
+    ]
+
+    Data_Offset_Start = [
+        unpack(">I", file_contents[208 + ix : 212 + ix])[0] for ix in range(0, 32, 4)
+    ]
+
+    Data_Offset_Stop = [
+        unpack(">I", file_contents[240 + ix : 244 + ix])[0] for ix in range(0, 32, 4)
+    ]
+
+    Data_Axis_Start = [
+        unpack(">d", file_contents[272 + ix : 280 + ix])[0] for ix in range(0, 64, 8)
+    ]
+    
+    Data_Axis_Stop = [
+        unpack(">d", file_contents[336 + ix : 344 + ix])[0] for ix in range(0, 64, 8)
+    ]
+
+    Base_Freq = [
+        unpack(">d", file_contents[1064 + ix : 1072 + ix])[0] for ix in range(0, 64, 8)
+    ]
 
     params["nmr_frequency"] = [
         unpack(">d", file_contents[1064 + ix : 1072 + ix])[0] for ix in range(0, 64, 8)
     ][
         0
     ] * 1e6  # convert from MHz to Hz, is this always in Hz?
-    axes_units = [
-        unpack(">B", file_contents[32 + ix : 33 + ix])[0] for ix in range(1, 16, 2)
-    ][:num_dims]
-    params["units"] = []
-    for ix in range(num_dims):
-        if axes_units[ix] == 1:
-            params["units"].append("abundance")
-        elif axes_units[ix] == 13:
-            params["units"].append("Hz")
-        elif axes_units[ix] == 26:
-            params["units"].append("ppm")
-        elif axes_units[ix] == 27:
-            params["units"].append("rad")
-        elif axes_units[ix] == 28:
-            params["units"].append("s")
-        else:
-            params["units"].append("indexed")
 
-    endian = [unpack(">B", file_contents[8 + ix : 9 + ix])[0] for ix in range(0, 1, 1)][
-        0
-    ]
-    if endian == 0:
-        endian = ">d"
-    elif endian == 1:
-        endian = "<d"
-    else:
-        raise UnicodeTranslateError("Failed to determine endianness")
-
-    num_pts = [
-        unpack(">I", file_contents[176 + ix : 180 + ix])[0] for ix in range(0, 32, 4)
-    ]
-    axis_type = [
-        unpack(">B", file_contents[24 + ix : 25 + ix])[0] for ix in range(0, 8, 1)
-    ][:num_dims]
-    axes_start = [
-        unpack(">d", file_contents[272 + ix : 280 + ix])[0] for ix in range(0, 64, 8)
-    ][:num_dims]
-    axes_stop = [
-        unpack(">d", file_contents[336 + ix : 344 + ix])[0] for ix in range(0, 64, 8)
-    ][:num_dims]
-    abscissa = []
-    for ix in range(num_dims):
-        abscissa.append(_np.linspace(axes_start[ix], axes_stop[ix], num_pts[ix]))
-
-    data_start = [
+    Data_Start = [
         unpack(">I", file_contents[1284 + ix : 1288 + ix])[0] for ix in range(0, 4, 4)
     ][0]
 
+    Data_Length = int.from_bytes(file_contents[1288:1296], byteorder="big")
+
+    Total_Size = int.from_bytes(file_contents[1320:1328], byteorder="big")
+
+    # Number_sections = 2**
+
+    abscissa = []
+
+    for ix in range(Data_Dimension_Number):
+        abscissa.append(_np.linspace(Data_Axis_Start[ix], Data_Axis_Stop[ix], Data_Points[ix]))
+
     file_opened = open(path, "rb")
-    file_opened.seek(data_start)
-    if num_dims == 2 and axis_type[0] == 3 and axis_type[1] == 3:
-        read_pts = _np.prod(num_pts) * 4
+    file_opened.seek(Data_Start)
+
+    # Read data from file
+    if Data_Dimension_Number == 2 and Data_Axis_Type[0] == 3 and Data_Axis_Type[1] == 3:
+        read_pts = _np.prod(Data_Points) * 4
     else:
-        read_pts = _np.prod(num_pts) * 2
-    data = _np.fromfile(file_opened, endian, read_pts)
+        read_pts = _np.prod(Data_Points) * 2
+
+    data = _np.fromfile(file_opened, Endian, read_pts)
     file_opened.close()
 
-    if num_dims == 1:
-        if axis_type[0] == 1:
-            y_data = data
-        elif axis_type[0] == 3 or axis_type[0] == 4:
-            y_data = _np.split(data, 2)[0] - 1j * _np.split(data, 2)[1]
+    # 1D data reshaping
+    if Data_Dimension_Number == 1:
+        if Data_Axis_Type[0] == 1:
+            temp = data
+
+        elif Data_Axis_Type[0] == 3 or Data_Axis_Type[0] == 4:
+            temp = _np.split(data, 2)[0] - 1j * _np.split(data, 2)[1]
+
         else:
             raise TypeError("Data format not recognized")
 
+        # Extract the actual data by using Data_Offset_Start and Data_Offset_Stop indexes
+        out = temp[Data_Offset_Start[0]:Data_Offset_Stop[0]+1]
+
         dims = ["t2"]
 
-    elif num_dims == 2:
-        if axis_type[0] == 4 or (axis_type[0] == 3 and axis_type[1] == 1):
+
+
+
+    # 2D data reshaping
+    elif Data_Dimension_Number == 2:
+
+        if Data_Axis_Type[0] == 4 or (Data_Axis_Type[0] == 3 and Data_Axis_Type[1] == 1):
+            print("data: ", _np.shape(data))
+
             data_folded = _np.split(data, 2)[0] - 1j * _np.split(data, 2)[1]
+            print("data_folded: ", _np.shape(data_folded))
+            
             data_shaped = _np.reshape(
-                data_folded, [int(num_pts[0] / 4), int(num_pts[1] / 4), 4, 4], order="F"
+                data_folded, [int(Data_Points[0] / 4), int(Data_Points[1] / 4), 4, 4], order="C"
             )
-            y_data = _np.concatenate(_np.concatenate(data_shaped, 1), 1)
-        elif axis_type[0] == 3 and axis_type[1] == 3:
+
+
+            print("data_shaped: ", _np.shape(data_shaped))
+            
+            temp = _np.reshape(data_folded, (Data_Points[0], Data_Points[1]))
+
+            # temp1 = temp()
+
+
+
+
+            out = temp
+
+
+
+
+
+
+
+            # print("Shape temp:", _np.shape(temp))
+
+            # out = _np.concatenate(_np.concatenate(data_shaped, 1), 1)
+
+
+
+
+
+
+        elif Data_Axis_Type[0] == 3 and Data_Axis_Type[1] == 3:
+            print("Complex")
             data_folded = [
                 _np.split(data, 4)[0] - 1j * _np.split(data, 4)[1],
                 _np.split(data, 4)[2] - 1j * _np.split(data, 4)[3],
@@ -170,10 +263,17 @@ def import_delta_data(path, params):
             for idx in enumerate(data_folded):
                 data_shaped[idx] = _np.reshape(
                     data_folded[idx],
-                    [int(num_pts[0] / 32), int(num_pts[1] / 32), 32, 32],
+                    [int(Data_Points[0] / 32), int(Data_Points[1] / 32), 32, 32],
                     order="F",
                 )
-                y_data[idx] = _np.concatenate(_np.concatenate(data_shaped[idx], 1), 1)
+                out[idx] = _np.concatenate(_np.concatenate(data_shaped[idx], 1), 1)
+
+
+
+
+
+
+
         else:
             raise ValueError("Data format not recognized")
 
@@ -182,4 +282,26 @@ def import_delta_data(path, params):
     else:
         raise TypeError("Only 1D or 2D are supported")
 
-    return y_data, dims, abscissa, params
+
+
+    if verbose == True:
+        print("Endian: ",                   Endian)
+        print("Data Dimension Number: ",    Data_Dimension_Number)
+        print("Data Type: ",                Data_Type)
+        print("Data Axis Type: ",           Data_Axis_Type)
+        print("Data Units: ",               Data_Units)
+        print("Data Points: ",              Data_Points)
+        print("Data Offset Start: ",        Data_Offset_Start)
+        print("Data Offset Stop: ",         Data_Offset_Stop)
+        print("Data Axis Start",            Data_Axis_Start)
+        print("data Axis Stop: ",           Data_Axis_Stop)
+        print("Base Freq: ",                Base_Freq)
+        print("Data Start: ",               Data_Start)
+        print("Data Length: ",              Data_Length)
+        print("Total Size: ",               Total_Size)
+        print("Output data shape: ",        _np.shape(out))
+
+
+
+
+    return out, dims, abscissa, params
