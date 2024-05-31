@@ -276,7 +276,7 @@ def calculate_specman_coords(attrs, dims=None):
             )
 
         else:
-            coord = _np.arange(0, length)
+            coord = _np.arange(0.0, length)
         coords.append(_np.array(coord))
 
     return coords

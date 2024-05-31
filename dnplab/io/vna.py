@@ -1,76 +1,38 @@
 import os
 import re
+import numpy as _np
 from matplotlib.pylab import *
-
+from ..core.util import concat
 from .. import DNPData
 
 try:
     import skrf as _rf
 
-except Exception as e:
-    raise ImportError("Please install scikit-rf first.")
+except:
+    pass
 
 
 def import_vna(path, *args, **kwargs):
     """Import VNA data and return dnpdata object"""
-    x, value, attrs = import_snp(path, *args, **kwargs)
-    # Not General
-    dnpDataObject = DNPData(
-        value, coords=[x], dims=["f"], attrs=attrs, dnplab_attrs=attrs
-    )
-
+    x, values, attrs, dim = import_snp(path, *args, **kwargs)
+    dnpDataObject = get_dnpdata(values, x, attrs, dim)
     return dnpDataObject
 
 
-# # TODO: remove prints or make them optional
-# def import_snp(path):
-#     """Import sNp file and return numpy array"""
-#     path_filename, extension = os.path.splitext(path)
+def get_dnpdata(values, coords, attrs, concat_dim=None):
+    if len(_np.shape(values)) == 1:
+        return DNPData(
+            values, coords=[coords], dims=["f"], attrs=attrs, dnplab_attrs=attrs
+        )
 
-#     extension_reg_ex = "[.]s[0-9]{1,}p"
-#     print(re.fullmatch(extension_reg_ex, extension))
-#     print(extension)
-#     if re.fullmatch(extension_reg_ex, extension) == None:
-#         raise ValueError("File Extension Not Given, Unspecified sNp file")
+    else:
+        new_coords = list(range(_np.shape(values)[0]))
+        data_list = []
+        for value in values:
+            data = get_dnpdata(value, coords=coords, attrs=attrs)
+            data_list.append(data)
 
-#     num_reg_ex = "[0-9]{1,}"
-#     num = int(re.search(num_reg_ex, extension)[0])
-
-#     print(num)
-#     if num > 2:
-#         raise ValueError("Currently on s1p and s2p files are supported")
-
-#     f = open(path)
-#     read_string = " "
-#     while read_string[0] != "#":
-#         read_string = f.readline()
-#     raw = np.genfromtxt(f, skip_header=2, defaultfmt="11f")
-#     f.close()
-
-#     if num == 1:
-#         x = raw[:, 0]
-#         data = raw[:, 1] + 1j * raw[:, 2]
-
-#     if num == 2:
-#         x = raw[:, 1]
-
-#         data = np.zeros((len(x), 2, 2))
-
-#         data[:, 0, 0] = raw[:, 1] + 1j * raw[:, 2]  # S11
-#         data[:, 1, 0] = raw[:, 3] + 1j * raw[:, 4]  # S21
-#         data[:, 0, 1] = raw[:, 5] + 1j * raw[:, 6]  # S12
-#         data[:, 1, 1] = raw[:, 7] + 1j * raw[:, 8]  # S22
-
-#     if num > 2:
-#         x = raw[0::num]
-#         data = np.zeros((len(x), num, num))
-
-#         # TODO: Use list comprehension instead of two for loops
-#         for n in range(num):
-#             for m in range(num):
-#                 data[:, n, m] = raw[n::num, 1 + 2 * m] + 1j * raw[n::num, 2 * (1 + m)]
-
-#     return x, data
+        return concat(data_list, concat_dim, new_coords)
 
 
 def import_snp(path, *args, **kwargs):
@@ -84,8 +46,8 @@ def import_snp(path, *args, **kwargs):
     num_reg_ex = "[0-9]{1,}"
     num = int(re.search(num_reg_ex, extension)[0])
 
-    if num > 1:
-        raise ValueError("Currently on s1p is supported")
+    if num > 2:
+        raise ValueError("Currently on s1p and s2p are supported")
 
     data = _rf.Network(path, *args, **kwargs)
 
@@ -95,9 +57,20 @@ def import_snp(path, *args, **kwargs):
         "sweep_field": data.frequency.span,
     }
 
-    # support only s11 data
+    if extension == ".s1p":
+        value = data.s[:, 0, 0]
+        x = data.f
+        dim = None
+        attrs["data_order"] = ["s11"]
 
-    value = data.s[:, 0, 0]
-    x = data.f
+    elif extension == ".s2p":
+        s11 = data.s[:, 0, 0]
+        s12 = data.s[:, 0, 1]
+        s21 = data.s[:, 1, 0]
+        s22 = data.s[:, 1, 1]
+        value = _np.array([s11, s12, s21, s22])
+        x = data.f
+        dim = "s"
+        attrs["data_order"] = ["s11", "s12", "s21", "s22"]
 
-    return x, value, attrs
+    return x, value, attrs, dim

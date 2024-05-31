@@ -20,7 +20,7 @@ jobs:
     - uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "docs/"
-        pre-build-command: "pip install sphinx-gallery==0.15 && pip install sphinx_rtd_theme==2.0.0 && pip install matplotlib==3.7 && pip install numpy==1.24"
+        pre-build-command: "pip install sphinx-gallery==0.15 && pip install sphinx_rtd_theme==2.0.0 && pip install matplotlib==3.7 && pip install numpy==1.24 && pip install scikit-rf = 0.30.0"
         build-command: "make html"
 
     - name: Configure AWS Credentials
