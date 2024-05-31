@@ -119,18 +119,19 @@ def w2dBm(power_in_W):
 
     return power_in_dBm
 
+
 def tp90_B1(tp90):
-    """ Calculate B1 field strength from 90 degree pulse length.
-    
+    """Calculate B1 field strength from 90 degree pulse length.
+
     Calculate B1 field strength from 90 degree pulse length.
 
     Args:
         tp90 (float):       Pulse length of the 90 degree pulse (s)
-    
+
     Returns:
         B1 (float):         B1 field strength (Hz)
     """
-    
+
     B1_Hz = 1 / tp90 / 4
 
     return B1_Hz
@@ -200,10 +201,9 @@ def calc_conversion_factor(tp90, P, Q=1, alpha=0, verbose=False):
     power_at_probe = P / (10 ** (alpha / 10))
 
     b1_mhz = 1 / tp90 / 4 * 1e-12
-    
+
     b1_Hz = 1 / tp90 / 4
     print(b1_Hz * 1e-6)
-
 
     b1_g = b1_mhz / 2.804e-6
 

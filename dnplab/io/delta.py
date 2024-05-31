@@ -60,7 +60,7 @@ def import_delta_pars(path):
     return params
 
 
-def import_delta_data(path, params, verbose = True):
+def import_delta_data(path, params, verbose=True):
     """Import spectrum or spectra of Delta data
 
     Currently only 1D and 2D data sets are supported.
@@ -104,11 +104,9 @@ def import_delta_data(path, params, verbose = True):
         unpack(">B", file_contents[14 + ix : 15 + ix])[0] for ix in range(0, 1, 1)
     ][0]
 
-
     # Data_Axis_Type = [
     #     unpack(">B", file_contents[24 + ix : 25 + ix])[0] for ix in range(0, 8, 1)
     # ][:Data_Dimension_Number]
-
 
     Data_Axis_Type = [
         unpack(">B", file_contents[24 + ix : 25 + ix])[0] for ix in range(0, 8, 1)
@@ -137,7 +135,6 @@ def import_delta_data(path, params, verbose = True):
         else:
             params["units"].append("indexed")
 
-
     Data_Points = [
         unpack(">I", file_contents[176 + ix : 180 + ix])[0] for ix in range(0, 32, 4)
     ]
@@ -153,7 +150,7 @@ def import_delta_data(path, params, verbose = True):
     Data_Axis_Start = [
         unpack(">d", file_contents[272 + ix : 280 + ix])[0] for ix in range(0, 64, 8)
     ]
-    
+
     Data_Axis_Stop = [
         unpack(">d", file_contents[336 + ix : 344 + ix])[0] for ix in range(0, 64, 8)
     ]
@@ -181,7 +178,9 @@ def import_delta_data(path, params, verbose = True):
     abscissa = []
 
     for ix in range(Data_Dimension_Number):
-        abscissa.append(_np.linspace(Data_Axis_Start[ix], Data_Axis_Stop[ix], Data_Points[ix]))
+        abscissa.append(
+            _np.linspace(Data_Axis_Start[ix], Data_Axis_Stop[ix], Data_Points[ix])
+        )
 
     file_opened = open(path, "rb")
     file_opened.seek(Data_Start)
@@ -207,52 +206,37 @@ def import_delta_data(path, params, verbose = True):
             raise TypeError("Data format not recognized")
 
         # Extract the actual data by using Data_Offset_Start and Data_Offset_Stop indexes
-        out = temp[Data_Offset_Start[0]:Data_Offset_Stop[0]+1]
+        out = temp[Data_Offset_Start[0] : Data_Offset_Stop[0] + 1]
 
         dims = ["t2"]
 
-
-
-
     # 2D data reshaping
     elif Data_Dimension_Number == 2:
-
-        if Data_Axis_Type[0] == 4 or (Data_Axis_Type[0] == 3 and Data_Axis_Type[1] == 1):
+        if Data_Axis_Type[0] == 4 or (
+            Data_Axis_Type[0] == 3 and Data_Axis_Type[1] == 1
+        ):
             print("data: ", _np.shape(data))
 
             data_folded = _np.split(data, 2)[0] - 1j * _np.split(data, 2)[1]
             print("data_folded: ", _np.shape(data_folded))
-            
+
             data_shaped = _np.reshape(
-                data_folded, [int(Data_Points[0] / 4), int(Data_Points[1] / 4), 4, 4], order="C"
+                data_folded,
+                [int(Data_Points[0] / 4), int(Data_Points[1] / 4), 4, 4],
+                order="C",
             )
 
-
             print("data_shaped: ", _np.shape(data_shaped))
-            
+
             temp = _np.reshape(data_folded, (Data_Points[0], Data_Points[1]))
 
             # temp1 = temp()
 
-
-
-
             out = temp
-
-
-
-
-
-
 
             # print("Shape temp:", _np.shape(temp))
 
             # out = _np.concatenate(_np.concatenate(data_shaped, 1), 1)
-
-
-
-
-
 
         elif Data_Axis_Type[0] == 3 and Data_Axis_Type[1] == 3:
             print("Complex")
@@ -268,12 +252,6 @@ def import_delta_data(path, params, verbose = True):
                 )
                 out[idx] = _np.concatenate(_np.concatenate(data_shaped[idx], 1), 1)
 
-
-
-
-
-
-
         else:
             raise ValueError("Data format not recognized")
 
@@ -282,26 +260,21 @@ def import_delta_data(path, params, verbose = True):
     else:
         raise TypeError("Only 1D or 2D are supported")
 
-
-
     if verbose == True:
-        print("Endian: ",                   Endian)
-        print("Data Dimension Number: ",    Data_Dimension_Number)
-        print("Data Type: ",                Data_Type)
-        print("Data Axis Type: ",           Data_Axis_Type)
-        print("Data Units: ",               Data_Units)
-        print("Data Points: ",              Data_Points)
-        print("Data Offset Start: ",        Data_Offset_Start)
-        print("Data Offset Stop: ",         Data_Offset_Stop)
-        print("Data Axis Start",            Data_Axis_Start)
-        print("data Axis Stop: ",           Data_Axis_Stop)
-        print("Base Freq: ",                Base_Freq)
-        print("Data Start: ",               Data_Start)
-        print("Data Length: ",              Data_Length)
-        print("Total Size: ",               Total_Size)
-        print("Output data shape: ",        _np.shape(out))
-
-
-
+        print("Endian: ", Endian)
+        print("Data Dimension Number: ", Data_Dimension_Number)
+        print("Data Type: ", Data_Type)
+        print("Data Axis Type: ", Data_Axis_Type)
+        print("Data Units: ", Data_Units)
+        print("Data Points: ", Data_Points)
+        print("Data Offset Start: ", Data_Offset_Start)
+        print("Data Offset Stop: ", Data_Offset_Stop)
+        print("Data Axis Start", Data_Axis_Start)
+        print("data Axis Stop: ", Data_Axis_Stop)
+        print("Base Freq: ", Base_Freq)
+        print("Data Start: ", Data_Start)
+        print("Data Length: ", Data_Length)
+        print("Total Size: ", Total_Size)
+        print("Output data shape: ", _np.shape(out))
 
     return out, dims, abscissa, params
