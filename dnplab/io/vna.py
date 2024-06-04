@@ -8,8 +8,8 @@ from .. import DNPData
 try:
     import skrf as _rf
 
-except Exception as e:
-    raise ImportError("Please install scikit-rf first.")
+except:
+    pass
 
 
 def import_vna(path, *args, **kwargs):
