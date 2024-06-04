@@ -729,6 +729,11 @@ class ABCData(object):
         #        self.values = np.transpose(self.values, new_order)
         self.values = _np.transpose(self.values, permutation_order)
 
+    def __pow__(self, power):
+        a = self.copy()
+        a.values = a.values.__pow__(power)
+        return a
+
     def __str__(self):
         return "values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}".format(
             self.values, self.dims, self.coords, self.attrs
