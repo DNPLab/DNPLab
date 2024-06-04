@@ -2,7 +2,7 @@ from warnings import warn
 
 import numpy as _np
 from ..constants import constants as _const
-import scipy.optimize
+import scipy.optimize as _scoptimize
 
 # nonsymetric stencils and nonuniform stencils would be possible but might only come at a later point
 # https://en.wikipedia.org/wiki/Finite_difference_coefficient
@@ -197,7 +197,7 @@ def _autophase(data, coords, dim, deriv, gamma):
     dx = _np.diff(coords)[0]
 
     # fopt, iterations, funcalls, warnflag, allvecs
-    xopt, fopt, iter, funcalls, warnflags = scipy.optimize.fmin(
+    xopt, fopt, iter, funcalls, warnflags = _scoptimize.fmin(
         _optimfun,
         [0, 0],
         args=(raw_data, deriv, gamma, dx),
