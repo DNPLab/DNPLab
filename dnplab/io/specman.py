@@ -263,7 +263,7 @@ def calculate_specman_coords(attrs, dims=None):
     kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
     coords = []
     lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
-    lengths.append(2)  # for real and image
+    lengths.append(2)
 
     if not dims:
         dims = generate_dims(attrs)
