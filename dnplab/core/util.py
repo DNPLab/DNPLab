@@ -13,7 +13,7 @@ def implements_np(np_function):
     return decorator
 
 
-def concat(data_list, dim, coord=None):
+def concat(data_list, dim, coord=None, casting="same_kind"):
     """Concatenates list of data objects down another dimension
 
     args:
@@ -26,17 +26,44 @@ def concat(data_list, dim, coord=None):
 
     """
 
-    shape = data_list[0].shape
+    shape_list = [data.shape for data in data_list]
+    length_list = [len(shape) for shape in shape_list]
     values_list = [data.values for data in data_list]
 
-    for values in values_list:
-        this_shape = values.shape
-        if this_shape != shape:
-            raise IndexError(
-                "Cannot concatenate data objects. Array shapes do not match.",
-                this_shape,
-                shape,
-            )
+    match casting:
+        case "same_kind":
+            if not all(shape == shape_list[0] for shape in shape_list):
+                raise IndexError(
+                    "Cannot concatenate data objects. Array shapes do not match.",
+                    shape_list,
+                )
+
+        case "unsafe":
+            if not all(length == length_list[0] for length in length_list):
+                raise IndexError(
+                    "Cannot concatenate data objects. Data shapes length do not match.",
+                    shape_list,
+                )
+            transposed_shape_list = _np.array(shape_list).T
+            new_shape = []
+            for i in range(len(transposed_shape_list)):
+                new_shape.append(max(transposed_shape_list[i]))
+            final_shape = tuple(_np.array(new_shape).T)
+
+            # add nan data to the non-consistent dataset
+            for i, (values, shape) in enumerate(zip(values_list, shape_list)):
+                if shape != final_shape:
+                    new_shape = [1] * len(final_shape)
+                    for pointer in range(len(final_shape)):
+                        if shape[pointer] != final_shape[pointer]:
+                            e = _np.empty(tuple(new_shape))
+                            e[:] = _np.nan
+                            values = _np.append(values, e, axis=pointer)
+                        new_shape[pointer] = final_shape[pointer]
+                    values_list[i] = values
+
+        case _:
+            raise ValueError("Currently 'same_kind' and 'unsafe' are available")
 
     dims = data_list[0].dims
     coords = data_list[0].coords.coords

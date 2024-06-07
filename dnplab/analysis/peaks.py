@@ -78,11 +78,13 @@ def find_peaks(
                 )
             )
 
-        new_data_list, new_coord = _peak_list_checker(
-            data_list, second_coord, second_dim
-        )
+        # data_list, second_coord = _peak_list_checker(
+        #     data_list, second_coord, second_dim
+        # )
 
-        return _dnp.concat(new_data_list, dim=second_dim, coord=new_coord)
+        return _dnp.concat(
+            data_list, dim=second_dim, coord=second_coord, casting="unsafe"
+        )
 
     elif len(data.dims) == 1:
         out = data.copy()
@@ -191,17 +193,20 @@ def peak_info(data):
     elif len(data.dims) == 2:
         for peak_number in range(len(data.coords["index"])):
             values = data["index", peak_number].sum("index").values
-            print(
-                "Peak #%d: Index: %5d, Shift (ppm): %0.02f, Height : %4.2f, Width (Hz): %4.2f, Width Height: %2.2f"
-                % (
-                    peak_number + 1,
-                    values[0],
-                    values[1],
-                    values[2],
-                    values[3],
-                    values[4],
+            if any(_np.isnan(values)):
+                print("Peak #%d Information Not Available." % (peak_number + 1))
+            else:
+                print(
+                    "Peak #%d: Index: %5d, Shift (ppm): %0.02f, Height : %4.2f, Width (Hz): %4.2f, Width Height: %2.2f"
+                    % (
+                        peak_number + 1,
+                        values[0],
+                        values[1],
+                        values[2],
+                        values[3],
+                        values[4],
+                    )
                 )
-            )
         print("--------------------------------------------")
     else:
         raise ValueError("The function only works with 1d or 2d datasets")
