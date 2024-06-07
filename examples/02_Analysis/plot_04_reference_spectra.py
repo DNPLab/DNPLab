@@ -11,7 +11,7 @@ This example demonstrates how to reference spectra using Toluene as an example.
 # %%
 # Load Toluene Spectra
 # -------------------------------
-# Start with importing data and creating the DNPLab workspace. 
+# Start with importing data and creating the DNPLab workspace.
 # The data has been processed and saved in .h5 file.
 
 import numpy as np
@@ -35,6 +35,7 @@ sampleTag = "10 mM TEMPO in Toluene"
 # ------------------
 # In the previous example, we have demonstrated how to find peaks. Now, we apply the DNPLab function *find_peaks* to get a DNPData object of all peaks. 
 
+
 #peaks = dnp.find_peaks(data)
 #dnp.peak_info(peaks)
 
@@ -57,4 +58,3 @@ sampleTag = "10 mM TEMPO in Toluene"
 
 #peaks = dnp.find_peaks(data)
 #dnp.peak_info(peaks)
-

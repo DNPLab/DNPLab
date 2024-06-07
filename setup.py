@@ -8,6 +8,7 @@ with open("dnplab/version.py", "r") as f:
     # Define __version__
     exec(f.read())
 
+
 # NOT WORKING FOR PIP
 # with open("requirements.txt", "r") as f:
 #     _all_packages_ = []
@@ -21,7 +22,7 @@ with open("dnplab/version.py", "r") as f:
 #                 _all_packages_.pop(i)
 
 #     _install_requires_ = _all_packages_
-    
+
 
 setup(
     name="dnplab",
