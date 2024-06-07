@@ -33,34 +33,36 @@ def imshow(data, *args, **kwargs):  # TODO: drop unused args and kwargs
     x_coord = data.coords[dims[1]]
     y_coord = data.coords[dims[0]]
 
-    if 'origin' in kwargs:
-        origin = kwargs['origin']
-        kwargs.pop('origin')
+    if "origin" in kwargs:
+        origin = kwargs["origin"]
+        kwargs.pop("origin")
     else:
-        origin = 'lower'
+        origin = "lower"
 
     x_min = _np.min(x_coord)
     x_max = _np.max(x_coord)
 
-    if origin == 'upper':
+    if origin == "upper":
         y_min = _np.min(y_coord)
         y_max = _np.max(y_coord)
     else:
         y_min = _np.max(y_coord)
         y_max = _np.min(y_coord)
 
-    if 'aspect' in kwargs:
-        aspect = kwargs['aspect']
-        kwargs.pop('aspect')
+    if "aspect" in kwargs:
+        aspect = kwargs["aspect"]
+        kwargs.pop("aspect")
     else:
-        aspect = 'auto'
-    
-    if 'extent' in kwargs:
-        extent = kwargs['extent']
+        aspect = "auto"
+
+    if "extent" in kwargs:
+        extent = kwargs["extent"]
         kwargs.pop(extent)
     else:
         extent = [x_min, x_max, y_max, y_min]
 
-    plt.imshow(data.values, *args, aspect=aspect, extent=extent, origin = origin, **kwargs)
+    plt.imshow(
+        data.values, *args, aspect=aspect, extent=extent, origin=origin, **kwargs
+    )
     plt.xlabel(dims[1])
     plt.ylabel(dims[0])
