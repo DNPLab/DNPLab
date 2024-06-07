@@ -209,6 +209,13 @@ def analyze_attrs(attrs):
                 step = float(val_list[step_index])
                 temp[new_key + "_step"] = step
 
+            if "to" in val_list:  # when it indicate the stop
+                stop_index = (
+                    val_list.index("to") + 1
+                )  # the index of the value of 'stop' is equal to the index of string 'index' + 1
+                stop = float(val_list[stop_index])
+                temp[new_key + "_stop"] = stop
+
         if "sweep_" in key:
             val_list = val.split(",")
             val = val_list[1]  # get value
@@ -256,7 +263,7 @@ def calculate_specman_coords(attrs, dims=None):
     kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
     coords = []
     lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
-    lengths.append(2)
+    lengths.append(2)  # for real and image
 
     if not dims:
         dims = generate_dims(attrs)
@@ -267,14 +274,17 @@ def calculate_specman_coords(attrs, dims=None):
         if dim in attrs and dim + "_step" in attrs:
             start = attrs[dim]
             step = attrs[dim + "_step"]
-            stop = start + step * length
-            coord = _np.arange(start, stop, step)
-        elif dim in attrs and dim + "_step" not in attrs:
+            stop = start + step * (length - 1)
+            coord = _np.linspace(start, stop, length)
+        elif dim in attrs and dim + "_stop" in attrs:
+            start = attrs[dim]
+            stop = attrs[dim + "_stop"]
+            coord = _np.linspace(start, stop, length)
+        elif dim in attrs and dim + "_step" not in attrs and dim + "_stop" not in attrs:
             val_string = attrs["params_" + dim].split(";")[0]
             coord = _np.array(
                 [float(f) for f in val_string.split() if f.replace(".", "").isdigit()]
             )
-
         else:
             coord = _np.arange(0.0, length)
         coords.append(_np.array(coord))

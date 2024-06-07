@@ -207,7 +207,7 @@ def peak_info(data):
         raise ValueError("The function only works with 1d or 2d datasets")
 
 
-def _peak_list_checker(peak_list, coord, dim):
+def _peak_list_checker(peak_list, coord, dim, some_bool=False):
     """
     Check peak list before concat. It will remove the inconsistent peak data from list.
 
@@ -223,6 +223,8 @@ def _peak_list_checker(peak_list, coord, dim):
 
     ref = peak_list[-1]
     ref_shape = _np.shape(ref)
+    for peak in peak_list:
+        print(_np.shape(peak))
     new_peak_list = [peak for peak in peak_list if _np.shape(peak) == ref_shape]
     new_coord = _np.array(
         [
@@ -232,13 +234,13 @@ def _peak_list_checker(peak_list, coord, dim):
         ]
     )
 
-    if new_peak_list != peak_list:
-        print("In dim %s, the following datasets are removed." % dim)
-        for i in range(len(peak_list)):
-            if peak_list[i] not in new_peak_list:
-                print(
-                    "Index: %i, Value: %0.01f, Number of Peaks Found: %i"
-                    % (i, coord[i], len(peak_list[i].coords[1]))
-                )
+    # if new_peak_list != peak_list:
+    #     print("In dim %s, the following datasets are removed." % dim)
+    #     for i in range(len(peak_list)):
+    #         if peak_list[i] not in new_peak_list:
+    #             print(
+    #                 "Index: %i, Value: %0.01f, Number of Peaks Found: %i"
+    #                 % (i, coord[i], len(peak_list[i].coords[1]))
+    #             )
 
     return new_peak_list, new_coord
