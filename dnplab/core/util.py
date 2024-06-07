@@ -30,6 +30,12 @@ def concat(data_list, dim, coord=None, casting="same_kind"):
     length_list = [len(shape) for shape in shape_list]
     values_list = [data.values for data in data_list]
 
+    dims = data_list[0].dims
+    coords = data_list[0].coords.coords
+
+    attrs = data_list[0].attrs
+    dnplab_attrs = data_list[0].dnplab_attrs
+
     match casting:
         case "same_kind":
             if not all(shape == shape_list[0] for shape in shape_list):
@@ -53,25 +59,29 @@ def concat(data_list, dim, coord=None, casting="same_kind"):
             # add nan data to the non-consistent dataset
             for i, (values, shape) in enumerate(zip(values_list, shape_list)):
                 if shape != final_shape:
-                    new_shape = [1] * len(final_shape)
+                    appending_shape = [1] * len(
+                        final_shape
+                    )  # generate new shape for appending
                     for pointer in range(len(final_shape)):
-                        if shape[pointer] != final_shape[pointer]:
-                            e = _np.empty(tuple(new_shape))
+                        appending_length = final_shape[pointer] - shape[pointer]
+                        if appending_length > 0:
+                            appending_shape[pointer] = appending_length
+                            e = _np.empty(tuple(appending_shape))
                             e[:] = _np.nan
                             values = _np.append(values, e, axis=pointer)
-                        new_shape[pointer] = final_shape[pointer]
+                        appending_shape[pointer] = final_shape[pointer]
                     values_list[i] = values
+
+            # make coords
+            for data in data_list:
+                for i in range(len(coords)):
+                    if len(coords[i]) < len(data.coords.coords[i]):
+                        coords[i] = data.coords.coords[i]
 
         case _:
             raise ValueError("Currently 'same_kind' and 'unsafe' are available")
 
-    dims = data_list[0].dims
-    coords = data_list[0].coords.coords
-    attrs = data_list[0].attrs
-    dnplab_attrs = data_list[0].dnplab_attrs
-
     values = _np.stack(values_list, axis=-1)
-
     dims.append(dim)
 
     if coord is None:
