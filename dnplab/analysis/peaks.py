@@ -223,8 +223,6 @@ def _peak_list_checker(peak_list, coord, dim):
 
     ref = peak_list[-1]
     ref_shape = _np.shape(ref)
-    for peak in peak_list:
-        print(_np.shape(peak))
     new_peak_list = [peak for peak in peak_list if _np.shape(peak) == ref_shape]
     new_coord = _np.array(
         [
