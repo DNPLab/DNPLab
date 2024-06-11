@@ -36,50 +36,49 @@ def concat(data_list, dim, coord=None, casting="same_kind"):
     attrs = data_list[0].attrs
     dnplab_attrs = data_list[0].dnplab_attrs
 
-    match casting:
-        case "same_kind":
-            if not all(shape == shape_list[0] for shape in shape_list):
-                raise IndexError(
-                    "Cannot concatenate data objects. Array shapes do not match.",
-                    shape_list,
-                )
+    if casting == "same_kind":
+        if not all(shape == shape_list[0] for shape in shape_list):
+            raise IndexError(
+                "Cannot concatenate data objects. Array shapes do not match.",
+                shape_list,
+            )
 
-        case "unsafe":
-            if not all(length == length_list[0] for length in length_list):
-                raise IndexError(
-                    "Cannot concatenate data objects. Data shapes length do not match.",
-                    shape_list,
-                )
-            transposed_shape_list = _np.array(shape_list).T
-            new_shape = []
-            for i in range(len(transposed_shape_list)):
-                new_shape.append(max(transposed_shape_list[i]))
-            final_shape = tuple(_np.array(new_shape).T)
+    elif casting == "unsafe":
+        if not all(length == length_list[0] for length in length_list):
+            raise IndexError(
+                "Cannot concatenate data objects. Data shapes length do not match.",
+                shape_list,
+            )
+        transposed_shape_list = _np.array(shape_list).T
+        new_shape = []
+        for i in range(len(transposed_shape_list)):
+            new_shape.append(max(transposed_shape_list[i]))
+        final_shape = tuple(_np.array(new_shape).T)
 
-            # add nan data to the non-consistent dataset
-            for i, (values, shape) in enumerate(zip(values_list, shape_list)):
-                if shape != final_shape:
-                    appending_shape = [1] * len(
-                        final_shape
-                    )  # generate new shape for appending
-                    for pointer in range(len(final_shape)):
-                        appending_length = final_shape[pointer] - shape[pointer]
-                        if appending_length > 0:
-                            appending_shape[pointer] = appending_length
-                            e = _np.empty(tuple(appending_shape))
-                            e[:] = _np.nan
-                            values = _np.append(values, e, axis=pointer)
-                        appending_shape[pointer] = final_shape[pointer]
-                    values_list[i] = values
+        # add nan data to the non-consistent dataset
+        for i, (values, shape) in enumerate(zip(values_list, shape_list)):
+            if shape != final_shape:
+                appending_shape = [1] * len(
+                    final_shape
+                )  # generate new shape for appending
+                for pointer in range(len(final_shape)):
+                    appending_length = final_shape[pointer] - shape[pointer]
+                    if appending_length > 0:
+                        appending_shape[pointer] = appending_length
+                        e = _np.empty(tuple(appending_shape))
+                        e[:] = _np.nan
+                        values = _np.append(values, e, axis=pointer)
+                    appending_shape[pointer] = final_shape[pointer]
+                values_list[i] = values
 
-            # make coords
-            for data in data_list:
-                for i in range(len(coords)):
-                    if len(coords[i]) < len(data.coords.coords[i]):
-                        coords[i] = data.coords.coords[i]
+        # make coords
+        for data in data_list:
+            for i in range(len(coords)):
+                if len(coords[i]) < len(data.coords.coords[i]):
+                    coords[i] = data.coords.coords[i]
 
-        case _:
-            raise ValueError("Currently 'same_kind' and 'unsafe' are available")
+    else:
+        raise ValueError("Currently 'same_kind' and 'unsafe' are available")
 
     values = _np.stack(values_list, axis=-1)
     dims.append(dim)
