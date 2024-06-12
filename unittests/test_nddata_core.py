@@ -195,6 +195,17 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
         self.assertEqual(DNPObj3.shape, orig_shape)
         self.assertTrue(np.all(np.isclose(DNPObj3.values - data3, 0)))
 
+    def test_003_powOperator(self):
+        import dnplab as dnp
+
+        coords3 = [np.arange(0, 100), np.arange(0, 20), np.arange(0, 40)]
+        data3 = np.random.random((100, 20, 40))
+        DNPObj3 = dnp.DNPData(data3, ["t2", "t3", "t4"], coords3)
+
+        # test if it works
+        b = DNPObj3**2
+        self.assertTrue(np.all(np.isclose(np.power(DNPObj3.values, 2) - b, 0)))
+
 
 class dnplab_ABCData_coord_tester(unittest.TestCase):
     def setUp(self):
