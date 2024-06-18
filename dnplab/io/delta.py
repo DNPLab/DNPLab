@@ -297,12 +297,17 @@ def import_delta_data(path, params = {}, verbose=True):
             # Step 2: reshape to the layout of submatrices, shape = (matrix_x, matrix_y, submatrix_edge, submatrix_edge)
             # maxtrix_x is the number of submatrice in row and matrix_y is the number of submatrice in column
             # at this point, first two and second two axes are swapped
-            temp = _np.reshape(data_folded, (Data_Points[0]//submatrix_edge, Data_Points[1]//submatrix_edge, submatrix_edge, submatrix_edge))
+            temp = _np.reshape(data_folded, (Data_Points[1]//submatrix_edge, Data_Points[0]//submatrix_edge, submatrix_edge, submatrix_edge))
 
-            # # Step 3: swap axes
-            # shape = _np.shap
+            # Step 3: swap axes
+            ndims = temp.ndim
+            for dim in range(ndims-1, 0, -2):
+                temp = _np.swapaxes(temp, dim, dim-1)
             
-            temp = _np.reshape(_np.hstack(_np.vstack(temp)), (Data_Points[1], Data_Points[0])).T
+            # Step 4: stack data horizontally twice to get full matrix
+            temp = _np.hstack(_np.hstack(temp))
+            
+            # Step 5: select data
             temp1 = temp[Data_Offset_Start[0]:Data_Offset_Stop[0]+1, Data_Offset_Start[1]:Data_Offset_Stop[1]+1]
 
             out = temp1
