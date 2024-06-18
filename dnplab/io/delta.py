@@ -2,7 +2,8 @@ import numpy as _np
 import re
 from struct import unpack
 from .. import DNPData
-
+from matplotlib.pyplot import *
+import dnplab as dnp
 
 def import_delta(path):
     """Import Delta data and return DNPData object
@@ -60,7 +61,7 @@ def import_delta_pars(path):
     return params
 
 
-def import_delta_data(path, params, verbose=True):
+def import_delta_data(path, params = {}, verbose=True):
     """Import spectrum or spectra of Delta data
 
     Currently only 1D and 2D data sets are supported.
@@ -75,9 +76,6 @@ def import_delta_data(path, params, verbose=True):
         dims (list) : axes names
         params (dict) : updated dictionary of parameters
     """
-
-    if not params:
-        params = {}
 
     file_opened = open(path, "rb")
     file_contents = file_opened.read(1360)
@@ -97,13 +95,16 @@ def import_delta_data(path, params, verbose=True):
     Data_Dimension_Number = [
         unpack(">B", file_contents[12 + ix : 13 + ix])[0] for ix in range(0, 1, 1)
     ][0]
-
     # Data_Type =  int.from_bytes(file_contents[14:16], byteorder="big")
 
     Data_Format = [
         unpack(">B", file_contents[14 + ix : 15 + ix])[0] for ix in range(0, 1, 1)
     ][0]
 
+    Translate = [
+        unpack(">B", file_contents[16 + ix : 17 + ix])[0] for ix in range(0, 8, 1)
+    ]
+    
     # Data_Axis_Type = [
     #     unpack(">B", file_contents[24 + ix : 25 + ix])[0] for ix in range(0, 8, 1)
     # ][:Data_Dimension_Number]
@@ -161,10 +162,6 @@ def import_delta_data(path, params, verbose=True):
     ])
 
     Valid_pts = Data_Offset_Stop - Data_Offset_Start + 1
-
-
-
-
 
     Data_Axis_Start = [
         unpack(">d", file_contents[272 + ix : 280 + ix])[0] for ix in range(0, 64, 8)
@@ -226,10 +223,12 @@ def import_delta_data(path, params, verbose=True):
     #     read_pts = _np.prod(Data_Points) * 2
 
     data = _np.fromfile(file_opened, Endian, read_pts)
+    # figure()
+    # plot(data)
+    # show()
+    # print(data)
+    # exit()
     file_opened.close()
-
-
-
 
     # 1D data reshaping
     if Data_Dimension_Number == 1:
@@ -249,15 +248,65 @@ def import_delta_data(path, params, verbose=True):
 
     # 2D data reshaping
     elif Data_Dimension_Number == 2:
+        '''
+        Data is saved as the order of submatrices.
+        E.g, assume a 2D dataset has 4 spectra, each spectrum has 4 data points (4*4), then:
+
+            16 total submatrices laid out 2*2, each submatrix is 2*2
+            m1 = [[1,2],[3,4]], m2 = [[5,6], [7,8]], m3 = [[9,10],[11,12]], m4 = [[13,14],[15,16]]
+            M = | 1   2   5   6  |
+                | 3   4   7   8  |
+                | 9   10  11  12 |
+                | 13  14  15  16 |
+
+        The data are save in the file:
+            data = [1, 2, 3, 4, 5, 6, ....]
+        
+        But the spectrum data is:
+            s1 = [1, 2, 5, 6]
+            s2 = [3, 4, 7, 8]
+            s3 = [9 ,10 ,11, 12]
+            s4 = [13, 14, 15, 16]
+        
+        Each M is called a 'section' in JEOL dataset. If there are two sections, e.g. 2D complex data, 
+        the whole dataset must be separated into 2 sections, with the 1st section is for real, and 2nd is for image.
+        
+        The inforamtion can be found in JEOL documentation.
+        
+        '''
         if Data_Axis_Type[0] == 3 and Data_Axis_Type[1] == 1:
+            # data_folded = _np.split(data, 2)[0] - 1j * _np.split(data, 2)[1] # comment out for now.
 
+            # this section is for test and study dataset structure only
+            submatrix = _np.split(data, 960, -1) # each submatrix is 4*4
+            sub_real = _np.array([]) 
+            sub_image = _np.array([]) 
+            for index, sub in enumerate(submatrix[:480]): 
+                sub_real = _np.append(sub_real, sub[0:4]) # append first 4 number in first 160 submatrices for real number
+                if len(sub_real) > 640:
+                    break
 
-        # if Data_Axis_Type[0] == 4 or (
-        #     Data_Axis_Type[0] == 3 and Data_Axis_Type[1] == 1
-        # ):
+            for index, sub in enumerate(submatrix[480:]):
+                sub_image = _np.append(sub_image, sub[0:4]) # append first 4 number in first 160 submatrices for image number
+                if len(sub_image) > 640:
+                    break
 
-            data_folded = _np.split(data, 2)[0] - 1j * _np.split(data, 2)[1]
+            fake = sub_real -1j*sub_image
+            fake = _np.fft.fft(fake[20:])
+            figure()
+            plot(sub_image)
+            plot(sub_real)
+            figure()
+            plot(fake)
+            exit() # disable for now
 
+            # plot(sub_image)
+            # plot(subdata[1])
+            # plot( _np.split(data, 16)[1])
+            # ylim(-2.0, 2.0)
+            figure()
+            plot(data_folded)
+            show()
             print("data: ", _np.shape(data))
             print("data_folded: ", _np.shape(data_folded))
 
