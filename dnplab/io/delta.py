@@ -5,6 +5,20 @@ from .. import DNPData
 from matplotlib.pyplot import *
 import dnplab as dnp
 
+DELTA_DATA_FORMAT_DICT = {
+    1: ['One_D', 8, 8**1],
+    2: ['Two_D', 32, 32**2],
+    3: ['Three_D', 8, 8**3],
+    4: ['Four_D', 8, 8**4],
+    5: ['Five_D', 4, 4**5],
+    6: ['Six_D', 4, 4**6],
+    7: ['Seven_D', 2, 2**7],
+    8: ['Eight_D', 2, 2**8],
+    12: ['Small_Two_D', 4, 4**2],
+    13: ['Small_Three_D', 4, 4**3],
+    14: ['Small_Four_D', 4, 4**4]
+} 
+
 def import_delta(path):
     """Import Delta data and return DNPData object
 
@@ -223,11 +237,6 @@ def import_delta_data(path, params = {}, verbose=True):
     #     read_pts = _np.prod(Data_Points) * 2
 
     data = _np.fromfile(file_opened, Endian, read_pts)
-    # figure()
-    # plot(data)
-    # show()
-    # print(data)
-    # exit()
     file_opened.close()
 
     # 1D data reshaping
@@ -253,7 +262,10 @@ def import_delta_data(path, params = {}, verbose=True):
         E.g, assume a 2D dataset has 4 spectra, each spectrum has 4 data points (4*4), then:
 
             16 total submatrices laid out 2*2, each submatrix is 2*2
-            m1 = [[1,2],[3,4]], m2 = [[5,6], [7,8]], m3 = [[9,10],[11,12]], m4 = [[13,14],[15,16]]
+            
+            m1 = |1 2|, m2 = |5 6|, m3 = |9  10 |, m4 = |13 14|
+                 |3 4|       |7 8|       |11 12 |       |15 16|
+
             M = | 1   2   5   6  |
                 | 3   4   7   8  |
                 | 9   10  11  12 |
@@ -272,76 +284,28 @@ def import_delta_data(path, params = {}, verbose=True):
         the whole dataset must be separated into 2 sections, with the 1st section is for real, and 2nd is for image.
         
         The inforamtion can be found in JEOL documentation.
+
+        ** Please be aware of the dataset layout in matrix. For m1 in 2d numpy.array, it is [[1,3],
+                                                                                             [2,4]]
         
         '''
         if Data_Axis_Type[0] == 3 and Data_Axis_Type[1] == 1:
-            # data_folded = _np.split(data, 2)[0] - 1j * _np.split(data, 2)[1] # comment out for now.
+            data_format, submatrix_edge, submatrix_points = DELTA_DATA_FORMAT_DICT[Data_Format]
+            # Step 1, separate real and image sections: first section is real and second section is image
+            data_folded = _np.split(data, 2)[0] - 1j * _np.split(data, 2)[1] 
 
-            # this section is for test and study dataset structure only
-            submatrix = _np.split(data, 960, -1) # each submatrix is 4*4
-            sub_real = _np.array([]) 
-            sub_image = _np.array([]) 
-            for index, sub in enumerate(submatrix[:480]): 
-                sub_real = _np.append(sub_real, sub[0:4]) # append first 4 number in first 160 submatrices for real number
-                if len(sub_real) > 640:
-                    break
+            # Step 2: reshape to the layout of submatrices, shape = (matrix_x, matrix_y, submatrix_edge, submatrix_edge)
+            # maxtrix_x is the number of submatrice in row and matrix_y is the number of submatrice in column
+            # at this point, first two and second two axes are swapped
+            temp = _np.reshape(data_folded, (Data_Points[0]//submatrix_edge, Data_Points[1]//submatrix_edge, submatrix_edge, submatrix_edge))
 
-            for index, sub in enumerate(submatrix[480:]):
-                sub_image = _np.append(sub_image, sub[0:4]) # append first 4 number in first 160 submatrices for image number
-                if len(sub_image) > 640:
-                    break
-
-            fake = sub_real -1j*sub_image
-            fake = _np.fft.fft(fake[20:])
-            figure()
-            plot(sub_image)
-            plot(sub_real)
-            figure()
-            plot(fake)
-            exit() # disable for now
-
-            # plot(sub_image)
-            # plot(subdata[1])
-            # plot( _np.split(data, 16)[1])
-            # ylim(-2.0, 2.0)
-            figure()
-            plot(data_folded)
-            show()
-            print("data: ", _np.shape(data))
-            print("data_folded: ", _np.shape(data_folded))
-
-
-            # data_shaped = _np.reshape(
-            #     data_folded,
-            #     [int(Data_Points[0] / 4), int(Data_Points[1] / 4), 4, 4],
-            #     order="C",
-            # )
-
+            # # Step 3: swap axes
+            # shape = _np.shap
             
-            temp = _np.reshape(data_folded, (Data_Points[0], Data_Points[1]))
+            temp = _np.reshape(_np.hstack(_np.vstack(temp)), (Data_Points[1], Data_Points[0])).T
             temp1 = temp[Data_Offset_Start[0]:Data_Offset_Stop[0]+1, Data_Offset_Start[1]:Data_Offset_Stop[1]+1]
 
             out = temp1
-
-            # print("Shape temp:", _np.shape(temp))
-            # out = _np.concatenate(_np.concatenate(data_shaped, 1), 1)
-
-
-
-
-        # elif Data_Axis_Type[0] == 3 and Data_Axis_Type[1] == 3:
-        #     print("Complex")
-        #     data_folded = [
-        #         _np.split(data, 4)[0] - 1j * _np.split(data, 4)[1],
-        #         _np.split(data, 4)[2] - 1j * _np.split(data, 4)[3],
-        #     ]
-        #     for idx in enumerate(data_folded):
-        #         data_shaped[idx] = _np.reshape(
-        #             data_folded[idx],
-        #             [int(Data_Points[0] / 32), int(Data_Points[1] / 32), 32, 32],
-        #             order="F",
-        #         )
-        #         out[idx] = _np.concatenate(_np.concatenate(data_shaped[idx], 1), 1)
 
         else:
             raise ValueError("Data format not recognized")
