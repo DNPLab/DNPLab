@@ -101,8 +101,8 @@ def import_delta_pars(path, context_start):
     file_opened.seek(context_start)
     lines = file_opened.readlines()
     params = {}
-    in_when_condition = False
-    in_if_condition = False
+    in_when_condition = False  # detecting when condition
+    in_if_condition = False  # detecting if condition
     if_params_key = None
     for line in lines:
         try:
@@ -117,11 +117,13 @@ def import_delta_pars(path, context_start):
             if not line:
                 continue  # ignore empty line
 
-            if "endwhen" in line:
+            if "endwhen" in line:  # detect the end of when loop and disable detecting
                 in_when_condition = False
                 when_condition_dict = {}
 
-            if in_if_condition and if_params_key and "if" not in line:
+            if (
+                in_if_condition and if_params_key and "if" not in line
+            ):  # when it is not the if condition in if condition
                 if "else" in line:  # end of if condition
                     in_if_condition = False
                 line = (
@@ -133,8 +135,8 @@ def import_delta_pars(path, context_start):
                 for condition_key, acceptance in if_condition_dict.items():
                     if condition_key in params and params[condition_key] in acceptance:
                         in_if_condition = False  # end if condition
-
                         break
+
                 params[if_params_key] = line
                 if_params_key = None
 
@@ -185,7 +187,6 @@ def import_delta_pars(path, context_start):
                             : line.find("help") - 1
                         ]  # remove help information with the comma
                     info = line.split("=")
-                    # print(info)
                     key = info[0]
                     val = info[1]
                     if val[0] == ">":
@@ -200,7 +201,7 @@ def import_delta_pars(path, context_start):
                         "[" in val
                         and "]" in val
                         and "[" not in val[val.find("[") + 1 :]
-                        and '?' not in val
+                        and "?" not in val
                     ):  # only a number and a unit
                         val, unit = (
                             val.replace("[", ",").replace("]", "").split(",")
@@ -210,7 +211,7 @@ def import_delta_pars(path, context_start):
                     elif val[0] == "?" or "round" in val:  # math operation
                         val = val.replace("?", "")
                         try:
-                            if val[0] not in ["#", "*"] :
+                            if val[0] not in ["#", "*"]:
                                 # get all variables
                                 vars = (
                                     val.replace("round", "")
@@ -227,7 +228,9 @@ def import_delta_pars(path, context_start):
                                     if (
                                         not var.isdigit()
                                     ):  # variable is not a number, then it is a key in dictionary
-                                        temp_val = temp_val.replace(var, 'params["%s"]' % var)
+                                        temp_val = temp_val.replace(
+                                            var, 'params["%s"]' % var
+                                        )
                                 val = eval("%s" % temp_val)
                         except:
                             pass
@@ -247,7 +250,6 @@ def import_delta_pars(path, context_start):
                             ):
                                 params[key] = val
                                 break
-
                     else:
                         params[key] = val
 
@@ -312,7 +314,6 @@ def import_delta_data(path, params={}, verbose=False):
 
     Endian = "<d" if params["Endian"] else ">d"
     Data_Dimension_Number = params["Data_Dimension_Number"]
-
     Data_Format = params["Data_Format"]
 
     # Data_Axis_Type
@@ -364,17 +365,27 @@ def import_delta_data(path, params={}, verbose=False):
     file_opened.seek(Data_Start)
 
     # Read data from file
-    if all(Data_Axis_Type[:Data_Dimension_Number] == 4): # Only valid if all axis types are 4  
-        sections = 2 # Axis is accessed as complex when it is major axis and others are real.
+    if all(
+        Data_Axis_Type[:Data_Dimension_Number] == 4
+    ):  # Only valid if all axis types are 4
+        sections = (
+            2  # Axis is accessed as complex when it is major axis and others are real.
+        )
     else:
-        sections = 2**sum(Data_Axis_Type > 2) # if an axis type is complex (type 3 or 4), then there are two sections for this axis
-    read_pts = _np.prod(Data_Points) * sections # Data_Points is in complex, the data is saved in the Data_Points * number of sections
+        sections = 2 ** sum(
+            Data_Axis_Type > 2
+        )  # if an axis type is complex (type 3 or 4), then there are two sections for this axis
+    read_pts = (
+        _np.prod(Data_Points) * sections
+    )  # if Data_Points is in complex, the data is saved in the Data_Points * number of sections
+
+    if sections > 2:  # then the data is in hyper complex format
+        raise TypeError("Hyper Complex Format is detected and not supported.")
 
     data = _np.fromfile(file_opened, Endian, read_pts)
     file_opened.close()
 
     data_format, submatrix_edge, submatrix_points = DELTA_DATA_FORMAT_DICT[Data_Format]
-    print(data_format, submatrix_edge, submatrix_points)
     # 1D data reshaping
     if Data_Dimension_Number == 1:
         if Data_Axis_Type[0] == 1:
@@ -388,7 +399,6 @@ def import_delta_data(path, params={}, verbose=False):
 
         # Extract the actual data by using Data_Offset_Start and Data_Offset_Stop indexes
         out = temp[Data_Offset_Start[0] : Data_Offset_Stop[0] + 1]
-
         dims = ["t2"]
 
     # 2D data reshaping
@@ -425,41 +435,43 @@ def import_delta_data(path, params={}, verbose=False):
                                                                                              [2,4]]
 
         """
-        # Step 1, separate real and image sections: first section is real and second section is image
-        data_folded = _np.split(data, sections)[0] - 1j * _np.split(data, sections)[1]
+        if all(Data_Axis_Type != 2):  # TPPI axis format is not supported
+            # Step 1, separate real and image sections: first section is real and second section is image
+            data_folded = (
+                _np.split(data, sections)[0] - 1j * _np.split(data, sections)[1]
+            )
 
-        # Step 2: reshape to the layout of submatrices, shape = (matrix_x, matrix_y, submatrix_edge, submatrix_edge)
-        # maxtrix_x is the number of submatrice in row and matrix_y is the number of submatrice in column
-        # at this point, first two and second two axes are swapped
+            # Step 2: reshape to the layout of submatrices, shape = (matrix_x, matrix_y, submatrix_edge, submatrix_edge)
+            # maxtrix_x is the number of submatrice in row and matrix_y is the number of submatrice in column
+            # at this point, first two and second two axes are swapped
+            temp = _np.reshape(
+                data_folded,
+                (
+                    Data_Points[1] // submatrix_edge,
+                    Data_Points[0] // submatrix_edge,
+                    submatrix_edge,
+                    submatrix_edge,
+                ),
+            )
 
-        temp = _np.reshape(
-            data_folded,
-            (
-                Data_Points[1] // submatrix_edge,
-                Data_Points[0] // submatrix_edge,
-                submatrix_edge,
-                submatrix_edge,
-            ),
-        )
+            # Step 3: swap axes
+            ndims = temp.ndim
+            for dim in range(ndims - 1, 0, -2):
+                temp = _np.swapaxes(temp, dim, dim - 1)
 
-        # Step 3: swap axes
-        ndims = temp.ndim
-        for dim in range(ndims - 1, 0, -2):
-            temp = _np.swapaxes(temp, dim, dim - 1)
+            # Step 4: stack data horizontally twice to get full matrix
+            temp = _np.hstack(_np.hstack(temp))
 
-        # Step 4: stack data horizontally twice to get full matrix
-        temp = _np.hstack(_np.hstack(temp))
+            # Step 5: select data
+            temp1 = temp[
+                Data_Offset_Start[0] : Data_Offset_Stop[0] + 1,
+                Data_Offset_Start[1] : Data_Offset_Stop[1] + 1,
+            ]
 
-        # Step 5: select data
-        temp1 = temp[
-            Data_Offset_Start[0] : Data_Offset_Stop[0] + 1,
-            Data_Offset_Start[1] : Data_Offset_Stop[1] + 1,
-        ]
+            out = temp1
 
-        out = temp1
-
-        # else:
-        #     raise ValueError("Data format not recognized")
+        else:
+            raise ValueError("Data format not recognized")
 
         dims = ["t2", "t1"]
 
@@ -469,7 +481,7 @@ def import_delta_data(path, params={}, verbose=False):
     if verbose == True:
         print("Endian: ", Endian)
         print("Data Dimension Number: ", Data_Dimension_Number)
-        print("Data Format: ", Data_Format)
+        print("Data Format: ", data_format)
         print("Data Axis Type: ", Data_Axis_Type)
         print("Data Units: ", Data_Units)
         print("Data Points: ", Data_Points)
@@ -481,6 +493,8 @@ def import_delta_data(path, params={}, verbose=False):
         print("Base Freq: ", Base_Freq)
         print("Data Start: ", Data_Start)
         print("Data Length: ", Data_Length)
+        print("Submatrix Points: ", submatrix_points)
+        print("Submatrix Edge: ", submatrix_edge)
         print("Total Size: ", Total_Size)
         print("Output data shape: ", _np.shape(out))
 
