@@ -38,7 +38,9 @@ def cumulative_integrate(data, dim="f2", regions=None):
 
     if regions == None:
         index = out.index(dim)
-        out.values = cumulative_trapezoid(out.values, out.coords[dim], axis=index, initial=0)
+        out.values = cumulative_trapezoid(
+            out.values, out.coords[dim], axis=index, initial=0
+        )
 
         proc_attr_name = "cumlative_integrate"
         proc_parameters = {

@@ -43,10 +43,12 @@ setup(
     },
     keywords=["ODNP", "DNP", "NMR"],
     python_requires=">=3.8",
-    install_requires= ["numpy>=1.24",
-                        "scipy>=1.10",
-                        "matplotlib>=3.7",
-                        "h5py>=3.10",],
+    install_requires=[
+        "numpy>=1.24",
+        "scipy>=1.10",
+        "matplotlib>=3.7",
+        "h5py>=3.10",
+    ],
     # install_requires = _install_requires_,
     classifiers=[
         "Development Status :: 3 - Alpha",
