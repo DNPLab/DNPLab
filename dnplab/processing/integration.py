@@ -2,7 +2,7 @@ import numpy as _np
 from ..core.data import DNPData
 from ..core.util import concat
 
-from scipy.integrate import trapz, cumtrapz
+from scipy.integrate import cumulative_trapezoid
 
 
 def cumulative_integrate(data, dim="f2", regions=None):
@@ -38,7 +38,9 @@ def cumulative_integrate(data, dim="f2", regions=None):
 
     if regions == None:
         index = out.index(dim)
-        out.values = cumtrapz(out.values, out.coords[dim], axis=index, initial=0)
+        out.values = cumulative_trapezoid(
+            out.values, out.coords[dim], axis=index, initial=0
+        )
 
         proc_attr_name = "cumlative_integrate"
         proc_parameters = {
