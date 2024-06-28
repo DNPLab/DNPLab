@@ -93,7 +93,7 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
         data = topspin.load_pdata(path, verbose=verbose, *args, **kwargs)
 
     elif data_format == "delta":
-        data = delta.import_delta(path, *args, **kwargs)
+        data = delta.import_delta(path, verbose=verbose, *args, **kwargs)
 
     elif data_format == "vnmrj":
         data = vnmrj.import_vnmrj(path, *args, **kwargs)
