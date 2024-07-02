@@ -96,7 +96,6 @@ def import_delta_pars(path, context_start):
     Returns:
         params (dict) : dictionary of parameter fields and values
     """
-
     file_opened = open(path, "rb")
     file_opened.seek(context_start)
     lines = file_opened.readlines()
@@ -238,7 +237,8 @@ def import_delta_pars(path, context_start):
                     elif "{" in val and "}" in val:  # is a list
                         val = val.replace("{", "[").replace("}", "]")
                         try:
-                            val = eval("%s" % val)
+                            if "(" not in val and ")" not in val:
+                                val = eval("%s" % val)
                         except:
                             pass
 
