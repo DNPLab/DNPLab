@@ -281,8 +281,8 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
 
     """
     # get rid of discontuity of mod @0
-    p0_neg = _np.where(p0 < 0)
-    p1_neg = _np.where(p1 < 0)
+    p0_neg = _np.atleast_1d(p0 < 0).nonzero()
+    p1_neg = _np.atleast_1d(p1 < 0).nonzero()
 
     p0 = _np.atleast_1d(_np.array(_np.mod(_np.abs(p0), 360)))
     p1 = _np.atleast_1d(_np.array(_np.mod(_np.abs(p1), 360)))

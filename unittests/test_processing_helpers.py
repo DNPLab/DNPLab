@@ -39,7 +39,7 @@ class dnpTools_tester(unittest.TestCase):
         x = np.r_[0:100]
         y = np.array([x**2.0, x**3.0]).T
 
-        # leads to warning
+        # leads to warning, should be fine
         rnd_data = dnp.DNPData(y, ["t2", "bla"], [x])
         dnp.processing.create_complex(rnd_data, data_r, data_c)
 
@@ -209,7 +209,7 @@ class dnpTools_tester(unittest.TestCase):
 
         self.assertTrue(np.isclose(snr2["signal_region", 0].values, signal / noise))
 
-    def test_005_xomplex_data_test(self):
+    def test_005_complex_data_test(self):
         #
         # test on complex dataset
         #
