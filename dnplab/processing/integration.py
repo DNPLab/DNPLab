@@ -94,7 +94,7 @@ def integrate(data, dim="f2", regions=None):
 
     index = out.index(dim)
     if regions == None:
-        out.values = _np.trapz(out.values, out.coords[dim], axis=index)
+        out.values = _np.trapezoid(out.values, out.coords[dim], axis=index)
         out.coords.pop(dim)
 
         # if error_regions == None:
