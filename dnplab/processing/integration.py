@@ -2,7 +2,7 @@ import numpy as _np
 from ..core.data import DNPData
 from ..core.util import concat
 
-from scipy.integrate import cumulative_trapezoid
+from scipy.integrate import trapezoid, cumulative_trapezoid
 
 
 def cumulative_integrate(data, dim="f2", regions=None):
@@ -94,7 +94,7 @@ def integrate(data, dim="f2", regions=None):
 
     index = out.index(dim)
     if regions == None:
-        out.values = _np.trapezoid(out.values, out.coords[dim], axis=index)
+        out.values = trapezoid(out.values, out.coords[dim], axis=index)
         out.coords.pop(dim)
 
         # if error_regions == None:
