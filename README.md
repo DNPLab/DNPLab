@@ -7,7 +7,7 @@
 
 DNPLab is a collaborative project created by:
 - [Bridge12 Technologies, Inc.](http://www.bridge12.com/)
-- [Han Lab UCSB](https://han.chem.ucsb.edu/)
+- [Han Lab NWU](https://hanlab.northwestern.edu/)
 - [Franck Lab Syracuse University](https://jmfrancklab.github.io/)
 
 Authors:
@@ -16,7 +16,7 @@ Timothy Keller, Yen-Chun Huang, Karl Rieger, John Franck, Thorsten Maly, Songi H
 Alumnis:
 Thomas Casey, Yanxian Lin
 
-DNPLab is an object-oriented Open Source Python-based package for importing, processing, and analyzing data determined in a [Dynamic Nuclear Polarization (DNP)](https://www.bridge12.com/learn/dnp-spectroscopy/) experiment.
+DNPLab is an object-oriented Open Source Python-based package for importing, processing, and analyzing data determined in a [Dynamic Nuclear Polarization (DNP)](https://www.bridge12.com/learn/dnp-spectroscopy/) or Electron Paramagnetic Resonance (EPR) experiment.
 
 # Features
 
