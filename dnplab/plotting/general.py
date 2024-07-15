@@ -97,8 +97,8 @@ def plot(data, *args, **kwargs):
     if use_default:
         plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
     fontsize_xlabel = DNPLAB_CONFIG.getint("PLOTTING", "fontsize_xlabel")
-    _plt.xlabel(dim,fontsize = fontsize_xlabel)
-    _plt.ylabel("",fontsize = fontsize_xlabel)
+    _plt.xlabel(dim, fontsize=fontsize_xlabel)
+    _plt.ylabel("", fontsize=fontsize_xlabel)
     data.fold()
 
     return plot_return
