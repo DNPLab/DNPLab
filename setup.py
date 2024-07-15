@@ -26,7 +26,7 @@ setuptools.setup(
     },
     keywords=["ODNP", "DNP", "NMR"],
     python_requires=">=3.8",
-    install_requires= ["numpy>=1.24",
+    install_requires= ["numpy>=1.26",
                         "scipy>=1.10",
                         "matplotlib>=3.7",
                         "h5py>=3.10",],
