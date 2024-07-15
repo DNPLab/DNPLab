@@ -16,15 +16,15 @@ orange=DNPLAB_CONFIG.get('COLORS','orange')
 """
 
 # hand curated list of plotting arguments that are forwarded, from config file
-forwarded_pyplot_plots = DNPLAB_CONFIG.getlist("PLOTTING", "forwarded_pyplot_plots")
+_forwarded_pyplot_plots = DNPLAB_CONFIG.getlist("PLOTTING", "forwarded_pyplot_plots")
 
 
-cycler_list = [
+_cycler_list = [
     DNPLAB_CONFIG.get("COLORS", color_key)
     for color_key in DNPLAB_CONFIG["COLORS"].keys()
 ]
 _plt.rcParams["lines.linewidth"] = 1.5
-_plt.rcParams["axes.prop_cycle"] = _plt.cycler(color=cycler_list)
+_plt.rcParams["axes.prop_cycle"] = _plt.cycler(color=_cycler_list)
 
 show = _plt.show
 
@@ -87,7 +87,7 @@ def plot(data, *args, **kwargs):
     # no unittest added, but only hand tested with semilogy and normal plot works as intended ni fancy_plot)
     use_default = True
     plot_function_list = []
-    for k in forwarded_pyplot_plots:
+    for k in _forwarded_pyplot_plots:
         if bool(kwargs.pop(k, None)):
             plot_function_list.append(getattr(_plt, k))
             use_default = False
@@ -96,7 +96,9 @@ def plot(data, *args, **kwargs):
         plot_return.append(f(coord, data.values.real, *args, **kwargs))
     if use_default:
         plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
-    _plt.xlabel(dim)
+    fontsize_xlabel = DNPLAB_CONFIG.getint("PLOTTING", "fontsize_xlabel")
+    _plt.xlabel(dim,fontsize = fontsize_xlabel)
+    _plt.ylabel("",fontsize = fontsize_xlabel)
     data.fold()
 
     return plot_return
