@@ -1,6 +1,7 @@
 """
 global config
 """
+
 import configparser
 from pathlib import Path
 import warnings
