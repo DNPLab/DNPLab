@@ -1,5 +1,4 @@
 import setuptools
-from distutils.core import setup
 
 with open("README.md", "r") as f:
     long_description = f.read()
@@ -8,23 +7,7 @@ with open("dnplab/version.py", "r") as f:
     # Define __version__
     exec(f.read())
 
-
-# NOT WORKING FOR PIP
-# with open("requirements.txt", "r") as f:
-#     _all_packages_ = []
-#     for line in f:
-#         _all_packages_.append(line.strip("\n"))
-#     # remove optional packages
-#     _optional_packages_ = ["scikit-rf"]
-#     for optional_package in _optional_packages_:
-#         for i in range(len(_all_packages_)):
-#             if optional_package in _all_packages_[i]:
-#                 _all_packages_.pop(i)
-
-#     _install_requires_ = _all_packages_
-
-
-setup(
+setuptools.setup(
     name="dnplab",
     packages=setuptools.find_packages(),
     version=__version__,
