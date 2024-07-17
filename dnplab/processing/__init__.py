@@ -9,3 +9,4 @@ from .phase import *
 from .conversion import *
 from .average import *
 from .interpolation import *
+from .cpmg import *
