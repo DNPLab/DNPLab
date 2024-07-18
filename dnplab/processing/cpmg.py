@@ -17,7 +17,7 @@ orange = DNPLAB_CONFIG.get("COLORS", "orange")
 
 
 def cpmg_detect_first_echo(data, region=[0, -1], graphical_output=True):
-    """Find time for first echo
+    """Find time of first echo in CPMG sequence
 
     Args:
         data (dnpdata):                 CPMG tansient (1D)
@@ -25,7 +25,7 @@ def cpmg_detect_first_echo(data, region=[0, -1], graphical_output=True):
         graphical_output (boolean):     Display graphical output
 
     Return:
-        t_echo:                         Time of first echo.
+        t_echo (float):                 Time of first echo.
     """
 
     t = data.coords["t2"]
@@ -96,12 +96,27 @@ def cpmg_show_integration_region(
     graphical_output=True,
     verbose=False,
 ):
-    """
-    Display integration regions and calculate integration regions for CPMG trace
+    """Process data using CPMG acquisition
 
-    data needs to be dnpdata object, but needs to be 1D
+    Display integration regions and calculate integration regions for CPMG trace.
 
-    Return a list of tuples with regions
+    Known issues:
+        * Data has to be 1D. Need to come up with a good strategy how to deal with higher dimensions
+        * Noise region only accepts index, not float values.
+
+    Args:
+        data (DNPdata):             Data object containing transient of CPMG detected signals
+        n_echo (int):               Number of echoes to use for processing
+        t_start (float):            Position of first echo
+        t_period (float):           Period of echoes
+        t_width (float):            Integration width
+        noise_region (int/float):   Region to use to calculate noise. Currently requires index. Default is [None, None]. Only one noise region will be used (only one tuple)
+        alternate=True (boolean):   Alternate sign of echo amplitude. Default is true
+        graphical_output (boolean): Show graphical output. Default is true
+        verbose=False (boolean):    Enable additional output for debugging.
+
+    Return:
+        data (DNPData):             DNPData object containing integration regions. These regions are then used in cpmg_integrate() to process data.
 
     """
 
@@ -109,9 +124,6 @@ def cpmg_show_integration_region(
     t = data.coords["t2"]
     signal = data.values
     signal = _np.squeeze(signal)
-
-    filter_window_length = 20
-    filter_polynomial_order = 5
 
     t_echo = _np.linspace(t_start + 0, t_start + (n_echo - 1) * t_period, n_echo)
     t_int_start = t_echo - t_width / 2
@@ -147,7 +159,6 @@ def cpmg_show_integration_region(
             echo_slice[:, index] = signal[index_int_start:index_int_stop]
 
     # Calculate signal to noise ratios
-
     if noise_region[0] == None:
         noise_region[0] = 0
 
@@ -168,9 +179,8 @@ def cpmg_show_integration_region(
     n = _np.linspace(1, n_echo, n_echo)
     snr = (1 / _np.sqrt(n)) * snr / snr[0]
 
+    # Plot results
     if graphical_output == True:
-
-        # Plot results
         _plt.subplot(2, 1, 1)
         _plt.plot(data.coords["t2"], data.values, color=dark_green)
         _plt.title("CPMG Transient")
@@ -199,10 +209,30 @@ def cpmg_show_integration_region(
                 linestyle="--",
             )
 
-        _plt.plot([data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[0]]], [0.1 * min_signal, 0.1 * max_signal], color=light_green, linestyle="--")
-        _plt.plot([data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[1]]], [0.1 * max_signal, 0.1 * max_signal], color=light_green, linestyle="--")
-        _plt.plot([data.coords["t2"][noise_region[1]], data.coords["t2"][noise_region[1]]], [0.1 * min_signal, 0.1 * max_signal], color=light_green, linestyle="--")
-        _plt.plot([data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[1]]], [0.1 * min_signal, 0.1 * min_signal], color=light_green, linestyle="--")
+        _plt.plot(
+            [data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[0]]],
+            [0.1 * min_signal, 0.1 * max_signal],
+            color=light_green,
+            linestyle="--",
+        )
+        _plt.plot(
+            [data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[1]]],
+            [0.1 * max_signal, 0.1 * max_signal],
+            color=light_green,
+            linestyle="--",
+        )
+        _plt.plot(
+            [data.coords["t2"][noise_region[1]], data.coords["t2"][noise_region[1]]],
+            [0.1 * min_signal, 0.1 * max_signal],
+            color=light_green,
+            linestyle="--",
+        )
+        _plt.plot(
+            [data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[1]]],
+            [0.1 * min_signal, 0.1 * min_signal],
+            color=light_green,
+            linestyle="--",
+        )
 
         _plt.autoscale(enable=True, axis="x", tight=True)
 
@@ -228,40 +258,24 @@ def cpmg_show_integration_region(
     return regions
 
 
-def cpmg_integrate(data, regions, dim="f2", alternate=True):
-    """
+def cpmg_integrate(data, regions, dim="t2", alternate=True):
+    """Process data using CPMG acquisition
 
-    This first uses the DNPLab integrate function to integrate the data
-    and then changes the sign depending on whether the echo sign needs
-    to be alternated.
-
-
-
-
-
+    First use cpmg_detect_first_echo() to get position of first echo.
+    Then use cpmg_show_integration_region() to determine the integration regions.
 
     Integrate data along given dimension. If no region is given, the integral is calculated over the entire range.
 
+    The function is a wrapper for the DNPlab integrate() function
+
     Args:
-        data (DNPData): Data object
-        dim (str): Dimension to perform integration. Default is "f2"
-        regions (None, list): List of tuples defining the region to integrate
+        data (DNPData):         Data object
+        regions (None, list):   List of tuples defining the region to integrate
+        dim (str):              Dimension to perform integration. Default is "t2"
+        alternate (boolean):    Alternate the sign of the echo traces. Default is true
 
     Returns:
-        data (DNPData): Integrals of data. If multiple regions are given the first value corresponds to the first region, the second value corresponds to the second region, etc.
-
-    Examples:
-        Integrated entire data region:
-
-            >>> data = dnp.integrate(data)
-
-        Integrate single peak/region:
-
-            >>> data = dnp.integrate(data, regions=[(4, 5)])
-
-        Integrate two regions:
-
-            >>> data = dnp.integrate(data, regions=[(1.1, 2.1), (4.5, 4.9)])
+        data (DNPData):         Integrals of data. If multiple regions are given the first value corresponds to the first region, the second value corresponds to the second region, etc.
 
     """
     out = data.copy()
