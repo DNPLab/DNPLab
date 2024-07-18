@@ -83,6 +83,9 @@ def plot(data, *args, **kwargs):
 
     data.unfold(dim)
 
+    #default context
+    dnpContext = {"font.family": "Arial", "pdf.fonttype": 42 }
+
     # will try to plot various pyplot utility plot functions into same axis, the use should know what he does!
     # no unittest added, but only hand tested with semilogy and normal plot works as intended ni fancy_plot)
     use_default = True
@@ -92,10 +95,12 @@ def plot(data, *args, **kwargs):
             plot_function_list.append(getattr(_plt, k))
             use_default = False
             plot_return = []
-    for f in plot_function_list:
-        plot_return.append(f(coord, data.values.real, *args, **kwargs))
+    with _plt.rc_context(dnpContext):
+        for f in plot_function_list:
+            plot_return.append(f(coord, data.values.real, *args, **kwargs))
     if use_default:
-        plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
+        with _plt.rc_context(dnpContext):
+            plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
     fontsize_xlabel = DNPLAB_CONFIG.getint("PLOTTING", "fontsize_xlabel")
     _plt.xlabel(dim, fontsize=fontsize_xlabel)
     _plt.ylabel("", fontsize=fontsize_xlabel)
@@ -130,6 +135,9 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
     """
 
+    #default context
+    dnpContext = {"font.family": "Arial", "pdf.fonttype": 42}
+
     if "experiment_type" not in data.attrs:
         warn("experiment_type not defined in data.attrs, falling back to plot function")
         plot(data, *args, **kwargs)
@@ -160,22 +168,23 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         coord = data.coords[dim]
         data.unfold(dim)
 
-        plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
-        _plt.xlabel("Chemical Shift $\delta$ (ppm)")
-        _plt.ylabel("NMR Signal Intensity (a.u.)")
+        with _plt.rc_context(dnpContext):
+            plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
+            _plt.xlabel("Chemical Shift $\delta$ (ppm)")
+            _plt.ylabel("NMR Signal Intensity (a.u.)")
 
-        _plt.xlim(max(coord), min(coord))
+            _plt.xlim(max(coord), min(coord))
 
-        if xlim != []:
-            _plt.xlim(xlim[1], xlim[0])
+            if xlim != []:
+                _plt.xlim(xlim[1], xlim[0])
 
-        if showPar == True:
-            parameterString = "Freq: " + str(round(data.attrs["nmr_frequency"], 4))
+            if showPar == True:
+                parameterString = "Freq: " + str(round(data.attrs["nmr_frequency"], 4))
 
-            box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
-            xmin, xmax, ymin, ymax = _plt.axis()
+                box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
+                xmin, xmax, ymin, ymax = _plt.axis()
 
-            _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
+                _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
         data.fold()
 
@@ -202,15 +211,16 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             kwargs
         )  # calling values take precedence over config values
 
-        plot_return = _plt.plot(
-            coord,
-            data.values.real * get_float_key("value_scaling"),
-            *args,
-            **plt_config_kwargs
-        )
+        with _plt.rc_context(dnpContext):
+            plot_return = _plt.plot(
+                coord,
+                data.values.real * get_float_key("value_scaling"),
+                *args,
+                **plt_config_kwargs
+            )
 
-        if xlim != []:
-            _plt.xlim(xlim[0], xlim[1])
+            if xlim != []:
+                _plt.xlim(xlim[0], xlim[1])
 
         ax = _plt.gca()
         fig = _plt.gcf()
@@ -231,7 +241,8 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
                     )
 
         if title != "":
-            _plt.title(title)
+            with _plt.rc_context(dnpContext):
+                _plt.title(title)
 
         if showPar:
             prmString = ""
@@ -264,7 +275,8 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
             xmin, xmax, ymin, ymax = _plt.axis()
 
-            _plt.text(xmin * 1.001, ymin * 0.90, prmString, bbox=box_style)
+            with _plt.rc_context(dnpContext):
+                _plt.text(xmin * 1.001, ymin * 0.90, prmString, bbox=box_style)
 
         data.fold()
 
