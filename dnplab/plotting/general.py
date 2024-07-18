@@ -83,8 +83,8 @@ def plot(data, *args, **kwargs):
 
     data.unfold(dim)
 
-    #default context
-    dnpContext = {"font.family": "Arial", "pdf.fonttype": 42 }
+    # default context
+    dnpContext = {"font.family": "Arial", "pdf.fonttype": 42}
 
     # will try to plot various pyplot utility plot functions into same axis, the use should know what he does!
     # no unittest added, but only hand tested with semilogy and normal plot works as intended ni fancy_plot)
@@ -135,7 +135,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
 
     """
 
-    #default context
+    # default context
     dnpContext = {"font.family": "Arial", "pdf.fonttype": 42}
 
     if "experiment_type" not in data.attrs:
