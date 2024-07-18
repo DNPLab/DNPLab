@@ -199,6 +199,11 @@ def cpmg_show_integration_region(
                 linestyle="--",
             )
 
+        _plt.plot([data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[0]]], [0.1 * min_signal, 0.1 * max_signal], color=light_green, linestyle="--")
+        _plt.plot([data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[1]]], [0.1 * max_signal, 0.1 * max_signal], color=light_green, linestyle="--")
+        _plt.plot([data.coords["t2"][noise_region[1]], data.coords["t2"][noise_region[1]]], [0.1 * min_signal, 0.1 * max_signal], color=light_green, linestyle="--")
+        _plt.plot([data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[1]]], [0.1 * min_signal, 0.1 * min_signal], color=light_green, linestyle="--")
+
         _plt.autoscale(enable=True, axis="x", tight=True)
 
         _plt.subplot(2, 2, 3)
