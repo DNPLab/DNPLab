@@ -34,10 +34,8 @@ def _replaceClassWithAttribute(replace_class, args, kwargs, target_attr="_values
 
 
 # utility funtion to return integer index of string or int if input is integer
-_str_to_int_index = (
-    lambda possible_dim, dnpdat: int(dnpdat.index(possible_dim))
-    if isinstance(possible_dim, str)
-    else possible_dim
+_str_to_int_index = lambda possible_dim, dnpdat: (
+    int(dnpdat.index(possible_dim)) if isinstance(possible_dim, str) else possible_dim
 )
 
 _SPECIAL_NP_HANDLED = {}  # numpy functions that need special handling, will
