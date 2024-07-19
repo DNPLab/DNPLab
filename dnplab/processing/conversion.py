@@ -1,5 +1,28 @@
+import dnplab as _dnp
 import numpy as _np
 from ..core.data import DNPData
+
+
+def decay2Ce(decay_time, gA, gB, FB):
+    """Convert decay time to effective concentration
+
+    Convert the decay rate (mono exponential decay, or stretched exponential)
+    into an effective concentration. See Jeschke/Schweiger "Principles of
+    pulse electron paramagnetic resonance", p. 415, eq. 13.3.4
+
+    Args:
+        decay_time (float):     Decay time from mono exponential fit (s)
+        gA, gB:                 (isotropic) g-values of spin A and B
+        FB:                     Fraction of B spins excited by pump pulse
+                                (DEER modulation depth)
+    """
+
+    # Eq. 13.3.5 (p. 415)
+    k = 2 * _np.pi * _dnp.mu_0 * _dnp.mub**2 * gA * gB / (9 * _np.sqrt(3) * _dnp.hbar)
+
+    c_effective = 1 / (decay_time * k * 1000 * _dnp.N_A * FB)
+
+    return c_effective
 
 
 def convert_power(data, mode="dBm2W"):
