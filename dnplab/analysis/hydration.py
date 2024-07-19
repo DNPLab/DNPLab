@@ -179,9 +179,7 @@ def calculate_xi(tcorr=54e-12, omega_e=0.0614, omega_H=9.3231e-05):
     zH = _np.sqrt(1j * omega_H * tcorr)
 
     # (Eq. 2)
-    Jdiff = (1 + (zdiff / 4)) / (
-        1 + zdiff + ((4 * (zdiff**2)) / 9) + ((zdiff**3) / 9)
-    )
+    Jdiff = (1 + (zdiff / 4)) / (1 + zdiff + ((4 * (zdiff**2)) / 9) + ((zdiff**3) / 9))
 
     Jsum = (1 + (zsum / 4)) / (1 + zsum + ((4 * (zsum**2)) / 9) + ((zsum**3) / 9))
 
