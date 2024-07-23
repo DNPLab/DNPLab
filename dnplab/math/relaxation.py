@@ -1,61 +1,22 @@
 import numpy as _np
 
 
-def t1(t, T1, M_0, M_inf):
-    """Exponential recovery for inversion recovery and saturation recovery T1 Measurements
+def buildup_function(p, E_max, p_half):
+    """Calculate asymptotic buildup curve
 
     Args:
-        t (array_like): time series
-        T_1 (float): T1 value
-        M_0 (float): see equation
-        M_inf (float): see equation
+        p (array): power series
+        E_max (float): maximum enhancement
+        p_half (float): power at half saturation
 
     Returns:
-        ndarray: T1 curve
+        ndarray: buildup curve
 
     .. math::
-        f(t) = M_{\infty} - (M_{\infty} - M_0) e^{-t/T_1}
+        f(p) = 1 + E_{max} * p / (p_{1/2} + p)
     """
 
-    return M_inf - (M_inf - M_0) * _np.exp(-1.0 * t / T1)
-
-
-def t2(t, M_0, T2, p=1.0):
-    """Calculate stretched or un-stretched (p=1) exponential T2 curve
-
-    Args:
-        t (array_like): time series
-        M_0 (float): see equation
-        T_2 (float): T2 value
-        p (float): see equation
-
-    Returns:
-        ndarray: T2 curve
-
-    .. math::
-        f(t) = M_{0} e^{(-(t/T_{2})^{p}}
-    """
-
-    return M_0 * _np.exp(-1.0 * (t / T2) ** p)
-
-
-def general_exp(t, C1, C2, tau):
-    """Calculate mono-exponential curve
-
-    Args:
-        t (array_like): time series
-        C1 (float): see equation
-        C2 (float): see equation
-        tau (float): see equation
-
-    Returns:
-        ndarray: mono-exponential curve
-
-    .. math::
-        f(t) = C1 + C2 e^{-t/tau}
-    """
-
-    return C1 + C2 * _np.exp(-1.0 * t / tau)
+    return 1 + E_max * p / (p_half + p)
 
 
 def general_biexp(t, C1, C2, tau1, C3, tau2):
@@ -79,22 +40,23 @@ def general_biexp(t, C1, C2, tau1, C3, tau2):
     return C1 + C2 * _np.exp(-1.0 * t / tau1) + C3 * _np.exp(-1.0 * t / tau2)
 
 
-def buildup_function(p, E_max, p_half):
-    """Calculate asymptotic buildup curve
+def general_exp(t, C1, C2, tau):
+    """Calculate mono-exponential curve
 
     Args:
-        p (array): power series
-        E_max (float): maximum enhancement
-        p_half (float): power at half saturation
+        t (array_like): time series
+        C1 (float): see equation
+        C2 (float): see equation
+        tau (float): see equation
 
     Returns:
-        ndarray: buildup curve
+        ndarray: mono-exponential curve
 
     .. math::
-        f(p) = 1 + E_{max} * p / (p_{1/2} + p)
+        f(t) = C1 + C2 e^{-t/tau}
     """
 
-    return 1 + E_max * p / (p_half + p)
+    return C1 + C2 * _np.exp(-1.0 * t / tau)
 
 
 def ksigma_smax(p, E_max, p_half):
@@ -131,3 +93,41 @@ def logistic(x, c, x0, L, k):
 
     # return c + L / (1.0 + np.exp(-1.0 * k * (x - x0)))
     return NotImplemented
+
+
+def t1(t, T1, M_0, M_inf):
+    """Exponential recovery for inversion recovery and saturation recovery T1 Measurements
+
+    Args:
+        t (array_like): time series
+        T_1 (float): T1 value
+        M_0 (float): see equation
+        M_inf (float): see equation
+
+    Returns:
+        ndarray: T1 curve
+
+    .. math::
+        f(t) = M_{\infty} - (M_{\infty} - M_0) e^{-t/T_1}
+    """
+
+    return M_inf - (M_inf - M_0) * _np.exp(-1.0 * t / T1)
+
+
+def t2(t, M_0, T2, p=1.0):
+    """Calculate stretched or un-stretched (p=1) exponential T2 curve
+
+    Args:
+        t (array_like): time series
+        M_0 (float): see equation
+        T_2 (float): T2 value
+        p (float): see equation
+
+    Returns:
+        ndarray: T2 curve
+
+    .. math::
+        f(t) = M_{0} e^{(-(t/T_{2})^{p}}
+    """
+
+    return M_0 * _np.exp(-1.0 * (t / T2) ** p)

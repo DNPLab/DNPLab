@@ -14,10 +14,10 @@ This example demonstrates how to reference spectra using Toluene as an example.
 # Start with importing data and creating the DNPLab workspace.
 # The data has been processed and saved in .h5 file.
 
-import numpy as np
-import dnplab as dnp
-
-sampleTag = "10 mM TEMPO in Toluene"
+#import numpy as np
+#import dnplab as dnp
+#
+#sampleTag = "10 mM TEMPO in Toluene"
 #file_name_path = "../../data/h5/PowerBuildUpAligned.h5"
 #data = dnp.load(file_name_path)
 
