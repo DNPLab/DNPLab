@@ -91,6 +91,7 @@ def plot(data, *args, **kwargs):
     use_default = True
     plot_function_list = []
     for k in _forwarded_pyplot_plots:
+        k = k.strip()
         if bool(kwargs.pop(k, None)):
             plot_function_list.append(getattr(_plt, k))
             use_default = False
