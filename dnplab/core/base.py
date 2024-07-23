@@ -489,9 +489,9 @@ class ABCData(object):
         """Returns values.size. Total number of elements in numpy array."""
         return self._values.size
 
-    def complexify(self, dim, real_index = 0, imag_index = 1):
-        data_real = self[dim,real_index].sum(dim)
-        data_imag = self[dim,imag_index].sum(dim)
+    def complexify(self, dim, real_index=0, imag_index=1):
+        data_real = self[dim, real_index].sum(dim)
+        data_imag = self[dim, imag_index].sum(dim)
         return data_real + 1j * data_imag
 
     def sort_dims(self):
