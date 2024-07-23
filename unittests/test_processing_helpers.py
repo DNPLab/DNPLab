@@ -209,7 +209,7 @@ class dnpTools_tester(unittest.TestCase):
 
         self.assertTrue(np.isclose(snr2["signal_region", 0].values, signal / noise))
 
-    def test_005_xomplex_data_test(self):
+    def test_005_complex_data_test(self):
         #
         # test on complex dataset
         #
@@ -243,3 +243,31 @@ class dnpTools_tester(unittest.TestCase):
                 np.real(np.max(np.abs(y))) / np.std(np.real(y[70:100])),
             )
         )
+
+    def test_006_create_complex_tests(self):
+
+        npDat = np.empty((100,2,25,1,10))
+        npCoords = [np.arange(k)+np.random.randint(10) for k in npDat.shape]
+        npDims=['1','2','3','4','5']
+
+        data=dnp.DNPData(npDat,npDims,npCoords)
+
+        complex_2 = dnp.create_complex(data,'2')
+        complex_1 = dnp.create_complex(data,data._values[:,0,...],data._values[:,1,...])
+
+
+        self.assertEqual (complex_1.shape, complex_2.shape)
+        self.assertEqual ((100,25,1,10), complex_2.shape)
+        self.assertTrue ( np.all(np.isclose( complex_1._values- complex_2._values,0)) )
+        self.assertTrue ( complex_2._self_consistent() )
+        self.assertTrue ( np.all(np.isclose(complex_2.coords[1]-npCoords[2],0)) )
+
+        npDat = np.empty((1,1,2,100,25,1,10,1))
+        npCoords = [np.arange(k)+np.random.randint(10) for k in npDat.shape]
+        npDims=['1','2','3','4','5','6','7','8']
+
+        data=dnp.DNPData(npDat,npDims,npCoords)
+
+        complex_2 = dnp.create_complex(data,'3')
+        self.assertEqual ((1,1,100,25,1,10,1), complex_2.shape)
+        self.assertTrue ( complex_2._self_consistent() )
