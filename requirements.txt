@@ -1,4 +1,6 @@
-numpy
-scipy
-matplotlib
-h5py
+numpy==2.0.0
+scipy==1.14.0
+matplotlib==3.9.1
+h5py==3.11.0
+scikit-rf==1.1.0
+
