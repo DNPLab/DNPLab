@@ -46,7 +46,7 @@ def import_specman(
         new_dims = None
 
     if autodetect_coords:
-        coords = calculate_specman_coords(attrs, new_dims)
+        coords = calculate_specman_coords(attrs, coords, new_dims)
 
     # Add import path
     attrs["import_path"] = path
@@ -238,7 +238,7 @@ def generate_dims(attrs):
         dims (list): a new dims
 
     """
-    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
+    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z", "sweep_Xf"]
     dims = [
         attrs[key + "_dim"] if key != "sweep_T" else "t2"
         for key in kw
@@ -249,7 +249,7 @@ def generate_dims(attrs):
     return dims
 
 
-def calculate_specman_coords(attrs, dims=None):
+def calculate_specman_coords(attrs, old_coords, dims=None):
     """Generate coords from specman acquisition parameters
 
     Args:
@@ -260,10 +260,10 @@ def calculate_specman_coords(attrs, dims=None):
         coords (list): a calculated coords
     """
 
-    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
+    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z", "sweep_Xf"]
     coords = []
     lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
-    lengths.append(2)
+    lengths.append(len(old_coords[-1]))
 
     if not dims:
         dims = generate_dims(attrs)
