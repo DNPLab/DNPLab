@@ -499,22 +499,29 @@ def normalize(data, amplitude=True, dim="f2", regions=None):
     Args:
         data (DNPData):         Data object
         amplitude (boolean):    True: normalize amplitude, false: normalize area. The default is True
-        dim (str):              The dimension to normalize
+        dim (str or None):      The dimension to normalize, if None the data is normalized to the maximum of the whole dataset
         regions (None, list):   List of tuples to specify range of normalize [(-99., 99.)]
 
     Returns:
         data (DNPDdata):        Normalized data object
     """
 
+    if dim not in data.dims and (dim is not None):
+        raise ValueError("Cannot normalize to dim {}, available dimensions are {}".format(dim,data.dims))
+
     out = data.copy()
 
     if amplitude == True:
-        if regions:
-            factor = _np.max(abs(out[dim, regions].values))
-        else:
-            factor = _np.max(abs(out.values))
+        if regions and (dim is not None):
+            factor = _np.max(_np.abs(out[dim, regions].values),axis=dim)
+            out.values = out.values / factor
+        elif regions and (dim is None):
+            factor = _np.max(_np.abs(out[dim, regions].values))
+        elif (regions is None) and (dim is None):
+            factor = _np.max(_np.abs(out.values))
+        elif (regions is None) and (dim is not None):
+            factor = _np.max(_np.abs(out),axis = dim)
 
-        out.values = out.values / factor
     elif amplitude == False:
         out.values = out.values  # Normalize to area = 1, not implemented yet
 

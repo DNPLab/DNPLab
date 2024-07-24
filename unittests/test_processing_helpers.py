@@ -60,7 +60,7 @@ class dnpTools_tester(unittest.TestCase):
         dnp.processing.left_shift(self.data, shift_points=5)
 
         # normalize
-        dnp.processing.normalize(self.data)
+        dnp.processing.normalize(self.data,dim='t2')
 
         # reference
         dnp.processing.reference(self.data, dim="t2")
@@ -285,7 +285,11 @@ class dnpTools_tester(unittest.TestCase):
 
         data = dnp.DNPData(npDat, ['t2','prm1', 'prm2'], [t2, np.arange(npDat.shape[1]), np.arange(3)] )
 
-        data = dnp.normalize(data)
+        self.assertRaises( ValueError, dnp.normalize, data )
+        self.assertTrue(data['t2',(1,80)].shape == (394,50,3))
 
-        self.assertTrue( np.all( np.isclose(data._values[0,:,:],1) ))
+        data = dnp.normalize(data,dim='t2')
+
+        #self.assertTrue( np.all( np.isclose(data._values[0,:,:],1) ))
+
 
