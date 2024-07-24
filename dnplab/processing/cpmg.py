@@ -25,7 +25,7 @@ def cpmg_detect_first_echo(
         data (dnpdata):                 CPMG tansient (1D)
         region (list):                  List with start and end time to look for first echo
         graphical_output (boolean):     Display graphical output
-        use_real (boolean):         Omit imaginary part when using complex data. Default is true
+        use_real (boolean):             Omit imaginary part when using complex data. Default is true
         verbose (boolean):              Enable additional output for debugging
 
     Return:
