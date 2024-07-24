@@ -340,8 +340,7 @@ def cpmg_integrate(data, regions, dim="t2", alternate=True):
         sign = (-1) ** out.coords[1]
 
         # This next operation needs to be checked. I don't even understand why
-        # this is working
-
+        # this is working? How do we know it is multiplying the correct dimension?
         out.values = out.values * sign
 
     return out
