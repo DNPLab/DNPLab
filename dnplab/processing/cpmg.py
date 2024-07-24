@@ -16,13 +16,16 @@ light_grey = DNPLAB_CONFIG.get("COLORS", "light_grey")
 orange = DNPLAB_CONFIG.get("COLORS", "orange")
 
 
-def cpmg_detect_first_echo(data, region=[0, -1], graphical_output=True, verbose=False):
+def cpmg_detect_first_echo(
+    data, region=[0, -1], graphical_output=True, use_real=False, verbose=False
+):
     """Find time of first echo in CPMG sequence
 
     Args:
         data (dnpdata):                 CPMG tansient (1D)
         region (list):                  List with start and end time to look for first echo
         graphical_output (boolean):     Display graphical output
+        use_real (boolean):         Omit imaginary part when using complex data. Default is true
         verbose (boolean):              Enable additional output for debugging
 
     Return:
@@ -54,7 +57,14 @@ def cpmg_detect_first_echo(data, region=[0, -1], graphical_output=True, verbose=
         data = integrate(data, dim=data.dims[1])
 
     t = data.coords["t2"]
-    signal = data.values
+
+    if use_real == True:
+        signal = data.values.real
+        if verbose == True:
+            print("Use only real part of data set")
+    else:
+        signal = data.values
+
     signal = _np.squeeze(signal)
     dwell_time = _np.diff(t)[0]
 
@@ -121,6 +131,7 @@ def cpmg_show_integration_region(
     t_width,
     noise_region=[None, None],
     alternate=True,
+    use_real=False,
     graphical_output=True,
     verbose=False,
 ):
@@ -140,6 +151,7 @@ def cpmg_show_integration_region(
         t_width (float):            Integration width
         noise_region (int/float):   Region to use to calculate noise. Currently requires index. Default is [None, None]. Only one noise region will be used (only one tuple)
         alternate=True (boolean):   Alternate sign of echo amplitude. Default is true
+        use_real (boolean):         Omit imaginary part when using complex data. Default is true
         graphical_output (boolean): Show graphical output. Default is true
         verbose=False (boolean):    Enable additional output for debugging.
 
@@ -173,7 +185,14 @@ def cpmg_show_integration_region(
 
     # Need to pull this out of the class for now. It's hacky but we can clean this up later
     t = data.coords["t2"]
-    signal = data.values
+
+    if use_real == True:
+        signal = data.values.real
+        if verbose == True:
+            print("Use only real part of data set")
+    else:
+        signal = data.values
+
     signal = _np.squeeze(signal)
 
     t_echo = _np.linspace(t_start + 0, t_start + (n_echo - 1) * t_period, n_echo)
@@ -236,7 +255,7 @@ def cpmg_show_integration_region(
     # Plot results
     if graphical_output == True:
         _plt.subplot(2, 1, 1)
-        _plt.plot(data.coords["t2"], data.values, color=dark_green)
+        _plt.plot(data.coords["t2"].real, data.values.real, color=dark_green)
         _plt.title(plot_title_pre_text)
         _plt.xlabel("Time (ns)")
         _plt.ylabel("Signal (a.u.)")
