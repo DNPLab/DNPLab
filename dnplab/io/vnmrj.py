@@ -27,8 +27,20 @@ def array_coords(attrs):
         array_dim = attrs["arraydim"]
         array_start = attrs["arraystart"]
         array_stop = attrs["arraystop"]
+        array_value = attrs["array"]
 
-        if array_dim != 1:
+        if array_dim != 1 and array_value != "":
+            # OVJ has strange behaviour while saving... this can work but doesn't need to succeed thus the if clause
+            try:
+                coord = _np.array(attrs[array_value])
+            except KeyError:
+                if array_stop > array_start:
+                    coord = _np.r_[array_start : array_stop + array_delta : array_delta]
+                else:
+                    array_max = attrs["arraymax"]
+                    coord = _np.r_[array_start : array_max + array_delta : array_delta]
+            dim = array_value
+        elif array_dim != 1 and array_value == "":
             coord = _np.r_[array_start : array_stop + array_delta : array_delta]
             dim = "t1"
         else:
@@ -217,5 +229,8 @@ def import_vnmrj(path, fidFilename="fid", paramFilename="procpar"):
         coords.append(coord)
     else:
         data = data.reshape(-1)
+
+    # Assign data/spectrum type
+    attrs["experiment_type"] = "nmr_spectrum"
 
     return DNPData(data, dims, coords, attrs)

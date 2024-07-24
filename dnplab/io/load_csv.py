@@ -15,13 +15,6 @@ handler = logging.StreamHandler(stream=sys.stdout)
 handler.setLevel(logging.INFO)
 logger.addHandler(handler)
 
-# config for load_csv file, can be adjusted to add more options (dialect?)
-# could also be checked for userconfig, bt this is not implemented right now
-parent_dir = pathlib.Path(pathlib.Path(__file__).absolute().parents[1])
-p0 = parent_dir.joinpath("config/io_config.conf")
-config_io = configparser.ConfigParser()
-config_io.read(str(p0))
-
 
 def load_csv(
     filename,
@@ -30,32 +23,29 @@ def load_csv(
     imag=2,
     skiprows=0,
     maxrows=-1,
-    convert_tcol=lambda x: float(x.replace(",", ".")),
+    convert_time=lambda x: float(x.replace(",", ".")),
     convert_data=lambda x: float(x.replace(",", ".")),
     **kwargs
 ):
-    """
-    load_csv files function. Returns DNPData with tcol as the coord and real+1j*imag as the values
+    """function that loads load_csv files
 
     Args:
+        filename (str): String or path like file that is read
+        tcol (int): column index for time data (default=0), None = not applicable, will count from 0 to npoints and then apply covert_time!
+        real (int): column index for real part (default=1), None = not applicable, will be set to zero
+        imag (int): column index for imaginary part (default=2), None = not applicable, will be set to zero
+        skiprows (int): number of rows to skip at beginning (default=0)
+        maxrows (int): if this is larger than zero, read at most maxrows rows. (default: -1)
+        convert_time (callable): callable that converts the time strings to a number (default: replaces , with .)
+        convert_data (callable): callable that converts data to a number (default: replaces , with .)
 
-        filename: str/path like
-        tcol: column index for time data (default=0), None = not applicable, will count from 0 to npoints and then apply convert_tcol!
-        real: column index for real part (default=1), None = not applicable, will be set to zero
-        imag: column index for imaginary part (default=2), None = not applicable, will be set to zero
-        skiprows: number of rows to skip at beginning (default=0)
-        maxrows: if this is larger than -1, read at most maxrows rows
-        convert_time: callable that converts the tcol strings to a number (default: replace comma with a dot)
-        convert_data: callable that converts data to a number (default: replace comma with a dot)
-
-        delimiter: optional, sets the delimiter in the csv file (default: semicolon (';') )
-        dims: optional, sets name for dimension (default: 't2')
+        delimiter (str): optional, sets the delimiter in the csv file (default ; )
+        dims (str,list): optional, sets name for dimension (default: ["t2"])
         **kwargs are forwarded to csv.reader object
 
 
     Returns:
-
-        data (dnpData): Data object
+       data (dnpData): Data object with values,coords and dim
 
 
     example:
@@ -63,13 +53,7 @@ def load_csv(
         data=load_csv('csv_arrLNA_data.csv',imag=2,skiprows=1)
     """
 
-    # standards from config (?)
-    delimiter = config_io.get(
-        "load_csv", "delimiter"
-    )  # or config_io['load_csv']['delimiter']
-
-    if "delimiter" in kwargs.keys():
-        delimiter = kwargs.pop("delimiter")
+    delimiter = kwargs.pop("delimiter", ";")
 
     dims = kwargs.pop("dims", ["t2"])
 
@@ -89,7 +73,7 @@ def load_csv(
             if row_ind > maxrows and maxrows > 0:
                 break
             try:
-                t = convert_tcol(_checknone(tcol, row, row_ind - skiprows))
+                t = convert_time(_checknone(tcol, row, row_ind - skiprows))
                 r = convert_data(_checknone(real, row))
                 i = convert_data(_checknone(imag, row))
             except IndexError:

@@ -14,10 +14,14 @@ from .io.load import load
 
 from .analysis.relaxation_fit import *
 from .analysis.hydration import hydration
-from .analysis.enhancement_profiles import *
+from .analysis.simulate_enhancement_profiles import *
+from .analysis.peaks import *
 
 from .processing import *
 from .widgets import *
 from .plotting import *
 from .reporting import *
 from .version import __version__
+
+# config
+from .config.config import DNPLAB_CONFIG

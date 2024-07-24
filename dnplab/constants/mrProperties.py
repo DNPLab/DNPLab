@@ -1,12 +1,12 @@
 import numpy as _np
-from scipy.constants import *
+from . import constants as _const
 
 #####################################
 # Gyromagnetic Properties of nuclei #
 #####################################
 #
 #     Reference: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818.
-#     Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants .
+#     Electron value comes from 1998 CODATA values, https://physics.nist.gov/cuu/Constants/.
 #        or  http://physics.nist.gov/PhysRefData/codata86/codata86.html
 #        or  http://www.isis.rl.ac.uk/neutronSites/constants.htm
 #     Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
@@ -36,7 +36,7 @@ gmrProperties["29Si"] = [0.5, -5.319, 0, 4.6832, 0.000368, -0.96179, 0]
 gmrProperties["31P"] = [0.5, 10.8394, 0, 100, 0.0665, 1.95999, 0]
 gmrProperties["33S"] = [1.5, 2.055685, -6.78, 0.76, 1.72e-05, 0.8311696, 61]
 gmrProperties["35Cl"] = [1.5, 2.624198, -8.165, 75.78, 3580, 1.061035, 89]
-gmrProperties["37C1"] = [1.5, 2.184368, -6.435, 24.22, 0.000659, 0.8831998, 55]
+gmrProperties["37Cl"] = [1.5, 2.184368, -6.435, 24.22, 0.000659, 0.8831998, 55]
 gmrProperties["39K"] = [1.5, 1.2500608, 5.85, 93.2581, 0.000476, 0.50543376, 46]
 gmrProperties["40K"] = [4, -1.5542854, -7.3, 0.0117, 6.12e-07, -1.4513203, 5.2]
 gmrProperties["41K"] = [1.5, 0.68606808, 7.11, 6.7302, 5.68e-06, 0.27739609, 67]
@@ -141,28 +141,21 @@ def mr_properties(nucleus, *args):
 
     This function is modeled after the Matlab function gmr written by Mirko Hrovat: https://www.mathworks.com/matlabcentral/fileexchange/12078-gmr-m-nmr-mri-properties
 
-    Also see: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818. Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants, http://physics.nist.gov/PhysRefData/codata86/codata86.html, or http://www.isis.rl.ac.uk/neutronSites/constants.htm. Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
+    Also see: R.K.Harris et. al., Pure and Applied Chemistry, 2001, 73:1795-1818. Electron value comes from 1998 CODATA values, http://physics.nist.gov/cuu/Constants, or https://physics.nist.gov/cuu/Constants/index.html. Xenon gyromagnetic ratio was calculated from 27.661 MHz value from Bruker's web site.
 
     Args:
 
-        nucleus (str): '1H', '2H', '6Li', '13C', 14N', etc.
-        B0 (float): (optional) B0 field in (mT)
+        nucleus (str):          '0e', '1H', '2H', '6Li', '13C', 14N', etc.
+        B0 (float):             (optional) B0 field in (mT)
 
-        Additional flags (see examples below)
-
-            gamma: Return Gyromagnetic Ration (radians/T/s)
-
-            spin: Return spin number of selected nucleus
-
-            qmom: Resturn quadrupole moment [fm^2] (100 barns)
-
-            natAbundance: Return natural abundance (%)
-
-            relSensitivity: Return relative sensitiviy with respect to 1H at constant B0
-
-            moment: Return magnetic dipole moment, abs(u)/uN = abs(gamma)*hbar[I(I + 1)]^1/2/uN
-
-            qlw: Return quadrupolar line-width factor, Qlw = Q^2(2I + 3)/[I^2(2I + 1)]
+        Additional flags (see examples below):
+            gamma:              Return Gyromagnetic Ratio (Hz/T)
+            spin:               Return spin number of selected nucleus
+            qmom:               Return quadrupole moment [fm^2] (100 barns)
+            natAbundance:       Return natural abundance (%)
+            relSensitivity:     Return relative sensitivity with respect to 1H at constant B0
+            moment:             Return magnetic dipole moment, abs(u)/uN = abs(gamma)*hbar[I(I + 1)]^1/2/uN
+            qlw:                Return quadrupolar line-width factor, Qlw = Q^2(2I + 3)/[I^2(2I + 1)]
 
     Examples:
         .. code-block:: python
@@ -181,7 +174,7 @@ def mr_properties(nucleus, *args):
 
     if isinstance(nucleus, str):
         if nucleus in gmrProperties:
-            gmr = gmrProperties.get(nucleus)[1]
+            gmr = gmrProperties.get(nucleus)[1] * 1e7 / 2 / _const.pi
         else:
             print("Isotope doesn't exist in list")
             return
@@ -214,11 +207,15 @@ def mr_properties(nucleus, *args):
             elif args[0] == "qlw":
                 return gmrProperties.get(nucleus)[6]
 
+            elif args[0] == "hzt":
+                # return gyromagnetic ration in Hz/T
+                return gmrProperties.get(nucleus)[1] * 1e7 / 2 / _const.pi
+
             else:
                 print("Keyword not recognize")
 
         else:
-            vLarmor = args[0] * gmr * 1e7 / 2 / pi
+            vLarmor = args[0] * gmr
             return vLarmor
 
     elif len(args) == 2:
@@ -228,7 +225,7 @@ def mr_properties(nucleus, *args):
             print("Spin                       : ", gmrProperties.get(nucleus)[0])
             print(
                 "Gyromagnetic Ratio [kHz/T] : %5.2f"
-                % (gmrProperties.get(nucleus)[1] * 10 / 2 / pi)
+                % (gmrProperties.get(nucleus)[1] * 10 / 2 / _const.pi)
             )
             print(
                 "Natural Abundance      [%%] : %5.2f" % (gmrProperties.get(nucleus)[3])

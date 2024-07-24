@@ -1,4 +1,95 @@
+import dnplab as _dnp
 import numpy as _np
+from ..core.data import DNPData
+
+
+def decay2Ce(decay_time, gA, gB, FB):
+    """Convert decay time to effective concentration
+
+    Convert the decay rate (mono exponential decay, or stretched exponential)
+    into an effective concentration. See Jeschke/Schweiger "Principles of
+    pulse electron paramagnetic resonance", p. 415, eq. 13.3.4
+
+    Args:
+        decay_time (float):     Decay time from mono exponential fit (s)
+        gA, gB:                 (isotropic) g-values of spin A and B
+        FB:                     Fraction of B spins excited by pump pulse
+                                (DEER modulation depth)
+    """
+
+    # Eq. 13.3.5 (p. 415)
+    k = 2 * _np.pi * _dnp.mu_0 * _dnp.mub**2 * gA * gB / (9 * _np.sqrt(3) * _dnp.hbar)
+
+    c_effective = 1 / (decay_time * k * 1000 * _dnp.N_A * FB)
+
+    return c_effective
+
+
+def convert_power(data, mode="dBm2W"):
+    """Convert power in dBm to power in W and vice versa
+
+    Convert power in dBm to power in W and vice versa
+
+    If power_unit exists in the DNPData object, the function will automatically convert the power, regardless the mode.
+
+    If power_unit doesn't exist, the function will be performed in the default mode.
+
+    If data is not DNPLab object, the function will be performed based on the mode.
+
+    Args:
+        data (DNPData, array, list, float or int)
+        mode (str): By default, the function convert power in dBm to power in W
+
+    Returns:
+        out (DNPData, array, list, float or int)
+
+    """
+    if isinstance(data, DNPData):
+        out = data.copy()
+        dims = out.dims
+        for dim in dims:
+            if dim.lower() == "power" or dim.lower() == "powers":
+                break
+            elif dim == dims[-1]:
+                raise Warning("Power is not in dim")
+            else:
+                continue
+
+        if "power_unit" in out.dnplab_attrs.keys():
+            if out.dnplab_attrs["power_unit"] == "dBm":
+                mode = "dBm2W"
+            elif out.dnplab_attrs["power_unit"] == "W":
+                mode = "W2dBm"
+            else:
+                raise Warning("Power unit in dnplab_attrs is invalid")
+
+        if mode.lower() == "dbm2w":
+            power_unit = "W"
+            f = dBm2w
+        elif mode.lower() == "w2dbm":
+            power_unit = "dBm"
+            f = w2dBm
+        else:
+            raise Warning("Mode is not acceptable")
+
+        out.coords[dim] = f(out.coords[dim])
+        proc_parameters = {
+            "mode": mode,
+        }
+        out.dnplab_attrs["power_unit"] = power_unit
+        proc_attr_name = "convert_power"
+        out.add_proc_attrs(proc_attr_name, proc_parameters)
+
+        return out
+
+    else:
+        if mode.lower() == "dbm2w":
+            f = dBm2w
+        elif mode.lower() == "w2dbm":
+            f = w2dBm
+        else:
+            raise Warning("Mode is not acceptable")
+        return f(data)
 
 
 def dBm2w(power_in_dBm):
@@ -7,17 +98,23 @@ def dBm2w(power_in_dBm):
     Convert a microwave power given in dBm to W. Note that for values <= -190 dBm the output power in W is set to 0.
 
     Args:
-        power_in_dBm: Power in (dBm)
+        power_in_dBm (array, list, float or int): Power in (dBm)
 
     Returns:
-        float (array): Power in (W)
+        float (array, list, float or int): Power in (W)
 
     """
 
-    power_in_W = 10.0 ** (power_in_dBm / 10.0) / 1000.0
+    if isinstance(power_in_dBm, (_np.ndarray, list)):
+        power_in_W = power_in_dBm.copy()
+        for index in range(len(power_in_dBm)):
+            power_in_W[index] = dBm2w(power_in_dBm[index])
+        return power_in_W
 
-    # Set values below 1 pW to 0 W
-    power_in_W[power_in_W <= 1e-22] = 0
+    else:
+        power_in_W = 10.0 ** (power_in_dBm / 10.0) / 1000.0
+        # Set values below 1 pW to 0 W
+        power_in_W = 0 if power_in_W <= 1e-22 else power_in_W
 
     return power_in_W
 
@@ -28,13 +125,39 @@ def w2dBm(power_in_W):
     Convert a microwave power given in W to dBm
 
     Args:
-        power_in_W:   Power in (W)
+        power_in_W (array, list, float or int):   Power in (W)
+
+    Returns:
+        float (array, list, float or int): Power in (W)
 
     """
+    if isinstance(power_in_W, (_np.ndarray, list)):
+        power_in_dBm = power_in_W.copy()
+        for index in range(len(power_in_W)):
+            power_in_dBm[index] = w2dBm(power_in_W[index])
+        return power_in_dBm
 
-    power_in_dBm = 10.0 * _np.log10(1000 * power_in_W)
+    else:
+        power_in_dBm = 10.0 * _np.log10(1000 * power_in_W)
 
     return power_in_dBm
+
+
+def tp90_B1(tp90):
+    """Calculate B1 field strength from 90 degree pulse length.
+
+    Calculate B1 field strength from 90 degree pulse length.
+
+    Args:
+        tp90 (float):       Pulse length of the 90 degree pulse (s)
+
+    Returns:
+        B1 (float):         B1 field strength (Hz)
+    """
+
+    B1_Hz = 1 / tp90 / 4
+
+    return B1_Hz
 
 
 def calc_tp90(c, P, Q=1, alpha=0, verbose=False):
@@ -101,6 +224,10 @@ def calc_conversion_factor(tp90, P, Q=1, alpha=0, verbose=False):
     power_at_probe = P / (10 ** (alpha / 10))
 
     b1_mhz = 1 / tp90 / 4 * 1e-12
+
+    b1_Hz = 1 / tp90 / 4
+    print(b1_Hz * 1e-6)
+
     b1_g = b1_mhz / 2.804e-6
 
     c = b1_g / _np.sqrt(power_at_probe * Q)

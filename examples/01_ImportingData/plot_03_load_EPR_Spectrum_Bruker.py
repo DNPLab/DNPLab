@@ -17,7 +17,7 @@ In this example we demonstrate how to load and EPR spectrum and process the data
 import dnplab as dnp
 
 # %%
-# and then import an EPR spectrum. DNPLab can handle spectra recorded on different spectrometers such as the Bruker ElexSys, the Bruker EMX system, or home-built spectrometers runing on Boris Epel's software SpecMan4EPR. In this example we will load a spectrum from a Bruker EMX system.
+# and then import an EPR spectrum. DNPLab can handle spectra recorded on different spectrometers such as the Bruker ElexSys, the Bruker EMX system, or home-built spectrometers running on Boris Epel's software SpecMan4EPR. In this example we will load a spectrum from a Bruker EMX system.
 
 data = dnp.load("../../data/bes3t/1D_CW.DTA")
 

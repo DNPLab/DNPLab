@@ -2,7 +2,8 @@ import numpy as _np
 from ..core.data import DNPData
 from ..core.util import concat
 
-from scipy.integrate import trapz, cumtrapz
+from scipy.integrate import trapezoid as _trapezoid
+from scipy.integrate import cumulative_trapezoid as _cumulative_trapezoid
 
 
 def cumulative_integrate(data, dim="f2", regions=None):
@@ -34,31 +35,32 @@ def cumulative_integrate(data, dim="f2", regions=None):
 
     """
 
-    data = data.copy()
+    out = data.copy()
 
     if regions == None:
-        index = data.index(dim)
-        data.values = cumtrapz(data.values, data.coords[dim], axis=index, initial=0)
+        index = out.index(dim)
+        out.values = _cumulative_trapezoid(
+            out.values, out.coords[dim], axis=index, initial=0
+        )
 
         proc_attr_name = "cumlative_integrate"
         proc_parameters = {
             "dim": dim,
             "regions": regions,
         }
-        data.add_proc_attrs(proc_attr_name, proc_parameters)
-        return data
+        out.add_proc_attrs(proc_attr_name, proc_parameters)
+        return out
 
     else:
         data_list = []
         for region in regions:
-            data_list.append(cumulative_integrate(data[dim, region], dim))
-
-        proc_attr_name = "cumlative_integrate"
-        proc_parameters = {
-            "dim": dim,
-            "regions": regions,
-        }
-        data.add_proc_attrs(proc_attr_name, proc_parameters)
+            proc_attr_name = "cumlative_integrate"
+            proc_parameters = {
+                "dim": dim,
+                "regions": regions,
+            }
+            out.add_proc_attrs(proc_attr_name, proc_parameters)
+            data_list.append(cumulative_integrate(out[dim, region], dim))
 
         return data_list
 
@@ -88,30 +90,30 @@ def integrate(data, dim="f2", regions=None):
             >>> data = dnp.integrate(data, regions=[(1.1, 2.1), (4.5, 4.9)])
 
     """
-    data = data.copy()
-    data.attrs["experiment_type"] = "integrals"
+    out = data.copy()
+    out.attrs["experiment_type"] = "integrals"
 
-    index = data.index(dim)
+    index = out.index(dim)
     if regions == None:
-        data.values = _np.trapz(data.values, data.coords[dim], axis=index)
-        data.coords.pop(dim)
+        out.values = _trapezoid(out.values, out.coords[dim], axis=index)
+        out.coords.pop(dim)
 
         # if error_regions == None:
-        #     data.error = np.zeros(data.shape)
+        #     out.error = np.zeros(out.shape)
         #     print("add errors")
 
         # else:
-        #     signal = max(data.values)
-        #     noise = np.trapz(data.)
+        #     signal = max(out.values)
+        #     noise = np.trapz(out.)
 
     else:
         data_list = []
         for region in regions:
-            data_list.append(integrate(data[dim, region], dim))
+            data_list.append(integrate(out[dim, region], dim))
 
         x = _np.array(list(range(len(data_list))))
         dim_name = "integrals"
-        data = concat(data_list, dim_name, coord=x)
+        out = concat(data_list, dim_name, coord=x)
 
     proc_attr_name = "integrate"
     proc_parameters = {
@@ -119,6 +121,6 @@ def integrate(data, dim="f2", regions=None):
         "regions": regions,
     }
 
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out

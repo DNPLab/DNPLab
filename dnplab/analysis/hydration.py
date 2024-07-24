@@ -1,7 +1,7 @@
 import numpy as _np
 from scipy import optimize
 import warnings
-from scipy.constants import *
+from ..constants import constants as _const
 
 
 def calculate_smax(spin_C=False):
@@ -179,9 +179,7 @@ def calculate_xi(tcorr=54e-12, omega_e=0.0614, omega_H=9.3231e-05):
     zH = _np.sqrt(1j * omega_H * tcorr)
 
     # (Eq. 2)
-    Jdiff = (1 + (zdiff / 4)) / (
-        1 + zdiff + ((4 * (zdiff**2)) / 9) + ((zdiff**3) / 9)
-    )
+    Jdiff = (1 + (zdiff / 4)) / (1 + zdiff + ((4 * (zdiff**2)) / 9) + ((zdiff**3) / 9))
 
     Jsum = (1 + (zsum / 4)) / (1 + zsum + ((4 * (zsum**2)) / 9) + ((zsum**3) / 9))
 
@@ -353,10 +351,10 @@ def hydration(data={}, constants={}):
         (dict)                        : keys and values are described in the example
 
     J.M. Franck et al.; Progress in Nuclear Magnetic Resonance Spectroscopy 74 (2013) 33–56
-    http://dx.doi.org/10.1016/j.pnmrs.2013.06.001
+    https://www.sciencedirect.com/science/article/abs/pii/S0079656513000629
 
     J.M. Franck, S. Han; Methods in Enzymology, Chapter 5, Volume 615, (2019) 131-175
-    https://doi.org/10.1016/bs.mie.2018.09.024
+    https://www.sciencedirect.com/science/article/abs/pii/S0076687918303872
     """
 
     if not data:
@@ -454,7 +452,7 @@ def hydration(data={}, constants={}):
     # gamma_H is from NIST. The magnetic_field cancels in the following omega_ratio but you
     # need these individually for the spectral density functions later.
 
-    omega_ratio = (omega_e / (2 * pi)) / (omega_H / (2 * pi))
+    omega_ratio = (omega_e / (2 * _const.pi)) / (omega_H / (2 * _const.pi))
     # (Eq. 4-6) ratio of omega_e and omega_H, divide by (2*pi) to get angular
     # frequency units in order to correspond to S_0/I_0, this is also ~= to the
     # ratio of the resonance frequencies for the experiment, i.e. MW freq/RF freq

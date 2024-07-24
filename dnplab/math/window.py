@@ -1,5 +1,5 @@
 import numpy as _np
-from scipy.constants import *
+from ..constants import constants as _const
 
 
 def _handle_array(x):
@@ -30,9 +30,9 @@ def exponential(x, lw):
         array: exponential window function
 
     .. math::
-        f(x) =  e^{-2t * lw}
+        \mathrm{exponential} =  e^{-\pi * x * lw}
     """
-    return _np.exp(-pi * (x - x[0]) * lw)
+    return _np.exp(-_const.pi * (x - x[0]) * lw)
 
 
 def gaussian(x, lw):
@@ -51,7 +51,7 @@ def gaussian(x, lw):
     sigma = lw / (
         2.0 * _np.sqrt(2.0 * _np.log(2.0))
     )  # convert FWHM to standard deviation
-    return _np.exp(-1 * 2.0 * pi**2.0 * (x**2.0) * (sigma**2.0))
+    return _np.exp(-1 * 2.0 * _const.pi**2.0 * (x**2.0) * (sigma**2.0))
 
 
 def hann(x):
@@ -65,11 +65,11 @@ def hann(x):
         ndarray: hann window function
 
     .. math::
-        \mathrm{han} = 0.5 + 0.5\cos(\pi * n / (N-1))
+        \mathrm{hann} = 0.5 + 0.5\cos(\pi * n / (N-1))
     """
     N = _handle_array(x)
 
-    return 0.5 + 0.5 * _np.cos(1.0 * pi * _np.arange(N) / (N - 1))
+    return 0.5 + 0.5 * _np.cos(1.0 * _const.pi * _np.arange(N) / (N - 1))
 
 
 def traf(x, lw):
@@ -89,7 +89,7 @@ def traf(x, lw):
 
                f2(t)   &=  \exp((t - T) * \pi * \mathrm{linewidth[1]}) &
     """
-    T2 = 1.0 / (pi * lw)
+    T2 = 1.0 / (_const.pi * lw)
     t = x
     T = _np.max(t)
     E = _np.exp(-1 * t / T2)
@@ -112,7 +112,7 @@ def hamming(x):
     """
     N = _handle_array(x)
 
-    return 0.53836 + 0.46164 * _np.cos(1.0 * pi * _np.arange(N) / (N - 1))
+    return 0.53836 + 0.46164 * _np.cos(1.0 * _const.pi * _np.arange(N) / (N - 1))
 
 
 # FIX -> Function does not look correct
@@ -138,8 +138,8 @@ def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
     """
 
     N = len(x)
-    expo = pi * x * exp_lw
-    gaus = 0.6 * pi * gauss_lw * (gaussian_max * (N - 1) - x)
+    expo = _const.pi * x * exp_lw
+    gaus = 0.6 * _const.pi * gauss_lw * (gaussian_max * (N - 1) - x)
     return _np.exp(expo - gaus**2).reshape(N)
 
 
@@ -158,4 +158,4 @@ def sin2(x):
     """
     N = _handle_array(x)
 
-    return _np.cos((-0.5 * pi * _np.arange(N) / (N - 1)) + pi) ** 2
+    return _np.cos((-0.5 * _const.pi * _np.arange(N) / (N - 1)) + _const.pi) ** 2

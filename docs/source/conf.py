@@ -25,7 +25,7 @@ print(sys.path)
 # -- Project information -----------------------------------------------------
 
 project = "DNPLab"
-copyright = "2022, DNPLab"
+copyright = "2024, DNPLab"
 author = "DNPLab Team"
 
 from datetime import datetime

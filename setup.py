@@ -5,10 +5,12 @@ with open("README.md", "r") as f:
     long_description = f.read()
 
 with open("dnplab/version.py", "r") as f:
-    # Define __version__
     exec(f.read())
 
-setup(
+with open("requirements.txt", "r") as f:
+    requirements = [dependency.replace("\n", "").replace("==", ">=") for dependency in f if 'scikit-rf' not in dependency]
+
+setuptools.setup(
     name="dnplab",
     packages=setuptools.find_packages(),
     version=__version__,
@@ -26,19 +28,13 @@ setup(
         "Web App": "http://odnplab.com/",
     },
     keywords=["ODNP", "DNP", "NMR"],
-    python_requires=">=3.6",
-    install_requires=[
-        "numpy>=1.19",
-        "scipy>=1.5",
-        "matplotlib>=3.3",
-        "h5py>=2.10",
-    ],
+    python_requires=">=3.10",
+    install_requires = requirements,
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
+    package_data={"dnplab": ["config/dnplab.cfg"]},
 )
