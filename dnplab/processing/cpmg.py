@@ -16,17 +16,42 @@ light_grey = DNPLAB_CONFIG.get("COLORS", "light_grey")
 orange = DNPLAB_CONFIG.get("COLORS", "orange")
 
 
-def cpmg_detect_first_echo(data, region=[0, -1], graphical_output=True):
+def cpmg_detect_first_echo(data, region=[0, -1], graphical_output=True, verbose=False):
     """Find time of first echo in CPMG sequence
 
     Args:
         data (dnpdata):                 CPMG tansient (1D)
         region (list):                  List with start and end time to look for first echo
         graphical_output (boolean):     Display graphical output
+        verbose (boolean):              Enable additional output for debugging
 
     Return:
         t_echo (float):                 Time of first echo.
     """
+
+    if _np.squeeze(_np.shape(data.dims)) > 2:
+        print("Dataset with dimensions > 2 currently not supported")
+        return
+
+    if _np.shape(data.values)[1] == 1:
+        n_dim = 1
+        plot_title_pre_text = "Transient"
+    elif _np.shape(data.values)[1] > 1:
+        n_dim = 2
+        plot_title_pre_text = "Transient (Integrated)"
+
+    if verbose == True:
+        print("********** This is: cpmg_detect_first_echo **********")
+        if n_dim == 1:
+            print("Data set is 1D.")
+        if n_dim == 2:
+            print(
+                "Data set is 2D. For processing the data set is reduced to 1D by integrating along the second axis."
+            )
+            print("The second axis is: ", data.dims[1])
+
+    if n_dim == 2:
+        data = integrate(data, dim=data.dims[1])
 
     t = data.coords["t2"]
     signal = data.values
@@ -39,6 +64,9 @@ def cpmg_detect_first_echo(data, region=[0, -1], graphical_output=True):
     echo_index = _np.argmax(signal[region_start_index:region_stop_index], axis=0)
 
     t_echo = _np.round(t[echo_index + region_start_index], 1)
+
+    if verbose == True:
+        print("First Echo found at: " + str(t_echo) + " ns")
 
     if graphical_output == True:
 
@@ -56,7 +84,7 @@ def cpmg_detect_first_echo(data, region=[0, -1], graphical_output=True):
             color=orange,
             linestyle="--",
         )
-        _plt.title("Transient. First Echo at: " + str(t_echo) + " ns")
+        _plt.title(plot_title_pre_text + ". First Echo at: " + str(t_echo) + " ns")
         _plt.xlabel("Time (ns)")
         _plt.ylabel("Signal (a.u.)")
         _plt.grid(True)
@@ -119,6 +147,8 @@ def cpmg_show_integration_region(
         data (DNPData):             DNPData object containing integration regions. These regions are then used in cpmg_integrate() to process data.
 
     """
+    if verbose == True:
+        print("********** This is: cpmg_show_integration_region **********")
 
     # Need to pull this out of the class for now. It's hacky but we can clean this up later
     t = data.coords["t2"]
