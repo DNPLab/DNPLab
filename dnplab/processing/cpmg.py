@@ -35,10 +35,10 @@ def cpmg_detect_first_echo(data, region=[0, -1], graphical_output=True, verbose=
 
     if _np.shape(data.values)[1] == 1:
         n_dim = 1
-        plot_title_pre_text = "Transient"
+        plot_title_pre_text = "CPMG Transient"
     elif _np.shape(data.values)[1] > 1:
         n_dim = 2
-        plot_title_pre_text = "Transient (Integrated)"
+        plot_title_pre_text = "CPMG Transient (Integrated)"
 
     if verbose == True:
         print("********** This is: cpmg_detect_first_echo **********")
@@ -147,8 +147,29 @@ def cpmg_show_integration_region(
         data (DNPData):             DNPData object containing integration regions. These regions are then used in cpmg_integrate() to process data.
 
     """
+    if _np.squeeze(_np.shape(data.dims)) > 2:
+        print("Dataset with dimensions > 2 currently not supported")
+        return
+
+    if _np.shape(data.values)[1] == 1:
+        n_dim = 1
+        plot_title_pre_text = "CPMG Transient"
+    elif _np.shape(data.values)[1] > 1:
+        n_dim = 2
+        plot_title_pre_text = "CPMG Transient (Integrated)"
+
     if verbose == True:
         print("********** This is: cpmg_show_integration_region **********")
+        if n_dim == 1:
+            print("Data set is 1D.")
+        if n_dim == 2:
+            print(
+                "Data set is 2D. For processing the data set is reduced to 1D by integrating along the second axis."
+            )
+            print("The second axis is: ", data.dims[1])
+
+    if n_dim == 2:
+        data = integrate(data, dim=data.dims[1])
 
     # Need to pull this out of the class for now. It's hacky but we can clean this up later
     t = data.coords["t2"]
@@ -209,11 +230,14 @@ def cpmg_show_integration_region(
     n = _np.linspace(1, n_echo, n_echo)
     snr = (1 / _np.sqrt(n)) * snr / snr[0]
 
+    if verbose == True:
+        print("Maximum SNR increase: " + str(_np.round(_np.max(snr), 2)))
+
     # Plot results
     if graphical_output == True:
         _plt.subplot(2, 1, 1)
         _plt.plot(data.coords["t2"], data.values, color=dark_green)
-        _plt.title("CPMG Transient")
+        _plt.title(plot_title_pre_text)
         _plt.xlabel("Time (ns)")
         _plt.ylabel("Signal (a.u.)")
         _plt.grid(True)
