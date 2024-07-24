@@ -271,3 +271,21 @@ class dnpTools_tester(unittest.TestCase):
         complex_2 = dnp.create_complex(data,'3')
         self.assertEqual ((1,1,100,25,1,10,1), complex_2.shape)
         self.assertTrue ( complex_2._self_consistent() )
+
+    def test_007_normalize_tests(self):
+
+        #make testdata
+        npDat = np.empty((500,50,3)) # 500->t2, 50 -> prm1, 3->prm2
+        t2=np.linspace(0,100,500)
+        #prm1AxisDat =np.atleast_2d( (np.random.random(50)*0.1 + 0.95) ).T
+        prm1AxisDat =np.atleast_2d( np.ones(50) )
+        tau=[100,50,25]
+        for k in range(3):
+            npDat[:,:,k] = np.atleast_2d( np.exp(-t2/tau[k]) + np.random.random(len(t2)) ).T * prm1AxisDat
+
+        data = dnp.DNPData(npDat, ['t2','prm1', 'prm2'], [t2, np.arange(npDat.shape[1]), np.arange(3)] )
+
+        data = dnp.normalize(data)
+
+        self.assertTrue( np.all( np.isclose(data._values[0,:,:],1) ))
+

@@ -510,7 +510,7 @@ def normalize(data, amplitude=True, dim="f2", regions=None):
 
     if amplitude == True:
         if regions:
-            factor = _np.max(abs(out["f2", regions].values))
+            factor = _np.max(abs(out[dim, regions].values))
         else:
             factor = _np.max(abs(out.values))
 
