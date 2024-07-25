@@ -318,7 +318,7 @@ class dnpTools_tester(unittest.TestCase):
         maxvalues = np.max(data["t2", (10, 50)]._values, axis=0)
         refvalues = data["t2", 0]._values / maxvalues
 
-        data._values[55, :, :] = data._values[55, :, :] * 10
+        data_1d._values[55] = data_1d._values[55] * 10
         data_t2 = dnp.normalize(data_1d, dim="t2", regions=(10, 50))
         maxvalues_1d = np.max(data_1d["t2", (10, 50)]._values, axis=0)
         refvalues_1d = data_1d["t2", 0]._values / maxvalues_1d
