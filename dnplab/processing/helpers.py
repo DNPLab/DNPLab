@@ -507,17 +507,23 @@ def normalize(data, amplitude=True, dim=None, regions=None):
     """
 
     if (dim not in data.dims) and (dim is not None):
-        raise ValueError("Cannot normalize to dim {}, available dimensions are {}".format(dim,data.dims))
+        raise ValueError(
+            "Cannot normalize to dim {}, available dimensions are {}".format(
+                dim, data.dims
+            )
+        )
 
     out = data.copy()
 
     if amplitude == True:
         if regions and (dim is not None):
             try:
-                factor = _np.atleast_2d( _np.max(_np.abs(out[dim, regions]),axis = dim)._values).reshape(1, -1)
+                factor = _np.atleast_2d(
+                    _np.max(_np.abs(out[dim, regions]), axis=dim)._values
+                ).reshape(1, -1)
             except AttributeError:
-                #now 1D
-                factor = _np.max(_np.abs(out[dim, regions]),axis = dim)
+                # now 1D
+                factor = _np.max(_np.abs(out[dim, regions]), axis=dim)
 
             out.unfold(dim)
             out._values = out.values / factor
@@ -533,9 +539,11 @@ def normalize(data, amplitude=True, dim=None, regions=None):
 
         elif (regions is None) and (dim is not None):
             try:
-                factor = _np.atleast_2d( _np.max(_np.abs(out),axis = dim)._values).reshape(1, -1)
+                factor = _np.atleast_2d(
+                    _np.max(_np.abs(out), axis=dim)._values
+                ).reshape(1, -1)
             except AttributeError:
-                factor = _np.max(_np.abs(out),axis = dim)
+                factor = _np.max(_np.abs(out), axis=dim)
 
             out.unfold(dim)
             out._values = out.values / factor
