@@ -491,7 +491,7 @@ def left_shift(data, dim="t2", shift_points=0):
     return out
 
 
-def normalize(data, amplitude=True, dim="f2", regions=None):
+def normalize(data, amplitude=True, dim=None, regions=None):
     """Normalize spectrum
 
     The function is used to normalize the amplitude (or area) of a spectrum to a value of 1. The sign of the original data will be conserved.
@@ -499,28 +499,47 @@ def normalize(data, amplitude=True, dim="f2", regions=None):
     Args:
         data (DNPData):         Data object
         amplitude (boolean):    True: normalize amplitude, false: normalize area. The default is True
-        dim (str or None):      The dimension to normalize, if None the data is normalized to the maximum of the whole dataset
-        regions (None, list):   List of tuples to specify range of normalize [(-99., 99.)]
+        dim (str or None):      The dimension to normalize, if None the data is normalized to the maximum of the whole dataset, if a dimension is given the normalization is done along this dimension for each other dimension
+        regions (None, list):   Tuple to specify range of normalize reference e.g. (-99., 99.), if None the whole range is used for normalization
 
     Returns:
         data (DNPDdata):        Normalized data object
     """
 
-    if dim not in data.dims and (dim is not None):
+    if (dim not in data.dims) and (dim is not None):
         raise ValueError("Cannot normalize to dim {}, available dimensions are {}".format(dim,data.dims))
 
     out = data.copy()
 
     if amplitude == True:
         if regions and (dim is not None):
-            factor = _np.max(_np.abs(out[dim, regions].values),axis=dim)
-            out.values = out.values / factor
+            try:
+                factor = _np.atleast_2d( _np.max(_np.abs(out[dim, regions]),axis = dim)._values).reshape(1, -1)
+            except AttributeError:
+                #now 1D
+                factor = _np.max(_np.abs(out[dim, regions]),axis = dim)
+
+            out.unfold(dim)
+            out._values = out.values / factor
+            out.fold()
+
         elif regions and (dim is None):
-            factor = _np.max(_np.abs(out[dim, regions].values))
+            factor = _np.max(_np.abs(out.values))
+            out._values = out.values / factor
+
         elif (regions is None) and (dim is None):
             factor = _np.max(_np.abs(out.values))
+            out._values = out.values / factor
+
         elif (regions is None) and (dim is not None):
-            factor = _np.max(_np.abs(out),axis = dim)
+            try:
+                factor = _np.atleast_2d( _np.max(_np.abs(out),axis = dim)._values).reshape(1, -1)
+            except AttributeError:
+                factor = _np.max(_np.abs(out),axis = dim)
+
+            out.unfold(dim)
+            out._values = out.values / factor
+            out.fold()
 
     elif amplitude == False:
         out.values = out.values  # Normalize to area = 1, not implemented yet
