@@ -26,13 +26,13 @@ _cycler_list = [
 _plt.rcParams["lines.linewidth"] = 1.5
 _plt.rcParams["axes.prop_cycle"] = _plt.cycler(color=_cycler_list)
 
-#As discussed: for now change the rcParams, we do not use a temporary context - the values are stored in the dnplab config
+# As discussed: for now change the rcParams, we do not use a temporary context - the values are stored in the dnplab config
 _plt.rcParams["font.family"] = "Arial"
 _plt.rcParams["pdf.fonttype"] = 42
 _plt.rcParams["font.size"] = 14
 
 # default context
-#_dnpContext = {"font.family": "Arial", "pdf.fonttype": 42, "font.size":14}
+# _dnpContext = {"font.family": "Arial", "pdf.fonttype": 42, "font.size":14}
 
 show = _plt.show
 
