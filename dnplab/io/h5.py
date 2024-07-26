@@ -10,8 +10,8 @@ python_types = [None]
 replace_types = [None_alias]
 
 
-#args and kwargs is for compability
-def load_h5(path,*args,**kwargs):
+# args and kwargs is for compability
+def load_h5(path, *args, **kwargs):
     """Returns Dictionary of dnpDataObjects
 
     Args:
