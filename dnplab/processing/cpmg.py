@@ -31,6 +31,10 @@ def cpmg_detect_first_echo(
     Return:
         t_echo (float):                 Time of first echo.
     """
+    if verbose == True:
+        print("********** This is: cpmg_detect_first_echo **********")
+        print("Input data file: ")
+        print(data)
 
     if _np.squeeze(_np.shape(data.dims)) > 2:
         print("Dataset with dimensions > 2 currently not supported")
@@ -44,7 +48,6 @@ def cpmg_detect_first_echo(
         plot_title_pre_text = "CPMG Transient (Integrated)"
 
     if verbose == True:
-        print("********** This is: cpmg_detect_first_echo **********")
         if n_dim == 1:
             print("Data set is 1D.")
         if n_dim == 2:
@@ -159,6 +162,13 @@ def cpmg_show_integration_region(
         data (DNPData):             DNPData object containing integration regions. These regions are then used in cpmg_integrate() to process data.
 
     """
+    if verbose == True:
+        print("********** This is: cpmg_show_integration_region **********")
+        print("Input data file: ")
+        print(data)
+
+
+
     if _np.squeeze(_np.shape(data.dims)) > 2:
         print("Dataset with dimensions > 2 currently not supported")
         return
@@ -171,7 +181,6 @@ def cpmg_show_integration_region(
         plot_title_pre_text = "CPMG Transient (Integrated)"
 
     if verbose == True:
-        print("********** This is: cpmg_show_integration_region **********")
         if n_dim == 1:
             print("Data set is 1D.")
         if n_dim == 2:
