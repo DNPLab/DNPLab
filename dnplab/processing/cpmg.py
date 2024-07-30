@@ -17,7 +17,7 @@ orange = DNPLAB_CONFIG.get("COLORS", "orange")
 
 
 def cpmg_detect_first_echo(
-    data, region=[0, -1], graphical_output=True, use_real=False, verbose=False
+    data, region=[0, -1], graphical_output=True, use_real=True, verbose=False
 ):
     """Find time of first echo in CPMG sequence
 
@@ -131,7 +131,7 @@ def cpmg_show_integration_region(
     t_width,
     noise_region=[None, None],
     alternate=True,
-    use_real=False,
+    use_real=True,
     graphical_output=True,
     verbose=False,
 ):
@@ -195,11 +195,16 @@ def cpmg_show_integration_region(
 
     signal = _np.squeeze(signal)
 
+    dwell_time = _np.diff(t)[0]
+
+    # Make sure all values are multiple of the dwell time
+    t_period = int(t_period / dwell_time) * dwell_time
+    t_start = int(t_start / dwell_time) * dwell_time
+    t_width = int(t_width / dwell_time) * dwell_time
+
     t_echo = _np.linspace(t_start + 0, t_start + (n_echo - 1) * t_period, n_echo)
     t_int_start = t_echo - t_width / 2
     t_int_end = t_echo + t_width / 2
-
-    dwell_time = _np.diff(t)[0]
 
     t_width_pts = int(_np.round(t_width / dwell_time))
     t_int_window = _np.linspace(
