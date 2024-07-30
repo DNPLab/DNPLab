@@ -1,6 +1,6 @@
 import numpy as _np
 
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as _plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 
 
@@ -10,15 +10,15 @@ def align_widget(data, dim):
     coord = data.coords[dim]
     max_index = int(data.size / (coord.size**2.0))
 
-    fig, ax = plt.subplots()
-    plt.subplots_adjust(left=0.25, bottom=0.25)
+    fig, ax = _plt.subplots()
+    _plt.subplots_adjust(left=0.25, bottom=0.25)
     init_index = 0
     delta_index = 1
-    l = plt.plot(data.coords["f2"], _np.real(data.values))
+    l = _plt.plot(data.coords["f2"], _np.real(data.values))
     ax.margins(x=0)
 
     axcolor = "lightgoldenrodyellow"
-    axindex = plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
+    axindex = _plt.axes([0.25, 0.1, 0.65, 0.03], facecolor=axcolor)
 
     sindex = Slider(
         axindex,
@@ -39,13 +39,13 @@ def align_widget(data, dim):
 
     sindex.on_changed(update)
 
-    reset_ax = plt.axes([0.8, 0.025, 0.1, 0.04])
+    reset_ax = _plt.axes([0.8, 0.025, 0.1, 0.04])
     reset_button = Button(reset_ax, "Reset", color=axcolor, hovercolor="0.975")
 
-    inc_ax = plt.axes([0.6, 0.025, 0.1, 0.04])
+    inc_ax = _plt.axes([0.6, 0.025, 0.1, 0.04])
     inc_button = Button(inc_ax, "+", color=axcolor, hovercolor="0.975")
 
-    dec_ax = plt.axes([0.4, 0.025, 0.1, 0.04])
+    dec_ax = _plt.axes([0.4, 0.025, 0.1, 0.04])
     dec_button = Button(dec_ax, "-", color=axcolor, hovercolor="0.975")
 
     def reset(event):
@@ -61,7 +61,7 @@ def align_widget(data, dim):
     inc_button.on_clicked(inc)
     dec_button.on_clicked(dec)
 
-    plt.show()
+    _plt.show()
     manual_index = sindex.val
 
     for ix, x in enumerate(data.coords[dim]):
