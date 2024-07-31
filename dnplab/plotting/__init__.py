@@ -3,4 +3,4 @@
 from .general import *
 from .stack_plot import *
 from .image import *
-from. colors import *
+from .colors import *
