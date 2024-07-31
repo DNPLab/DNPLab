@@ -2,18 +2,11 @@
 
 import numpy as _np
 import matplotlib.pyplot as _plt
+import dnplab as _dnp
 from scipy.signal import savgol_filter as _savgol_filter
 from numpy import random as _random
 
-from ..config.config import DNPLAB_CONFIG
 from .integration import integrate
-
-
-dark_green = DNPLAB_CONFIG.get("COLORS", "dark_green")
-light_green = DNPLAB_CONFIG.get("COLORS", "light_green")
-dark_grey = DNPLAB_CONFIG.get("COLORS", "dark_grey")
-light_grey = DNPLAB_CONFIG.get("COLORS", "light_grey")
-orange = DNPLAB_CONFIG.get("COLORS", "orange")
 
 
 def cpmg_detect_first_echo(
@@ -84,17 +77,17 @@ def cpmg_detect_first_echo(
     if graphical_output == True:
 
         _plt.subplot(2, 1, 1)
-        _plt.plot(t, signal, color=light_grey, label="Transient")
+        _plt.plot(t, signal, color=_dnp.colors.secondary2, label="Transient")
         _plt.plot(
             t[region_start_index:region_stop_index],
             signal[region_start_index:region_stop_index],
-            color=dark_green,
+            color=_dnp.colors.primary1,
             label="Search Region",
         )
         _plt.plot(
             [t_echo, t_echo],
             [_np.min(signal), _np.max(signal)],
-            color=orange,
+            color=_dnp.colors.accent,
             linestyle="--",
         )
         _plt.title(plot_title_pre_text + ". First Echo at: " + str(t_echo) + " ns")
@@ -107,7 +100,7 @@ def cpmg_detect_first_echo(
         _plt.plot(
             t[region_start_index:region_stop_index],
             signal[region_start_index:region_stop_index],
-            color=dark_green,
+            color=_dnp.colors.primary1,
         )
         _plt.plot(
             [t_echo, t_echo],
@@ -115,7 +108,7 @@ def cpmg_detect_first_echo(
                 _np.min(signal[region_start_index:region_stop_index]),
                 _np.max(signal[region_start_index:region_stop_index]),
             ],
-            color=orange,
+            color=_dnp.colors.accent,
             linestyle="--",
         )
         _plt.grid(True)
@@ -166,8 +159,6 @@ def cpmg_show_integration_region(
         print("********** This is: cpmg_show_integration_region **********")
         print("Input data file: ")
         print(data)
-
-
 
     if _np.squeeze(_np.shape(data.dims)) > 2:
         print("Dataset with dimensions > 2 currently not supported")
@@ -269,7 +260,7 @@ def cpmg_show_integration_region(
     # Plot results
     if graphical_output == True:
         _plt.subplot(2, 1, 1)
-        _plt.plot(data.coords["t2"].real, data.values.real, color=dark_green)
+        _plt.plot(data.coords["t2"].real, data.values.real, color=_dnp.colors.primary1)
         _plt.title(plot_title_pre_text)
         _plt.xlabel("Time (ns)")
         _plt.ylabel("Signal (a.u.)")
@@ -281,43 +272,46 @@ def cpmg_show_integration_region(
         for index, value in enumerate(t_echo):
 
             _plt.plot(
-                [value, value], [min_signal, max_signal], color=orange, linestyle="--"
+                [value, value],
+                [min_signal, max_signal],
+                color=_dnp.colors.accent,
+                linestyle="--",
             )
             _plt.plot(
                 [t_int_start[index], t_int_start[index]],
                 [min_signal, max_signal],
-                color=light_grey,
+                color=_dnp.colors.secondary2,
                 linestyle="--",
             )
             _plt.plot(
                 [t_int_end[index], t_int_end[index]],
                 [min_signal, max_signal],
-                color=light_grey,
+                color=_dnp.colors.secondary2,
                 linestyle="--",
             )
 
         _plt.plot(
             [data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[0]]],
             [0.1 * min_signal, 0.1 * max_signal],
-            color=light_green,
+            color=_dnp.colors.primary2,
             linestyle="--",
         )
         _plt.plot(
             [data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[1]]],
             [0.1 * max_signal, 0.1 * max_signal],
-            color=light_green,
+            color=_dnp.colors.primary2,
             linestyle="--",
         )
         _plt.plot(
             [data.coords["t2"][noise_region[1]], data.coords["t2"][noise_region[1]]],
             [0.1 * min_signal, 0.1 * max_signal],
-            color=light_green,
+            color=_dnp.colors.primary2,
             linestyle="--",
         )
         _plt.plot(
             [data.coords["t2"][noise_region[0]], data.coords["t2"][noise_region[1]]],
             [0.1 * min_signal, 0.1 * min_signal],
-            color=light_green,
+            color=_dnp.colors.primary2,
             linestyle="--",
         )
 
