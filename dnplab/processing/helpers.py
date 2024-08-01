@@ -11,6 +11,7 @@ from ..constants import constants as _const
 from scipy.special import jv as _jv
 from scipy.fft import fft as _fft
 from scipy.fft import ifft as _ifft
+import copy as _copy
 
 
 def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=False):
@@ -64,32 +65,8 @@ def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=Fals
         return enhancements.real
 
 
-def create_complex(data, real, imag):
-    """Create complex array from input
-
-    This function can be used to concatenate a two dimensions of a DNPData object into a complex array. The unused dims and coords will be removed from the input DNPData object.
-
-    Args:
-        data (DNPData): DNPData input object
-        real (array): Real data
-        imag (array): Imaginary data
-
-    Returns:
-        data (DNPData): New DNPData object
-
-    Examples:
-    In this example, first a data set is loaded. The data set is of the size 4000 x 2 (ndarray, float32)
-
-    With the first dimension ([...,0]) being the real data and the second ([...,1]) the imaginary data. Using the function create_complex the dnpdata object is converted into a complex data set.
-
-        .. code-block:: python
-
-            data = dnp.load("MyFile.exp")       # Load example data
-
-            data_complex = dnp.create_complex(data, data.values[..., 0], data.values[..., 1])
-
-    """
-
+def _create_complexEXT(data, real, imag):
+    # helper function for create_complex
     complexData = _np.vectorize(complex)(real, imag)
 
     dims = data.dims
@@ -104,6 +81,138 @@ def create_complex(data, real, imag):
     out = DNPData(complexData, dims, coords, attrs)
 
     return out
+
+
+def _create_complexINT(dnpdata, dim, real=0, imag=1):
+    try:
+        if len(dnpdata.coords[dim]) != 2:
+            raise ValueError(
+                "create_complex: Dimension {0} has length {1} != 2".format(
+                    dim, len(dnpdata.coords[dim])
+                )
+            )
+    except KeyError:
+        raise KeyError(
+            "dim {} not in dims of dnpDataobject, available dims are: {1}".format(
+                dim, dnpdata.dims
+            )
+        )
+    out = dnpdata.copy()
+    out._values = out._values.astype(complex)
+    cut_position = 0
+    for k in out.dims:
+        if k == dim:
+            break
+        cut_position = cut_position + 1
+    if real == 0 and imag == 1:
+        out[dim, 0] = out[dim, 0]._values + 1j * out[dim, 1]._values
+    elif real == 1 and imag == 0:
+        out[dim, 0] = out[dim, 1]._values + 1j * out[dim, 0]._values
+    else:
+        raise ValueError(
+            "create_complex: only real=0 and imag=1 or other way around allowed! you chose {}/{}".format(
+                real, imag
+            )
+        )
+    axis_int = 0
+    for k in dnpdata.dims:
+        if k == dim:
+            break
+        axis_int = axis_int + 1
+    out._values = _np.delete(out._values, 1, axis=axis_int)
+    out.coords[dim] = _np.array([0])
+
+    shape = out.shape
+    restore_dims = [
+        out.dims[x] for x in range(len(shape)) if (shape[x] == 1) and out.dims[x] != dim
+    ]
+    restore_dims_index = [
+        x for x in range(len(shape)) if (shape[x] == 1) and out.dims[x] != dim
+    ]
+    restore_coords = [out.coords[k][0] for k in restore_dims]  # have length 1
+    dims_position = []
+    restored_dim_order = []
+    i = 0
+    for ind, k in enumerate(out.dims):
+        if k in restore_dims and ind < cut_position:
+            dims_position.append(ind)
+        if k in restore_dims and ind > cut_position:
+            dims_position.append(ind - 1)
+
+        # save indizes for old dimensions
+        if ind in restore_dims_index:
+            restored_dim_order.append(
+                len(shape) - len(restore_dims) - 1 + i
+            )  # -1 from the removed cmplx axis and -1 because counting starts from 0
+            i = i + 1
+        elif ind < cut_position:
+            restored_dim_order.append(ind)
+        elif ind > cut_position:
+            restored_dim_order.append(ind - 1 - i)
+
+    # remove the single dimensions, including the complex source
+    out.squeeze()
+
+    # move single dimensions back to position
+    move_dims = 0
+    for d, c in zip(restore_dims, restore_coords):
+        out.new_dim(d, c)
+        move_dims = move_dims + 1
+    # move back to old position...
+    out._values = _np.moveaxis(
+        out._values, [k for k in range(-move_dims, 0, 1)], dims_position
+    )
+    out.coords.reorder_index(restored_dim_order)
+
+    return out
+
+
+def create_complex(data, real, imag=None, real_index=0, imag_index=1):
+    """Create complex array from input
+
+    This function can be used to concatenate a two dimensions of a DNPData object into a complex array. The unused dims and coords will be removed from the input DNPData object.
+    When a String is provided as the second argument the index in that dimension given by real_index is assumed to be the real part of the dataset and the one by imag_index is the iamginary part.
+    The dataset is then combined to form one complex dataset, imag is ignored. Note that dimension with size 1 are retained but will be placed at the end of the retuned DNPData object.
+
+    Args:
+        data (DNPData): DNPData input object
+        real (array, String): Real data if array or when a String is provided the dimension that contains real and imaginary part (the dimension must have length 2)
+        imag (array, None): Imaginary data or None, if None is provided a complex dataset is created with the imaginary part set to 0
+        real_index (Integer): Index of real part in chosen dimension, default=0, must be 0 or 1 and be different from imag_index
+        imag_index (Integer): Index of imaginary part in chosen dimension, default=1, must be 0 or 1 and be different from real_index
+
+    Returns:
+        data (DNPData): New DNPData object
+
+    Examples:
+    In this example, first a data set is loaded. The data set is of the size 4000 x 2 (ndarray, float32) and the dims are called 't2','x'
+
+    With the first dimension ([...,0]) being the real data and the second ([...,1]) the imaginary data. Using the function create_complex the dnpdata object is converted into a complex data set.
+
+        .. code-block:: python
+
+            data = dnp.load("MyFile.exp")       # Load example data
+
+            data_complex = dnp.create_complex(data, data.values[..., 0], data.values[..., 1])
+
+    Or with the second variant;
+
+        .. code-block:: python
+
+            data = dnp.load("MyFile.exp")       # Load example data
+
+            data_complex = dnp.create_complex(data,'x')
+
+
+    """
+    if (
+        type(real) == __builtins__["str"]
+    ):  # could be done with try .. except but for now force usage of strings
+        dim = real
+        return _create_complexINT(data, dim, real=real_index, imag=imag_index)
+    if imag is None:
+        imag = _np.zeros(real.shape)
+    return _create_complexEXT(data, real, imag)
 
 
 def signal_to_noise(
