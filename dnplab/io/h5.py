@@ -1,7 +1,13 @@
 from ..core.data import DNPData
 import warnings
-import numpy as np
+import numpy as _np
 import h5py
+
+None_alias = "__PYTHON_NONE__"  # h5 does not have Null type
+
+
+python_types = [None]
+replace_types = [None_alias]
 
 
 def load_h5(path):
@@ -14,13 +20,18 @@ def load_h5(path):
         dnpdata_collection: workspace object with data
     """
 
-    dnp_dict = {}
-
     f = h5py.File(path, "r")
     keys_list = f.keys()
 
-    for key in keys_list:
+    if list(keys_list) == [
+        "__DNPDATA__"
+    ]:  # If Only DNPData object in h5 file, return DNPData object, not dictionary
+        data = read_dnpdata(f["__DNPDATA__"])
+        return data
 
+    dnp_dict = {}
+
+    for key in keys_list:
         if f[key].attrs["dnplab_data_type"] == "dnpdata":
             data = read_dnpdata(f[key])
         elif f[key].attrs["dnplab_data_type"] == "dict":
@@ -36,18 +47,38 @@ def read_dnpdata(dnpdata_group):
     coords = []
     dims = []
     attrs = {}
+    dnplab_attrs = {}
+    proc_attrs = {}
     values = dnpdata_group["values"][:]
     version = dnpdata_group.attrs["dnplab_version"]
 
-    for index in range(len(np.shape(values))):
+    for index in range(len(_np.shape(values))):
         dim_key = dnpdata_group["values"].dims[index].keys()[0]  # assumes 1 key only
         coords.append(dnpdata_group["values"].dims[index][dim_key][:])
         dims.append(dim_key)
 
     for k in dnpdata_group["attrs"].attrs.keys():
-        attrs[k] = dnpdata_group["attrs"].attrs[k]
+        v = dnpdata_group["attrs"].attrs[k]
+        if v in replace_types:
+            ix = replace_types.index(v)
+            v = python_types[ix]
+        attrs[k] = v
+    for k in dnpdata_group["attrs"]:
+        v = dnpdata_group["attrs"][k][:]
+        attrs[k] = v
 
-    data = DNPData(values, dims, coords, attrs)
+    if "dnplab_attrs" in dnpdata_group.keys():
+        for k in dnpdata_group["dnplab_attrs"].attrs.keys():
+            v = dnpdata_group["dnplab_attrs"].attrs[k]
+            if v in replace_types:
+                ix = replace_types.index(v)
+                v = python_types[ix]
+            dnplab_attrs[k] = v
+        for k in dnpdata_group["dnplab_attrs"]:
+            v = dnpdata_group["dnplab_attrs"][k][:]
+            dnplab_attrs[k] = v
+
+    data = DNPData(values, dims, coords, attrs, dnplab_attrs)
 
     if "proc_attrs" in dnpdata_group.keys():
         proc_attrs = []
@@ -55,6 +86,7 @@ def read_dnpdata(dnpdata_group):
             proc_attrs_name = k.split(":", 1)[1]
             proc_attrs_dict = dict(dnpdata_group["proc_attrs"][k].attrs)
             data.add_proc_attrs(proc_attrs_name, proc_attrs_dict)
+
     return data
 
 
@@ -81,18 +113,22 @@ def save_h5(dataDict, path, overwrite=False):
 
     f = h5py.File(path, mode)
 
-    for key in keysList:
-        dnpDataObject = dataDict[key]
+    try:
+        for key in keysList:
+            dnpDataObject = dataDict[key]
+            dnpDataGroup = f.create_group(key, track_order=True)
+            if isinstance(dnpDataObject, DNPData):
+                write_dnpdata(dnpDataGroup, dnpDataObject)
+            elif isinstance(dnpDataObject, dict):
+                write_dict(dnpDataGroup, dnpDataObject)
+            else:
+                warnings.warn("Could not write key: %s" % str(key))
 
-        dnpDataGroup = f.create_group(key, track_order=True)
-        if isinstance(dnpDataObject, DNPData):
-            write_dnpdata(dnpDataGroup, dnpDataObject)
-        elif isinstance(dnpDataObject, dict):
-            write_dict(dnpDataGroup, dnpDataObject)
-        else:
-            warnings.warn("Could not write key: %s" % str(key))
+        f.close()
 
-    f.close()
+    except:
+        f.close()
+        raise Warning("h5 close due to error")
 
 
 def write_dnpdata(dnpDataGroup, dnpDataObject):
@@ -117,9 +153,32 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
 
         dnp_dataset.dims[ix].attach_scale(dims_group[label])
 
-    # Save Parameters
+    # Save Experiment Attributes
     for key in dnpDataObject.attrs:
-        attrs_group.attrs[key] = dnpDataObject.attrs[key]
+        value = dnpDataObject.attrs[key]
+
+        if isinstance(value, _np.ndarray):
+            attrs_group.create_dataset(key, data=value)
+        else:
+            if value in python_types:
+                ix = python_types.index(value)
+                value = replace_types[ix]
+            attrs_group.attrs[key] = value
+
+    # Save DNPLab Attributes
+    if hasattr(dnpDataObject, "dnplab_attrs"):
+        dnplab_attrs_group = dnpDataGroup.create_group("dnplab_attrs", track_order=True)
+
+        for key in dnpDataObject.dnplab_attrs:
+            value = dnpDataObject.dnplab_attrs[key]
+
+            if isinstance(value, _np.ndarray):
+                dnplab_attrs_group.create_dataset(key, data=value)
+            else:
+                if value in python_types:
+                    ix = python_types.index(value)
+                    value = replace_types[ix]
+                dnplab_attrs_group.attrs[key] = value
 
     # Save proc_steps
     if hasattr(dnpDataObject, "proc_attrs"):
@@ -138,7 +197,12 @@ def write_dnpdata(dnpDataGroup, dnpDataObject):
 
 
 def write_dict(dnpDataGroup, dnpDataObject):
-    """Writes dictionary to h5 file"""
+    """Writes dictionary to h5 file
+
+    Args:
+        dnpDataGroup (h5py.Group): h5 group to write attrs dictionary
+        dnpDataObject (DNPData): DNPData object to write
+    """
     #    dnpDataGroup.attrs['dnplab_version'] = dnpDataObject.version
     dnpDataGroup.attrs["dnplab_data_type"] = "dict"
     #    dnpDataGroup.attrs['dnplab_version'] = dnpDataObject.version

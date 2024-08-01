@@ -1,5 +1,6 @@
-import numpy as np
+import numpy as _np
 from . import mr_properties
+
 
 #######################################
 # EPR Properties of Selected Radicals #
@@ -26,26 +27,40 @@ radicalProperties["tempo2"] = [[2.00909, 2.00621, 2.00222], "14N", [20.2, 20.2, 
 # Bennati et al., JMR, 1999. (2H couplings were scaled to 1H)
 radicalProperties["bdpa"] = [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.0]]
 
+# DPPH, neat
+# Krzystek et al., JMR, 1997
+radicalProperties["dpph_neat"] = [2.0036, None, [0]]
+
 
 def radical_properties(name):
-    """Return properties of different radicals. At the minimum the g value is returned. If available, large hyperfine couplings to a nucleus are returned. Add new properties or new radicals to mrProperties.py
+    """Return properties of different radicals. At the minimum the g value is returned. If available, large hyperfine couplings to a nucleus are returned. Add new properties or new radicals to radicalProperties.py
+
+    +-------------+---------------------------------------------------------------+
+    | arg         |  returns                                                      |
+    +=============+===============================================================+
+    | "gfree"     | 2.00231930436153                                              |
+    +-------------+---------------------------------------------------------------+
+    | "tempo1"    | [[2.00980, 2.00622, 2.00220], "14N", [16.8, 20.5, 95.9]]      |
+    +-------------+---------------------------------------------------------------+
+    | "tempo2"    | [[2.00909, 2.00621, 2.00222], "14N", [20.2, 20.2, 102.1]]     |
+    +-------------+---------------------------------------------------------------+
+    | "bdpa"      | [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.0]]       |
+    +-------------+---------------------------------------------------------------+
+    | "ddph_neat" | 2.0036                                                        |
+    +-------------+---------------------------------------------------------------+
 
     Args:
-
-    +-----------+---------------------------------------------------------------+
-    | arg       |  returns                                                      |
-    +===========+===============================================================+
-    | "gfree"   | 2.00231930436153                                              |
-    +-----------+---------------------------------------------------------------+
-    | "tempo1"  | [[2.00980, 2.00622, 2.00220], "14N", [16.8, 20.5, 95.9]]      |
-    +-----------+---------------------------------------------------------------+
-    | "tempo2"  | [[2.00909, 2.00621, 2.00222], "14N", [20.2, 20.2, 102.1]]     |
-    +-----------+---------------------------------------------------------------+
-    | "bdpa"    | [[2.00263, 2.00260, 2.00257], "1H", [50.2, 34.5, 13.0]]       |
-    +-----------+---------------------------------------------------------------+
+        name (str): Name of the radical
 
     Returns:
-        principle g values and hyperfine coupling tensor
+        radicalProperties (dict): Principle g values and hyperfine coupling tensor
+
+    Examples:
+
+        Return g value of a free electron
+
+        >>> radical_properties("gfree")
+
     """
 
     name = name.lower()
@@ -62,24 +77,28 @@ def radical_properties(name):
 
 
 def show_dnp_properties(radical, mwFrequency, dnpNucleus):
-    """Calculate DNP Properties
-
-    Currently only implemented for liquid state experiments
+    """Calculate DNP Properties for a given radical
 
     Args:
-        radical:        Radical name, see mrProperties.py
-        mwFrequency:    Microwave frequency in (Hz)
-        dnpNucleus:     Nucleus for DNP-NMR experiments
+        radical (str): Radical name, see mrProperties.py for radicals that are currently implemented
+        mwFrequency (float): Microwave frequency in (Hz)
+        dnpNucleus (str): Nucleus for DNP-NMR experiments
 
-    Example:
-        .. code-block:: python
+    Returns:
+        Function returns a table of DNP parameters to the screen
 
-            dnp.dnpTools.show_dnp_poperties('gfree', 9.45e9, '1H')
+    Examples:
+
+        >>> dnp.show_dnp_poperties('gfree', 9.45e9, '1H')
+
+    .. Note:
+        This function is currently only implemented for liquid state experiments
+
     """
 
     # http://physics.nist.gov/constants
-    mub = 9.27400968e-24
-    planck = 6.62606957e-34
+    mub = _const.mub
+    planck = _const.h
 
     # Get radical properties
     glist = radicalProperties.get(radical)[0]
@@ -87,22 +106,22 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     Alist = radicalProperties.get(radical)[2]
 
     # Get g-value
-    g = np.array(glist)
-    giso = np.sum(g) / g.size
+    g = _np.array(glist)
+    giso = _np.sum(g) / g.size
 
     B0 = mwFrequency * planck / giso / mub
 
     # Get hyperfine coupling and calculate isotropic value
-    A = np.array(Alist)
-    AisoMHz = np.sum(A) / A.size
+    A = _np.array(Alist)
+    AisoMHz = _np.sum(A) / A.size
 
     gmr_e = mr_properties("0e")
-    AisoT = AisoMHz / gmr_e / 2 / np.pi
+    AisoT = AisoMHz / gmr_e / 2 / pi
 
     if nucleus != None:
         nucSpin = mr_properties(nucleus, "spin")
         n = 2 * nucSpin + 1
-        ms = np.linspace(-1.0 * nucSpin, nucSpin, int(n))
+        ms = _np.linspace(-1.0 * nucSpin, nucSpin, int(n))
         B = B0 + ms * AisoT
 
     else:
@@ -122,7 +141,7 @@ def show_dnp_properties(radical, mwFrequency, dnpNucleus):
     for b in B:
         print("Transition: ", m)
         print("B                    (T) :  %6.4f" % b)
-        nmr = mr_properties("1H") * b * 10 / 2 / np.pi
+        nmr = mr_properties("1H") * b * 10 / 2 / _const.pi
         print("NMR Frequency      (MHz) :  %6.3f" % nmr)
         print("")
         m += 1

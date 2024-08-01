@@ -2,36 +2,32 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dnplab)](https://www.python.org/downloads/)
 [![Downloads](https://pepy.tech/badge/dnplab/month)](https://pepy.tech/project/dnplab)
 
-[![DNPLab Logo](docs/source/_static/images/dnpLabLogo.png)](http://dnplab.net)
+[![DNPLab Logo](http://dnplab.net/_static/dnpLabLogo.png)](http://dnplab.net)
 # DNPLab - Bringing the Power of Python to DNP-NMR Spectroscopy
 
-DNPLab is a collaboration between:
+DNPLab is a collaborative project created by:
 - [Bridge12 Technologies, Inc.](http://www.bridge12.com/)
-- [Han Lab UCSB](https://han.chem.ucsb.edu/)
+- [Han Lab NWU](https://hanlab.northwestern.edu/)
 - [Franck Lab Syracuse University](https://jmfrancklab.github.io/)
 
 Authors:
-Timothy Keller, Thomas Casey, Yanxian Lin, John Franck, Thorsten Maly, Songi Han
+Timothy Keller, Yen-Chun Huang, Karl Rieger, John Franck, Thorsten Maly, Songi Han
 
-DNPLab is an open-source, python library for importing and processing DNP-NMR data.
+Alumnis:
+Thomas Casey, Yanxian Lin
+
+DNPLab is an object-oriented Open Source Python-based package for importing, processing, and analyzing data determined in a [Dynamic Nuclear Polarization (DNP)](https://www.bridge12.com/learn/dnp-spectroscopy/) or Electron Paramagnetic Resonance (EPR) experiment.
 
 # Features
 
-  - Import data from Topspin, VnmrJ, Prospa, etc. formats
-  - Construct N-dimensional data objects
-  - Process data using apodization, zero-filling, Fourier transformations, alignment, etc.
+  - Import many different NMR data formats (Topspin, VnmrJ, Prospa, ...)
+  - Create N-dimensional data objects
+  - Easy processing of NMR data (apodization, zero-filling, Fourier transformations, alignment, ...)
   - Analyze data using the specific modules
-
-# Requirements
-
-  - Python 3.6 or Later
-  - DNPLab dependencies: numpy, matplotlib, scipy, h5py
-
-All dependencies are automatically installed during setup.
 
 # Installation
 
-DNPLab can be installed via pip:
+DNPLab can be easily installed via pip:
 
 ```console
 pip install dnplab
@@ -43,4 +39,4 @@ Find the online documentation at: http://docs.dnplab.net
 
 # Developement 
 
-  - Clone the git repository from https://github.com/DNPLab/dnpLab
+  - Clone the git repository from https://github.com/DNPLab/dnplab

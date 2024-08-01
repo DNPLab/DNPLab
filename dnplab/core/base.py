@@ -1,34 +1,96 @@
 from __future__ import division
 import operator
-import numpy as np
+import numpy as _np
 import warnings
 from copy import deepcopy
 from collections import OrderedDict
 from .coord import Coords
+import logging
+import warnings
+
+from ..version import __version__
+
+version = __version__
+
+logger = logging.getLogger(__name__)
 
 
-_numerical_types = (np.ndarray, int, float, complex, np.complex64)
+def _replaceClassWithAttribute(replace_class, args, kwargs, target_attr="_values"):
+    r_args = []
+    for a in args:
+        if type(a) == type(replace_class):
+            r_args.append(getattr(replace_class, target_attr))
+        else:
+            r_args.append(a)
+    r_kwargs = {}
+    # iterating over .values() can lead to errors?
+    for key in kwargs.keys():
+        val = kwargs[key]
+        if type(val) == type(replace_class):
+            r_kwargs[key] = getattr(replace_class, target_attr)
+        else:
+            r_kwargs[key] = val
+    return tuple(r_args), r_kwargs
 
-_nddata_core_version = "1.0"
+
+# utility funtion to return integer index of string or int if input is integer
+_str_to_int_index = lambda possible_dim, dnpdat: (
+    int(dnpdat.index(possible_dim)) if isinstance(possible_dim, str) else possible_dim
+)
+
+_SPECIAL_NP_HANDLED = {}  # numpy functions that need special handling, will
+
+_numerical_types = (
+    _np.ndarray,
+    int,
+    float,
+    complex,
+    _np.complex64,
+    _np.float16,
+    _np.float32,
+    _np.double,
+    _np.longdouble,
+    _np.csingle,
+    _np.cdouble,
+    _np.clongdouble,
+    _np.longlong,
+)
+
+# _nddata_core_version = "1.0"
 
 
 class ABCData(object):
-    """nddata class"""
+    """N-Dimensional Data Object
+
+    Attributes:
+        values (numpy.ndarray): Data values in
+        dims (list): List of strings giving dimension labels
+        coords (Coords): Collection of numpy.ndarrays defining the axes
+        attrs (dict): dictionary of parameters
+        error (numpy.ndarray): If not None, error for values which are propagated during mathematical operations
+        proc_attrs (list): List of processing steps
+    """
 
     __array_priority__ = 1000  # radd, rsub, ... should return nddata object
 
     def __init__(
-        self, values=np.r_[[]], dims=[], coords=[], attrs={}, error=None, **kwargs
+        self,
+        values=_np.r_[[]],
+        dims=[],
+        coords=[],
+        attrs={},
+        dnp_attrs={},
+        error=None,
+        **kwargs
     ):
-
-        self._nddata_core_version = _nddata_core_version
+        self.version = version
 
         # if values is list, convert to numpy array
         if isinstance(values, list):
-            values = np.array(values)
+            values = _np.array(values)
 
         # verify values are numpy array
-        if isinstance(values, np.ndarray):
+        if isinstance(values, _np.ndarray):
             self._values = values
         else:
             raise TypeError(
@@ -42,7 +104,14 @@ class ABCData(object):
         else:
             raise TypeError('attrs must be type "dict" not %s' % str(type(attrs)))
 
-        if isinstance(error, np.ndarray) or (error == None):
+        if isinstance(dnp_attrs, dict):
+            self._attrs = attrs
+        else:
+            raise TypeError(
+                'dnp_attrs must be type "dict" not %s' % str(type(dnp_attrs))
+            )
+
+        if isinstance(error, _np.ndarray) or (error == None):
             self._error = error
         else:
             raise TypeError(
@@ -57,7 +126,18 @@ class ABCData(object):
                 raise TypeError
 
         if not self._self_consistent():
-            warnings.warn("Dimensions not consistent")
+            warnings.warn("Data Object Dimensions are not consistent.")
+            if not self._check_dims(self.dims):
+                warnings.warn(
+                    "Dims Check Failed. Dims must be list of strings. Length of dims ({0}) should match number of dimensions in values (values shape: {1})".format(
+                        len(self.dims), self._values.shape
+                    )
+                )
+            if not self._check_coords(self._coords):
+                warnings.warn(
+                    "Coords Check Failed. Each coord should be a numpy array matching the length of each dimension in values."
+                )
+        self._is_folded = True
 
     @property
     def __version__(self):
@@ -79,7 +159,13 @@ class ABCData(object):
         # test if any duplicates exist
         any_duplicates = len(dims) == len(set(dims))
 
-        return all_strings and any_duplicates
+        # Test if number of dims matches number of dimensions
+        if self.size != 0:  # Case where array is not empty
+            shape_check = len(self.values.shape) == len(self.dims)
+        else:  # Case where array is empty
+            shape_check = len(self.dims) == 0
+
+        return all_strings and any_duplicates and shape_check
 
     def _check_coords(self, coords):
         """Check that coords is list of 1d numpy arrays
@@ -91,13 +177,25 @@ class ABCData(object):
             bool: True if valid coords. False, otherwise.
         """
 
+        # Check that coords is list of 1d numpy arrays
         for coord in coords:
-            if isinstance(coord, np.ndarray):
+            if isinstance(coord, _np.ndarray):
                 if len(coord.shape) == 1:
                     pass
                 else:
                     return False
             else:
+                return False
+
+        shape = self.values.shape
+
+        # Check Shapes are consistent
+        if len(shape) != len(coords):
+            return False
+
+        # Check that each coord length matches shape of each dimension in values
+        for coord_ix, coord in enumerate(coords):
+            if len(coord) != shape[coord_ix]:
                 return False
 
         return True
@@ -112,7 +210,11 @@ class ABCData(object):
             bool: True if valid error. False otherwise.
         """
 
-        check_type = isinstance(error, np.ndarray)
+        # Error is type None if it doesn't exist
+        if error is None:
+            return True
+
+        check_type = isinstance(error, _np.ndarray)
 
         if check_type:
             check_size = error.size == self._values.size
@@ -133,7 +235,7 @@ class ABCData(object):
         else:
             coords_check = list(self._values.shape) == list(self.coords.shape)
 
-        dims_check = len(self.values.shape) == len(self.dims)
+        dims_check = self._check_dims(self.dims)
 
         return coords_check and dims_check
 
@@ -146,7 +248,7 @@ class ABCData(object):
 
         for key in self._attrs:
             if not isinstance(
-                self._attrs, (list, np.ndarray, int, float, complex, str)
+                self._attrs, (list, _np.ndarray, int, float, complex, str)
             ):
                 return False
 
@@ -181,7 +283,6 @@ class ABCData(object):
 
         # check slices
         for slice_ in index_slice:
-
             # type must be slice or tuple
             if not isinstance(slice_, (slice, tuple, float, int)):
                 raise ValueError("Invalid slice type")
@@ -196,15 +297,18 @@ class ABCData(object):
             if isinstance(slice_, tuple):
                 index = a.index(dim)
                 if len(slice_) == 1:
-                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
+                    start = _np.argmin(_np.abs(slice_[0] - a.get_coord(dim)))
                     updated_index_slice.append(slice(start, start + 1))
                 else:
-                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
-                    stop = np.argmin(np.abs(slice_[1] - a.get_coord(dim)))
-                    if start == stop:
-                        stop = start + 1
-                    if stop < start:
-                        start, stop = stop, start
+                    start = _np.argmin(_np.abs(slice_[0] - a.get_coord(dim)))
+                    if slice_[1] > a._coords[dim][-1]:
+                        stop = None
+                    else:
+                        stop = _np.argmin(_np.abs(slice_[1] - a.get_coord(dim)))
+                        if start == stop:
+                            stop = start + 1
+                        if stop < start:
+                            start, stop = stop, start
                     updated_index_slice.append(slice(start, stop))
             elif isinstance(slice_, int):
                 start = slice_
@@ -213,10 +317,43 @@ class ABCData(object):
                 else:
                     updated_index_slice.append(slice(slice_, None))
             elif isinstance(slice_, float):
-                start = np.argmin(np.abs(slice_ - a.get_coord(dim)))
+                start = _np.argmin(_np.abs(slice_ - a.get_coord(dim)))
                 updated_index_slice.append(slice(start, start + 1))
             else:
                 updated_index_slice.append(slice_)
+
+        # special behavior for unfolded (internal use):
+        if a._is_folded == False:
+            if len(index_dims) > 2:
+                raise IndexError(
+                    "Unfolded state, can request at maximum 2 dimensions, you requested {0}".format(
+                        index_dims
+                    )
+                )
+            for k in index_dims:
+                if not k in ["fold_index", self.dims[0]]:
+                    raise IndexError(
+                        "Unfolded state, there are only two dimensions, you specified {0} but you can only request {1}/{2}".format(
+                            index_dims, self.dims[0], "fold_index"
+                        )
+                    )
+            # now some random slices have been selected, it is only useful to consider this as a new object which is considered as folded
+            # pop coords except self.dims[0] and "fold_index"
+            for d in self.dims[1:]:
+                if d == "fold_index":
+                    continue
+                a.coords.pop(d)
+            index_slice_dict = dict(zip(index_dims, updated_index_slice))
+            new_slices = [
+                slice(None) if (dim not in index_dims) else index_slice_dict[dim]
+                for dim in a.dims
+            ]
+            a.values = a.values[tuple(new_slices)]
+
+            a.coords.pop("fold_index")
+            a.coords["fi"] = _np.arange(a.shape[1])
+            a._is_folded = True
+            return a
 
         index_slice_dict = dict(zip(index_dims, updated_index_slice))
         new_slices = [
@@ -260,7 +397,6 @@ class ABCData(object):
 
         # check slices
         for slice_ in index_slice:
-
             # type must be slice or tuple
             if not isinstance(slice_, (slice, tuple, float, int)):
                 raise ValueError("Invalid slice type")
@@ -275,11 +411,11 @@ class ABCData(object):
             if isinstance(slice_, tuple):
                 index = a.index(dim)
                 if len(slice_) == 1:
-                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
+                    start = _np.argmin(_np.abs(slice_[0] - a.get_coord(dim)))
                     updated_index_slice.append(slice(start, start + 1))
                 else:
-                    start = np.argmin(np.abs(slice_[0] - a.get_coord(dim)))
-                    stop = np.argmin(np.abs(slice_[1] - a.get_coord(dim)))
+                    start = _np.argmin(_np.abs(slice_[0] - a.get_coord(dim)))
+                    stop = _np.argmin(_np.abs(slice_[1] - a.get_coord(dim)))
                     if start == stop:
                         stop = start + 1
                     if stop < start:
@@ -292,7 +428,7 @@ class ABCData(object):
                 else:
                     updated_index_slice.append(slice(slice_, None))
             elif isinstance(slice_, float):
-                start = np.argmin(np.abs(slice_ - a.get_coord(dim)))
+                start = _np.argmin(_np.abs(slice_ - a.get_coord(dim)))
                 updated_index_slice.append(slice(start, start + 1))
             else:
                 updated_index_slice.append(slice_)
@@ -337,11 +473,12 @@ class ABCData(object):
                 self.attrs[key] = b.attrs[key]
             else:
                 if not self.attrs[key] is b.attrs[key]:
-                    warnings.warn(
-                        "attrs in two dictionarys contain different values, leaving original value:\n{}:{}".format(
-                            key, self.attrs[key]
-                        )
-                    )
+                    pass
+                    # warnings.warn(
+                    #     "attrs in two dictionarys contain different values, leaving original value:\n{}:{}".format(
+                    #         key, self.attrs[key]
+                    #     )
+                    # )
 
     def __len__(self):
         """Returns len(values) the length of the first dimension in values"""
@@ -357,25 +494,36 @@ class ABCData(object):
         sorted_order = sorted(range(len(self.dims)), key=lambda x: self.dims[x])
 
         self.coords.reorder_index(sorted_order)
-        self._values = np.moveaxis(self._values, range(len(sorted_order)), sorted_order)
+        self._values = _np.moveaxis(
+            self._values, range(len(sorted_order)), sorted_order
+        )
 
     def index(self, dim):
-        """Find index of given dimension name"""
+        """Find index of given dimension name
+
+        Args:
+            dim (str): Name of dimension to index
+
+        Returns:
+            int: Index value of dim
+        """
         if dim in self.dims:
             return self.coords.index(dim)
         else:
-            raise ValueError("%s not in %s" % (dim, self.dims))
+            raise ValueError(
+                'The dimension "%s" is not in dims. Available dimensions are: %s'
+                % (dim, self.dims)
+            )
 
     def __truediv__(self, b):
         if isinstance(b, ABCData):
-
             a, b = self.align(b)
 
             a.values = a.values / b.values
 
             # error propagation
             if a.error is not None and b.error is not None:
-                error = abs(a.values) * np.sqrt(
+                error = abs(a.values) * _np.sqrt(
                     (self.error / a.values) ** 2.0 + (b.error / a.values) ** 2.0
                 )
             elif b.error is not None:
@@ -406,7 +554,7 @@ class ABCData(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                error = abs(a.values) * np.sqrt(
+                error = abs(a.values) * _np.sqrt(
                     (self.error / a.values) ** 2.0 + (b.error / a.values) ** 2.0
                 )
             elif b.error is not None:
@@ -431,7 +579,7 @@ class ABCData(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                a.error = np.sqrt(a.error ** 2.0 + b.error ** 2.0)
+                a.error = _np.sqrt(a.error**2.0 + b.error**2.0)
             elif b.error is not None:
                 a.error = b.error
 
@@ -454,7 +602,7 @@ class ABCData(object):
 
             # error propagation
             if a.error is not None and b.error is not None:
-                a.error = np.sqrt(a.error ** 2.0 + b.error ** 2.0)
+                a.error = _np.sqrt(a.error**2.0 + b.error**2.0)
             elif b.error is not None:
                 a.error = b.error
 
@@ -481,10 +629,10 @@ class ABCData(object):
 
     @values.setter
     def values(self, b):
-        if not isinstance(b, (int, complex, float, np.ndarray)):
+        if not isinstance(b, (int, complex, float, _np.ndarray)):
             raise TypeError('Values must be type "numpy.ndarray" not %s' % type(b))
         if isinstance(b, (int, complex, float)):
-            b = np.array(b)
+            b = _np.array(b)
 
         self._values = b
 
@@ -525,7 +673,7 @@ class ABCData(object):
 
     @error.setter
     def error(self, b):
-        if isinstance(b, (np.ndarray, type(None))):
+        if isinstance(b, (_np.ndarray, type(None))):
             self._error = b
         else:
             raise ValueError('error must be type "numpy.ndarray"')
@@ -548,7 +696,12 @@ class ABCData(object):
             raise ValueError("Dimension name %s is not in dims" % dim)
 
     def reorder(self, dims):
-        """Reorder dimensions"""
+        """Reorder dimensions
+
+        Args:
+            dims (list): List of strings in new order
+
+        """
 
         if not self._check_dims(dims):
             raise TypeError("New dims must be list of str with no duplicates")
@@ -559,12 +712,25 @@ class ABCData(object):
         # Add original dims to end, remove duplicates
         dims = list(OrderedDict.fromkeys(dims + self.dims))
 
+        #        print('original dims', self.dims)
+        #        print('new order of dims', dims)
+
         new_order = [dims.index(dim) for dim in self.dims]
+        permutation_order = [self.dims.index(dim) for dim in dims]
+        #        print('New Order', new_order)
+        #        print('Permutation Order', permutation_order)
 
         self.coords.reorder(dims)
+        #        print(self.coords)
 
         # Transpose values
-        self.values = np.transpose(self.values, new_order)
+        #        self.values = np.transpose(self.values, new_order)
+        self.values = _np.transpose(self.values, permutation_order)
+
+    def __pow__(self, power):
+        a = self.copy()
+        a.values = a.values.__pow__(power)
+        return a
 
     def __str__(self):
         return "values:\n{}\ndims:\n{}\ncoords:\n{}\nattrs:\n{}".format(
@@ -582,17 +748,17 @@ class ABCData(object):
         shape = a.shape
 
         remove_dims = [a.dims[x] for x in range(len(shape)) if shape[x] == 1]
-        values = np.squeeze(a.values)
+        values = _np.squeeze(a.values)
 
         if a.error is not None:
-            a.error = np.squeeze(a.error)
+            a.error = _np.squeeze(a.error)
 
         attrs = a.attrs
 
         for dim in remove_dims:
             out = a.coords.pop(dim)
             if dim not in attrs:
-                attrs[dim] = np.array(out)
+                attrs[dim] = _np.array(out)
             else:
                 warnings.warn("Attribute lost {}:{}".format(dim, out))
 
@@ -648,27 +814,35 @@ class ABCData(object):
 
     @property
     def shape(self):
+        """tuple: Shape of values"""
         return self.values.shape
 
     @property
     def dtype(self):
+        """type: Values type"""
         return self.values.dtype
 
     def sum(self, dim):
-        """Perform sum down given dimension"""
+        """Perform sum down given dimension
+
+        Args:
+            dim (str): Dimension to perform sum down
+
+        """
         a = self.copy()
         index = a.index(dim)
         a.values = a.values.sum(index)
         if a.error is not None:
             a.error = a.error.std(index)
         a.coords.pop(dim)
+        DeprecationWarning("Method '.sum()' will be removed on September 1st, 2023 ")
         return a
 
     def align(self, b):
         """Align two data objects for numerical operations
 
         Args:
-            b: Ojbect to align with self
+            b: Object to align with self
 
         Returns:
             tuple: self and b aligned data objects
@@ -688,7 +862,7 @@ class ABCData(object):
         # re-order
         old_order = list(range(len(new_order)))
         # re-order b values so they match order of all_dims
-        values_b = np.moveaxis(b.values, new_order, old_order)
+        values_b = _np.moveaxis(b.values, new_order, old_order)
         # create new dims where necessary
         values_b = values_b[
             tuple(slice(None) if dim in b.dims else None for dim in all_dims)
@@ -702,7 +876,7 @@ class ABCData(object):
         else:
             error = a.error
         if b.error is not None:
-            error_b = np.moveaxis(b.values, new_order, old_order)
+            error_b = _np.moveaxis(b.values, new_order, old_order)
             error_b = error_b[
                 tuple(slice(None) if dim in b.dims else None for dim in all_dims)
             ]
@@ -712,7 +886,7 @@ class ABCData(object):
         # check coords
         for dim in all_dims:
             if (dim in a.dims) and (dim in b.dims):
-                if not np.allclose(a.get_coord(dim), b.get_coord(dim)):
+                if not _np.allclose(a.get_coord(dim), b.get_coord(dim)):
                     raise ValueError("Coords do not match for dim: %s" % dim)
 
         # merge attrs
@@ -753,7 +927,7 @@ class ABCData(object):
             dim (str): dimension to sort
         """
 
-        sort_array = np.argsort(self.coords[dim])
+        sort_array = _np.argsort(self.coords[dim])
 
         self.coords[dim] = self.coords[dim][sort_array]
 
@@ -767,7 +941,7 @@ class ABCData(object):
         """Split the dimension dim into"""
 
         if isinstance(coord, int):
-            coord = np.arange(coord)
+            coord = _np.arange(coord)
 
         # move dim to end of dims
         dims = self.dims
@@ -795,27 +969,36 @@ class ABCData(object):
         Returns:
             bool: True if sorted, False otherwise.
         """
-        return np.all(self.coords[dim][:-1] <= self.coords[dim][1:])
+        return _np.all(self.coords[dim][:-1] <= self.coords[dim][1:])
 
     @property
     def real(self):
+        """DNPData: DNPData with real part of values"""
         a = self.copy()
-        a.values = np.real(a.values)
+        a.values = _np.real(a.values)
         return a
 
     @property
     def imag(self):
+        """DNPData: DNPData with imaginary part of values"""
         a = self.copy()
-        a.values = np.imag(a.values)
+        a.values = _np.imag(a.values)
         return a
 
     @property
     def abs(self):
+        """DNPData: DNPData with absolute part of values"""
         a = self.copy()
-        a.values = np.abs(a.values)
+        a.values = _np.abs(a.values)
         return a
 
     def concatenate(self, b, dim):
+        """Concatenate DNPData objects
+
+        Args:
+            b (DNPData): Data object to append to current data object
+            dim (str): dimension to concatenate along
+        """
 
         if not dim in b.dims:
             raise ValueError("dim does not exist")
@@ -826,97 +1009,145 @@ class ABCData(object):
 
         b.reorder(self.dims)
 
-        self.values = np.concatenate((self.values, b.values), axis=index)
+        self.values = _np.concatenate((self.values, b.values), axis=index)
 
-        self.coords[dim] = np.concatenate(
+        self.coords[dim] = _np.concatenate(
             (
-                np.array(self.coords[dim]).reshape(-1),
-                np.array(b.coords[dim]).reshape(-1),
+                _np.array(self.coords[dim]).reshape(-1),
+                _np.array(b.coords[dim]).reshape(-1),
             )
         )
 
     def new_dim(self, dim, coord):
-        self.coords.append(dim, np.r_[coord])
-        self.values = np.expand_dims(self.values, -1)
+        """Add new dimension with length 1
+
+        Args:
+            dim (str): Name of new dimension
+            coord (int, float): New coord
+        """
+        self.coords.append(dim, _np.r_[coord])
+        self.values = _np.expand_dims(self.values, -1)
 
     def maximum(self, dim):
-        """Return max for given dim"""
+        """Return max for given dim
+
+        Args:
+            dim (str): Dimension to take maximum along
+
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = np.max(a.values, axis=index)
+        a.values = _np.max(a.values, axis=index)
         a.coords.pop(dim)
 
         return a
 
     def argmax(self, dim):
-        """Return argmax for given dim"""
+        """Return value of coord at values maximum for given dim
+
+        Args:
+            dim (str): Dimension to perform operation along
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = a.coords[dim][np.argmax(a.values, axis=index)]
+        a.values = a.coords[dim][_np.argmax(a.values, axis=index)]
         a.coords.pop(dim)
 
         return a
 
     def argmax_index(self, dim):
-        """Return index of argmax for given dim"""
+        """Return index of coord at values maximum for given dim
+
+        Args:
+            dim (str): Dimension to perform operation along
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = np.argmax(a.values, axis=index)
+        a.values = _np.argmax(a.values, axis=index)
         a.coords.pop(dim)
 
         return a
 
     def minimum(self, dim):
-        """Return min for given dim"""
+        """Return min for given dim
+
+        Args:
+            dim (str): Dimension to perform operation along
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = np.min(a.values, axis=index)
+        a.values = _np.min(a.values, axis=index)
         a.coords.pop(dim)
 
         return a
 
     def argmin(self, dim):
-        """Return argmin for given dim"""
+        """Return value of coord at values minimum for given dim
+
+        Args:
+            dim (str): Dimension to perform operation along
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = a.coords[dim][np.argmin(a.values, axis=index)]
+        a.values = a.coords[dim][_np.argmin(a.values, axis=index)]
         a.coords.pop(dim)
 
         return a
 
     def argmin_index(self, dim):
-        """Return index of argmin for given dim"""
+        """Return index of coord at values minimum for given dim
+
+        Args:
+            dim (str): Dimension to perform operation along
+        """
         a = self.copy()
         index = a.dims.index(dim)
 
-        a.values = np.argmin(a.values, axis=index)
+        a.values = _np.argmin(a.values, axis=index)
         a.coords.pop(dim)
 
         return a
 
     @property
     def ndim(self):
+        """str: Number of dimensions"""
         return self.values.ndim
 
     def unfold(self, dim):
-        """Unfold ND data to 2d data"""
+        """Unfold ND data to 2d data
+
+        Args:
+            dim (str): Dimension to make first (length N), all other dimensions unfolded so that values has shape (N x M)
+
+        """
+        if self._is_folded == False:
+            raise ValueError(
+                "Trying to unfold already unfolded object (fold_index in dims!)! Please fold the object before attempting a second unfold!"
+            )
 
         folded_order = self.dims  # Original order of dims
         self.reorder([dim])  # Move dim to first dimension
         folded_shape = self.values.shape
         align_dim_length = folded_shape[0]  # length of dimension to align down
         self.values = self.values.reshape(align_dim_length, -1)  # Reshape to 2d
+
+        # remark: this will fail when unfolding an already unfolded dataset!
+        index_dim = self.values.shape[1]
+        self.coords.append("fold_index", _np.arange(index_dim))
+
         self.attrs["folded_shape"] = folded_shape
         self.attrs["folded_order"] = folded_order
+        self._is_folded = False
 
     def fold(self):
         """Fold 2d data to original ND shape"""
-
+        # remark: this will fail when unfolding an already unfolded dataset!
+        self.coords.pop("fold_index")
         if "folded_shape" in self.attrs:
             original_shape = self.attrs["folded_shape"]
             self.values = self.values.reshape(original_shape)
@@ -924,3 +1155,116 @@ class ABCData(object):
         if "folded_order" in self.attrs:
             self.reorder(self.attrs["folded_order"])
             self.attrs.pop("folded_order")
+        self._is_folded = True
+
+    def __array_ufunc__(self, ufunc, method, *arrInput, **kwargs):
+        """
+        started implementation of numpy comapilibity according to
+        https://numpy.org/doc/stable/user/basics.dispatch.html
+
+        - still need to implement universal function handling:
+        https://numpy.org/doc/stable/user/basics.ufuncs.html#ufuncs-basics
+
+        - need to implement all methods
+        """
+        if method == "__call__":
+            args, kwargs = _replaceClassWithAttribute(self, arrInput, kwargs)
+            values = ufunc(*args, **kwargs)
+            if kwargs.pop("_dnplab_inplace", False):
+                a = self
+            else:
+                a = self.copy()
+            a.values = values
+            proc_attr_name = "numpy." + ufunc.__name__
+            proc_parameters = {"args": args, "kwargs": kwargs}
+            try:
+                a.add_proc_attrs(proc_attr_name, proc_parameters)
+            except AttributeError:
+                pass  # would log error here
+            return a
+        return NotImplemented
+
+    def __array_function__(self, func, types, args, kwargs):
+        """
+        Basic numpy compability according to
+        https://numpy.org/doc/stable/user/basics.dispatch.html
+
+        - special handling is done for function that return no array, be aware that this is currently not optimal and possibly slow
+        - numpy functions currently just apply to the values of self, special handling is done for functions in SPECIAL_NP_HANDLED
+
+        - default implementation, replaces all  ABCData objects with ABCData.values and calls func with replaced *args,**kwargs
+        - todo: better handling of axis keyword and dimension consume!
+        """
+        if func in _SPECIAL_NP_HANDLED:
+            return_values = _SPECIAL_NP_HANDLED[func](*args, **kwargs)
+        else:
+            # default implementation, replaces all  ABCData objects in args and kwargs with ABCData.values and calls func
+            args, kwargs = _replaceClassWithAttribute(self, args, kwargs)
+
+            data_dims = []
+            proc_dims = []
+            # the following construction is needed as axis default value is not always None in numpy
+            # handle axis keyword, if existent
+            if "axis" in kwargs.keys():
+                # pop axis keyword and if it is None stop here
+                ax_value = kwargs.pop("axis")
+                proc_dims.append(ax_value)
+                if ax_value is None:
+                    kwargs["axis"] = None
+                elif type(ax_value) == int:
+                    kwargs["axis"] = ax_value
+
+                else:
+                    # axis could now be a string or a tuple
+                    if isinstance(ax_value, str):
+                        # in case of string: find corresponding axis index and add to data dims
+                        indx = tuple([int(self.index(ax_value))])
+                        data_dims += [ax_value]
+                        kwargs["axis"] = indx
+                    else:
+                        indx = []
+                        for value in ax_value:
+                            _val = _str_to_int_index(value)
+                            if isinstance(value, str):
+                                data_dims += [value]
+                            indx += [_val]
+                        indx = tuple(indx)
+                        kwargs["axis"] = indx
+            else:
+                # use default value for axis argument
+                pass
+            # forbid out keyword as this is not implemented
+            if "out" in kwargs.keys():
+                raise NotImplemented
+
+            # apply function to values
+            return_values = func(*args, **kwargs)
+
+        if type(return_values) == _np.ndarray:
+            self_shape = self._values.shape
+            if kwargs.pop("_dnplab_inplace", False):
+                a = self
+            else:
+                a = self.copy()
+            # delete dimensions that are removed
+            # beware: case not handled: when only partial dimensions are deleted
+            # current temporary fix: when shape of return_values.shape == self._values.shape do not delete dimensions!
+            if return_values.shape != self_shape:
+                for dim in data_dims:
+                    a.coords.pop(dim)
+            a.values = return_values
+
+            # add processing attributes, except when they should be suppressed
+            if kwargs.pop("_dnplab_supress_attr", False):
+                return a
+            proc_attr_name = "numpy." + func.__name__
+            proc_parameters = {"axis": proc_dims}
+            try:
+                a.add_proc_attrs(proc_attr_name, proc_parameters)
+            except AttributeError:
+                pass  # would log error here
+
+            return a
+
+        # if not ndarray then return as is
+        return return_values

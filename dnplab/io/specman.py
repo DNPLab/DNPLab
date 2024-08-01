@@ -1,18 +1,27 @@
-import numpy as np
+import numpy as _np
 import os
-from .. import DNPData
+import dnplab as _dnp
+import re
 
 
-def import_specman(path):
-    """
-    Import specman data and return DNPData object
+def import_specman(
+    path, autodetect_coords: bool = False, autodetect_dims: bool = False
+):
+    """Import SpecMan data and return DNPData object
+
+    DNPLab function to import SpecMan4EPR data (https://specman4epr.com/). The function returns a DNPdata object with the spectral data.
+
+    The structure of the DNPdata object can be complex and the variables saved by SpecMan depend on the individual spectrometer configuration. Therefore, the import function returns a numpy array with the dimension "x0", "x1", "x2", "x3", "x4". In any case, the dimension "x0" corresponds to the variables stored in the data file. The spectroscopic data is stored in "x1" to "x4", depending on how many dimensions were recorded.
+    The import function will require a parser script to properly assign the spectroscopic data and proper coordinates.
 
     Args:
-        path (str) : Path to either .d01 or .exp file
-
+        path (str):                 Path to either .exp file
+        autodetect_coords(bool):    Autodetect coords based on attrs
+        autodetect_dims(bool):      Autodetect dims based on attrs
     Returns:
-        specman_data (object) : DNPData object containing specman data
+        data (DNPData):         DNPData object containing SpecMan EPR data
     """
+
     if path[-1] == os.sep:
         path = path[:-1]
     if path[-1] == "p":
@@ -24,29 +33,52 @@ def import_specman(path):
     else:
         raise TypeError("Incorrect file type, must be .d01 or .exp")
 
-    params = load_specman_exp(file_name_exp)
-    values, dims, coords, attrs = load_specman_d01(file_name_d01, params)
+    attrs = load_specman_exp(file_name_exp)
+    data, dims, coords, attrs = load_specman_d01(file_name_d01, attrs)
 
-    specman_data = DNPData(values, dims, coords, attrs)
+    if autodetect_coords or autodetect_dims:
+        attrs = analyze_attrs(attrs)
+
+    if autodetect_dims:
+        new_dims = generate_dims(attrs)
+        dims = new_dims
+    else:
+        new_dims = None
+
+    if autodetect_coords:
+        coords = calculate_specman_coords(attrs, new_dims)
+
+    # Add import path
+    attrs["import_path"] = path
+
+    # Assign data/spectrum type
+    attrs["experiment_type"] = "epr_spectrum"
+
+    specman_data = _dnp.DNPData(data, dims, coords, attrs)
 
     return specman_data
 
 
 def load_specman_exp(path):
-    """
-    Import parameter fields of specman data
+    """Import SpecMan parameters
+
+    DNPLab function to read and import the SpecMan exp file. The .exp file is a text file that stores the experimental data, the pulse program, and other spectrometer configuration files.
 
     Args:
-        path (str) : Path to either .d01 or .exp file
+        path (str):     Path to either .d01 or .exp file
 
     Returns:
-        params (dict) : dictionary of parameter fields and values
+        attrs (dict):   Dictionary of parameter fields and values (DNPLab attributes)
+
     """
     exp_file_opened = open(path, encoding="utf8", errors="ignore")
     file_contents = exp_file_opened.read().splitlines()
     exp_file_opened.close()
-    params = {}
+
+    attrs = {}
+
     c = ""
+
     for i in range(0, len(file_contents)):
         exp_content = str(file_contents[i])
         splt_exp_content = exp_content.split(" = ")
@@ -55,70 +87,206 @@ def load_specman_exp(path):
         elif exp_content == "":
             c = "param"
         elif len(splt_exp_content) > 1:
-            params[c + "_" + splt_exp_content[0]] = splt_exp_content[1]
+            attrs[c + "_" + splt_exp_content[0]] = splt_exp_content[1]
         elif len(splt_exp_content) == 1 and exp_content != "":
-            params[c + "_" + str(i)] = splt_exp_content
+            attrs[c + "_" + str(i)] = splt_exp_content
         else:
             pass
 
-    return params
+    return attrs
 
 
-def load_specman_d01(path, params):
-    """
-    Import spectrum or spectra of specman data
+def load_specman_d01(path, attrs, verbose=False):
+    """Import SpecMan d01 data file
+
+    DNPLab function to import the SpecMan d01 data file. The format of the SpecMan data file is described here:
+
 
     Args:
-        path (str) : Path to either .d01 or .exp file
-        params (dict) : dictionary of parameters from exp file
+        path (str):         Path to either .d01 or .exp file
 
     Returns:
-        abscissa (list) : coordinates of axes
-        y_data (ndarray) : spectrum or spectra if >1D
-        dims (list) : axes names
-        params (dict) : updated parameters dictionary
+        data (ndarray):     SpecMan data as numpy array
+        params (dict):      Dictionary with import updated parameters dictionary
     """
 
-    if not params:
-        params = {}
-
     file_opened = open(path, "rb")
-    uint_read = np.fromfile(file_opened, dtype=np.uint32)
+    uint_read = _np.fromfile(file_opened, dtype=_np.uint32)
     file_opened.close()
 
     file_opened = open(path, "rb")
-    float_read = np.fromfile(file_opened, dtype="<f4")
+    # "<f4" means float32, little-endian
+    float_read = _np.fromfile(file_opened, dtype="<f4")
     file_opened.close()
-    float_data_real = float_read[14 : uint_read[7] + 14]
-    float_data_complex = float_read[uint_read[7] + 14 : len(float_read)]
-    float_data_folded = float_data_real + 1j * float_data_complex
 
-    if uint_read[2] == 1:
-        y_data = np.reshape(float_data_folded, (uint_read[3]))
-    elif uint_read[2] == 2:
-        y_data = np.reshape(float_data_folded, (uint_read[4], uint_read[3]))
-    elif uint_read[2] == 3:
-        y_data = np.reshape(
-            float_data_folded, (uint_read[5], uint_read[4], uint_read[3])
+    # Number of recorded variables stored
+    attrs["numberOfVariables"] = uint_read[0]
+
+    # 0 - data stored in double format, 1 -data stored in float format
+    attrs["dataFormat"] = uint_read[1]
+
+    # Number of dimensions of stored data. Note: Not clear why this is repeated for every dimension. This seems to be the same number for all dimensions, but is repeated.
+    attrs["dims"] = uint_read[2]
+
+    dataShape = uint_read[2 : 2 + uint_read[0] * 6]
+
+    attrs["dataStreamShape"] = dataShape
+
+    attrs["dataStartIndex"] = 2 + attrs["numberOfVariables"] * 6
+
+    if verbose == True:
+        print("** Data paramters **")
+        print("numberOfVariables : ", attrs["numberOfVariables"])
+        print("dataFormat        : ", attrs["dataFormat"])
+        print("dims              : ", attrs["dims"])
+        print("dataStreamShape   : ", attrs["dataStreamShape"])
+        print("dataStartIndex    : ", attrs["dataStartIndex"])
+
+    data = float_read[attrs["dataStartIndex"] :]
+
+    if attrs["dims"] == 1:
+        data = _np.reshape(data, (uint_read[0], uint_read[3]), order="C")
+
+    elif attrs["dims"] == 2:
+        data = _np.reshape(data, (uint_read[0], uint_read[4], uint_read[3]), order="C")
+
+    elif attrs["dims"] == 3:
+        data = _np.reshape(
+            data, (uint_read[0], uint_read[5], uint_read[4], uint_read[3]), order="C"
         )
-    elif uint_read[2] == 4:
-        y_data = np.reshape(
-            float_data_folded, (uint_read[6], uint_read[5], uint_read[4], uint_read[3])
+
+    elif attrs["dims"] == 4:
+        data = _np.reshape(
+            data,
+            (uint_read[0], uint_read[4], uint_read[5], uint_read[6], uint_read[3]),
+            order="C",
         )
-    else:
-        raise TypeError("DNPLab currently only supports up to 4D data")
 
-    y_data = np.transpose(y_data)
+    elif attrs["dims"] >= 4:
+        print("Maximum dimensionality for SpecMan data is 4D")
+        return None
 
-    dims_full = ["t2", "t1", "t0", "t"]
-    dims = dims_full[0 : uint_read[2]]
-    axes_lengths = uint_read[9:13]
+    # Swap first axis with last
+    data = _np.swapaxes(data, 0, -1)
 
-    abscissa = []
-    for k in range(0, len(dims)):
-        if dims[k] in params.keys():
-            abscissa.append(params[dims[k]])
+    dims_full = ["x0", "x1", "x2", "x3", "x4"]
+    dims = dims_full[0 : dataShape[0] + 1]
+
+    coords = []
+    shape = _np.shape(data)
+    for index in range(data.ndim):
+        coords.append(_np.arange(0.0, shape[index]))
+
+    # SpecMan data can have a maximum of four dimensions
+
+    return data, dims, coords, attrs
+
+
+def analyze_attrs(attrs):
+    """
+    Analyze the attrs and add some important attrs to existing dictionary
+
+    Args:
+        attrs (dict): Dictionary of specman acqusition parameters
+
+    Returns:
+        attrs (dict): The dictionary of specman acqusition parameters and added parameters
+
+    """
+
+    temp = {}
+    for key, val in attrs.items():
+        if "params_" in key:
+            new_key = key.split("params_")[1]  # get key value for temp dictionary
+            val = val.split(";")[0]  # remove non value related information
+            val_list = val.split(" ")  # split value string for further analyze
+            val = val_list[0].strip(",")
+            temp[new_key] = int(val) if "." not in val else float(val)
+            if "step" in val_list:  # when it indicate the step
+                step_index = (
+                    val_list.index("step") + 1
+                )  # the index of the value of 'step' is equal to the index of string 'index' + 1
+                step = float(val_list[step_index])
+                temp[new_key + "_step"] = step
+
+            if "to" in val_list:  # when it indicate the stop
+                stop_index = (
+                    val_list.index("to") + 1
+                )  # the index of the value of 'stop' is equal to the index of string 'index' + 1
+                stop = float(val_list[stop_index])
+                temp[new_key + "_stop"] = stop
+
+        if "sweep_" in key:
+            val_list = val.split(",")
+            val = val_list[1]  # get value
+            new_key = "sweep_" + val_list[0]
+            temp[new_key + "_length"] = int(val)
+            # new_key += '_dim' # last item is the key to the parameters, such as t, p...
+            temp[new_key + "_dim"] = val_list[-1]
+
+    attrs = {**attrs, **temp}
+    return attrs
+
+
+def generate_dims(attrs):
+    """Generate dims from specman acquisition parameters
+
+    Args:
+        attrs (dict): Dictionary of specman acqusition parameters
+
+    Returns:
+        dims (list): a new dims
+
+    """
+    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
+    dims = [
+        attrs[key + "_dim"] if key != "sweep_T" else "t2"
+        for key in kw
+        if key + "_dim" in attrs
+    ]
+    dims.append("x")
+
+    return dims
+
+
+def calculate_specman_coords(attrs, dims=None):
+    """Generate coords from specman acquisition parameters
+
+    Args:
+        attrs (dict): Dictionary of specman acqusition parameters
+        dims (list): (Optional) a list of dims
+
+    Returns:
+        coords (list): a calculated coords
+    """
+
+    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
+    coords = []
+    lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
+    lengths.append(2)
+
+    if not dims:
+        dims = generate_dims(attrs)
+        print("Warning: the coords might not be correct")
+
+    for index, dim in enumerate(dims):
+        length = lengths[index]
+        if dim in attrs and dim + "_step" in attrs:
+            start = attrs[dim]
+            step = attrs[dim + "_step"]
+            stop = start + step * (length - 1)
+            coord = _np.linspace(start, stop, length)
+        elif dim in attrs and dim + "_stop" in attrs:
+            start = attrs[dim]
+            stop = attrs[dim + "_stop"]
+            coord = _np.linspace(start, stop, length)
+        elif dim in attrs and dim + "_step" not in attrs and dim + "_stop" not in attrs:
+            val_string = attrs["params_" + dim].split(";")[0]
+            coord = _np.array(
+                [float(f) for f in val_string.split() if f.replace(".", "").isdigit()]
+            )
         else:
-            abscissa.append(np.array(range(0, axes_lengths[k])))
+            coord = _np.arange(0.0, length)
+        coords.append(_np.array(coord))
 
-    return y_data, dims, abscissa, params
+    return coords

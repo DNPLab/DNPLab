@@ -82,8 +82,8 @@ class TestHydration(unittest.TestCase):
             "E_powers": TESTSET["E_power"],
             "T1_array": TESTSET["T1"],
             "T1_powers": TESTSET["T1_power"],
-            "field": 348.5,
-            "spin_C": 125,
+            "magnetic_field": 0.3485,
+            "spin_C": 125e-6,
             "T10": 2.0,
             "T100": 2.5,
             "smax_model": "tethered",
@@ -94,7 +94,7 @@ class TestHydration(unittest.TestCase):
             "ksigma_bulk": 95.4,
             "krho_bulk": 353.4,
             "klow_bulk": 366,
-            "tcorr_bulk": 54,
+            "tcorr_bulk": 54e-12,
             "D_H2O": 2.3e-9,
             "D_SL": 4.1e-10,
             "delta_T1_water": False,
@@ -102,13 +102,8 @@ class TestHydration(unittest.TestCase):
             "macro_C": False,
         }
 
-        self.ws = {}
-        self.ws["hydration_inputs"] = self.data
-        self.ws["hydration_constants"] = self.constants
-
-    def test_hydration_return_dict(self):
-
-        result = dnp.hydration(self.ws)
+    def test_hydration(self):
+        result = dnp.hydration(self.data, self.constants)
 
         self.assertEqual(len(self.data["E_powers"]), 21)
         self.assertEqual(len(self.data["E_array"]), 21)
@@ -140,77 +135,5 @@ class TestHydration(unittest.TestCase):
 
         self.assertAlmostEqual(result["ksigma"], 20.17803815171555, places=6)
         self.assertAlmostEqual(result["klow"], 1286.2512443126634, places=6)
-        self.assertAlmostEqual(result["tcorr"], 485.8952027395348, places=6)
+        self.assertAlmostEqual(result["tcorr"], 485.8952027395348e-12, places=6)
         self.assertAlmostEqual(result["Dlocal"], 3.01176054373284e-10, places=6)
-
-        self.assertTrue(
-            [x in self.ws["hydration_results"].keys() for x in result.keys()]
-        )
-
-    def test_hydration_inplace(self):
-
-        self.ws["hydration_inputs"]["spin_C"] = 100
-        self.ws["hydration_inputs"]["smax_model"] = "free"
-        self.ws["hydration_inputs"]["interpolate_method"] = "linear"
-        self.ws["hydration_constants"]["D_SL"] = 4.1e-9
-
-        dnp.hydration(self.ws)
-
-        self.assertEqual(len(self.ws["hydration_results"]["interpolated_T1"]), 21)
-        self.assertAlmostEqual(
-            min(self.ws["hydration_results"]["interpolated_T1"]),
-            2.0978389591800344,
-            places=6,
-        )
-        self.assertAlmostEqual(
-            max(self.ws["hydration_results"]["interpolated_T1"]),
-            2.5855460713039324,
-            places=6,
-        )
-        self.assertEqual(len(self.ws["hydration_results"]["ksigma_array"]), 21)
-        self.assertAlmostEqual(
-            min(self.ws["hydration_results"]["ksigma_array"]),
-            3.0565812706454305,
-            places=6,
-        )
-        self.assertAlmostEqual(
-            max(self.ws["hydration_results"]["ksigma_array"]),
-            24.020476541485717,
-            places=6,
-        )
-        self.assertEqual(len(self.ws["hydration_results"]["ksigma_fit"]), 21)
-        self.assertAlmostEqual(
-            min(self.ws["hydration_results"]["ksigma_fit"]),
-            2.3390612006821225,
-            places=6,
-        )
-        self.assertAlmostEqual(
-            max(self.ws["hydration_results"]["ksigma_fit"]),
-            24.280175919600392,
-            places=6,
-        )
-        self.assertEqual(len(self.ws["hydration_results"]["uncorrected_Ep"]), 21)
-        self.assertAlmostEqual(
-            min(self.ws["hydration_results"]["uncorrected_Ep"]),
-            -2.9084738857665413,
-            places=6,
-        )
-        self.assertAlmostEqual(
-            max(self.ws["hydration_results"]["uncorrected_Ep"]),
-            0.7434984946695101,
-            places=6,
-        )
-
-        self.assertAlmostEqual(
-            self.ws["hydration_results"]["ksigma"], 73.98621213840886, places=6
-        )
-        self.assertAlmostEqual(
-            self.ws["hydration_results"]["klow"], 1494.0321716770457, places=6
-        )
-        self.assertAlmostEqual(
-            self.ws["hydration_results"]["tcorr"], 230.5905102559904, places=6
-        )
-
-        self.assertAlmostEqual(
-            self.ws["hydration_results"]["Dlocal"], 1.4987607235715452e-09, places=6
-        )

@@ -1,9 +1,27 @@
-import numpy as np
+from scipy.constants import mu_0, c, pi, epsilon_0, hbar, h, N_A, m_e, eV
+from scipy.constants import e as e_charge
 
-boltzmann = 1.38064852e-23  # m2 kg s-2 K-1
-clight = 299792458  # m / s
-h = 6.62607004e-34  # m2 kg / s
-mu_B = 9.27400999457e-24
-g_e = 2.00231930436153
-h_bar = 1.054571817e-34
-pi = np.pi
+from scipy.constants import physical_constants as pc
+
+e_gyro = pc["electron gyromag. ratio in MHz/T"][0]
+p_gyro = pc["proton gyromag. ratio in MHz/T"][0]
+mub = pc["Bohr magneton"][0]
+mub_Hz = pc["Bohr magneton in Hz/T"][0]
+
+
+__all__ = [
+    "mu_0",
+    "c",
+    "pi",
+    "epsilon_0",
+    "hbar",
+    "h",
+    "N_A",
+    "m_e",
+    "e_charge",
+    "e_gyro",
+    "p_gyro",
+    "eV",
+    "mub",
+    "mub_Hz",
+]

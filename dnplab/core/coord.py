@@ -1,5 +1,5 @@
 from __future__ import division
-import numpy as np
+import numpy as _np
 import operator
 import functools
 from collections import OrderedDict
@@ -8,6 +8,12 @@ from copy import deepcopy
 
 class Coords(object):
     def __init__(self, dims, coords):
+        """Object for storing axes information
+
+        Attributes:
+            dims (list): List of strings labeling dimensions
+            coords (list): List of arrays for axes
+        """
         # super(Coords, self).__init__()
 
         if not isinstance(dims, list):
@@ -17,17 +23,25 @@ class Coords(object):
 
         for index, coord in enumerate(coords):
             if isinstance(coord, (range, list)):
-                coords[index] = np.array(coord)
+                coords[index] = _np.array(coord)
 
-        if self._check_dims:
-            self._dims = dims
+        if self._check_dims(dims):
+            self._dims = deepcopy(dims)
         else:
-            raise TypeError("dims must be list of str")
+            raise TypeError(
+                "dims must be list of unique strings (type str), you provided types {0}".format(
+                    [type(k) for k in dims]
+                )
+            )
 
-        if self._check_coords:
-            self._coords = coords
+        if self._check_coords(coords):
+            self._coords = deepcopy(coords)
         else:
-            raise TypeError("coords must be list of 1d numpy arrays")
+            raise TypeError(
+                "coords must be list of 1d numpy arrays, you provided types {0}".format(
+                    [type(k) for k in coords]
+                )
+            )
 
     def _check_dims(self, dims):
         """Verify dims is a list of str
@@ -69,7 +83,7 @@ class Coords(object):
 
         # Verify each member is 1d numpy array (and not empty)
         for coord in coords:
-            if not isinstance(coord, np.ndarray):
+            if not isinstance(coord, _np.ndarray):
                 return False
             if (not (len(coord.shape) == 1)) or (coord.size == 0):
                 return False
@@ -93,7 +107,7 @@ class Coords(object):
     def __setitem__(self, dim, coord):
         if not isinstance(dim, str):
             raise TypeError("dim must be type str not %s" % str(type(dim)))
-        if not isinstance(coord, (np.ndarray)):
+        if not isinstance(coord, (_np.ndarray)):
             raise TypeError(
                 "argument must be type nddata_coord or numpy ndarray not %s"
                 % str(type(coord))
@@ -155,7 +169,6 @@ class Coords(object):
         return functools.reduce(operator.mul, [len(k) for k in self.coords], 1)
 
     def reorder(self, dims):
-
         if not self._check_dims(dims):
             raise TypeError("New dims must be list of str with no duplicates")
         for dim in dims:
@@ -167,13 +180,18 @@ class Coords(object):
 
         # New indices for dims
         new_order = [dims.index(dim) for dim in self.dims]
+        permutation_order = [self.dims.index(dim) for dim in dims]
 
         self.dims = dims
 
-        self.coords = [self.coords[x] for x in new_order]
+        #        self.coords = [self.coords[x] for x in new_order]
+        self.coords = [self.coords[x] for x in permutation_order]
 
     def pop(self, dim):
-        index = self.index(dim)
+        if type(dim) == str:
+            index = self.index(dim)
+        else:
+            index = dim
         out = self._coords.pop(index)
         self.dims.pop(index)
         return out
@@ -187,7 +205,6 @@ class Coords(object):
         self._dims = [self._dims[x] for x in new_order]
 
     def rename(self, dim, new_dim):
-
         self.dims[self.index(dim)] = new_dim
 
     def append(self, dim, coord):
@@ -195,11 +212,11 @@ class Coords(object):
         if not isinstance(dim, str):
             raise TypeError("dim must be type str not %s" % str(type(dim)))
 
-        if not isinstance(coord, (complex, float, int, np.ndarray)):
+        if not isinstance(coord, (complex, float, int, _np.ndarray)):
             raise TypeError("coord must be type numpy not %s" % str(type(coord)))
 
         if isinstance(coord, (list, range, float, int, complex)):
-            coord = np.array(coord)
+            coord = _np.array(coord)
 
         if dim not in self.dims:
             self._dims.append(dim)

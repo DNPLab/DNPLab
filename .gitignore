@@ -7,6 +7,9 @@
 # Vim
 *.swp
 
+# Packaging script
+release_dnplab.bat
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

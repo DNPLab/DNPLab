@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 import os
 from .. import DNPData
 import warnings
@@ -55,8 +55,7 @@ int_params = [
 
 
 def import_winepr(path):
-    """
-    Import Bruker par/spc data and return DNPData object
+    """Import Bruker par/spc data and return DNPData object
 
     Args:
         path (str) : Path to either .par or .spc file
@@ -74,8 +73,11 @@ def import_winepr(path):
     else:
         raise TypeError("data file must be .spc or .par")
 
-    params = load_par(path_par)
-    values, dims, coords, attrs = load_spc(path_spc, params)
+    attrs = load_par(path_par)
+    values, dims, coords, attrs = load_spc(path_spc, attrs)
+
+    # Assign data/spectrum type
+    attrs["experiment_type"] = "epr_spectrum"
 
     parspc_data = DNPData(values, dims, coords, attrs)
 
@@ -83,19 +85,17 @@ def import_winepr(path):
 
 
 def load_par(path):
-    """
-    Import contents of .par file
+    """Import contents of .par file
 
     Args:
         path (str) : Path to .par file
 
     Returns:
-        params (dict) : dictionary of parameters
+        attrs (dict) : dictionary of parameters
     """
 
-    params = {}
+    attrs = {}
     with open(path, "r") as f:
-
         for line in f:
             line = line.rstrip()
             split_line = line.split(" ", 1)
@@ -103,99 +103,98 @@ def load_par(path):
             if len(split_line) == 2:
                 key = split_line[0].strip()
                 value = split_line[1].strip()
-                params[key] = value
+                attrs[key] = value
 
     for key in rename_dict:
-        if key in params:
+        if key in attrs:
             new_key = rename_dict[key]
             if new_key in float_params:
-                params[new_key] = float(params[key])
+                attrs[new_key] = float(attrs[key])
             elif new_key in int_params:
-                params[new_key] = int(float(params[key]))
+                attrs[new_key] = int(float(attrs[key]))
             else:
-                params[new_key] = params[key]
+                attrs[new_key] = attrs[key]
 
-    if "DOS" in params:
-        params["endian"] = "LIT"
-        params["data_type"] = "float32"
+    if "DOS" in attrs:
+        attrs["endian"] = "LIT"
+        attrs["data_type"] = "float32"
     else:
-        params["endian"] = "BIG"
-        params["data_type"] = "int32"
+        attrs["endian"] = "BIG"
+        attrs["data_type"] = "int32"
 
-    return params
+    return attrs
 
 
-def load_spc(path, params):
-    """
-    Import data and axes of .spc file
+def load_spc(path, attrs):
+    """Import data and axes of .spc file
 
     Args:
         path (str) : Path to .spc file
 
     Returns:
-        abscissa (ndarray) : coordinates for spectrum or spectra
-        spec (ndarray) : data values
-        params (dict) : updated dictionary of parameters
+        coords (ndarray) : coordinates for spectrum or spectra
+        values (ndarray) : data values
+        attrs (dict) : updated dictionary of parameters
         dims (list) : dimension labels
     """
 
-    data_format = np.dtype(params["data_type"]).newbyteorder(params["endian"])
+    data_format = _np.dtype(attrs["data_type"]).newbyteorder(attrs["endian"])
     file_opened = open(path, "rb")
     file_bytes = file_opened.read()
-    spec = np.frombuffer(file_bytes, dtype=data_format)
+    values = _np.frombuffer(file_bytes, dtype=data_format)
 
-    params.pop("data_type", None)
-    params.pop("endian", None)
+    attrs.pop("data_type", None)
+    attrs.pop("endian", None)
 
-    if "x_points" not in params.keys():
-        if "y_points" not in params.keys():
-            params["x_points"] = int(len(spec))
+    if "x_points" not in attrs.keys():
+        if "y_points" not in attrs.keys():
+            attrs["x_points"] = int(len(values))
         else:
-            params["x_points"] = int(len(spec) / params["y_points"])
+            attrs["x_points"] = int(len(values) / attrs["y_points"])
 
-    if "center_field" not in params.keys() or "x_width" not in params.keys():
-        if "sweep_start" in params.keys() and "sweep_extent" in params.keys():
-            abscissa = [
-                np.linspace(
-                    params["sweep_start"],
-                    params["sweep_extent"],
-                    params["x_points"],
+    if "center_field" not in attrs.keys() or "x_width" not in attrs.keys():
+        if "sweep_start" in attrs.keys() and "sweep_extent" in attrs.keys():
+            coords = [
+                _np.linspace(
+                    attrs["sweep_start"],
+                    attrs["sweep_start"] + attrs["sweep_extent"],
+                    attrs["x_points"],
                 )
             ]
         else:
             warnings.warn("not axis information, axis is indexed only")
-            abscissa = [range(params["x_points"])]
-    elif "center_field" in params.keys() and "x_width" in params.keys():
-        abscissa = [
-            np.linspace(
-                params["center_field"] - params["x_width"] / 2,
-                params["center_field"] + params["x_width"] / 2,
-                params["x_points"],
+            coords = [range(attrs["x_points"])]
+    elif "center_field" in attrs.keys() and "x_width" in attrs.keys():
+        coords = [
+            _np.linspace(
+                attrs["center_field"] - attrs["x_width"] / 2,
+                attrs["center_field"] + attrs["x_width"] / 2,
+                attrs["x_points"],
             )
         ]
     else:
         warnings.warn("unable to define axis, indexed only")
-        abscissa = [range(params["x_points"])]
+        coords = [range(attrs["x_points"])]
 
-    if "x_unit" in params.keys() and params["x_unit"] in ["G", "T"]:
-        if params["x_unit"] == "G":
-            abscissa = [x / 10 for x in abscissa]
-        elif params["x_unit"] == "T":
-            abscissa = [x * 1000 for x in abscissa]
+    if "x_unit" in attrs.keys() and attrs["x_unit"] in ["G", "T"]:
+        if attrs["x_unit"] == "G":
+            coords = [x / 10 for x in coords]
+        elif attrs["x_unit"] == "T":
+            coords = [x * 1000 for x in coords]
         dims = ["B0"]
     else:
         dims = ["t2"]
 
-    if "y_points" in params.keys() and params["y_points"] != 1:
-        spec = np.reshape(spec, (params["x_points"], params["y_points"]), order="F")
+    if "y_points" in attrs.keys() and attrs["y_points"] != 1:
+        values = _np.reshape(values, (attrs["x_points"], attrs["y_points"]), order="F")
         dims.append("t1")
 
-        if "y_min" in params.keys() and "y_width" in params.keys():
-            abscissa.append(
-                np.linspace(
-                    params["y_min"],
-                    params["y_min"] + params["y_width"],
-                    params["y_points"],
+        if "y_min" in attrs.keys() and "y_width" in attrs.keys():
+            coords.append(
+                _np.linspace(
+                    attrs["y_min"],
+                    attrs["y_min"] + attrs["y_width"],
+                    attrs["y_points"],
                 )
             )
         else:
@@ -203,4 +202,4 @@ def load_spc(path, params):
 
     file_opened.close()
 
-    return spec, dims, abscissa, params
+    return values, dims, coords, attrs

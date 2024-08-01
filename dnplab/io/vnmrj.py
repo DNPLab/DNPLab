@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as _np
 import os
 
 from .. import DNPData
@@ -13,8 +13,7 @@ blockHeader_fmt = ">hhhhlffff"
 
 
 def array_coords(attrs):
-    """
-    Return array dimension coords from parameters dictionary
+    """Return array dimension coords from parameters dictionary
 
     Args:
         attrs (dict): Dictionary of procpar parameters
@@ -24,14 +23,25 @@ def array_coords(attrs):
     """
 
     try:
-
         array_delta = attrs["arraydelta"]
         array_dim = attrs["arraydim"]
         array_start = attrs["arraystart"]
         array_stop = attrs["arraystop"]
+        array_value = attrs["array"]
 
-        if array_dim != 1:
-            coord = np.r_[array_start : array_stop + array_delta : array_delta]
+        if array_dim != 1 and array_value != "":
+            # OVJ has strange behaviour while saving... this can work but doesn't need to succeed thus the if clause
+            try:
+                coord = _np.array(attrs[array_value])
+            except KeyError:
+                if array_stop > array_start:
+                    coord = _np.r_[array_start : array_stop + array_delta : array_delta]
+                else:
+                    array_max = attrs["arraymax"]
+                    coord = _np.r_[array_start : array_max + array_delta : array_delta]
+            dim = array_value
+        elif array_dim != 1 and array_value == "":
+            coord = _np.r_[array_start : array_stop + array_delta : array_delta]
             dim = "t1"
         else:
             coord = None
@@ -40,7 +50,6 @@ def array_coords(attrs):
         return dim, coord
 
     except KeyError:
-
         coord = None
         dim = None
 
@@ -95,22 +104,21 @@ def import_fid(path, filename="fid"):
             blockDataString = f.read(tbytes)
 
             if isFloat:
-                blockData = np.array(
+                blockData = _np.array(
                     unpack(">%if" % (npts), blockDataString), dtype=complex
                 )
 
             else:
-                blockData = np.array(unpack(">%ii" % (npts), blockDataString))
-            data = blockData[0::2] + 1j * blockData[1::2]
+                blockData = _np.array(unpack(">%ii" % (npts), blockDataString))
+            data = blockData[0::2] - 1j * blockData[1::2]  # minus sign for VNMRJ data
             dataList.append(data)
-        dataArray = np.array(dataList).T
+        dataArray = _np.array(dataList).T
 
     return dataArray
 
 
 def import_procpar(path, filename="procpar"):
-    """
-    Import VnmrJ procpar parameters file
+    """Import VnmrJ procpar parameters file
 
     Args:
         path (str): Directory of file
@@ -187,8 +195,7 @@ def import_procpar(path, filename="procpar"):
 
 
 def import_vnmrj(path, fidFilename="fid", paramFilename="procpar"):
-    """
-    Import VnmrJ Data
+    """Import VnmrJ Data
 
     Args:
         path(str): path to experiment folder
@@ -211,7 +218,7 @@ def import_vnmrj(path, fidFilename="fid", paramFilename="procpar"):
 
     dwellTime = 1.0 / sw
 
-    t = np.r_[0.0 : int(npts)] * dwellTime
+    t = _np.r_[0.0 : int(npts)] * dwellTime
     dims = ["t2"]
     coords = [t]
 
@@ -222,5 +229,8 @@ def import_vnmrj(path, fidFilename="fid", paramFilename="procpar"):
         coords.append(coord)
     else:
         data = data.reshape(-1)
+
+    # Assign data/spectrum type
+    attrs["experiment_type"] = "nmr_spectrum"
 
     return DNPData(data, dims, coords, attrs)

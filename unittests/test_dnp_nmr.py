@@ -2,12 +2,16 @@ import unittest
 from numpy.testing import assert_array_equal
 import dnplab as dnp
 import numpy as np
+import logging
+
+# logging.basicConfig(filename='phase_debug.log', encoding='utf-8', level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class dnpNMR_tester(unittest.TestCase):
     def setUp(self):
         pts = 1024
-        omega = 50 * np.pi
+        omega = 50 * dnp.pi
         tau = 0.1
         t2 = np.r_[0 : 1 : 1j * pts]
         y = np.exp(1j * t2 * omega) * np.exp(-1 * t2 / tau)
@@ -15,7 +19,6 @@ class dnpNMR_tester(unittest.TestCase):
         self.data.attrs["nmr_frequency"] = 400e6
 
     def test_basic_nmr_processing(self):
-
         data = dnp.remove_background(self.data)
 
         data = dnp.left_shift(data)
@@ -42,7 +45,7 @@ class dnpNMR_tester_sim(unittest.TestCase):
         )
 
     def test_align(self):
-        self.aligned_data = dnp.align(self.data, dim="x")
+        self.aligned_data = dnp.ndalign(self.data, dim="x")
         assert_array_equal(
             self.aligned_data.values,
             np.array(

@@ -1,0 +1,43 @@
+# This GitHub Action will build the sphinx documentation and publish it to AWS S3
+
+name: Build Sphinx Documentation and Publish to AWS
+
+on:
+  push:
+    branches:
+      - master
+      - release
+      - develop
+  workflow_dispatch:
+
+jobs:
+  publish:
+    
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
+        fetch-depth: 0
+
+    - uses: ammaraskar/sphinx-action@master
+      with:
+        docs-folder: "docs/"
+        pre-build-command: "pip install sphinx-gallery==0.15 && pip install sphinx_rtd_theme==2.0.0 && pip install matplotlib==3.7 && pip install numpy==1.24 && pip install scipy==1.10.0 && pip install h5py==3.10.0 && pip install scikit-rf==0.30.0 && h5py==3.10.0"
+        build-command: "make html"
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Upload to staging website
+      if: github.ref == 'refs/heads/develop'
+      run: aws s3 sync --delete --acl public-read ./docs/build/html/ s3://dnplab-docu-staging
+
+    - name: Upload to staging website
+      if: github.ref == 'refs/heads/master'
+      run: aws s3 sync --delete --acl public-read ./docs/build/html/ s3://dnplab.net

@@ -1,3 +1,5 @@
+"""Modules for importing (experimental) data and exporting data and results"""
+
 from . import prospa
 from . import topspin
 from . import delta
@@ -10,3 +12,5 @@ from . import power
 from . import cnsi
 from . import vna
 from . import tnmr
+from . import random
+from . import load_csv

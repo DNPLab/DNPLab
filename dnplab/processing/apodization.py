@@ -1,7 +1,6 @@
-import numpy as np
+import numpy as _np
 
 from ..math import window
-from ..core.data import DNPData
 
 _windows = {
     "exponential": window.exponential,
@@ -15,7 +14,29 @@ _windows = {
 
 
 def apodize(data, dim="t2", kind="exponential", **kwargs):
-    """Apply Apodization to data down given dimension
+    r"""Apply Apodization to data along a given dimension. Currently the following window functions are implemented: exponential, gaussian, hanning, hamming, and sin-squared. In addition the following window transformation functions are implemented: traf, and lorentz_gauss
+
+    Args:
+        data (DNPData): Data object
+        dim (str): Dimension to apply apodization along, "t2" by default
+        kind (str): Type of apodization, "exponential" by default
+        kwargs: Arguments to be passed to apodization function, e.g. line width parameter
+
+    Returns:
+        DNPData: Data object with window function applied, including attr "window"
+
+    Examples:
+        Examples of using apodize
+
+        Exponential line broadening using a line width of 2 Hz along the f2 dimension
+
+        >>> data = dnp.apodize(data, exp_lw = 2)
+
+        Lorentz-Gauss transformation:
+
+        >>> data = dnp.apodize(data, dim = 't2', kind = 'lorentz_gauss', exp_lw = 4, gauss_lw = 8)
+
+    Functions:
 
     .. math::
 
@@ -40,43 +61,36 @@ def apodize(data, dim="t2", kind="exponential", **kwargs):
                f1(t)   &=  \exp(-t * \pi * \mathrm{linewidth[0]}) &
 
                f2(t)   &=  \exp((t - T) * \pi * \mathrm{linewidth[1]}) &
-
-
-    Args:
-        data (dnpdata, dict): data container
-
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | parameter       | type                    | default       | description                                       |
-    +=================+=========================+===============+===================================================+
-    | dim             | str                     | 't2'          | Dimension to apply exponential apodization        |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-    | kind            | str                     | 'exponential' | type of apodization                               |
-    +-----------------+-------------------------+---------------+---------------------------------------------------+
-
-    Returns:
-        dnpdata: data object with window function applied, including attr "window"
     """
 
-    data = data.copy()
+    out = data.copy()
 
-    coord = data.coords[dim]
-    index = data.index(dim)
+    index = out.index(dim)
+    coord = out.coords[dim]
 
+    kind = str(kind).lower()  # kind of apodization is a lower case string
+
+    if kind not in _windows:
+        raise ValueError(
+            'Window function "%s" not valid. Available window functions are: %s.  See documentation for more details.'
+            % (kind, list(_windows.keys()))
+        )
     window = _windows[kind]
     apwin = window(coord, **kwargs)
 
-    data_shape = data.shape
+    out_shape = out.shape
 
-    new_shape = [1 if ix != index else data_shape[index] for ix in range(data.ndim)]
-    apwin = np.reshape(apwin, new_shape)
+    new_shape = [1 if ix != index else out_shape[index] for ix in range(out.ndim)]
+    apwin = _np.reshape(apwin, new_shape)
 
-    data *= apwin
+    out *= apwin
 
     proc_parameters = {
         "kind": kind,
-        "args": kwargs,
     }
+    for key in kwargs:
+        proc_parameters[key] = kwargs[key]
     proc_attr_name = "window"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out

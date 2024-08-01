@@ -1,69 +1,76 @@
-# TODO: remove unused imports
-import numpy as np
 import os
 import re
+import numpy as _np
 from matplotlib.pylab import *
-
+from ..core.util import concat
 from .. import DNPData
 
+try:
+    import skrf as _rf
 
-def import_vna(path):
+except:
+    pass
+
+
+def import_vna(path, *args, **kwargs):
     """Import VNA data and return dnpdata object"""
-    x, data = import_snp(path)
-    # Not General
-    dnpDataObject = DNPData(data, [x], ["f"], {})
-
+    x, values, attrs, dim = import_snp(path, *args, **kwargs)
+    dnpDataObject = get_dnpdata(values, x, attrs, dim)
     return dnpDataObject
 
 
-# TODO: remove prints or make them optional
-def import_snp(path):
+def get_dnpdata(values, coords, attrs, concat_dim=None):
+    if len(_np.shape(values)) == 1:
+        return DNPData(
+            values, coords=[coords], dims=["f"], attrs=attrs, dnplab_attrs=attrs
+        )
+
+    else:
+        new_coords = list(range(_np.shape(values)[0]))
+        data_list = []
+        for value in values:
+            data = get_dnpdata(value, coords=coords, attrs=attrs)
+            data_list.append(data)
+
+        return concat(data_list, concat_dim, new_coords)
+
+
+def import_snp(path, *args, **kwargs):
     """Import sNp file and return numpy array"""
-    path_filename, extension = os.path.splitext(path)
+    _, extension = os.path.splitext(path)
 
     extension_reg_ex = "[.]s[0-9]{1,}p"
-    print(re.fullmatch(extension_reg_ex, extension))
-    print(extension)
     if re.fullmatch(extension_reg_ex, extension) == None:
         raise ValueError("File Extension Not Given, Unspecified sNp file")
 
     num_reg_ex = "[0-9]{1,}"
     num = int(re.search(num_reg_ex, extension)[0])
 
-    print(num)
     if num > 2:
-        raise ValueError("Currently on s1p and s2p files are supported")
+        raise ValueError("Currently on s1p and s2p are supported")
 
-    f = open(path)
-    read_string = " "
-    while read_string[0] != "#":
-        read_string = f.readline()
-    raw = np.genfromtxt(f, skip_header=2, defaultfmt="11f")
-    f.close()
+    data = _rf.Network(path, *args, **kwargs)
 
-    if num == 1:
-        x = raw[:, 0]
-        data = raw[:, 1] + 1j * raw[:, 2]
+    attrs = {
+        "data_format": "VNA",
+        "center_field": data.frequency.center,
+        "sweep_field": data.frequency.span,
+    }
 
-    if num == 2:
-        x = raw[:, 1]
+    if extension == ".s1p":
+        value = data.s[:, 0, 0]
+        x = data.f
+        dim = None
+        attrs["data_order"] = ["s11"]
 
-        data = np.zeros((len(x), 2, 2))
+    elif extension == ".s2p":
+        s11 = data.s[:, 0, 0]
+        s12 = data.s[:, 0, 1]
+        s21 = data.s[:, 1, 0]
+        s22 = data.s[:, 1, 1]
+        value = _np.array([s11, s12, s21, s22])
+        x = data.f
+        dim = "s"
+        attrs["data_order"] = ["s11", "s12", "s21", "s22"]
 
-        data[:, 0, 0] = raw[:, 1] + 1j * raw[:, 2]  # S11
-        data[:, 1, 0] = raw[:, 3] + 1j * raw[:, 4]  # S21
-        data[:, 0, 1] = raw[:, 5] + 1j * raw[:, 6]  # S12
-        data[:, 1, 1] = raw[:, 7] + 1j * raw[:, 8]  # S22
-
-    if num > 2:
-        x = raw[0::num]
-        data = np.zeros((len(x), num, num))
-
-        # TODO: Use list comprehension instead of two for loops
-        for n in range(num):
-
-            for m in range(num):
-
-                data[:, n, m] = raw[n::num, 1 + 2 * m] + 1j * raw[n::num, 2 * (1 + m)]
-
-    return x, data
+    return x, value, attrs, dim

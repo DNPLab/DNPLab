@@ -1,18 +1,18 @@
 """
 DNPData object for storing N-dimensional data with coordinates
 """
-from collections.abc import MutableMapping
 
-import numpy as np
+import numpy as _np
 
 from .base import ABCData
 from ..version import __version__
+from ..config.config import DNPLAB_CONFIG
 
 version = __version__
 
 core_attrs_list = ["nmr_frequency"]
 
-np.set_printoptions(threshold=15)
+_np.set_printoptions(threshold=15)
 
 
 class DNPData(ABCData):
@@ -29,9 +29,19 @@ class DNPData(ABCData):
         dims (list): List of axes labels for data
         attrs (dict): Dictionary of parameters for data
 
+
     """
 
-    def __init__(self, values=np.r_[[]], dims=[], coords=[], attrs={}, procList=[]):
+    def __init__(
+        self,
+        values=_np.r_[[]],
+        dims=[],
+        coords=[],
+        attrs={},
+        dnplab_attrs={},
+        proc_attrs=None,
+        **kwargs,
+    ):
         """
         DNPData Class __init__ method
 
@@ -40,16 +50,33 @@ class DNPData(ABCData):
             coords (list): list of axes
             dims (list): list of strings which are names of axes
             attrs (dict): dictionary of parameters
+            exp_attrs (dict): dictionary of experiment parameters
+            dnplab_attrs (dict): dictionary of parameters used in dnplab
+            pro_attrs (list): list of processing steps and arguments
         """
 
         if len(dims) > 0 and isinstance(dims[0], list):
             dims = dims[0]
 
-        super().__init__(values, dims, coords, attrs)
+        super().__init__(values, dims, coords, attrs, dnplab_attrs)
         self.version = version
-        self.proc_attrs = []
-        self.max_print_attrs = 5
-        self.print_values = False
+        self.attrs = attrs
+        self.exp_attrs = attrs
+        self.dnplab_attrs = dnplab_attrs
+        if proc_attrs is not None:
+            self.proc_attrs = proc_attrs
+        else:
+            self.proc_attrs = []
+
+        max_print_attrs = kwargs.pop(
+            "max_print_attrs", DNPLAB_CONFIG.getint("CORE", "DNPData_max_print_attrs")
+        )
+        print_values = kwargs.pop(
+            "print_values", DNPLAB_CONFIG.getboolean("CORE", "DNPData_print_values")
+        )
+
+        self.max_print_attrs = max_print_attrs
+        self.print_values = print_values
 
     @property
     def _constructor(self):
@@ -95,33 +122,104 @@ class DNPData(ABCData):
 
         return string
 
-    def proc_info(self):
+    def exp_info(self):
+        """
+        Print experiment attributes currently in attrs dictionary
+        """
+        print("-----------------")
+        print("Experiment Attributes")
+        print("-----------------")
+        if self.attrs == {}:
+            print("None")
+        else:
+            longest_key = max(self.attrs, key=len)
+            maximum_length_of_attrs = len(longest_key)
+            for x in self.attrs:
+                spaces = " " * (1 + maximum_length_of_attrs - len(x))
+                print("| " + x + spaces + "| " + str(self.attrs[x]))
+
+    def dnplab_info(self):
+        """
+        Print parameters currently in used in dnplab
+        """
+
+        print("-----------------")
+        print("DNPLab Attributes")
+        print("-----------------")
+        if self.dnplab_attrs == {}:
+            print("None")
+        else:
+            longest_key = max(self.dnplab_attrs, key=len)
+            maximum_length_of_dnplab_attrs = len(longest_key)
+            for x in self.dnplab_attrs:
+                spaces = " " * (1 + maximum_length_of_dnplab_attrs - len(x))
+                print(
+                    "| "
+                    + x
+                    + spaces
+                    + "| "
+                    + str(self.dnplab_attrs[x])
+                    .replace("{", "")
+                    .replace("}", "")
+                    .replace("'", "")
+                )
+
+    def proc_info(self, step_name=None):
         """
         Print processing steps and parameters currently in proc_attrs list
         """
 
         print("-----------------")
-        print("proccessing steps")
+        print("Processing Attributes")
         print("-----------------")
-        if not self.proc_attrs:
-            print("none.")
+        if self.proc_attrs == []:
+            print("None")
         else:
-            for x in self.proc_attrs:
-                print(
-                    x[0]
-                    + ": "
-                    + str([y + "=" + str(x[1][y]) for y in x[1].keys()])
-                    .replace("[", "")
-                    .replace("]", "")
-                    .replace("'", "")
-                )
+            steps = list(zip(*self.proc_attrs))[0]
+            values_dict = list(zip(*self.proc_attrs))[1]
+            longest_key = max(steps, key=len)
+            maximum_length_of_proc_attrs = len(longest_key)
+            if step_name != None and step_name not in steps:
+                print("step not found")
+                return
+            for index in range(len(steps)):
+                spaces = " " * (1 + maximum_length_of_proc_attrs - len(steps[index]))
+                # fix length of step index
+                if step_name == None or step_name == steps[index]:
+                    print(
+                        "{:2d}".format(index + 1),
+                        "| "
+                        + steps[index]
+                        + spaces
+                        + "| "
+                        + str(values_dict[index])
+                        .replace("{", "")
+                        .replace("}", "")
+                        .replace("'", ""),
+                    )
+
+    def show_attrs(
+        self, show_exp_info=False, show_dnplab_info=True, show_proc_info=True
+    ):
+        """
+        Print experiment attributes, dnplab attributes and processing steps
+        """
+
+        if show_exp_info:
+            self.exp_info()
+
+        if show_dnplab_info:
+            self.dnplab_info()
+
+        if show_proc_info:
+            self.proc_info()
 
     def add_proc_attrs(self, proc_attr_name, proc_dict):
         """
         Stamp processing step to DNPData object
 
         Args:
-            proc_attr_name (str): Name of processing step (e.g. "fourier_transform"
+            proc_attr_name (str): Name of processing step (e.g. "fourier_transform")
             proc_dict (dict): Dictionary of processing parameters for this processing step.
         """
         if not isinstance(proc_attr_name, str):
@@ -139,7 +237,9 @@ class DNPData(ABCData):
             phase (float,int): phase of data calculated from sum of imaginary
                 divided by sum of real components
         """
-        return np.arctan(np.sum(np.imag(self.values)) / np.sum(np.real(self.values)))
+        return _np.arctan(
+            _np.sum(_np.imag(self.values)) / _np.sum(_np.real(self.values))
+        )
 
     def squeeze(self):
         """
@@ -159,8 +259,8 @@ class DNPData(ABCData):
         reverse_remove_axes = remove_axes[::-1]
         for index_ix, index_value in enumerate(reverse_remove_axes):
             self.coords.pop(index_value)
-            self.dims.pop(index_value)
-            self.values = np.squeeze(self.values)
+            # self.dims.pop(index_value) # dim is an attr of coords, this would pop twice
+            self.values = _np.squeeze(self.values)
 
     def select(self, selection):
         """
@@ -190,14 +290,14 @@ class DNPData(ABCData):
         elif isinstance(selection, (list, tuple)) and all(
             [isinstance(x, (int, range)) for x in selection]
         ):
-            new_values = np.empty(shape=(self.shape[0],))
+            new_values = _np.empty(shape=(self.shape[0],))
             new_coords = []
             for x in selection:
                 if isinstance(x, int):
-                    new_values = np.vstack((new_values, self.values[:, x]))
+                    new_values = _np.vstack((new_values, self.values[:, x]))
                     new_coords = new_coords + [self.coords[self.dims[1]][x]]
                 elif isinstance(x, range):
-                    new_values = np.vstack(
+                    new_values = _np.vstack(
                         (new_values, self.values[:, x.start : x.stop].T)
                     )
                     new_coords = new_coords + [
@@ -205,7 +305,7 @@ class DNPData(ABCData):
                     ]
 
             self.values = new_values.T[:, 1:]
-            self.coords[self.dims[1]] = np.array(new_coords)
+            self.coords[self.dims[1]] = _np.array(new_coords)
         else:
             raise TypeError(
                 "Select using integer, range, or list/tuple of integers or ranges"
@@ -216,5 +316,5 @@ class DNPData(ABCData):
             coords=self.coords._coords,
             dims=self.dims,
             attrs=self.attrs,
-            procList=self.proc_attrs,
+            proc_attrs=self.proc_attrs,
         )

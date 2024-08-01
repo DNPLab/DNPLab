@@ -1,262 +1,390 @@
-import numpy as np
+import numpy as _np
 from scipy.signal import savgol_filter
 
 from ..core.data import DNPData
 from ..processing.integration import integrate
+from ..processing.offset import remove_background as dnp_remove_background
+from ..constants import constants as _const
+
+# import dnplab as dnp
+
+from scipy.special import jv as _jv
+from scipy.fft import fft as _fft
+from scipy.fft import ifft as _ifft
+import copy as _copy
 
 
-def calculate_enhancement(
-    all_data,
-    off_spectrum=1,
-    on_spectra="all",
-    integrate_center=0,
-    integrate_width="full",
-    method="integrate",
-    dim="f2",
-):
-    """Calculate enhancement from DNP data
+def calculate_enhancement(data, off_spectrum_index=0, return_complex_values=False):
+    """Calculate enhancement of a power series. Needs integrals as input
 
     Args:
-        all_data (dnpdata, dict): data container
-
-    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    | parameter        | type                       | default     | description                                                          |
-    +==================+============================+=============+======================================================================+
-    | off_spectrum     | int or dnpdata             | 1           | slice of 2D data to be used as p = 0 spectrum, or dnpdata            |
-    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    | on_spectra       | str or dnpdata             | "all"       | "all"  unless dnpdata given                                          |
-    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    | integrate_center | str, int, list, or ndarray | 0           | "max", center of integration window, or index used to find amplitude |
-    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    | integrate_width  | str, int, list, or ndarray | "full"      | "full" or width of integration window                                |
-    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    | method           | str                        | "integrate" | either "integrate" or "ampltiude"                                    |
-    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
-    | dim              | str                        | "f2"        | dimension to integrate down or search down for max                   |
-    +------------------+----------------------------+-------------+----------------------------------------------------------------------+
+        integrals (DNPData):
+        off_spectrum_index (int):
+        return_complex_values (bool):
 
     Returns:
-        dnpdata: data object with "enhancements" key added
-
+        enhancements (DNPData): Enhancement values
     """
-    if off_spectrum == 0:
-        raise ValueError(
-            "please use indices from 1 to number of slices, i.e. use 1 instead of 0"
+
+    enhancements = data.copy()
+
+    proc_parameters = {
+        "off_spectrum_index": off_spectrum_index,
+        "return_complex_values": return_complex_values,
+    }
+
+    if not "experiment_type" in data.attrs.keys():
+        raise KeyError("Experiment type not defined")
+
+    if data.attrs["experiment_type"] != "integrals":
+        raise ValueError("dnpdata object does not contain integrals.")
+
+    if data.dims[0] == "Power":
+        enhancements.attrs["experiment_type"] = "enhancements_P"
+
+        enhancements.values = (
+            enhancements.values / enhancements.values[off_spectrum_index]
         )
 
-    _, isDict = return_data(all_data)
-
-    if isDict and "integrals" in all_data.keys() and isinstance(off_spectrum, int):
-        enh = np.array(
-            all_data["integrals"].values.real
-            / all_data["integrals"].values.real[off_spectrum - 1]
-        )
-        enhancement_data = Data(
-            enh,
-            [all_data["integrals"].coords[x] for x in all_data["integrals"].dims],
-            all_data["integrals"].dims,
-        )
-
-    elif isinstance(off_spectrum, DNPData) and isinstance(on_spectra, DNPData):
-
-        data_off, _ = return_data(off_spectrum)
-        if len(data_off.shape) != 1:
-            raise TypeError("off_spectrum should be 1D")
-        data_on, _ = return_data(on_spectra)
-        index_on = data_on.dims.index(dim)
-
-        if integrate_width == "full":
-            int_width_off = max(data_off.coords[dim]) - min(data_off.coords[dim])
-            int_width_on = max(data_on.coords[dim]) - min(data_on.coords[dim])
-        elif (
-            isinstance(integrate_width, (list, np.ndarray))
-            and len(integrate_width) == 2
-        ):
-            int_width_off = integrate_width[0]
-            int_width_on = integrate_width[1]
-        elif isinstance(integrate_width, int):
-            int_width_off = integrate_width
-            int_width_on = integrate_width
-        else:
-            raise ValueError(
-                "integrate_width must be an integer, a list/array with len = 2, or 'full'"
-            )
-
-        if integrate_center == "max":
-            on_maxs = np.argmax(data_on.values.real, axis=index_on)
-            int_center_off = data_off.coords[dim][np.argmax(data_off.values.real)]
-            if on_maxs.size == 1:
-                int_center_on = data_on.coords[dim][on_maxs]
-            else:
-                int_center_on = [data_on.coords[dim][x] for x in on_maxs]
-        elif (
-            isinstance(integrate_center, (list, np.ndarray))
-            and len(integrate_center) == 2
-        ):
-            int_center_off = integrate_center[0]
-            int_center_on = integrate_center[1]
-        elif isinstance(integrate_center, int):
-            int_center_off = integrate_center
-            int_center_on = integrate_center
-        else:
-            raise ValueError(
-                "integrate_center must be an integer, a list/array with len = 2, or 'max'"
-            )
-
-        if method == "integrate":
-            off_data = dnpTools.integrate(
-                data_off,
-                dim=dim,
-                integrate_center=int_center_off,
-                integrate_width=int_width_off,
-            )
-
-            on_data = dnpTools.integrate(
-                data_on,
-                dim=dim,
-                integrate_center=int_center_on,
-                integrate_width=int_width_on,
-            )
-
-            enh = np.array(on_data.values.real / off_data.values.real)
-            enhancement_data = DNPData(
-                enh, [on_data.coords[x] for x in on_data.dims], on_data.dims
-            )
-
-        elif method == "amplitude":
-            on_maxs = np.argmax(abs(data_on.values.real), axis=index_on)
-            if integrate_center == "max":
-                off_data = data_off.values.real[np.argmax(abs(data_off.values.real))]
-                if on_maxs.size == 1:
-                    on_data = data_on.values.real[on_maxs]
-                else:
-                    on_data = [
-                        data_on.values.real[x, indx] for indx, x in enumerate(on_maxs)
-                    ]
-            else:
-                off_data = data_off.values.real[int_center_off]
-                if on_maxs.size == 1:
-                    on_data = data_on.values.real[int_center_on]
-                else:
-                    on_data = [
-                        data_on.values.real[int_center_on, indx]
-                        for indx, _ in enumerate(on_maxs)
-                    ]
-
-            if (isinstance(on_data, list) and len(on_data) == 1) or (
-                isinstance(on_data, float) and on_data.size == 1
-            ):
-                enh = np.array([on_data / off_data])
-            else:
-                enh = np.array(on_data / off_data)
-
-            remaining_dims = [x for x in data_on.dims if x != dim]
-            if len(remaining_dims) == 0:
-                remaining_dims = ["index"]
-                remaining_coords = [np.array([0])]
-            else:
-                remaining_coords = [data_on.coords[x] for x in data_on.dims if x != dim]
-
-            enhancement_data = DNPData(enh, remaining_coords, remaining_dims)
+    elif data.dims[0] == "B0":
+        enhancements.attrs["experiment_type"] = "enhancements_B0"
+        print("This is a DNP enhancement profile. Not implemented yet.")
 
     else:
         raise TypeError(
-            "Either use the integrate function first and define the index of the off spectrum, or pass dnpata objects for off_spectrum and on_spectra"
+            "Integration axis not recognized. First dimension should be Power or B0."
         )
 
-    return enhancement_data
+    proc_attr_name = "calculate_enhancement"
+    enhancements.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    if return_complex_values == True:
+        return enhancements
+
+    elif return_complex_values == False:
+        return enhancements.real
+
+
+def _create_complexEXT(data, real, imag):
+    # helper function for create_complex
+    complexData = _np.vectorize(complex)(real, imag)
+
+    dims = data.dims
+    dims.pop(-1)
+
+    coords = data.coords
+    coords = list(coords)
+    coords.pop(-1)
+
+    attrs = data.attrs
+
+    out = DNPData(complexData, dims, coords, attrs)
+
+    return out
+
+
+def _create_complexINT(dnpdata, dim, real=0, imag=1):
+    try:
+        if len(dnpdata.coords[dim]) != 2:
+            raise ValueError(
+                "create_complex: Dimension {0} has length {1} != 2".format(
+                    dim, len(dnpdata.coords[dim])
+                )
+            )
+    except KeyError:
+        raise KeyError(
+            "dim {} not in dims of dnpDataobject, available dims are: {1}".format(
+                dim, dnpdata.dims
+            )
+        )
+    out = dnpdata.copy()
+    out._values = out._values.astype(complex)
+    cut_position = 0
+    for k in out.dims:
+        if k == dim:
+            break
+        cut_position = cut_position + 1
+    if real == 0 and imag == 1:
+        out[dim, 0] = out[dim, 0]._values + 1j * out[dim, 1]._values
+    elif real == 1 and imag == 0:
+        out[dim, 0] = out[dim, 1]._values + 1j * out[dim, 0]._values
+    else:
+        raise ValueError(
+            "create_complex: only real=0 and imag=1 or other way around allowed! you chose {}/{}".format(
+                real, imag
+            )
+        )
+    axis_int = 0
+    for k in dnpdata.dims:
+        if k == dim:
+            break
+        axis_int = axis_int + 1
+    out._values = _np.delete(out._values, 1, axis=axis_int)
+    out.coords[dim] = _np.array([0])
+
+    shape = out.shape
+    restore_dims = [
+        out.dims[x] for x in range(len(shape)) if (shape[x] == 1) and out.dims[x] != dim
+    ]
+    restore_dims_index = [
+        x for x in range(len(shape)) if (shape[x] == 1) and out.dims[x] != dim
+    ]
+    restore_coords = [out.coords[k][0] for k in restore_dims]  # have length 1
+    dims_position = []
+    restored_dim_order = []
+    i = 0
+    for ind, k in enumerate(out.dims):
+        if k in restore_dims and ind < cut_position:
+            dims_position.append(ind)
+        if k in restore_dims and ind > cut_position:
+            dims_position.append(ind - 1)
+
+        # save indizes for old dimensions
+        if ind in restore_dims_index:
+            restored_dim_order.append(
+                len(shape) - len(restore_dims) - 1 + i
+            )  # -1 from the removed cmplx axis and -1 because counting starts from 0
+            i = i + 1
+        elif ind < cut_position:
+            restored_dim_order.append(ind)
+        elif ind > cut_position:
+            restored_dim_order.append(ind - 1 - i)
+
+    # remove the single dimensions, including the complex source
+    out.squeeze()
+
+    # move single dimensions back to position
+    move_dims = 0
+    for d, c in zip(restore_dims, restore_coords):
+        out.new_dim(d, c)
+        move_dims = move_dims + 1
+    # move back to old position...
+    out._values = _np.moveaxis(
+        out._values, [k for k in range(-move_dims, 0, 1)], dims_position
+    )
+    out.coords.reorder_index(restored_dim_order)
+
+    return out
+
+
+def create_complex(data, real, imag=None, real_index=0, imag_index=1):
+    """Create complex array from input
+
+    This function can be used to concatenate a two dimensions of a DNPData object into a complex array. The unused dims and coords will be removed from the input DNPData object.
+    When a String is provided as the second argument the index in that dimension given by real_index is assumed to be the real part of the dataset and the one by imag_index is the iamginary part.
+    The dataset is then combined to form one complex dataset, imag is ignored. Note that dimension with size 1 are retained but will be placed at the end of the retuned DNPData object.
+
+    Args:
+        data (DNPData): DNPData input object
+        real (array, String): Real data if array or when a String is provided the dimension that contains real and imaginary part (the dimension must have length 2)
+        imag (array, None): Imaginary data or None, if None is provided a complex dataset is created with the imaginary part set to 0
+        real_index (Integer): Index of real part in chosen dimension, default=0, must be 0 or 1 and be different from imag_index
+        imag_index (Integer): Index of imaginary part in chosen dimension, default=1, must be 0 or 1 and be different from real_index
+
+    Returns:
+        data (DNPData): New DNPData object
+
+    Examples:
+    In this example, first a data set is loaded. The data set is of the size 4000 x 2 (ndarray, float32) and the dims are called 't2','x'
+
+    With the first dimension ([...,0]) being the real data and the second ([...,1]) the imaginary data. Using the function create_complex the dnpdata object is converted into a complex data set.
+
+        .. code-block:: python
+
+            data = dnp.load("MyFile.exp")       # Load example data
+
+            data_complex = dnp.create_complex(data, data.values[..., 0], data.values[..., 1])
+
+    Or with the second variant;
+
+        .. code-block:: python
+
+            data = dnp.load("MyFile.exp")       # Load example data
+
+            data_complex = dnp.create_complex(data,'x')
+
+
+    """
+    if (
+        type(real) == __builtins__["str"]
+    ):  # could be done with try .. except but for now force usage of strings
+        dim = real
+        return _create_complexINT(data, dim, real=real_index, imag=imag_index)
+    if imag is None:
+        imag = _np.zeros(real.shape)
+    return _create_complexEXT(data, real, imag)
 
 
 def signal_to_noise(
-    data,
-    dim="f2",
-    signal_center=0,
-    signal_width="full",
-    noise_center="default",
-    noise_width="default",
+    data: DNPData,
+    signal_region: list = slice(0, None),
+    noise_region: list = (None, None),
+    dim: str = "f2",
+    remove_background: list = None,
+    complex_noise=False,
+    **kwargs
 ):
     """Find signal-to-noise ratio
 
-    .. note::
-
-        S/N = signal / stdd(noise)
+    Simplest implementation: select largest value in a signal_region and divide this value by the estimated std. deviation of another noise_region. If the noise_region list contains (None,None) (the default) then all points except the points +10% and -10% around the maximum are used for the noise_region.
 
     Args:
-        all_data (dnpdata,dict): Data container
-
-    +------------------+-------+-----------+------------------------------+
-    | parameter        | type  | default   | description                  |
-    +==================+=======+===========+==============================+
-    | dim              | str   | 'f2'      | dimension                    |
-    +------------------+-------+-----------+------------------------------+
-    | signal_center    | float | 0         | center of signal             |
-    +------------------+-------+-----------+------------------------------+
-    | signal_width     | float | "full"    | width of signal              |
-    +------------------+-------+-----------+------------------------------+
-    | noise_center     | float | "default" | center of noise region       |
-    +------------------+-------+-----------+------------------------------+
-    | noise_width      | float | "default" | width of noise region        |
-    +------------------+-------+-----------+------------------------------+
+        data: Spectrum data
+        signal_region (list): list with a single tuple (start,stop) of a region where a signal should be searched, default is [slice(0,None)] which is the whole spectrum
+        noise_region (list): list with tuples (start,stop) of regions that should be taken as noise, default is (None,None)
+        dim (str): dimension of data that is used for snr calculation, default is 'f2'
+        remove_background (list): if this is not None (a list of tuples, or a single tuple) this will be forwarded to dnp.remove_background, together with any kwargs
+        complex_noise (bool): Flag that indicates whether the noise should be calculated on the real part of the noise or on the complex data (default = False)
+        kwargs : parameters for dnp.remove_background
 
     Returns:
-        dnpdata: data object with attrs "s_n", "signal", and "noise" added
+        SNR (DNPData): DNPData object that contains SNR values, the axis dim is replaced by an axis named "signal_region"
+
+    Examples:
+
+        A note for the usage: regions can be provided as (min,max), slices use indices.
+        To use the standard values just use
+
+            >>> snr = dnp.signal_to_noise(data)
+
+        If you want to select a region for the noise and the signal:
+
+            >>> snr = dnp.signal_to_noise(data,[(-1.23,300.4)],noise_region=[(-400,-240.5),(123.4,213.5)])
+
+        With background subtracted:
+
+            >>> snr = dnp.signal_to_noise(data,[(-1.23,300.4)],noise_region=[(-400,-240.5),(123.4,213.5)],remove_background=[(123.4,213.5)])
+
+        This function allows to use a single tuple instead of a list with a single tuple for signal_region, noise_region and remove_background. This is for convenience, slices are currently only supoprted for signal_region and noise_region.
+
+            >>> snr = dnp.signal_to_noise(data,(-1.23,300.4),noise_region=[(-400,-240.5),(123.4,213.5],remove_background=(123.4,213.5))
+
     """
+    import warnings
+    import scipy.optimize as _scipy_optimize
 
-    index = data.index(dim)
+    # convenience for signal and noise region
+    def _convenience_tuple_to_list(possible_region: list):
+        if possible_region is None:
+            return possible_region
+        # we assume its iterable
+        try:
+            l = len(possible_region)
+            if l != 2:
+                return possible_region  # it seems to be iterable?
+        except TypeError:
+            return [possible_region]  # return as is in a list, might be slice
+        try:
+            # check whether we can interpret it as value
+            a = int(possible_region[0])
+            return [
+                (possible_region[0], possible_region[1])
+            ]  # make a list that contains a tuple
+        except TypeError:
+            if type(possible_region) == list:
+                return possible_region
+            return [possible_region]
 
-    if signal_width == "full" and isinstance(signal_center, (int, float)):
-        s_data = data[dim, :].real
-    elif isinstance(signal_width, (int, float)) and isinstance(
-        signal_center, (int, float)
-    ):
-        signalMin = signal_center - np.abs(signal_width) / 2.0
-        signalMax = signal_center + np.abs(signal_width) / 2.0
-        s_data = data[dim, (signalMin, signalMax)].real
-    else:
-        raise ValueError(
-            "signal_center and signal_width must be int or float, signal_width may also be 'full'"
-        )
+    signal_region = _convenience_tuple_to_list(signal_region)
+    if len(signal_region) > 1:
+        snr = []
+        for sr in signal_region:
+            snr.append(
+                _np.squeeze(
+                    signal_to_noise(
+                        data, sr, noise_region, dim, remove_background, **kwargs
+                    )._values
+                )
+            )
 
-    if noise_center == "default" and noise_width == "default":
-        noise_width = 0.05 * (max(data.coords[dim]) - min(data.coords[dim]))
-        noise_center = max(data.coords[dim]) - (np.abs(noise_width) / 2.0)
-    elif isinstance(noise_center, (int, float)) and noise_width == "default":
-        noise_width = 0.05 * (max(data.coords[dim]) - min(data.coords[dim]))
-        if noise_center + (np.abs(noise_width) / 2.0) > max(data.coords[dim]):
-            noise_width = 2 * (max(data.coords[dim]) - noise_center)
-    elif isinstance(noise_width, (int, float)) and noise_center == "default":
-        noise_center = max(data.coords[dim]) - (np.abs(noise_width) / 2.0)
-    elif isinstance(noise_width, (int, float)) and isinstance(
-        noise_center, (int, float)
-    ):
-        pass
-    else:
-        raise ValueError(
-            "noise_center and noise_width must be int, float, or 'default'"
-        )
-
-    noiseMin = noise_center - np.abs(noise_width) / 2.0
-    noiseMax = noise_center + np.abs(noise_width) / 2.0
-    n_data = data[dim, (noiseMin, noiseMax)].real
-
-    if len(data.dims) == 1:
-        s_n = s_data.values[np.argmax(s_data.values)] / np.std(n_data.values)
-    else:
-        sn_maxs = np.argmax(s_data.values, axis=index)
-        s_n = [
-            s_data.values[x, ix] / np.std(n_data.values[:, ix], axis=index)
-            for ix, x in enumerate(sn_maxs)
+        # return DNPData object with dims: signal_region and all other dimensions copied from data
+        dims = ["signal_region" if x == dim else x for x in data.dims]
+        coords_new = [
+            _np.arange(len(signal_region)) if x == dim else data.coords[x]
+            for x in data.dims
         ]
+        data_new = _np.array(snr)
+        snrData = DNPData(data_new, dims, coords_new)
+        return snrData
 
-    data.attrs["s_n"] = s_n
-    data.attrs["signal"] = s_data
-    data.attrs["noise"] = n_data
+    noise_region = _convenience_tuple_to_list(noise_region)
+    remove_background = _convenience_tuple_to_list(remove_background)
 
-    return data
+    if not (dim in data.dims):
+        raise ValueError("dim {0} not in data.dims ({1})".format(dim, data.dims))
+
+    # remove background
+    if remove_background is not None:
+        deg = kwargs.pop("deg", 1)
+        data = dnp_remove_background(data, dim, deg, remove_background)
+
+    # unfold and calculate snr for each fold_index
+    sdata = data
+    sdata.unfold(dim)
+
+    # currently only absolute value comparison
+    signal = []
+    for indx in range(sdata.shape[1]):
+        signal.append(
+            _np.max(_np.abs(sdata[dim, signal_region[0], "fold_index", indx]))
+        )
+
+    # now calculate noise
+    noise = []
+    for indx in range(sdata.shape[1]):
+        idata = sdata[dim, :, "fold_index", indx]
+        if (None, None) in noise_region:
+            signal_arg = _np.argmax(idata[dim, signal_region[0], "fi", 0])
+            datasize = idata[dim, :, "fi", 0].size
+            noise_region = [
+                slice(0, int(_np.maximum(2, int(signal_arg * 0.9)))),
+                slice(int(_np.minimum(datasize - 2, int(signal_arg * 1.1))), None),
+            ]
+
+        # concatenate noise_regions
+        noise_0 = idata[dim, noise_region[0], "fi", 0]
+        for k in noise_region[1:]:
+            noise_0.concatenate(idata[dim, k, "fi", 0], dim)
+        if complex_noise:
+            noise.append(_np.std(noise_0[dim, slice(0, None)]))
+        else:
+            noise.append(_np.std(_np.real(noise_0[dim, slice(0, None)])))
+
+    sdata.fold()
+
+    # return DNPData object
+    dims = ["signal_region" if x == dim else x for x in sdata.dims]
+    coords_new = [
+        _np.arange(1) if x == dim else sdata.coords[x] for x in sdata.dims
+    ]  # we know that only one sr is there
+    data_new = (_np.array(signal) / _np.array(noise)).reshape(
+        [x.size for x in coords_new]
+    )
+    snrData = DNPData(data_new, dims, coords_new)
+    return snrData
 
 
 def smooth(data, dim="t2", window_length=11, polyorder=3):
+    """Apply Savitzky-Golay Smoothing
+
+    This function is a wrapper function for the savgol_filter from the SciPy python package (https://scipy.org/). For a more detailed description see the SciPy help for this function.
+
+    Args:
+        data (DNPData): Data object
+        dim (str): Dimension to perform smoothing
+        window_length (int): Length of window (number of coefficients)
+        polyorder (int): Polynomial order to fit samples
+
+    Returns:
+        data (DNPData): Data with Savitzky-Golay smoothing applied
+    """
     out = data.copy()
+
+    proc_parameters = {
+        "dim": dim,
+        "window_length": window_length,
+        "polyorder": polyorder,
+    }
 
     out.unfold(dim)
 
@@ -264,42 +392,164 @@ def smooth(data, dim="t2", window_length=11, polyorder=3):
 
     out.fold()
 
+    proc_attr_name = "smooth"
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    return out
+
+
+def pseudo_modulation(data, modulation_amplitude, dim="B0", order=1, zero_padding=2):
+    """Calculate the first derivative of an EPR spectrum due to field modulation
+
+    Calculation is based on: Hyde et al., “Pseudo Field Modulation in EPR Spectroscopy.”,
+    Applied Magnetic Resonance 1 (1990): 483–96.
+
+    Args:
+        data (DNPData): DNPData object (typically an absorption line EPR spectrum)
+        modulation_amplitude: Peak to peak modulation amplitude. The unit is equal to the unit of the axis. E.g. if the spectrum axis is given in (T), the unit of the modulation amplitude is in (T) as well.
+        dim: Dimension to pseudo modulate (default is B0)
+        order: Harmonic of field modulation (default is 1, 1st derivative)
+        zero_padding: Number of points for zero-padding (multiples of spectrum vector length). Default is 2. Increase this number for short signal vectors.
+
+    Returns:
+        data (DNPData): Pseudo modulated spectrum
+
+
+    Examples:
+        .. code-block:: python
+
+            # Calculate pseudo_modulated spectrum (1st derivative). Field axis given in (T)
+            spec_mod = dnp.pseudo_modulation(spec, modulation_amplitude = 0.001)
+
+            # Calculate pseudo_modulated spectrum (2nd derivative). Field axis given in (T)
+            spec_mod = dnp.pseudo_modulation(spec, modulation_amplitude = 0.001, order = 2)
+
+    """
+
+    out = data.copy()
+    out.unfold(dim)
+
+    proc_parameters = {
+        "dim": dim,
+        "modulation_amplitude": modulation_amplitude,
+        "order": order,
+        "zero_padding": zero_padding,
+    }
+
+    n = len(out.coords[dim])
+    delta_B = out.coords[dim][2] - out.coords[dim][1]
+    Zmin = 0
+    Zmax = _const.pi * modulation_amplitude / delta_B
+    Z = _np.linspace(Zmin, Zmax, zero_padding * n)
+
+    spec = out.values
+    spec = _np.squeeze(spec)
+
+    fft_spec = _fft(spec, zero_padding * n)  # Zero pad data
+    fft_spec[int(n) + 1 : zero_padding * n] = 0
+
+    fft_spec_mod = fft_spec * _jv(order, Z)
+    # Convolute fft spectrum with bessel function
+
+    spec_mod = _ifft(fft_spec_mod)
+    spec_mod = 1j**order * spec_mod[0:n]  # Pick the right dimension for higher orders
+    spec_mod = _np.real(spec_mod)  # Only return real part
+
+    out.values = spec_mod
+
+    out.fold()
+
+    proc_attr_name = "pseudo_modulation"
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
+
     return out
 
 
 def left_shift(data, dim="t2", shift_points=0):
-    """Remove points from the left of data
+    """Remove points from the left
 
     Args:
-        all_data (dnpdata, dict): Data container for data
-
-    +---------------+------+---------+--------------------------------------------------+
-    | parameter     | type | default | description                                      |
-    +===============+======+=========+==================================================+
-    | dim           | str  | "t2"    | dimension to shift                               |
-    +---------------+------+---------+--------------------------------------------------+
-    | shift_points  | int  | 0       | Number of points to remove from left of data     |
-    +---------------+------+---------+--------------------------------------------------+
+        data (DNPData): Data object
+        dim (str): Name of dimension to left shift, default is "t2"
+        shift_points (int): Number of points to left shift, default is 0.
 
     Returns:
-        dnpdata: data object with left-shifted data
+        data (DNPDdata): Shifted data object
     """
 
-    data = data[dim, shift_points:]
+    out = data.copy()
+
+    out = out[dim, shift_points:]
 
     proc_attr_name = "left_shift"
     proc_parameters = {
         "dim": dim,
         "points": shift_points,
     }
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
-
-
-def normalize():
-    return NotImplemented
+    return out
 
 
-def reference():
-    return NotImplemented
+def normalize(data, amplitude=True, dim="f2", regions=None):
+    """Normalize spectrum
+
+    The function is used to normalize the amplitude (or area) of a spectrum to a value of 1. The sign of the original data will be conserved.
+
+    Args:
+        data (DNPData):         Data object
+        amplitude (boolean):    True: normalize amplitude, false: normalize area. The default is True
+        dim (str):              The dimension to normalize
+        regions (None, list):   List of tuples to specify range of normalize [(-99., 99.)]
+
+    Returns:
+        data (DNPDdata):        Normalized data object
+    """
+
+    out = data.copy()
+
+    if amplitude == True:
+        if regions:
+            factor = _np.max(abs(out["f2", regions].values))
+        else:
+            factor = _np.max(abs(out.values))
+
+        out.values = out.values / factor
+    elif amplitude == False:
+        out.values = out.values  # Normalize to area = 1, not implemented yet
+
+    proc_attr_name = "normalized"
+    proc_parameters = {
+        "amplitude": amplitude,
+    }
+
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
+
+    return out
+
+
+def reference(data, dim="f2", old_ref=0, new_ref=0):
+    """Function for referencing NMR spectra
+
+    Args:
+        data (DNPData): Data for referencing
+        dim (str): dimension to perform referencing down. By default this dimension is "f2".
+        old_ref (float): Value of old reference
+        new_ref (float): New reference value
+
+    Returns:
+        DNPData: referenced data
+    """
+
+    out = data.copy()
+
+    out.coords[dim] -= old_ref - new_ref
+
+    proc_attr_name = "reference"
+    proc_parameters = {
+        "dim": dim,
+        "old_ref": old_ref,
+        "new_ref": new_ref,
+    }
+
+    return out

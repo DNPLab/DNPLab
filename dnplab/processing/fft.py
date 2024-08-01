@@ -1,8 +1,6 @@
 from warnings import warn
-
 import re
-
-import numpy as np
+import numpy as _np
 
 __all__ = ["fourier_transform", "inverse_fourier_transform"]
 
@@ -25,32 +23,34 @@ def fourier_transform(
     shift=True,
     convert_to_ppm=True,
 ):
-    """Perform Fourier Transform down dim dimension given in proc_parameters
-
-    .. Note::
-        Assumes dt = t[1] - t[0]
-
-    .. math::
-
+    """Perform Fourier Transform along the dimension (dim) given in proc_parameters
 
     Args:
-        all_data (dnpdata, dict): Data container
-
-    +------------------+------+-----------+--------------------------------------------------+
-    | parameter        | type | default   | description                                      |
-    +==================+======+===========+==================================================+
-    | dim              | str  | 't2'      | dimension to Fourier transform                   |
-    +------------------+------+-----------+--------------------------------------------------+
-    | zero_fill_factor | int  | 2         | factor to increase dim with zeros                |
-    +------------------+------+-----------+--------------------------------------------------+
-    | shift            | bool | True      | Perform fftshift to set zero frequency to center |
-    +------------------+------+-----------+--------------------------------------------------+
-    | convert_to_ppm   | bool | True      | Convert dim from Hz to ppm                       |
-    +------------------+------+-----------+--------------------------------------------------+
+        data (DNPData): Data object
+        dim (str): Dimension to Fourier Transform. The default is "t2"
+        zero_fill_factor (int): Increases the number of points in Fourier transformed dimension by this factor with zero filling. The default is 1
+        shift (bool): Apply fftshift to the Fourier transformed data, placing zero frequency at center of dimension
+        convert_to_ppm (bool): If true, convert Fourier transformed axis to ppm units by using the "frequency" stored in attrs
 
     Returns:
-        dnpdata: data object after FT
+        data (DNPData): Data object after Fourier Transformation
+
+    Examples:
+
+        Fourier transformation of a (NMR) FID stored in a DNPData object
+
+        >>> data = dnp.fourier_transform(data)
+
+        Fourier transform along t1 dimension and zero fill to twice the original length
+
+        >>> data = dnp.fourier_transform(data, dim = "t1", zero_fill_factor = 2)
+
+    .. Note::
+
+        The fourier_transform function assumes dt = t[1] - t[0]
     """
+
+    out = data.copy()
 
     # handle zero_fill_factor
     zero_fill_factor = int(zero_fill_factor)
@@ -64,37 +64,49 @@ def fourier_transform(
         "convert_to_ppm": convert_to_ppm,
     }
 
-    index = data.dims.index(dim)
+    index = out.dims.index(dim)
 
-    dt = data.coords[dim][1] - data.coords[dim][0]
-    n_pts = zero_fill_factor * len(data.coords[dim])
-    f = (1.0 / (n_pts * dt)) * np.r_[0:n_pts]
+    dt = out.coords[dim][1] - out.coords[dim][0]
+    n_pts = zero_fill_factor * len(out.coords[dim])
+    f = (1.0 / (n_pts * dt)) * _np.r_[0:n_pts]
     if shift == True:
         f -= 1.0 / (2 * dt)
 
     if convert_to_ppm:
-        if "nmr_frequency" not in data.attrs.keys():
+        if ("nmr_frequency" not in out.attrs.keys()) and (
+            "topspin" not in out.attrs.keys()
+        ):
             warn(
-                "NMR frequency not found in the attrs dictionary, coversion to ppm requires the NMR frequency. See docs."
+                "NMR frequency not found in the attrs dictionary. Conversion from ppm to Hz requires the NMR frequency."
+            )
+        # linked to topspin.py through special attr "_topspin_procs_offset"
+        if out.attrs.get("_topspin_procs_offset", False) is not False:
+            # assume that OFFSET gives first ppm value shown by spectrometer
+            offset = out.attrs["_topspin_procs_offset"]
+            sw = out.attrs["SW"]
+            f = (
+                _np.arange(0, f.size) * sw / (f.size - 1)
+                + offset
+                - sw * (f.size - 1) / f.size
             )
         else:
-            nmr_frequency = data.attrs["nmr_frequency"]
-            f /= -1 * nmr_frequency / 1.0e6
+            nmr_frequency = out.attrs["nmr_frequency"]
+            f /= nmr_frequency / 1.0e6  # updated
 
-    data.values = np.fft.fft(data.values, n=n_pts, axis=index)
+    out.values = _np.fft.fft(out.values, n=n_pts, axis=index)
 
     if shift:
-        data.values = np.fft.fftshift(data.values, axes=index)
+        out.values = _np.fft.fftshift(out.values, axes=index)
 
-    data.coords[dim] = f
+    out.coords[dim] = f
 
     new_dim = rename_ft_dim(dim, "t", "f")
-    data.rename(dim, new_dim)
+    out.rename(dim, new_dim)
 
     proc_attr_name = "fourier_transform"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out
 
 
 def inverse_fourier_transform(
@@ -104,29 +116,23 @@ def inverse_fourier_transform(
     shift=True,
     convert_from_ppm=True,
 ):
-    """Perform Fourier Transform down dim dimension given in proc_parameters
-
-    .. Note::
-        Assumes dt = t[1] - t[0]
+    """Perform an inverse Fourier Transform along the dimension (dim) given in proc_parameters
 
     Args:
-        all_data (dnpdata, dict): Data container
-
-    +------------------+------+-----------+--------------------------------------------------+
-    | parameter        | type | default   | description                                      |
-    +==================+======+===========+==================================================+
-    | dim              | str  | 't2'      | dimension to Fourier transform                   |
-    +------------------+------+-----------+--------------------------------------------------+
-    | zero_fill_factor | int  | 2         | factor to increase dim with zeros                |
-    +------------------+------+-----------+--------------------------------------------------+
-    | shift            | bool | True      | Perform fftshift to set zero frequency to center |
-    +------------------+------+-----------+--------------------------------------------------+
-    | convert_from_ppm | bool | True      | Convert dim from Hz to ppm                       |
-    +------------------+------+-----------+--------------------------------------------------+
+        data (DNPData): Data object
+        dim (str): Dimension to inverse Fourier transform. The default is "f2"
+        zero_fill_factor (int): Increases the number of points in inverse Fourier transformed dimension by this factor with zero filling. The default is 1
+        shift (bool): Apply fftshift to the inverse Fourier transformed data, placing zero frequency at center of dimension
+        convert_from_ppm (bool): If true, convert Fourier transformed axis from ppm units to Hz by using the "frequency" stored in attrs
 
     Returns:
-        dnpdata: data object after inverse FT
+        data (DNPData): Data object after inverse Fourier Transformation
+
+    .. Note::
+        Assumes df = f[1] - f[0]
     """
+
+    out = data.copy()
 
     # handle zero_fill_factor
     zero_fill_factor = int(zero_fill_factor)
@@ -140,35 +146,36 @@ def inverse_fourier_transform(
         "convert_from_ppm": convert_from_ppm,
     }
 
-    index = data.dims.index(dim)
+    index = out.dims.index(dim)
 
-    df = data.coords[dim][1] - data.coords[dim][0]
+    df = out.coords[dim][1] - out.coords[dim][0]
     if convert_from_ppm:
-        if "nmr_frequency" not in data.attrs.keys():
+        if "nmr_frequency" not in out.attrs.keys():
             warn(
-                "NMR frequency not found in the attrs dictionary, coversion from ppm requires the NMR frequency. See docs."
+                "NMR frequency not found in the attrs dictionary. Conversion from ppm to Hz requires the NMR frequency."
             )
         else:
-            nmr_frequency = data.attrs["nmr_frequency"]
-            df /= -1 / (nmr_frequency / 1.0e6)
+            nmr_frequency = out.attrs["nmr_frequency"]
+            df /= 1 / (nmr_frequency / 1.0e6)  # updated
 
-    n_pts = zero_fill_factor * len(data.coords[dim])
-    t = (1.0 / (n_pts * df)) * np.r_[0:n_pts]
+    n_pts = zero_fill_factor * len(out.coords[dim])
+    t = (1.0 / (n_pts * df)) * _np.r_[0:n_pts]
 
     if shift:
-        data.values = np.fft.fftshift(data.values, axes=index)
+        out.values = _np.fft.fftshift(out.values, axes=index)
 
-    data.values = np.fft.ifft(data.values, n=n_pts, axis=index)
-    data.coords[dim] = t
+    out.values = _np.fft.ifft(out.values, n=n_pts, axis=index)
+    out.coords[dim] = t
 
     new_dim = rename_ft_dim(dim, "f", "t")
-    data.rename(dim, new_dim)
+    out.rename(dim, new_dim)
 
     proc_attr_name = "inverse_fourier_transform"
-    data.add_proc_attrs(proc_attr_name, proc_parameters)
+    out.add_proc_attrs(proc_attr_name, proc_parameters)
 
-    return data
+    return out
 
 
 def zero_fill():
+    """Zero fill data, Not Implemented"""
     return NotImplemented
