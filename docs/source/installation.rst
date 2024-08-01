@@ -12,13 +12,13 @@ The following packages are required to run DNPLab:
    * - **Package**
      - **Version**
    * - NumPy
-     - 1.19 or higher
+     - 2.0.0 or higher
    * - SciPy
-     - 1.5 or higher
+     - 1.14.0 or higher
    * - Matplotlib
-     - 3.3 or higher
+     - 3.9.1 or higher
    * - h5py
-     - 2.10 or higher
+     - 3.11.0 or higher
 
 
 Hydration GUI
@@ -34,7 +34,7 @@ The easiest and most convenient way to install DNPLab is by using |pip|. In a te
 
 .. code-block:: bash
 
-   $ python -m pip install dnplab
+   $ pip install dnplab
 
 or simply just:
 
@@ -92,7 +92,7 @@ The output will look similar to this (note, the actual version and path to locat
 .. code-block:: bash
 
     Name: dnplab
-    Version: 1.0.3
+    Version: 2.1.25
     Summary: dnpLab - Bringing the Power of Python to DNP-NMR Spectroscopy
     Home-page: http://dnpLab.net
     Author: DNPLab Team
@@ -105,21 +105,21 @@ The output will look similar to this (note, the actual version and path to locat
 
 Specify DNPLab Version to install
 ---------------------------------
-If you wish to install a specific version of DNPLab typ the following comman in a terminal window:
+If you wish to install a specific version of DNPLab typ the following command in a terminal window:
 
 .. code-block:: bash
     
-    $ pip install dnplab==1.0.11
+    $ pip install dnplab==2.1.25
 
 Install Preliminary Release
 ---------------------------
-If you wish to use a pre-release version of DNPLab (downloaded from the GitHub repository) we recommend first uninstalling the current DNPLab version. Clone (or download or fork ...) the desired branch from the GitHub website. In a terminal window navigate into the directory that contains the setup.py file and type the following command into the terminal window:
+If you wish to use a pre-release version of DNPLab (downloaded from the GitHub repository) we recommend first uninstalling the current DNPLab version. Clone (or download or fork ...) the desired branch from the GitHub website. In a terminal window navigate into the directory that contains the dnplab folder and type the following command into the terminal window:
 
 .. code-block:: bash
     
-    $ python setup.py develop
+    $ pip install -e dnplab
 
-Once you ran the above command, check the path and version of the package by running :code:`pip show dnplab`. If the version does not match the version of the checked-out branch, you may have to first uninstall DNPLab (:code:`pip uninstall dnplab`), then re-install the version you would like to use (:code:`pip install dnplab`) and then running (:code:`python setup.py develop`) if you would like to make your own changes to the code.
+Once you ran the above command, check the path and version of the package by running :code:`pip show dnplab`. If the version does not match the version of the checked-out branch, you may have to first uninstall DNPLab (:code:`pip uninstall dnplab`), then re-install the version you would like to use (:code:`pip install dnplab`) and then running (:code:`pip install -e dnplab`) if you would like to make your own changes to the code.
 
 Upgrading DNPLab
 ================
@@ -127,7 +127,7 @@ To upgrade your currently installed version of DNPLab type the following command
 
 .. code-block:: bash
 
-    $ pip install dnplab --upgrade
+    $ pip install --upgrade dnplab
 
 
 Uninstalling DNPLab
@@ -136,4 +136,4 @@ The safest method to uninstall DNPLab is to use pip. Type the following command 
     
 .. code-block:: bash
     
-    $ python -m pip uninstall dnplab
+    $ pip uninstall dnplab
