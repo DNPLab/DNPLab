@@ -58,6 +58,21 @@ class DNPData(ABCData):
         if len(dims) > 0 and isinstance(dims[0], list):
             dims = dims[0]
 
+        if len(dims) == 0 and len(coords) == 0:
+            _coords = []
+            _dims = []
+            breakflag = False
+            for k, val in enumerate(values.shape):
+                if val == 0:
+                    # one val dimension is 0, this means this is a degenerate case break and use default values
+                    breakflag = True
+                    break
+                _coords.append(_np.atleast_1d(_np.arange(val)))
+                _dims.append("x" + str(k))
+            if not breakflag:
+                coords = _coords
+                dims = _dims
+
         super().__init__(values, dims, coords, attrs, dnplab_attrs)
         self.version = version
         self.attrs = attrs
