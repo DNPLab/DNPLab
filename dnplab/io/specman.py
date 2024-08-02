@@ -206,7 +206,8 @@ def analyze_attrs(attrs):
 
             val = val_list[0].strip(",")
             temp[new_key] = int(val) if "." not in val else float(val)
-            temp[new_key + "_unit"] = unit
+            if unit is not None:
+                temp[new_key + "_unit"] = unit
             if "step" in val_list:  # when it indicate the step
                 step_index = (
                     val_list.index("step") + 1
