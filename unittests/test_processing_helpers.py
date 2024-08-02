@@ -60,7 +60,7 @@ class dnpTools_tester(unittest.TestCase):
         dnp.processing.left_shift(self.data, shift_points=5)
 
         # normalize
-        dnp.processing.normalize(self.data)
+        dnp.processing.normalize(self.data, dim="t2")
 
         # reference
         dnp.processing.reference(self.data, dim="t2")
@@ -246,28 +246,105 @@ class dnpTools_tester(unittest.TestCase):
 
     def test_006_create_complex_tests(self):
 
-        npDat = np.empty((100,2,25,1,10))
-        npCoords = [np.arange(k)+np.random.randint(10) for k in npDat.shape]
-        npDims=['1','2','3','4','5']
+        npDat = np.empty((100, 2, 25, 1, 10))
+        npCoords = [np.arange(k) + np.random.randint(10) for k in npDat.shape]
+        npDims = ["1", "2", "3", "4", "5"]
 
-        data=dnp.DNPData(npDat,npDims,npCoords)
+        data = dnp.DNPData(npDat, npDims, npCoords)
 
-        complex_2 = dnp.create_complex(data,'2')
-        complex_1 = dnp.create_complex(data,data._values[:,0,...],data._values[:,1,...])
+        complex_2 = dnp.create_complex(data, "2")
+        complex_1 = dnp.create_complex(
+            data, data._values[:, 0, ...], data._values[:, 1, ...]
+        )
 
+        self.assertEqual(complex_1.shape, complex_2.shape)
+        self.assertEqual((100, 25, 1, 10), complex_2.shape)
+        self.assertTrue(np.all(np.isclose(complex_1._values - complex_2._values, 0)))
+        self.assertTrue(complex_2._self_consistent())
+        self.assertTrue(np.all(np.isclose(complex_2.coords[1] - npCoords[2], 0)))
 
-        self.assertEqual (complex_1.shape, complex_2.shape)
-        self.assertEqual ((100,25,1,10), complex_2.shape)
-        self.assertTrue ( np.all(np.isclose( complex_1._values- complex_2._values,0)) )
-        self.assertTrue ( complex_2._self_consistent() )
-        self.assertTrue ( np.all(np.isclose(complex_2.coords[1]-npCoords[2],0)) )
+        npDat = np.empty((1, 1, 2, 100, 25, 1, 10, 1))
+        npCoords = [np.arange(k) + np.random.randint(10) for k in npDat.shape]
+        npDims = ["1", "2", "3", "4", "5", "6", "7", "8"]
 
-        npDat = np.empty((1,1,2,100,25,1,10,1))
-        npCoords = [np.arange(k)+np.random.randint(10) for k in npDat.shape]
-        npDims=['1','2','3','4','5','6','7','8']
+        data = dnp.DNPData(npDat, npDims, npCoords)
 
-        data=dnp.DNPData(npDat,npDims,npCoords)
+        complex_2 = dnp.create_complex(data, "3")
+        self.assertEqual((1, 1, 100, 25, 1, 10, 1), complex_2.shape)
+        self.assertTrue(complex_2._self_consistent())
 
-        complex_2 = dnp.create_complex(data,'3')
-        self.assertEqual ((1,1,100,25,1,10,1), complex_2.shape)
-        self.assertTrue ( complex_2._self_consistent() )
+    def test_007_normalize_tests(self):
+
+        # make testdata
+        npDat = np.empty((500, 2, 3))  # 500->t2, 50 -> prm1, 3->prm2
+        t2 = np.linspace(0, 100, 500)
+        prm1AxisDat = np.atleast_2d(np.ones(npDat.shape[1]))
+        tau = [100, 50, 25]
+        for k in range(3):
+            npDat[:, :, k] = (
+                (k + 1)
+                * np.atleast_2d(np.exp(-t2 / tau[k]) - np.random.random(len(t2))).T
+                * prm1AxisDat
+            )
+            npDat[0, :, k] = k + 1
+
+        data = dnp.DNPData(
+            npDat, ["t2", "prm1", "prm2"], [t2, np.arange(npDat.shape[1]), np.arange(3)]
+        )
+        data_1d = dnp.DNPData(npDat[:, 0, 0], ["t2"], [t2])
+
+        self.assertRaises(ValueError, dnp.normalize, data, dim="f2")
+        self.assertTrue(data["t2", (1, 80)].shape == (394, npDat.shape[1], 3))
+
+        # no region &  no dim
+        data_t = dnp.normalize(data)
+        data_t2 = dnp.normalize(data_1d)
+        self.assertTrue(np.all(np.isclose(data_t._values[0, :, 0], 0.333333)))
+        self.assertTrue(np.all(np.isclose(data_t._values[0, :, 1], 0.666667)))
+        self.assertTrue(np.all(np.isclose(data_t._values[0, :, 2], 1)))
+
+        self.assertTrue(np.all(np.isclose(data_t2._values[0], 1)))
+
+        # no region & dim
+        data_t = dnp.normalize(data, dim="t2")
+        data_t2 = dnp.normalize(data_1d, dim="t2")
+        self.assertTrue(np.all(np.isclose(data_t._values[0, :, :], 1)))
+
+        self.assertTrue(np.all(np.isclose(data_t2._values[0], 1)))
+
+        # with region & dim
+        data._values[55, :, :] = data._values[55, :, :] * 10
+        data_t = dnp.normalize(data, dim="t2", regions=(10, 50))
+        maxvalues = np.max(data["t2", (10, 50)]._values, axis=0)
+        refvalues = data["t2", 0]._values / maxvalues
+
+        data_1d._values[55] = data_1d._values[55] * 10
+        data_t2 = dnp.normalize(data_1d, dim="t2", regions=(10, 50))
+        maxvalues_1d = np.max(data_1d["t2", (10, 50)]._values, axis=0)
+        refvalues_1d = data_1d["t2", 0]._values / maxvalues_1d
+
+        self.assertTrue(
+            np.all(np.isclose(np.max(data_t["t2", (10, 50)]._values, axis=0), 1))
+        )
+        self.assertTrue(np.all(np.isclose(data_t["t2", 0], refvalues)))
+
+        self.assertTrue(
+            np.all(np.isclose(np.max(data_t2["t2", (10, 50)]._values, axis=0), 1))
+        )
+        self.assertTrue(np.all(np.isclose(data_t2["t2", 0], refvalues_1d)))
+
+        # with region and no dim
+        data_t = dnp.normalize(data, regions=(10, 50))
+        data_t2 = dnp.normalize(data_1d, regions=(10, 50))
+
+        maxvalues = np.max(data["t2", (10, 50)]._values)
+        refvalues = data["t2", 0]._values / maxvalues
+
+        maxvalues_1d = np.max(data_1d["t2", (10, 50)]._values)
+        refvalues_1d = data_1d["t2", 0]._values / maxvalues_1d
+
+        self.assertTrue(np.all(np.isclose(np.max(data_t["t2", (10, 50)]._values), 1)))
+        self.assertTrue(np.all(np.isclose(data_t["t2", 0], refvalues)))
+
+        self.assertTrue(np.all(np.isclose(np.max(data_t2["t2", (10, 50)]._values), 1)))
+        self.assertTrue(np.all(np.isclose(data_t2["t2", 0], refvalues_1d)))
