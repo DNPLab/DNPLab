@@ -200,8 +200,13 @@ def analyze_attrs(attrs):
             new_key = key.split("params_")[1]  # get key value for temp dictionary
             val = val.split(";")[0]  # remove non value related information
             val_list = val.split(" ")  # split value string for further analyze
+            unit = None
+            if len(val_list) > 1:
+                unit = val_list[-1] # get unit
+
             val = val_list[0].strip(",")
             temp[new_key] = int(val) if "." not in val else float(val)
+            temp[new_key + "_unit"] = unit
             if "step" in val_list:  # when it indicate the step
                 step_index = (
                     val_list.index("step") + 1
@@ -222,7 +227,7 @@ def analyze_attrs(attrs):
             new_key = "sweep_" + val_list[0]
             temp[new_key + "_length"] = int(val)
             # new_key += '_dim' # last item is the key to the parameters, such as t, p...
-            temp[new_key + "_dim"] = val_list[-1]
+            temp[new_key + "_dim"] = val_list[3]
 
     attrs = {**attrs, **temp}
     return attrs
