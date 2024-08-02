@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as _plt
 import numpy as _np
 
 
@@ -61,8 +61,8 @@ def imshow(data, *args, **kwargs):  # TODO: drop unused args and kwargs
     else:
         extent = [x_min, x_max, y_max, y_min]
 
-    plt.imshow(
+    _plt.imshow(
         data.values, *args, aspect=aspect, extent=extent, origin=origin, **kwargs
     )
-    plt.xlabel(dims[1])
-    plt.ylabel(dims[0])
+    _plt.xlabel(dims[1])
+    _plt.ylabel(dims[0])
