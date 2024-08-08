@@ -71,3 +71,6 @@ desktop.ini
 
 # PyCharm
 .idea/
+
+# Environment
+.venv
