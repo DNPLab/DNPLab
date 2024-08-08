@@ -202,7 +202,7 @@ def analyze_attrs(attrs):
             val_list = val.split(" ")  # split value string for further analyze
             unit = None
             if len(val_list) > 1:
-                unit = val_list[-1] # get unit
+                unit = val_list[-1]  # get unit
 
             val = val_list[0].strip(",")
             temp[new_key] = int(val) if "." not in val else float(val)
