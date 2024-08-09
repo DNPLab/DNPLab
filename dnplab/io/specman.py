@@ -3,6 +3,18 @@ import os
 import dnplab as _dnp
 import re
 
+scale_dict = {
+    "p": 1e-12,
+    "n": 1e-9,
+    "u": 1e-6,
+    "m": 1e-3,
+    "1": 1,
+    "k": 1e3,
+    "M": 1e6,
+    "G": 1e9,
+    "T": 1e12,
+}
+
 
 def import_specman(
     path, autodetect_coords: bool = False, autodetect_dims: bool = False
@@ -293,6 +305,12 @@ def calculate_specman_coords(attrs, old_coords, dims=None):
             )
         else:
             coord = _np.arange(0.0, length)
+
+        if dim + "_unit" in attrs:
+            unit = attrs[dim + "_unit"]
+            if len(unit) != 1 and unit.lower() != "hz":
+                factor = scale_dict[unit[0]]
+                coord *= factor
         coords.append(_np.array(coord))
 
     return coords
