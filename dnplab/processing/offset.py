@@ -1,7 +1,8 @@
 import numpy as _np
+from ..fitting import *
+from ..math import relaxation
 
-
-def remove_background(data, dim="t2", deg=0, regions=None):
+def remove_background(data, dim="t2", deg=0, regions=None, f:callable = None, **kwargs):
     """Remove polynomial background from data
 
     Args:
@@ -28,9 +29,11 @@ def remove_background(data, dim="t2", deg=0, regions=None):
         "deg": deg,
         "regions": regions,
     }
-
-    fit = background(out, dim=dim, deg=deg, regions=regions)
-    out = out - fit
+    proc_parameters['f'] = f.__name__ if f else None 
+    proc_parameters = {**proc_parameters, **kwargs}
+    
+    bg = background(out, dim=dim, deg=deg, regions=regions, f = f, **kwargs)
+    out = out - bg
 
     proc_attr_name = "remove_background"
     out.add_proc_attrs(proc_attr_name, proc_parameters)
@@ -38,7 +41,7 @@ def remove_background(data, dim="t2", deg=0, regions=None):
     return out
 
 
-def background(data, dim="t2", deg=0, regions=None):
+def background(data, dim="t2", deg=0, regions=None, f:callable = None, **kwargs):
     """Remove background from data
 
     Args:
@@ -58,6 +61,8 @@ def background(data, dim="t2", deg=0, regions=None):
         "deg": deg,
         "regions": regions,
     }
+    proc_parameters['f'] = f.__name__ if f else None 
+    proc_parameters = {**proc_parameters, **kwargs}
 
     out.unfold(dim)
 
@@ -72,13 +77,15 @@ def background(data, dim="t2", deg=0, regions=None):
                 fit_points[ix] or ((coord[ix] >= region[0]) & (coord[ix] <= region[1]))
                 for ix in range(len(coord))
             ]
+    if not f:
+        for ix in range(out.shape[1]):
+            p = _np.polyfit(coord[fit_points], out.values[:, ix][fit_points], deg=deg)
+            bg = _np.polyval(p, coord)
+            out.values[:, ix] = bg
 
-    for ix in range(out.shape[1]):
-        p = _np.polyfit(coord[fit_points], out.values[:, ix][fit_points], deg=deg)
-        fit = _np.polyval(p, coord)
-        out.values[:, ix] = fit
-
-    out.fold()
+        out.fold()
+    else:
+        out = fit(f, data, dim = dim, **kwargs)['fit']
 
     proc_attr_name = "background"
     out.add_proc_attrs(proc_attr_name, proc_parameters)
