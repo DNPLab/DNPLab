@@ -312,10 +312,8 @@ def calculate_specman_coords(attrs, old_coords, dims=None):
                 try:
                     factor = scale_dict[unit[0]]
                 except KeyError:
-                    try:
-                        factor = float(unit)
-                    except ValueError:
-                        factor = 1
+                    # note that sometimes the unit is 0.01 even tough it shoudl be 1, this needs more careful investigation
+                    factor = 1
                 coord *= factor
 
         coords.append(_np.array(coord))
