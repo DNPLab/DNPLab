@@ -7,6 +7,7 @@ from ..processing.offset import remove_background as dnp_remove_background
 from ..constants import constants as _const
 
 # import dnplab as dnp
+import warnings as _warnings
 
 from scipy.special import jv as _jv
 from scipy.fft import fft as _fft
@@ -85,15 +86,10 @@ def _create_complexEXT(data, real, imag):
 
 def _create_complexINT(dnpdata, dim, real=0, imag=1):
     try:
-        pass
-        """
         if len(dnpdata.coords[dim]) != 2:
-            raise ValueError(
-                "create_complex: Dimension {0} has length {1} != 2".format(
-                    dim, len(dnpdata.coords[dim])
-                )
+            _warnings.warn(
+                "Dim {} has length > 2 ({}), use real and imag keywords! Not used elements are discarded."
             )
-        """
     except KeyError:
         raise KeyError(
             "dim {} not in dims of dnpDataobject, available dims are: {1}".format(
@@ -107,25 +103,15 @@ def _create_complexINT(dnpdata, dim, real=0, imag=1):
         if k == dim:
             break
         cut_position = cut_position + 1
-    """"
-    if real == 0 and imag == 1:
-        out[dim, 0] = out[dim, 0]._values + 1j * out[dim, 1]._values
-    elif real == 1 and imag == 0:
-        out[dim, 0] = out[dim, 1]._values + 1j * out[dim, 0]._values
-    else:
-        raise ValueError(
-            "create_complex: only real=0 and imag=1 or other way around allowed! you chose {}/{}".format(
-                real, imag
-            )
-        )
-    """
     out[dim, 0] = out[dim, real]._values + 1j * out[dim, imag]._values
     axis_int = 0
     for k in dnpdata.dims:
         if k == dim:
             break
         axis_int = axis_int + 1
-    out._values = _np.delete(out._values, slice(1,None,None), axis=axis_int) #list(range(out.shape[axis_int]))
+    out._values = _np.delete(
+        out._values, slice(1, None, None), axis=axis_int
+    )  # list(range(out.shape[axis_int]))
     out.coords[dim] = _np.array([0])
 
     shape = out.shape
