@@ -306,11 +306,13 @@ def calculate_specman_coords(attrs, old_coords, dims=None):
         else:
             coord = _np.arange(0.0, length)
 
+        """
         if dim + "_unit" in attrs:
             unit = attrs[dim + "_unit"]
             if len(unit) != 1 and unit.lower() != "hz":
                 factor = scale_dict[unit[0]]
                 coord *= factor
+        """
         coords.append(_np.array(coord))
 
     return coords
