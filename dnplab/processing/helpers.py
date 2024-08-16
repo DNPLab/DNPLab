@@ -6,7 +6,6 @@ from ..processing.integration import integrate
 from ..processing.offset import remove_background as dnp_remove_background
 from ..constants import constants as _const
 
-# import dnplab as dnp
 import warnings as _warnings
 
 from scipy.special import jv as _jv
