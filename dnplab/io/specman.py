@@ -200,20 +200,30 @@ def analyze_attrs(attrs):
             new_key = key.split("params_")[1]  # get key value for temp dictionary
             val = val.split(";")[0]  # remove non value related information
             val_list = val.split(" ")  # split value string for further analyze
+            unit = None
+            if len(val_list) > 1:
+                unit = val_list[-1]  # get unit
+
             val = val_list[0].strip(",")
+            val_unit = val_list[1] if len(val_list) == 5 else None
             temp[new_key] = int(val) if "." not in val else float(val)
+            temp[new_key] *= _convert_unit(val_unit)
+
             if "step" in val_list:  # when it indicate the step
                 step_index = (
                     val_list.index("step") + 1
                 )  # the index of the value of 'step' is equal to the index of string 'index' + 1
-                step = float(val_list[step_index])
+                step_unit = val_list[val_list.index("step") + 2] if len(val_list) == 5 else None
+                step = float(val_list[step_index]) * _convert_unit(step_unit)
                 temp[new_key + "_step"] = step
 
+                
             if "to" in val_list:  # when it indicate the stop
                 stop_index = (
                     val_list.index("to") + 1
                 )  # the index of the value of 'stop' is equal to the index of string 'index' + 1
-                stop = float(val_list[stop_index])
+                stop_unit = val_list[val_list.index("to") + 2] if len(val_list) == 5 else None
+                stop = float(val_list[stop_index]) * _convert_unit(stop_unit)
                 temp[new_key + "_stop"] = stop
 
         if "sweep_" in key:
@@ -287,6 +297,23 @@ def calculate_specman_coords(attrs, dims=None):
             )
         else:
             coord = _np.arange(0.0, length)
+
+        if dim + "_unit" in attrs:
+            unit = attrs[dim + "_unit"]
+            if len(unit) != 1 and unit.lower() != "hz":
+                factor = scale_dict[unit[0]]
+                coord *= factor
         coords.append(_np.array(coord))
 
     return coords
+
+def _convert_unit(unit_string = None) -> float:
+    if not unit_string:
+        return 1.0
+    
+    if len(unit_string) != 1 and unit_string.lower() != "hz":
+        if unit_string[0] in scale_dict:
+            return scale_dict[unit_string[0]]
+    
+    return 1.0
+        
