@@ -3,6 +3,18 @@ import os
 import dnplab as _dnp
 import re
 
+scale_dict = {
+    "p": 1e-12,
+    "n": 1e-9,
+    "u": 1e-6,
+    "m": 1e-3,
+    "1": 1,
+    "k": 1e3,
+    "M": 1e6,
+    "G": 1e9,
+    "T": 1e12,
+}
+
 
 def import_specman(
     path, autodetect_coords: bool = False, autodetect_dims: bool = False
@@ -200,9 +212,6 @@ def analyze_attrs(attrs):
             new_key = key.split("params_")[1]  # get key value for temp dictionary
             val = val.split(";")[0]  # remove non value related information
             val_list = val.split(" ")  # split value string for further analyze
-            unit = None
-            if len(val_list) > 1:
-                unit = val_list[-1]  # get unit
 
             val = val_list[0].strip(",")
             val_unit = val_list[1] if len(val_list) == 5 else None
@@ -216,7 +225,6 @@ def analyze_attrs(attrs):
                 step_unit = val_list[val_list.index("step") + 2] if len(val_list) == 5 else None
                 step = float(val_list[step_index]) * _convert_unit(step_unit)
                 temp[new_key + "_step"] = step
-
                 
             if "to" in val_list:  # when it indicate the stop
                 stop_index = (
@@ -298,11 +306,6 @@ def calculate_specman_coords(attrs, dims=None):
         else:
             coord = _np.arange(0.0, length)
 
-        if dim + "_unit" in attrs:
-            unit = attrs[dim + "_unit"]
-            if len(unit) != 1 and unit.lower() != "hz":
-                factor = scale_dict[unit[0]]
-                coord *= factor
         coords.append(_np.array(coord))
 
     return coords
