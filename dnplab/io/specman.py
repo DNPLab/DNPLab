@@ -232,6 +232,7 @@ def analyze_attrs(attrs):
                 )  # the index of the value of 'stop' is equal to the index of string 'index' + 1
                 stop_unit = val_list[val_list.index("to") + 2] if len(val_list) == 5 else None
                 stop = float(val_list[stop_index]) * _convert_unit(stop_unit)
+                print(val_list[stop_index])
                 temp[new_key + "_stop"] = stop
 
         if "sweep_" in key:
@@ -240,7 +241,7 @@ def analyze_attrs(attrs):
             new_key = "sweep_" + val_list[0]
             temp[new_key + "_length"] = int(val)
             # new_key += '_dim' # last item is the key to the parameters, such as t, p...
-            temp[new_key + "_dim"] = val_list[-1]
+            temp[new_key + "_dim"] = val_list[3]
 
     attrs = {**attrs, **temp}
     return attrs
