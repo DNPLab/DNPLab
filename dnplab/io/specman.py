@@ -236,7 +236,6 @@ def analyze_attrs(attrs):
                     val_list[val_list.index("to") + 2] if len(val_list) == 5 else None
                 )
                 stop = float(val_list[stop_index]) * _convert_unit(stop_unit)
-                print(val_list[stop_index])
                 temp[new_key + "_stop"] = stop
 
         if "sweep_" in key:
