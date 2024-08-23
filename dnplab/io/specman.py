@@ -222,15 +222,19 @@ def analyze_attrs(attrs):
                 step_index = (
                     val_list.index("step") + 1
                 )  # the index of the value of 'step' is equal to the index of string 'index' + 1
-                step_unit = val_list[val_list.index("step") + 2] if len(val_list) == 5 else None
+                step_unit = (
+                    val_list[val_list.index("step") + 2] if len(val_list) == 5 else None
+                )
                 step = float(val_list[step_index]) * _convert_unit(step_unit)
                 temp[new_key + "_step"] = step
-                
+
             if "to" in val_list:  # when it indicate the stop
                 stop_index = (
                     val_list.index("to") + 1
                 )  # the index of the value of 'stop' is equal to the index of string 'index' + 1
-                stop_unit = val_list[val_list.index("to") + 2] if len(val_list) == 5 else None
+                stop_unit = (
+                    val_list[val_list.index("to") + 2] if len(val_list) == 5 else None
+                )
                 stop = float(val_list[stop_index]) * _convert_unit(stop_unit)
                 print(val_list[stop_index])
                 temp[new_key + "_stop"] = stop
@@ -311,13 +315,13 @@ def calculate_specman_coords(attrs, dims=None):
 
     return coords
 
-def _convert_unit(unit_string = None) -> float:
+
+def _convert_unit(unit_string=None) -> float:
     if not unit_string:
         return 1.0
-    
+
     if len(unit_string) != 1 and unit_string.lower() != "hz":
         if unit_string[0] in scale_dict:
             return scale_dict[unit_string[0]]
-    
+
     return 1.0
-        
