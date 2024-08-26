@@ -26,10 +26,10 @@ _cycler_list_colors = [
     for color_key in DNPLAB_CONFIG["COLORS"].keys()
 ]
 _cycler_list_styles = ["-", ":", "-."]
-customColorLinesyleCycler = _plt.cycler(linestyle=_cycler_list_styles) * _plt.cycler(
+_customColorLinesyleCycler = _plt.cycler(linestyle=_cycler_list_styles) * _plt.cycler(
     color=_cycler_list_colors
 )
-_plt.rcParams["axes.prop_cycle"] = customColorLinesyleCycler
+_plt.rcParams["axes.prop_cycle"] = _customColorLinesyleCycler
 
 # As discussed: for now change the rcParams, we do not use a temporary context - the values are stored in the dnplab config
 _plt.rcParams["font.family"] = "Arial"
