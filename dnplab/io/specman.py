@@ -221,6 +221,7 @@ def analyze_attrs(attrs):
     """
 
     temp = {}
+    axis_order = []
     for key, val in attrs.items():
         if "params_" in key:
             new_key = key.split("params_")[1]  # get key value for temp dictionary
@@ -253,13 +254,14 @@ def analyze_attrs(attrs):
                 temp[new_key + "_stop"] = stop
 
         if "sweep_" in key:
-
             val_list = val.split(",")
             val = val_list[1]  # get value
             axis = val_list[0]
             if len(axis) > 1 and axis[-1] == "f":  # is monitor
                 axis = axis[:-1]
             new_key = "sweep_" + axis
+            if new_key not in ["sweep_T", "sweep_P", "sweep_I"]:
+                axis_order.append(new_key)
             temp[new_key + "_length"] = int(val)
             temp[new_key + "_monitor"] = (
                 True
@@ -269,6 +271,7 @@ def analyze_attrs(attrs):
             # new_key += '_dim' # last item is the key to the parameters, such as t, p...
             temp[new_key + "_dim"] = val_list[3]
 
+    attrs["axis_order"] = axis_order
     attrs = {**attrs, **temp}
     return attrs
 
@@ -283,14 +286,13 @@ def generate_dims(attrs):
         dims (list): a new dims
 
     """
-    kw = ["sweep_X", "sweep_Y", "sweep_Z", "sweep_T"]
+    kw = attrs["axis_order"]
     dims = [
         attrs[key + "_dim"] if key != "sweep_T" else "t2"
         for key in kw
         if key + "_dim" in attrs
     ]
     dims.append("x")
-
     return dims
 
 
@@ -305,12 +307,7 @@ def calculate_specman_coords(attrs, dims=None):
         coords (list): a calculated coords
     """
 
-    kw = [
-        "sweep_X",
-        "sweep_Y",
-        "sweep_Z",
-        "sweep_T",
-    ]
+    kw = attrs["axis_order"]
     coords = []
     lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
     lengths.append(2)
@@ -339,7 +336,6 @@ def calculate_specman_coords(attrs, dims=None):
             coord = _np.arange(0.0, length)
 
         coords.append(_np.array(coord))
-        print(coords)
     return coords
 
 
