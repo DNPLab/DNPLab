@@ -46,10 +46,11 @@ def import_specman(
         raise TypeError("Incorrect file type, must be .d01 or .exp")
 
     attrs = load_specman_exp(file_name_exp)
-    data, dims, coords, attrs = load_specman_d01(file_name_d01, attrs)
 
     if autodetect_coords or autodetect_dims:
         attrs = analyze_attrs(attrs)
+
+    data, dims, coords, attrs = load_specman_d01(file_name_d01, attrs)
 
     if autodetect_dims:
         new_dims = generate_dims(attrs)
@@ -156,12 +157,25 @@ def load_specman_d01(path, attrs, verbose=False):
 
     data = float_read[attrs["dataStartIndex"] :]
 
+    monitor_dict = {}
+    for key in attrs:
+        if "_monitor" in key and attrs[key] == True:
+            monitor_length = attrs[key.replace("_monitor", "_length")]
+            monitor_data, data = (
+                data[-monitor_length:],
+                data[:-monitor_length],
+            )  # shift monitor axis
+            monitor_dict[key + "_data"] = monitor_data
+            uint_read[0] -= 1  # reduce number of axis
+
+    attrs = {**attrs, **monitor_dict}
+
     if attrs["dims"] == 1:
         data = _np.reshape(data, (uint_read[0], uint_read[3]), order="C")
 
     elif attrs["dims"] == 2:
         data = _np.reshape(data, (uint_read[0], uint_read[4], uint_read[3]), order="C")
-
+        # data  =  _np.reshape(data[:-101], (2, 101, 101), order="C")
     elif attrs["dims"] == 3:
         data = _np.reshape(
             data, (uint_read[0], uint_read[5], uint_read[4], uint_read[3]), order="C"
@@ -239,10 +253,19 @@ def analyze_attrs(attrs):
                 temp[new_key + "_stop"] = stop
 
         if "sweep_" in key:
+
             val_list = val.split(",")
             val = val_list[1]  # get value
-            new_key = "sweep_" + val_list[0]
+            axis = val_list[0]
+            if len(axis) > 1 and axis[-1] == "f":  # is monitor
+                axis = axis[:-1]
+            new_key = "sweep_" + axis
             temp[new_key + "_length"] = int(val)
+            temp[new_key + "_monitor"] = (
+                True
+                if (len(val_list) == 5 and val_list[3] + "M" == val_list[-1])
+                else False
+            )  # check monitoring axis
             # new_key += '_dim' # last item is the key to the parameters, such as t, p...
             temp[new_key + "_dim"] = val_list[3]
 
@@ -260,7 +283,7 @@ def generate_dims(attrs):
         dims (list): a new dims
 
     """
-    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
+    kw = ["sweep_X", "sweep_Y", "sweep_Z", "sweep_T"]
     dims = [
         attrs[key + "_dim"] if key != "sweep_T" else "t2"
         for key in kw
@@ -282,7 +305,12 @@ def calculate_specman_coords(attrs, dims=None):
         coords (list): a calculated coords
     """
 
-    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
+    kw = [
+        "sweep_X",
+        "sweep_Y",
+        "sweep_Z",
+        "sweep_T",
+    ]
     coords = []
     lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
     lengths.append(2)
@@ -311,7 +339,7 @@ def calculate_specman_coords(attrs, dims=None):
             coord = _np.arange(0.0, length)
 
         coords.append(_np.array(coord))
-
+        print(coords)
     return coords
 
 
