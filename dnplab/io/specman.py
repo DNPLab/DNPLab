@@ -227,6 +227,7 @@ def analyze_attrs(attrs):
                 )
                 step = float(val_list[step_index]) * _convert_unit(step_unit)
                 temp[new_key + "_step"] = step
+                temp[new_key + "_type"] = "linear"
 
             if "to" in val_list:  # when it indicate the stop
                 stop_index = (
@@ -237,6 +238,20 @@ def analyze_attrs(attrs):
                 )
                 stop = float(val_list[stop_index]) * _convert_unit(stop_unit)
                 temp[new_key + "_stop"] = stop
+                temp[new_key + "_type"] = "linear"
+
+            if "logto" in val_list:  # when it indicate the stop
+                stop_index = (
+                    val_list.index("logto") + 1
+                )  # the index of the value of 'stop' is equal to the index of string 'index' + 1
+                stop_unit = (
+                    val_list[val_list.index("logto") + 2]
+                    if len(val_list) == 5
+                    else None
+                )
+                stop = float(val_list[stop_index]) * _convert_unit(stop_unit)
+                temp[new_key + "_stop"] = stop
+                temp[new_key + "_type"] = "log"
 
         if "sweep_" in key:
             val_list = val.split(",")
@@ -293,15 +308,22 @@ def calculate_specman_coords(attrs, dims=None):
 
     for index, dim in enumerate(dims):
         length = lengths[index]
+
         if dim in attrs and dim + "_step" in attrs:
             start = attrs[dim]
             step = attrs[dim + "_step"]
             stop = start + step * (length - 1)
-            coord = _np.linspace(start, stop, length)
+            if attrs[dim + "_type"] == "log":
+                coord = _np.logspace(_np.log10(start), _np.log10(stop), length)
+            else:
+                coord = _np.linspace(start, stop, length)
         elif dim in attrs and dim + "_stop" in attrs:
             start = attrs[dim]
             stop = attrs[dim + "_stop"]
-            coord = _np.linspace(start, stop, length)
+            if attrs[dim + "_type"] == "log":
+                coord = _np.logspace(_np.log10(start), _np.log10(stop), length)
+            else:
+                coord = _np.linspace(start, stop, length)
         elif dim in attrs and dim + "_step" not in attrs and dim + "_stop" not in attrs:
             val_string = attrs["params_" + dim].split(";")[0]
             coord = _np.array(
