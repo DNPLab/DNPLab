@@ -1,6 +1,6 @@
 """Modules which provide function to analyse relaxation measurements]"""
 
-import numpy as np
+import numpy as _np
 from ..fitting import fit
 from ..math import *
 
