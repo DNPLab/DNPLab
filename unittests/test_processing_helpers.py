@@ -318,6 +318,7 @@ class dnpTools_tester(unittest.TestCase):
                 np.isclose(np.imag(complex_3._values), np.imag(data._values[:, 1, ...]))
             )
         )
+        
 
     def test_007_normalize_tests(self):
 

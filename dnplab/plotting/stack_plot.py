@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as _plt
 import numpy as _np
 
 
@@ -29,7 +29,7 @@ def stack(data, *args, offset=None, **kwargs):
         offset * _np.ones(coord.size).reshape(-1, 1) * _np.r_[0 : data.coords[1].size]
     )
 
-    plt.plot(coord, data.values + offset_matrix, *args, **kwargs)
+    _plt.plot(coord, data.values + offset_matrix, *args, **kwargs)
 
 
 def waterfall(data, dx, dy, *args, **kwargs):
@@ -52,14 +52,14 @@ def waterfall(data, dx, dy, *args, **kwargs):
     dim = data.dims[0]
 
     for ix in range(data.coords[data.dims[1]].size):
-        plt.plot(
+        _plt.plot(
             coord + (ix * dx),
             data[data.dims[1], ix].values.ravel() + (ix * dy),
             *args,
             **kwargs,
             zorder=-1 * ix
         )
-        plt.fill_between(
+        _plt.fill_between(
             coord + (ix * dx),
             data[data.dims[1], ix].values.ravel() + (ix * dy),
             ix * dy,

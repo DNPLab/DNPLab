@@ -1,7 +1,7 @@
 from ..core.data import DNPData
 import warnings
 import numpy as _np
-import h5py
+import h5py as _h5py
 
 None_alias = "__PYTHON_NONE__"  # h5 does not have Null type
 
@@ -21,7 +21,7 @@ def load_h5(path, *args, **kwargs):
         dnpdata_collection: workspace object with data
     """
 
-    f = h5py.File(path, "r")
+    f = _h5py.File(path, "r")
     keys_list = f.keys()
 
     if list(keys_list) == [
@@ -112,7 +112,7 @@ def save_h5(dataDict, path, overwrite=False):
 
     keysList = dataDict.keys()
 
-    f = h5py.File(path, mode)
+    f = _h5py.File(path, mode)
 
     try:
         for key in keysList:
