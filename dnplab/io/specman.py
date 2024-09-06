@@ -3,6 +3,18 @@ import os
 import dnplab as _dnp
 import re
 
+scale_dict = {
+    "p": 1e-12,
+    "n": 1e-9,
+    "u": 1e-6,
+    "m": 1e-3,
+    "1": 1,
+    "k": 1e3,
+    "M": 1e6,
+    "G": 1e9,
+    "T": 1e12,
+}
+
 
 def import_specman(
     path, autodetect_coords: bool = False, autodetect_dims: bool = False
@@ -46,7 +58,7 @@ def import_specman(
         new_dims = None
 
     if autodetect_coords:
-        coords = calculate_specman_coords(attrs, new_dims)
+        coords = calculate_specman_coords(attrs, coords, new_dims)
 
     # Add import path
     attrs["import_path"] = path
@@ -200,8 +212,14 @@ def analyze_attrs(attrs):
             new_key = key.split("params_")[1]  # get key value for temp dictionary
             val = val.split(";")[0]  # remove non value related information
             val_list = val.split(" ")  # split value string for further analyze
+            unit = None
+            if len(val_list) > 1:
+                unit = val_list[-1]  # get unit
+
             val = val_list[0].strip(",")
             temp[new_key] = int(val) if "." not in val else float(val)
+            if unit is not None:
+                temp[new_key + "_unit"] = unit
             if "step" in val_list:  # when it indicate the step
                 step_index = (
                     val_list.index("step") + 1
@@ -222,7 +240,7 @@ def analyze_attrs(attrs):
             new_key = "sweep_" + val_list[0]
             temp[new_key + "_length"] = int(val)
             # new_key += '_dim' # last item is the key to the parameters, such as t, p...
-            temp[new_key + "_dim"] = val_list[-1]
+            temp[new_key + "_dim"] = val_list[3]
 
     attrs = {**attrs, **temp}
     return attrs
@@ -238,7 +256,7 @@ def generate_dims(attrs):
         dims (list): a new dims
 
     """
-    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
+    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z", "sweep_Xf"]
     dims = [
         attrs[key + "_dim"] if key != "sweep_T" else "t2"
         for key in kw
@@ -249,7 +267,7 @@ def generate_dims(attrs):
     return dims
 
 
-def calculate_specman_coords(attrs, dims=None):
+def calculate_specman_coords(attrs, old_coords, dims=None):
     """Generate coords from specman acquisition parameters
 
     Args:
@@ -260,10 +278,10 @@ def calculate_specman_coords(attrs, dims=None):
         coords (list): a calculated coords
     """
 
-    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
+    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z", "sweep_Xf"]
     coords = []
     lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
-    lengths.append(2)
+    lengths.append(len(old_coords[-1]))
 
     if not dims:
         dims = generate_dims(attrs)
@@ -287,6 +305,12 @@ def calculate_specman_coords(attrs, dims=None):
             )
         else:
             coord = _np.arange(0.0, length)
+
+        if dim + "_unit" in attrs:
+            unit = attrs[dim + "_unit"]
+            if len(unit) != 1 and unit.lower() != "hz":
+                factor = scale_dict[unit[0]]
+                coord *= factor
         coords.append(_np.array(coord))
 
     return coords
