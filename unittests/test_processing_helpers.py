@@ -247,7 +247,8 @@ class dnpTools_tester(unittest.TestCase):
 
     def test_006_create_complex_tests(self):
 
-        npDat = np.empty((100, 2, 25, 1, 10))
+        npDat = np.ones((100, 2, 25, 1, 10)) * 1.0123987
+        npDat[:,1,...] = 0.51
         npCoords = [np.arange(k) + np.random.randint(10) for k in npDat.shape]
         npDims = ["1", "2", "3", "4", "5"]
 
@@ -274,7 +275,8 @@ class dnpTools_tester(unittest.TestCase):
             print(max(abs(complex_1._values - complex_2._values)))
         self.assertTrue(trueVal)
 
-        npDat = np.empty((1, 1, 2, 100, 25, 1, 10, 1))
+        npDat = np.ones((1, 1, 2, 100, 25, 1, 10, 1)) * 1.0123456789
+        npDat[:,:,1,...] = 0.587
         npCoords = [np.arange(k) + np.random.randint(10) for k in npDat.shape]
         npDims = ["1", "2", "3", "4", "5", "6", "7", "8"]
 
@@ -285,7 +287,8 @@ class dnpTools_tester(unittest.TestCase):
         self.assertTrue(complex_2._self_consistent())
 
         # test with 5 dimensions in complex dimension
-        npDat = np.empty((100, 5, 25, 1, 10))
+        npDat = np.ones((100, 5, 25, 1, 10)) * 1.0547891
+        npDat[:,1,...] = 0.587
         npCoords = [np.arange(k) + np.random.randint(10) for k in npDat.shape]
         npDims = ["1", "2", "3", "4", "5"]
 
@@ -310,7 +313,7 @@ class dnpTools_tester(unittest.TestCase):
             np.all(
                 np.isclose(
                     np.imag(complex_3._values),
-                    np.imag(data._values[:, 3, ...]),
+                    np.real(data._values[:, 3, ...]),
                     rtol=1e-06,
                     atol=1e-07,
                 )
@@ -332,7 +335,7 @@ class dnpTools_tester(unittest.TestCase):
             np.all(
                 np.isclose(
                     np.imag(complex_3._values),
-                    np.imag(data._values[:, 1, ...]),
+                    np.real(data._values[:, 1, ...]),
                     rtol=1e-06,
                     atol=1e-07,
                 )
