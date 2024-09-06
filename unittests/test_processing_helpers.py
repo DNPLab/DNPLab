@@ -338,6 +338,7 @@ class dnpTools_tester(unittest.TestCase):
                 )
             )
         )
+        
 
     def test_007_normalize_tests(self):
 

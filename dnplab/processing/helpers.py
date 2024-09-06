@@ -1,9 +1,8 @@
 import numpy as _np
-from scipy.signal import savgol_filter
+from scipy.signal import savgol_filter as _savgol_filter
 
 from ..core.data import DNPData
-from ..processing.integration import integrate
-from ..processing.offset import remove_background as dnp_remove_background
+from ..processing.offset import remove_background as _dnp_remove_background
 from ..constants import constants as _const
 
 import warnings as _warnings
@@ -307,7 +306,7 @@ def signal_to_noise(
     # remove background
     if remove_background is not None:
         deg = kwargs.pop("deg", 1)
-        data = dnp_remove_background(data, dim, deg, remove_background)
+        data = _dnp_remove_background(data, dim, deg, remove_background)
 
     # unfold and calculate snr for each fold_index
     sdata = data
@@ -379,7 +378,7 @@ def smooth(data, dim="t2", window_length=11, polyorder=3):
 
     out.unfold(dim)
 
-    out.values = savgol_filter(out.values, window_length, polyorder, axis=0)
+    out.values = _savgol_filter(out.values, window_length, polyorder, axis=0)
 
     out.fold()
 
