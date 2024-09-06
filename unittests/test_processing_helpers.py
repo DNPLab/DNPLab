@@ -298,24 +298,44 @@ class dnpTools_tester(unittest.TestCase):
         self.assertTrue(complex_3.shape == (100, 25, 1, 10))
         self.assertTrue(
             np.all(
-                np.isclose(np.real(complex_3._values), np.real(data._values[:, 1, ...]), rtol=1e-06, atol=1e-07)
+                np.isclose(
+                    np.real(complex_3._values),
+                    np.real(data._values[:, 1, ...]),
+                    rtol=1e-06,
+                    atol=1e-07,
+                )
             )
         )
         self.assertTrue(
             np.all(
-                np.isclose(np.imag(complex_3._values), np.imag(data._values[:, 3, ...]), rtol=1e-06, atol=1e-07)
+                np.isclose(
+                    np.imag(complex_3._values),
+                    np.imag(data._values[:, 3, ...]),
+                    rtol=1e-06,
+                    atol=1e-07,
+                )
             )
         )
 
         complex_3 = dnp.create_complex(data, "2")
         self.assertTrue(
             np.all(
-                np.isclose(np.real(complex_3._values), np.real(data._values[:, 0, ...]), rtol=1e-06, atol=1e-07)
+                np.isclose(
+                    np.real(complex_3._values),
+                    np.real(data._values[:, 0, ...]),
+                    rtol=1e-06,
+                    atol=1e-07,
+                )
             )
         )
         self.assertTrue(
             np.all(
-                np.isclose(np.imag(complex_3._values), np.imag(data._values[:, 1, ...]), rtol=1e-06, atol=1e-07)
+                np.isclose(
+                    np.imag(complex_3._values),
+                    np.imag(data._values[:, 1, ...]),
+                    rtol=1e-06,
+                    atol=1e-07,
+                )
             )
         )
 
