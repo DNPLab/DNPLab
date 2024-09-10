@@ -59,7 +59,7 @@ def import_specman(
         new_dims = None
 
     if autodetect_coords:
-        coords = calculate_specman_coords(attrs, new_dims)
+        coords = calculate_specman_coords(attrs, coords, new_dims)
 
     # Add import path
     attrs["import_path"] = path
@@ -227,11 +227,17 @@ def analyze_attrs(attrs):
             new_key = key.split("params_")[1]  # get key value for temp dictionary
             val = val.split(";")[0]  # remove non value related information
             val_list = val.split(" ")  # split value string for further analyze
+            unit = None
+            if len(val_list) > 1:
+                unit = val_list[-1]  # get unit
 
             val = val_list[0].strip(",")
             val_unit = val_list[1] if len(val_list) == 5 else None
             temp[new_key] = int(val) if "." not in val else float(val)
             temp[new_key] *= _convert_unit(val_unit)
+            
+            if unit is not None:
+                temp[new_key + "_unit"] = unit
 
             if "step" in val_list:  # when it indicate the step
                 step_index = (
@@ -296,7 +302,7 @@ def generate_dims(attrs):
     return dims
 
 
-def calculate_specman_coords(attrs, dims=None):
+def calculate_specman_coords(attrs, old_coords, dims=None):
     """Generate coords from specman acquisition parameters
 
     Args:
@@ -310,7 +316,7 @@ def calculate_specman_coords(attrs, dims=None):
     kw = attrs["axis_order"]
     coords = []
     lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
-    lengths.append(2)
+    lengths.append(len(old_coords[-1]))
 
     if not dims:
         dims = generate_dims(attrs)
@@ -334,6 +340,16 @@ def calculate_specman_coords(attrs, dims=None):
             )
         else:
             coord = _np.arange(0.0, length)
+            
+        if dim + "_unit" in attrs:
+            unit = attrs[dim + "_unit"]
+            if len(unit) != 1 and unit.lower() != "hz":
+                try:
+                    factor = scale_dict[unit[0]]
+                except KeyError:
+                    # note that sometimes the unit is 0.01 even tough it shoudl be 1, this needs more careful investigation
+                    factor = 1
+                coord *= factor
 
         coords.append(_np.array(coord))
     return coords
