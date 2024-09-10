@@ -116,13 +116,13 @@ def hamming(x):
 
 
 # FIX -> Function does not look correct
-def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
+def lorentz_gauss(x, lw, gauss_lw, gaussian_max=0):
     r"""Calculate lorentz-gauss window function
 
     Args:
         x (array_like): vector of points
         N(int): number of points to return in window function
-        exp_lw (int or float): exponential linewidth
+        lw (int or float): exponential linewidth
         gauss_lw (int or float): gaussian linewidth
         gaussian_max (int): location of maximum in gaussian window
 
@@ -138,7 +138,7 @@ def lorentz_gauss(x, exp_lw, gauss_lw, gaussian_max=0):
     """
 
     N = len(x)
-    expo = _const.pi * x * exp_lw
+    expo = _const.pi * x * lw
     gaus = 0.6 * _const.pi * gauss_lw * (gaussian_max * (N - 1) - x)
     return _np.exp(expo - gaus**2).reshape(N)
 
