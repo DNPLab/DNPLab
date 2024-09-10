@@ -7,6 +7,7 @@ import numpy as np
 import logging
 import sys
 import pathlib
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,8 @@ class dnpTools_tester(unittest.TestCase):
         y = np.array([x**2.0, x**3.0]).T
 
         # leads to warning
-        rnd_data = dnp.DNPData(y, ["t2", "bla"], [x])
+        rnd_data = dnp.DNPData(y, ["t2", "bla"], [x,x])
+
         dnp.processing.create_complex(rnd_data, data_r, data_c)
 
         # needs integrals:
@@ -250,12 +252,15 @@ class dnpTools_tester(unittest.TestCase):
         npCoords = [np.arange(k) + np.random.randint(10) for k in npDat.shape]
         npDims = ["1", "2", "3", "4", "5"]
 
-        data = dnp.DNPData(npDat, npDims, npCoords)
+        data=dnp.DNPData(npDat,npDims,npCoords)
 
         complex_2 = dnp.create_complex(data, "2")
-        complex_1 = dnp.create_complex(
-            data, data._values[:, 0, ...], data._values[:, 1, ...]
-        )
+        #this  operation will make data inconsistent and issue a warning, also complex_1 will be inconsistent, this is due to the old implementation of create_complex, therefore use catch_warnings context manager
+        complex_1=None
+        with warnings.catch_warnings() as w:
+            warnings.simplefilter("ignore")
+            complex_1 = dnp.create_complex(data,data._values[:,0,...],data._values[:,1,...])
+
 
         self.assertEqual(complex_1.shape, complex_2.shape)
         self.assertEqual((100, 25, 1, 10), complex_2.shape)

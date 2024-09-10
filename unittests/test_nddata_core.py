@@ -206,6 +206,18 @@ class dnplab_ABCData_core_tester(unittest.TestCase):
         b = DNPObj3**2
         self.assertTrue(np.all(np.isclose(np.power(DNPObj3.values, 2) - b, 0)))
 
+    def test_004_defaultCoordDim(self):
+        import dnplab as dnp
+        a = np.empty((10,0,5))
+        b = np.empty((100,10,2))
+        d0 = dnp.DNPData(a)
+        d1 = dnp.DNPData(b)
+
+        self.assertEqual( d1.dims, ["x0","x1","x2"])
+        self.assertEqual( d0.dims, [])
+        self.assertEqual( d0.coords._coords, [])
+
+
 
 class dnplab_ABCData_coord_tester(unittest.TestCase):
     def setUp(self):
