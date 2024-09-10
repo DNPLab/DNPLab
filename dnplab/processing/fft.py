@@ -74,7 +74,9 @@ def fourier_transform(
 
     if convert_to_ppm:
         if "nmr_frequency" not in out.attrs and "topspin" not in out.attrs:
-            print("NMR frequency not found in the attrs dictionary. Conversion from ppm to Hz requires the NMR frequency.")
+            print(
+                "NMR frequency not found in the attrs dictionary. Conversion from ppm to Hz requires the NMR frequency."
+            )
 
         # linked to topspin.py through special attr "_topspin_procs_offset"
         elif out.attrs.get("_topspin_procs_offset", False) is not False:
