@@ -235,7 +235,7 @@ def analyze_attrs(attrs):
             val_unit = val_list[1] if len(val_list) == 5 else None
             temp[new_key] = int(val) if "." not in val else float(val)
             temp[new_key] *= _convert_unit(val_unit)
-            
+
             if unit is not None:
                 temp[new_key + "_unit"] = unit
 
@@ -340,7 +340,7 @@ def calculate_specman_coords(attrs, old_coords, dims=None):
             )
         else:
             coord = _np.arange(0.0, length)
-            
+
         if dim + "_unit" in attrs:
             unit = attrs[dim + "_unit"]
             if len(unit) != 1 and unit.lower() != "hz":
