@@ -104,6 +104,9 @@ class specman_import_tester(unittest.TestCase):
 
     def test_import_specman_2D(self):
         data = dnp.load(self.test_data_2D, data_format="specman")
+        print(data)
+        for key in data.attrs:
+            print(key, data.attrs[key])
         self.assertEqual(data.dims, ["x0", "x1", "x2"])
         self.assertEqual(data.values.shape, (1500, 80, 2))
 
@@ -111,7 +114,11 @@ class specman_import_tester(unittest.TestCase):
         data = dnp.load(self.test_data_4D, data_format="specman")
         self.assertEqual(data.dims, ["x0", "x1", "x2", "x3", "x4"])
         self.assertEqual(data.values.shape, (1500, 40, 5, 3, 2))
-
+        
+    def test_import_specman_4D_with_autodetect(self):
+        data = dnp.load(self.test_data_4D, data_format="specman", autodetect_dims = True, autodetect_coords = True)
+        self.assertEqual(data.dims, ['t2', 'Fr_pump', 'offset1', 'tsquare', 'x'])
+        self.assertEqual(data.values.shape, (1500, 40, 5, 3, 2))
 
 class bes3t_import_tester(unittest.TestCase):
     def setUp(self):
