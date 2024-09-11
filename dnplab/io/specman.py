@@ -266,7 +266,7 @@ def analyze_attrs(attrs):
             if len(axis) > 1 and axis[-1] == "f":  # is monitor
                 axis = axis[:-1]
             new_key = "sweep_" + axis
-            if new_key not in ["sweep_T", "sweep_P", "sweep_I", "sweep_S"]:
+            if new_key not in ["sweep_P", "sweep_I", "sweep_S"]:
                 axis_order.append(new_key)
             temp[new_key + "_length"] = int(val)
             temp[new_key + "_monitor"] = (
