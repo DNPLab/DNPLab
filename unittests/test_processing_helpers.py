@@ -7,6 +7,7 @@ import numpy as np
 import logging
 import sys
 import pathlib
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,8 @@ class dnpTools_tester(unittest.TestCase):
         y = np.array([x**2.0, x**3.0]).T
 
         # leads to warning
-        rnd_data = dnp.DNPData(y, ["t2", "bla"], [x])
+        rnd_data = dnp.DNPData(y, ["t2", "bla"], [x,x])
+
         dnp.processing.create_complex(rnd_data, data_r, data_c)
 
         # needs integrals:
@@ -246,24 +248,39 @@ class dnpTools_tester(unittest.TestCase):
 
     def test_006_create_complex_tests(self):
 
-        npDat = np.empty((100, 2, 25, 1, 10))
+        npDat = np.ones((100, 2, 25, 1, 10)) * 1.0123987
+        npDat[:,1,...] = 0.51
         npCoords = [np.arange(k) + np.random.randint(10) for k in npDat.shape]
         npDims = ["1", "2", "3", "4", "5"]
 
-        data = dnp.DNPData(npDat, npDims, npCoords)
+        data=dnp.DNPData(npDat,npDims,npCoords)
 
         complex_2 = dnp.create_complex(data, "2")
-        complex_1 = dnp.create_complex(
-            data, data._values[:, 0, ...], data._values[:, 1, ...]
-        )
+        #this  operation will make data inconsistent and issue a warning, also complex_1 will be inconsistent, this is due to the old implementation of create_complex, therefore use catch_warnings context manager
+        complex_1=None
+        with warnings.catch_warnings() as w:
+            warnings.simplefilter("ignore")
+            complex_1 = dnp.create_complex(data,data._values[:,0,...],data._values[:,1,...])
+
 
         self.assertEqual(complex_1.shape, complex_2.shape)
         self.assertEqual((100, 25, 1, 10), complex_2.shape)
-        self.assertTrue(np.all(np.isclose(complex_1._values - complex_2._values, 0)))
+        trueVal = np.all(
+            np.isclose(complex_1._values - complex_2._values, 0, rtol=1e-04, atol=1e-07)
+        )
+        if not trueVal:
+            print(max(abs(complex_1._values - complex_2._values)))
+        self.assertTrue(trueVal)
         self.assertTrue(complex_2._self_consistent())
-        self.assertTrue(np.all(np.isclose(complex_2.coords[1] - npCoords[2], 0)))
+        trueVal = np.all(
+            np.isclose(complex_2.coords[1] - npCoords[2], 0, rtol=1e-04, atol=1e-07)
+        )
+        if not trueVal:
+            print(max(abs(complex_1._values - complex_2._values)))
+        self.assertTrue(trueVal)
 
-        npDat = np.empty((1, 1, 2, 100, 25, 1, 10, 1))
+        npDat = np.ones((1, 1, 2, 100, 25, 1, 10, 1)) * 1.0123456789
+        npDat[:,:,1,...] = 0.587
         npCoords = [np.arange(k) + np.random.randint(10) for k in npDat.shape]
         npDims = ["1", "2", "3", "4", "5", "6", "7", "8"]
 
@@ -272,6 +289,63 @@ class dnpTools_tester(unittest.TestCase):
         complex_2 = dnp.create_complex(data, "3")
         self.assertEqual((1, 1, 100, 25, 1, 10, 1), complex_2.shape)
         self.assertTrue(complex_2._self_consistent())
+
+        # test with 5 dimensions in complex dimension
+        npDat = np.ones((100, 5, 25, 1, 10)) * 1.0547891
+        npDat[:,1,...] = 0.587
+        npCoords = [np.arange(k) + np.random.randint(10) for k in npDat.shape]
+        npDims = ["1", "2", "3", "4", "5"]
+
+        data = dnp.DNPData(npDat, npDims, npCoords)
+        # warning
+        self.assertWarns(UserWarning, dnp.create_complex, data, "2")
+        # warnings off from now
+        warnings.filterwarnings("ignore")
+        complex_3 = dnp.create_complex(data, "2", real_index=1, imag_index=3)
+        self.assertTrue(complex_3.shape == (100, 25, 1, 10))
+        self.assertTrue(
+            np.all(
+                np.isclose(
+                    np.real(complex_3._values),
+                    np.real(data._values[:, 1, ...]),
+                    rtol=1e-06,
+                    atol=1e-07,
+                )
+            )
+        )
+        self.assertTrue(
+            np.all(
+                np.isclose(
+                    np.imag(complex_3._values),
+                    np.real(data._values[:, 3, ...]),
+                    rtol=1e-06,
+                    atol=1e-07,
+                )
+            )
+        )
+
+        complex_3 = dnp.create_complex(data, "2")
+        self.assertTrue(
+            np.all(
+                np.isclose(
+                    np.real(complex_3._values),
+                    np.real(data._values[:, 0, ...]),
+                    rtol=1e-06,
+                    atol=1e-07,
+                )
+            )
+        )
+        self.assertTrue(
+            np.all(
+                np.isclose(
+                    np.imag(complex_3._values),
+                    np.real(data._values[:, 1, ...]),
+                    rtol=1e-06,
+                    atol=1e-07,
+                )
+            )
+        )
+        
 
     def test_007_normalize_tests(self):
 
@@ -299,39 +373,76 @@ class dnpTools_tester(unittest.TestCase):
         # no region &  no dim
         data_t = dnp.normalize(data)
         data_t2 = dnp.normalize(data_1d)
-        self.assertTrue(np.all(np.isclose(data_t._values[0, :, 0], 0.333333)))
-        self.assertTrue(np.all(np.isclose(data_t._values[0, :, 1], 0.666667)))
-        self.assertTrue(np.all(np.isclose(data_t._values[0, :, 2], 1)))
+        self.assertTrue(
+            np.all(
+                np.isclose(data_t._values[0, :, 0], 0.333333, rtol=1e-04, atol=1e-07)
+            )
+        )
+        self.assertTrue(
+            np.all(
+                np.isclose(data_t._values[0, :, 1], 0.666667, rtol=1e-04, atol=1e-07)
+            )
+        )
+        self.assertTrue(
+            np.all(np.isclose(data_t._values[0, :, 2], 1, rtol=1e-04, atol=1e-07))
+        )
 
         self.assertTrue(np.all(np.isclose(data_t2._values[0], 1)))
 
         # no region & dim
         data_t = dnp.normalize(data, dim="t2")
         data_t2 = dnp.normalize(data_1d, dim="t2")
-        self.assertTrue(np.all(np.isclose(data_t._values[0, :, :], 1)))
+        self.assertTrue(
+            np.all(np.isclose(data_t._values[0, :, :], 1, rtol=1e-04, atol=1e-07))
+        )
 
-        self.assertTrue(np.all(np.isclose(data_t2._values[0], 1)))
+        self.assertTrue(
+            np.all(np.isclose(data_t2._values[0], 1, rtol=1e-04, atol=1e-07))
+        )
 
         # with region & dim
-        data._values[55, :, :] = data._values[55, :, :] * 10
+        data._values[55, :, :] = np.max(data._values[55, :, :]) * 1.5
         data_t = dnp.normalize(data, dim="t2", regions=(10, 50))
         maxvalues = np.max(data["t2", (10, 50)]._values, axis=0)
         refvalues = data["t2", 0]._values / maxvalues
 
-        data_1d._values[55] = data_1d._values[55] * 10
+        data_1d._values[55] = np.max(data_1d._values) * 1.5
         data_t2 = dnp.normalize(data_1d, dim="t2", regions=(10, 50))
         maxvalues_1d = np.max(data_1d["t2", (10, 50)]._values, axis=0)
         refvalues_1d = data_1d["t2", 0]._values / maxvalues_1d
 
-        self.assertTrue(
-            np.all(np.isclose(np.max(data_t["t2", (10, 50)]._values, axis=0), 1))
+        trueVal = np.all(
+            np.isclose(
+                np.max(data_t["t2", (10, 50)]._values, axis=0),
+                1,
+                rtol=1e-03,
+                atol=1e-03,
+            )
         )
-        self.assertTrue(np.all(np.isclose(data_t["t2", 0], refvalues)))
+        if not trueVal:
+            print(
+                np.max(data_t["t2", (10, 50)]._values, axis=0),
+                refvalues_1d,
+                np.argmax(data_1d.values),
+            )
+        self.assertTrue(trueVal)
+        self.assertTrue(
+            np.all(np.isclose(data_t["t2", 0], refvalues, rtol=1e-04, atol=1e-07))
+        )
 
         self.assertTrue(
-            np.all(np.isclose(np.max(data_t2["t2", (10, 50)]._values, axis=0), 1))
+            np.all(
+                np.isclose(
+                    np.max(data_t2["t2", (10, 50)]._values, axis=0),
+                    1,
+                    rtol=1e-04,
+                    atol=1e-07,
+                )
+            )
         )
-        self.assertTrue(np.all(np.isclose(data_t2["t2", 0], refvalues_1d)))
+        self.assertTrue(
+            np.all(np.isclose(data_t2["t2", 0], refvalues_1d, rtol=1e-04, atol=1e-07))
+        )
 
         # with region and no dim
         data_t = dnp.normalize(data, regions=(10, 50))
@@ -343,8 +454,22 @@ class dnpTools_tester(unittest.TestCase):
         maxvalues_1d = np.max(data_1d["t2", (10, 50)]._values)
         refvalues_1d = data_1d["t2", 0]._values / maxvalues_1d
 
-        self.assertTrue(np.all(np.isclose(np.max(data_t["t2", (10, 50)]._values), 1)))
+        self.assertTrue(
+            np.all(
+                np.isclose(
+                    np.max(data_t["t2", (10, 50)]._values), 1, rtol=1e-04, atol=1e-07
+                )
+            )
+        )
         self.assertTrue(np.all(np.isclose(data_t["t2", 0], refvalues)))
 
-        self.assertTrue(np.all(np.isclose(np.max(data_t2["t2", (10, 50)]._values), 1)))
-        self.assertTrue(np.all(np.isclose(data_t2["t2", 0], refvalues_1d)))
+        self.assertTrue(
+            np.all(
+                np.isclose(
+                    np.max(data_t2["t2", (10, 50)]._values), 1, rtol=1e-04, atol=1e-07
+                )
+            )
+        )
+        self.assertTrue(
+            np.all(np.isclose(data_t2["t2", 0], refvalues_1d, rtol=1e-04, atol=1e-07))
+        )

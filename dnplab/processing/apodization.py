@@ -30,11 +30,11 @@ def apodize(data, dim="t2", kind="exponential", **kwargs):
 
         Exponential line broadening using a line width of 2 Hz along the f2 dimension
 
-        >>> data = dnp.apodize(data, exp_lw = 2)
+        >>> data = dnp.apodize(data, lw = 2)
 
         Lorentz-Gauss transformation:
 
-        >>> data = dnp.apodize(data, dim = 't2', kind = 'lorentz_gauss', exp_lw = 4, gauss_lw = 8)
+        >>> data = dnp.apodize(data, dim = 't2', kind = 'lorentz_gauss', lw = 4, gauss_lw = 8)
 
     Functions:
 
