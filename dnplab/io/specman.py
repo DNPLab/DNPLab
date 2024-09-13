@@ -266,7 +266,7 @@ def analyze_attrs(attrs):
             if len(axis) > 1 and axis[-1] == "f":  # is monitor
                 axis = axis[:-1]
             new_key = "sweep_" + axis
-            if new_key not in ["sweep_T", "sweep_P", "sweep_I"]:
+            if new_key not in ["sweep_P", "sweep_I", "sweep_S"]:
                 axis_order.append(new_key)
             temp[new_key + "_length"] = int(val)
             temp[new_key + "_monitor"] = (
@@ -340,17 +340,6 @@ def calculate_specman_coords(attrs, old_coords, dims=None):
             )
         else:
             coord = _np.arange(0.0, length)
-
-        if dim + "_unit" in attrs:
-            unit = attrs[dim + "_unit"]
-            if len(unit) != 1 and unit.lower() != "hz":
-                try:
-                    factor = scale_dict[unit[0]]
-                except KeyError:
-                    # note that sometimes the unit is 0.01 even tough it shoudl be 1, this needs more careful investigation
-                    factor = 1
-                coord *= factor
-
         coords.append(_np.array(coord))
     return coords
 
