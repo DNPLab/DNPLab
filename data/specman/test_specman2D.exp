@@ -1,13 +1,14 @@
 [general]
 version = 1.1
-demon = 2.7.32
-name = Experiment
-dconfig = UCSB v5.0 Chase AWG only PTS.cfg
-pconfig = UCSB v5.0 Chase AWG only PTS.cfp
+demon = 3.6.5
+name = 4-Pulse DEER CPMG-2
+dconfig = CNIGM0114rev1.cfg
+pconfig = CNIGM0114rev1.cfp
+specmode = 
 normalized = false
-starttime = Sat Aug 15 15:43:10 2020
-finishtime = Sat Aug 15 17:44:51 2020
-totaltime = 2h 1min 41s
+starttime = Tue Jul 23 16:09:55 2024
+finishtime = Tue Jul 23 16:50:01 2024
+totaltime = 0h 40min 6s
 tformat = 1
 stream_axis = 256
 no_auto_save = 0
@@ -15,71 +16,113 @@ no_auto_save = 0
 [text]
 
 [sweep]
-transient = T,1500,100,a,b
-sweep0 = S,2,1,ph
-sweep1 = X,60,1,Fr_pump
-sweep2 = Y,8,1,Fr_probe
-sweep3 = P,1,1,VoltageOut_0,tp,tau,Scale,taq,RepTime,tsat,td
+transient = T,4500,500,a,b
+sweep0 = S,16,1,idx
+sweep1 = X,252,1,t
+sweep2 = P,1,1,RepTime,Sampling,tdelay,f,t90,t180,ModulationFrequency,ModulationBandwidth,t_eldor,f_eldor,tau2,amp_eldor,tau1,amp
 
 [aquisition]
-a = ;a;A@AQ
-b = ;a;B@AQ
+a = ;a;A@DG
+b = ;a;B@DG
 
 [params]
-ph = 1, 2;p;PPL variable
-Fr_pump = 193.3 GHz step 20 MHz;p;Frequency@EPRMAIN
-Fr_probe = 193.63 GHz step 10 MHz;p;Frequency@ELDOR
-VoltageOut_0 = 0 V;p;VoltageOut_0@AO
-tp = 750 ns;p;PPL variable
-tau = 500 ns;p;PPL variable
-Scale = 4;p;Scale@AQ
-taq = 400 ns;p;PPL variable
-RepTime = 75 ms;p;PPL variable
-tsat = 10 ms;p;PPL variable
-td = 10 us;p;PPL variable
+idx = 1 step 1;p;PPL variable
+t = -100 ns step 16 ns;p;PPL variable
+RepTime = 1 ms;p;PPL variable
+Sampling = 800 ps;p;Sampling@DG
+tdelay = -200 ns;p;PPL variable
+f = 500 MHz;p;PPL variable
+t90 = 16 ns;p;PPL variable
+t180 = 32 ns;p;PPL variable
+ModulationFrequency = 500 MHz;p;ModulationFrequency@DG
+ModulationBandwidth = 10 MHz;p;ModulationBandwidth@DG
+t_eldor = 10 ns;p;PPL variable
+f_eldor = 590 MHz;p;PPL variable
+tau2 = 4 us;p;PPL variable
+amp_eldor = 1;p;PPL variable
+tau1 = 180 ns;p;PPL variable
+amp = 0.1;p;PPL variable
 
 [decision]
 
 [streams]
 names = Re, Im
-units = bit, bit
-dwelltime = 2 ns, 2 ns
+units = V, V
+dwelltime = 800 ps, 800 ps
 triggers = 1
 scans = 1, 1
 
 [program]
-signal a, b
-
-time tp, td, tsat, tau, taq 
-
-int ph
-
-phase1 = [0, 180/16]
-
-det_a = [a,-a]
-det_b = [b,-b]
-
-sets1 = [0.95, 0, phase1(ph)]
-sets2 = [0.95, 0, 0]
+time tdelay, t, tau1, tau2, t90, t180, t_eldor
+frequency f, f_eldor
+%%phase ph90,ph180
+real amp, amp_eldor
+signal a,b
+int idx
 
 
-mwpulse tsat, 1
 
-wait td
+%% F. Mentink-Vigier et al. 2013
+ph90 = [0, 180, 0, 180, 0, 180, 0, 180, 0, 180, 0, 180, 0, 180, 0, 180]
+ph180_1 = [0, 0, 0, 0, 180, 180, 180, 180, 0, 0, 0, 0, 180, 180, 180, 180]
+ph180_2 = [0, 0, 0, 0, 0, 0, 0, 0, 180, 180, 180, 180, 180, 180, 180, 180]
+ph_eldor = [0, 0, 180, 180, 0, 0, 180, 180, 0, 0, 180, 180, 0, 0, 180, 180]
+ph_CPMG_1 = [0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0]
+ph_CPMG_2 = [180,180,180,180, 180,180,180,180, 180,180,180,180, 180,180,180,180]
 
-awgtrig 100ns
-marker 10ns
-
-square tp, sets1, 1
-
-wait tau
-
-square tp, sets2, 1
+det1 = [-a, a, -a, a, -a, a, -a, a, -a, a, -a, a, -a, a, -a, a]
+det2 = [-b, b, -b, b, -b, b, -b, b, -b, b, -b, b, -b, b, -b, b]
 
 
-wait tau-taq
+set90 = [amp, f, ph90(idx)]
+set180_1 = [amp, f, ph180_1(idx)]
+set180_2 = [amp, f, ph180_2(idx)]
+set_eldor = [amp_eldor, f_eldor, ph_eldor(idx)]
+set_CPMG_1 = [amp, f, ph_CPMG_1(idx)]
+set_CPMG_2 = [amp, f, ph_CPMG_2(idx)]
 
-detect det_a(ph), det_b(ph)
+reference f
+trig 100ns
+wait 100ns
+
+timezero
+
+awg t90, set90  %%90-pulse
+wait tau1 - (t90+t180)/2
+awg t180, set180_1 %%180-pulse
+wait tau1 + t - t180
+awg t_eldor, set_eldor %%pulse pulse
+wait tau2 - t - t180
+awg t180, set180_2 %% 180-pulse
+
+wait tau2 - (t180/2) + tdelay
+detect det1(idx), det2(idx)
+wait -1*tdelay
+
+wait 2*tau1 - t180
+awg t180, set_CPMG_1 %% CPMG #1
+wait 4*tau1 - t180
+awg t180, set_CPMG_2 %% CPMG #2
+
+wait 4*tau1 - t180
+awg t180, set_CPMG_1 %% CPMG #3
+wait 4*tau1 - t180
+awg t180, set_CPMG_2 %% CPMG #4
+
+%%wait 4*tau1 - t180
+%%awg t180, set_CPMG_1 %% CPMG #5
+%%wait 4*tau1 - t180
+%%awg t180, set_CPMG_2 %% CPMG #6
+
+%%wait 4*tau1 - t180
+%%awg t180, set_CPMG_1 %% CPMG #7
+%%wait 4*tau1 - t180
+%%awg t180, set_CPMG_2 %% CPMG #8
+
+%%wait 4*tau1 - t180
+%%awg t180, set_CPMG_1 %% CPMG #9
+%%wait 4*tau1 - t180
+%%awg t180, set_CPMG_2 %% CPMG #10
 
 [presetup]
 
@@ -88,16 +131,16 @@ detect det_a(ph), det_b(ph)
 [eachpoint]
 
 [scope]
-dfScopeIntWindowPos = 275
-dfScopeIntWindowWidth = 154
-dfScopeBaselinePos1 = 0
-dfScopeBaselineWidth1 = 50
-dfScopeBaselinePos2 = 51
-dfScopeBaselineWidth2 = 50
-dfScopeBaselineOpt = 0
+dfScopeIntWindowPos = 50
+dfScopeIntWindowWidth = 163
+dfScopeBaselinePos1 = 750
+dfScopeBaselineWidth1 = 200
+dfScopeBaselinePos2 = 750
+dfScopeBaselineWidth2 = 200
+dfScopeBaselineOpt = -1
 
 [pack]
-PackAxis = 0
+PackAxis = 1
 MaxSeqPerShot = 0
 
 
@@ -105,6 +148,16 @@ MaxSeqPerShot = 0
 WarmUp = 0
 WarmUpScans = 0
 WarmUpTime = 0 s
+
+
+[processing]
+ProcessingAlgorithm = 
+
+[scripts]
+ScriptStart = *****
+ScriptStart_0 = *****
+ScriptStop = *****
+ScriptStop_0 = *****
 
 
 [System]
@@ -122,96 +175,93 @@ MTDelay = 10 ms
 Wait = 10 ms
 Time = 10 ms
 
-[PB]
-Trigger = Internal
-Cycles = As specified
+[SRC]
+FrequencyA = 9.1 GHz
+EnableA = On
+PowerA = 10 dBm
+FrequencyB = 12.4525 GHz
+EnableB = On
+PowerB = 15 dBm
+TuneDwTime = 1 ms
+Sweep = 10 MHz
+Phase = 0 deg
 
-[AQ]
-Scale = ± 100 mV
-Offset = 0 V
-Coupling = DC, 50Ohm
-Bandwidth = 200MHz
-Sampling = 2 ns
-TraceLength = 100 us
+[BRIDGE]
+Configuration = On
+Frequency = 34.005 GHz
+LO1 = 9.1 GHz
+LO2 = 12.4525 GHz
+AWGLO = LO1
+RecvLOAtten = 0 dB
+VideoGain = 40 dB
+RecvAmp = Enable
+VideoAmp = Enable
+VCA = 5 V
+DAC1 = 0 V
+Ext1 = Off
+Ext2 = Off
+Ext3 = Off
+Ext4 = Off
+Ext5 = Off
+Ext6 = Off
+Ext7 = Off
+Ext8 = Off
+IO1 = Off
+IO2 = Off
+IO3 = Off
+
+[AWG]
+Mode = AWG
+Clock = 10 GHz
+Output1 = On
+Output2 = On
+Frequency = 500 MHz
+Span = 500 MHz
+RampDuty = 20 %
+RampTime = 9 us
+Trigger = Internal
+TriggerEdge = Rising
+
+[DG]
+Scale = ± 500 mV
+Offset = 0 %
+Coupling = DC
+Bandwidth = No filter
+Sampling = 800 ps
+TraceLength = 0 s
 Delay = 0 s
-Trigger = External
+Trigger = External1
 T_Coupling = DC
 T_Slope = __/^^
-T_Level = 15 %
-T_Level2 = 10 %
+T_Level = 800 mV
+AcquisitionMode = Averager
+ModulationFrequency = 500 MHz
+ModulationBandwidth = 10 MHz
+ModulationPhase = 317 deg
 
-[EPRMAIN]
-Frequency = 194.48 GHz
-Attenuator = 3.5 V
-SetTime = 0 s
+[FLD]
+Control = Remote
+AutoControl = Run&Tune
+Monitoring = Always
+Field = 1.22206 T
+FieldOffset = 0 T
+FieldAUX = 1.22206 T
+SweepRate = 300 uT/s
+SetFieldRate = Normal
+SetDelay = 0 s
+SetMode = Set
+RampComp = 1
 
-[LOCK]
-Sensitivity = 100 mV/nA
-Time constant = 30 ms
-Phase = 0 deg
-SineOutput = 5 V
-SineFreq = 20 Hz
-NotchFilter = Out
-InputCoupling = AC
-Auto = Phase
-
-[LOCKSLAVE]
-Sensitivity = 2 nV/fA
-Time constant = 10 us
-Phase = 0 deg
-SineOutput = 4 mV
-SineFreq = 0 Hz
-NotchFilter = Out
-InputCoupling = AC
-Auto = Phase
-
-[AO]
-TrigMode = Normal
-AOsettlingTime = 0 s
-AIfrequency = 1 kHz
-VoltageOut_0 = 0 V
-VoltageOut_1 = 0 V
-
-[EIP]
-Band = Band 3
-Bandwidth = Auto
-Resolution = 1 kHz
-Source = 1 GHz
-
-[EPRRECIEVE]
-Frequency = 1 GHz
-Attenuator = 0 V
-SetTime = 0 s
-
-[ELDOR]
-Mode = Frequency
-Frequency = 193.7 GHz
-StartFrequency = 1 GHz
-StopFrequency = 1 GHz
-Period = 0 s
-ModMode = None
-ModFrequency = 0 Hz
-ModDepth = 0 Hz
-Attenuator = 0 V
-
-[AI]
-TrigMode = Normal
-AOsettlingTime = 0 s
-AIfrequency = 1 kHz
-
-[AWGCHASE]
-Trigger = External
-TriggerEdge = Rising
-OffsetI = 0
-OffsetQ = 0
-GainIQ = 0
-Scew = 0 deg
-
-[PTS_ENDOR]
-Frequency = 100 kHz
-
-[PTS-recieve]
-Frequency = 187.5 MHz
+[PROBE]
+X = 0 m
+Y = 0 m
+Z = 5 mm
+Xoff = 0 m
+Yoff = 0 m
+Zoff = 0 m
+Rate = 4 m/min
+SettlingTime = 20 ms
+Stepper = Enabled steppers
 
 [sample_info]
 sample_info = **T**

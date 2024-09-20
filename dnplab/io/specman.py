@@ -3,6 +3,18 @@ import os
 import dnplab as _dnp
 import re
 
+scale_dict = {
+    "p": 1e-12,
+    "n": 1e-9,
+    "u": 1e-6,
+    "m": 1e-3,
+    "1": 1,
+    "k": 1e3,
+    "M": 1e6,
+    "G": 1e9,
+    "T": 1e12,
+}
+
 
 def import_specman(
     path, autodetect_coords: bool = False, autodetect_dims: bool = False
@@ -34,10 +46,11 @@ def import_specman(
         raise TypeError("Incorrect file type, must be .d01 or .exp")
 
     attrs = load_specman_exp(file_name_exp)
-    data, dims, coords, attrs = load_specman_d01(file_name_d01, attrs)
 
     if autodetect_coords or autodetect_dims:
         attrs = analyze_attrs(attrs)
+
+    data, dims, coords, attrs = load_specman_d01(file_name_d01, attrs)
 
     if autodetect_dims:
         new_dims = generate_dims(attrs)
@@ -46,7 +59,7 @@ def import_specman(
         new_dims = None
 
     if autodetect_coords:
-        coords = calculate_specman_coords(attrs, new_dims)
+        coords = calculate_specman_coords(attrs, coords, new_dims)
 
     # Add import path
     attrs["import_path"] = path
@@ -144,12 +157,25 @@ def load_specman_d01(path, attrs, verbose=False):
 
     data = float_read[attrs["dataStartIndex"] :]
 
+    monitor_dict = {}
+    for key in attrs:
+        if "_monitor" in key and attrs[key] == True:
+            monitor_length = attrs[key.replace("_monitor", "_length")]
+            monitor_data, data = (
+                data[-monitor_length:],
+                data[:-monitor_length],
+            )  # shift monitor axis
+            monitor_dict[key + "_data"] = monitor_data
+            uint_read[0] -= 1  # reduce number of axis
+
+    attrs = {**attrs, **monitor_dict}
+
     if attrs["dims"] == 1:
         data = _np.reshape(data, (uint_read[0], uint_read[3]), order="C")
 
     elif attrs["dims"] == 2:
         data = _np.reshape(data, (uint_read[0], uint_read[4], uint_read[3]), order="C")
-
+        # data  =  _np.reshape(data[:-101], (2, 101, 101), order="C")
     elif attrs["dims"] == 3:
         data = _np.reshape(
             data, (uint_read[0], uint_read[5], uint_read[4], uint_read[3]), order="C"
@@ -195,35 +221,63 @@ def analyze_attrs(attrs):
     """
 
     temp = {}
+    axis_order = []
     for key, val in attrs.items():
         if "params_" in key:
             new_key = key.split("params_")[1]  # get key value for temp dictionary
             val = val.split(";")[0]  # remove non value related information
             val_list = val.split(" ")  # split value string for further analyze
+            unit = None
+            if len(val_list) > 1:
+                unit = val_list[-1]  # get unit
+
             val = val_list[0].strip(",")
+            val_unit = val_list[1] if len(val_list) == 5 else None
             temp[new_key] = int(val) if "." not in val else float(val)
+            temp[new_key] *= _convert_unit(val_unit)
+
+            if unit is not None:
+                temp[new_key + "_unit"] = unit
+
             if "step" in val_list:  # when it indicate the step
                 step_index = (
                     val_list.index("step") + 1
                 )  # the index of the value of 'step' is equal to the index of string 'index' + 1
-                step = float(val_list[step_index])
+                step_unit = (
+                    val_list[val_list.index("step") + 2] if len(val_list) == 5 else None
+                )
+                step = float(val_list[step_index]) * _convert_unit(step_unit)
                 temp[new_key + "_step"] = step
 
             if "to" in val_list:  # when it indicate the stop
                 stop_index = (
                     val_list.index("to") + 1
                 )  # the index of the value of 'stop' is equal to the index of string 'index' + 1
-                stop = float(val_list[stop_index])
+                stop_unit = (
+                    val_list[val_list.index("to") + 2] if len(val_list) == 5 else None
+                )
+                stop = float(val_list[stop_index]) * _convert_unit(stop_unit)
                 temp[new_key + "_stop"] = stop
 
         if "sweep_" in key:
             val_list = val.split(",")
             val = val_list[1]  # get value
-            new_key = "sweep_" + val_list[0]
+            axis = val_list[0]
+            if len(axis) > 1 and axis[-1] == "f":  # is monitor
+                axis = axis[:-1]
+            new_key = "sweep_" + axis
+            if new_key not in ["sweep_P", "sweep_I", "sweep_S"]:
+                axis_order.append(new_key)
             temp[new_key + "_length"] = int(val)
+            temp[new_key + "_monitor"] = (
+                True
+                if (len(val_list) == 5 and val_list[3] + "M" == val_list[-1])
+                else False
+            )  # check monitoring axis
             # new_key += '_dim' # last item is the key to the parameters, such as t, p...
-            temp[new_key + "_dim"] = val_list[-1]
+            temp[new_key + "_dim"] = val_list[3]
 
+    attrs["axis_order"] = axis_order
     attrs = {**attrs, **temp}
     return attrs
 
@@ -238,18 +292,17 @@ def generate_dims(attrs):
         dims (list): a new dims
 
     """
-    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
+    kw = attrs["axis_order"]
     dims = [
         attrs[key + "_dim"] if key != "sweep_T" else "t2"
         for key in kw
         if key + "_dim" in attrs
     ]
     dims.append("x")
-
     return dims
 
 
-def calculate_specman_coords(attrs, dims=None):
+def calculate_specman_coords(attrs, old_coords, dims=None):
     """Generate coords from specman acquisition parameters
 
     Args:
@@ -260,10 +313,10 @@ def calculate_specman_coords(attrs, dims=None):
         coords (list): a calculated coords
     """
 
-    kw = ["sweep_T", "sweep_X", "sweep_Y", "sweep_Z"]
+    kw = attrs["axis_order"]
     coords = []
     lengths = [attrs[key + "_length"] for key in kw if key + "_length" in attrs]
-    lengths.append(2)
+    lengths.append(len(old_coords[-1]))
 
     if not dims:
         dims = generate_dims(attrs)
@@ -288,5 +341,15 @@ def calculate_specman_coords(attrs, dims=None):
         else:
             coord = _np.arange(0.0, length)
         coords.append(_np.array(coord))
-
     return coords
+
+
+def _convert_unit(unit_string=None) -> float:
+    if not unit_string:
+        return 1.0
+
+    if len(unit_string) != 1 and unit_string.lower() != "hz":
+        if unit_string[0] in scale_dict:
+            return scale_dict[unit_string[0]]
+
+    return 1.0

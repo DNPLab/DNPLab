@@ -1,12 +1,11 @@
 import numpy as _np
-from scipy.signal import savgol_filter
+from scipy.signal import savgol_filter as _savgol_filter
 
 from ..core.data import DNPData
-from ..processing.integration import integrate
-from ..processing.offset import remove_background as dnp_remove_background
+from ..processing.offset import remove_background as _dnp_remove_background
 from ..constants import constants as _const
 
-# import dnplab as dnp
+import warnings as _warnings
 
 from scipy.special import jv as _jv
 from scipy.fft import fft as _fft
@@ -86,10 +85,8 @@ def _create_complexEXT(data, real, imag):
 def _create_complexINT(dnpdata, dim, real=0, imag=1):
     try:
         if len(dnpdata.coords[dim]) != 2:
-            raise ValueError(
-                "create_complex: Dimension {0} has length {1} != 2".format(
-                    dim, len(dnpdata.coords[dim])
-                )
+            _warnings.warn(
+                "Dim {} has length > 2 ({}), use real and imag keywords! Not used elements are discarded."
             )
     except KeyError:
         raise KeyError(
@@ -104,22 +101,15 @@ def _create_complexINT(dnpdata, dim, real=0, imag=1):
         if k == dim:
             break
         cut_position = cut_position + 1
-    if real == 0 and imag == 1:
-        out[dim, 0] = out[dim, 0]._values + 1j * out[dim, 1]._values
-    elif real == 1 and imag == 0:
-        out[dim, 0] = out[dim, 1]._values + 1j * out[dim, 0]._values
-    else:
-        raise ValueError(
-            "create_complex: only real=0 and imag=1 or other way around allowed! you chose {}/{}".format(
-                real, imag
-            )
-        )
+    out[dim, 0] = out[dim, real]._values + 1j * out[dim, imag]._values
     axis_int = 0
     for k in dnpdata.dims:
         if k == dim:
             break
         axis_int = axis_int + 1
-    out._values = _np.delete(out._values, 1, axis=axis_int)
+    out._values = _np.delete(
+        out._values, slice(1, None, None), axis=axis_int
+    )  # list(range(out.shape[axis_int]))
     out.coords[dim] = _np.array([0])
 
     shape = out.shape
@@ -316,7 +306,7 @@ def signal_to_noise(
     # remove background
     if remove_background is not None:
         deg = kwargs.pop("deg", 1)
-        data = dnp_remove_background(data, dim, deg, remove_background)
+        data = _dnp_remove_background(data, dim, deg, remove_background)
 
     # unfold and calculate snr for each fold_index
     sdata = data
@@ -388,7 +378,7 @@ def smooth(data, dim="t2", window_length=11, polyorder=3):
 
     out.unfold(dim)
 
-    out.values = savgol_filter(out.values, window_length, polyorder, axis=0)
+    out.values = _savgol_filter(out.values, window_length, polyorder, axis=0)
 
     out.fold()
 
@@ -491,7 +481,7 @@ def left_shift(data, dim="t2", shift_points=0):
     return out
 
 
-def normalize(data, amplitude=True, dim="f2", regions=None):
+def normalize(data, amplitude=True, dim=None, regions=None):
     """Normalize spectrum
 
     The function is used to normalize the amplitude (or area) of a spectrum to a value of 1. The sign of the original data will be conserved.
@@ -499,22 +489,56 @@ def normalize(data, amplitude=True, dim="f2", regions=None):
     Args:
         data (DNPData):         Data object
         amplitude (boolean):    True: normalize amplitude, false: normalize area. The default is True
-        dim (str):              The dimension to normalize
-        regions (None, list):   List of tuples to specify range of normalize [(-99., 99.)]
+        dim (str or None):      The dimension to normalize, if None the data is normalized to the maximum of the whole dataset, if a dimension is given the normalization is done along this dimension for each other dimension
+        regions (None, list):   Tuple to specify range of normalize reference e.g. (-99., 99.), if None the whole range is used for normalization
 
     Returns:
         data (DNPDdata):        Normalized data object
     """
 
+    if (dim not in data.dims) and (dim is not None):
+        raise ValueError(
+            "Cannot normalize to dim {}, available dimensions are {}".format(
+                dim, data.dims
+            )
+        )
+
     out = data.copy()
 
     if amplitude == True:
-        if regions:
-            factor = _np.max(abs(out["f2", regions].values))
-        else:
-            factor = _np.max(abs(out.values))
+        if regions and (dim is not None):
+            try:
+                factor = _np.atleast_2d(
+                    _np.max(_np.abs(out[dim, regions]), axis=dim)._values
+                ).reshape(1, -1)
+            except AttributeError:
+                # now 1D
+                factor = _np.max(_np.abs(out[dim, regions]), axis=dim)
 
-        out.values = out.values / factor
+            out.unfold(dim)
+            out._values = out.values / factor
+            out.fold()
+
+        elif regions and (dim is None):
+            factor = _np.max(_np.abs(out.values))
+            out._values = out.values / factor
+
+        elif (regions is None) and (dim is None):
+            factor = _np.max(_np.abs(out.values))
+            out._values = out.values / factor
+
+        elif (regions is None) and (dim is not None):
+            try:
+                factor = _np.atleast_2d(
+                    _np.max(_np.abs(out), axis=dim)._values
+                ).reshape(1, -1)
+            except AttributeError:
+                factor = _np.max(_np.abs(out), axis=dim)
+
+            out.unfold(dim)
+            out._values = out.values / factor
+            out.fold()
+
     elif amplitude == False:
         out.values = out.values  # Normalize to area = 1, not implemented yet
 

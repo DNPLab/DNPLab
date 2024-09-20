@@ -1,6 +1,6 @@
 import matplotlib.pyplot as _plt
 import numpy as _np
-from warnings import warn
+from warnings import warn as _warn
 
 from ..core.data import DNPData
 from ..config.config import DNPLAB_CONFIG
@@ -147,11 +147,13 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
     """
 
     if "experiment_type" not in data.attrs:
-        warn("experiment_type not defined in data.attrs, falling back to plot function")
+        _warn(
+            "experiment_type not defined in data.attrs, falling back to plot function"
+        )
         plot(data, *args, **kwargs)
         return
     elif data.attrs["experiment_type"] == None:
-        warn("experiment_type is None, falling back to plot function")
+        _warn("experiment_type is None, falling back to plot function")
         plot(data, *args, **kwargs)
         return
 
@@ -240,7 +242,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
                     else:
                         getattr(fig, prm_key)(*args, **kwargs)
                 except ValueError as e:
-                    warn(
+                    _warn(
                         "Could not set ax/fig attribute {0} to string value {1}, skipping this option! (ValueError: {2})".format(
                             prm_key, (args, kwargs), e
                         )
@@ -269,7 +271,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
                     if prmString[-1] != "\n":
                         prmString += "\n"
                 except KeyError:
-                    warn(
+                    _warn(
                         "Attribute {0} not in data.attributes, skipping this entry!".format(
                             attr
                         )
