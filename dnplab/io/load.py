@@ -263,6 +263,7 @@ def _convert_dnplab_attrs(data, exp_key):
     params_list = params.split("*")
     new_params = 1
     for key in params_list:
+
         params = data.attrs["".join(key.split())]
         if isinstance(params, str):
             if "." in params and (
