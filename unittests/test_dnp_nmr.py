@@ -16,7 +16,7 @@ class dnpNMR_tester(unittest.TestCase):
         t2 = np.r_[0 : 1 : 1j * pts]
         y = np.exp(1j * t2 * omega) * np.exp(-1 * t2 / tau)
         self.data = dnp.DNPData(y, ["t2"], [t2])
-        self.data.attrs["nmr_frequency"] = 400e6
+        self.data.dnplab_attrs["frequency"] = 400e6
 
     def test_basic_nmr_processing(self):
         data = dnp.remove_background(self.data)

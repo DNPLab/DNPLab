@@ -73,7 +73,9 @@ def fourier_transform(
         f -= 1.0 / (2 * dt)
 
     if convert_to_ppm:
-        if "nmr_frequency" not in out.attrs and "topspin" not in out.attrs:
+        if ("frequency" not in out.dnplab_attrs.keys()) and (
+            "topspin" not in out.attrs.keys()
+        ):
             print(
                 "NMR frequency not found in the attrs dictionary. Conversion from ppm to Hz requires the NMR frequency."
             )
@@ -89,7 +91,7 @@ def fourier_transform(
                 - sw * (f.size - 1) / f.size
             )
         else:
-            nmr_frequency = out.attrs["nmr_frequency"]
+            nmr_frequency = out.dnplab_attrs["frequency"]
             f /= nmr_frequency / 1.0e6  # updated
 
     out.values = _np.fft.fft(out.values, n=n_pts, axis=index)

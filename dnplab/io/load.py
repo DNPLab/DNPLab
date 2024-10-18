@@ -265,12 +265,16 @@ def _convert_dnplab_attrs(data, exp_key):
     for key in params_list:
         params = data.attrs["".join(key.split())]
         if isinstance(params, str):
-            try:
-                new_params *= int(re.findall("\d+", params)[0])
-            except:
+            if "." in params and (
+                params.find(".") == len(params) - 1
+                or params[params.find(".") + 1].isdigit()
+            ):  # when number has decimal
                 new_params *= float(
-                    re.findall("[+-]?\d+\.\d+", params)[0]
+                    re.findall(r"[+-]?\d+\.\d+", params)[0]
                 )  # remove unexpected characters
+
+            else:
+                new_params *= int(re.findall(r"\d+", params)[0])
         else:
             new_params *= params
     return new_params * scaling_factor
