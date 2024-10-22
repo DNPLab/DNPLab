@@ -2,6 +2,8 @@ import numpy as _np
 from scipy.optimize import curve_fit
 from ..core.data import DNPData
 
+from functools import partial as _partial
+from ..math import relaxation as _relaxation
 
 def fit(
     f,
@@ -104,3 +106,16 @@ def fit(
     }
 
     return out
+
+"""
+    Specific fit functions, given in relaxation
+
+    use as dnp.fit_t2(dnpData,dim,p0,...) (same as fit)
+"""
+
+_fktNames= ["buildup_function", "general_biexp", "general_exp", "ksigma_smax", "logistic", "t1", "t2"]
+_fitLabel = ["buildup_function", "general_biexp", "general_exp", "ksigma_smax", "logistic", "t1", "t2"]
+
+for ind,labelAndName in enumerate(zip(_fitLabel,_fktNames)):
+    _tmpRefFun = getattr(_relaxation,labelAndName[1])
+    globals()["fit_"+ labelAndName[0] ] = _partial(fit, _tmpRefFun)
