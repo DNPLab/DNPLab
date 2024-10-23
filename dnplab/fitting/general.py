@@ -10,6 +10,7 @@ def fit(
     data,
     dim,
     p0,
+    *args,
     fit_points=None,
     sigma=None,
     absolute_sigma=False,
@@ -25,13 +26,20 @@ def fit(
         f (func): Function used in scipy.curve_fit
         data (DNPData): Data for fit
         dim (str): Dimension to perform fit along
-        p0 (tuple): Initial guess for fit
+        p0 (tuple): Initial guess for fit, can be used as *args
         fit_points (int): Number of points to use in the fit. If None (default), the number of points is the same as the data.
         kwargs: Additional parameters for scipy.curve_fit
 
     Returns:
         out (dict): Dictionary of fit, fitting parameters, and error
     """
+
+    # not can fail for example if __getattr__ is implemented and __iter__ is manaully set
+    if not hasattr(p0,'__iter__'):
+        p0=(p0,)
+    if len(args)>0:
+        p0 = tuple(p0) + tuple(args)
+
 
     fit = data.copy()
 
@@ -113,8 +121,8 @@ def fit(
     use as dnp.fit_t2(dnpData,dim,p0,...) (same as fit)
 """
 
-_fktNames= ["buildup_function", "general_biexp", "general_exp", "ksigma_smax", "logistic", "t1", "t2"]
-_fitLabel = ["buildup_function", "general_biexp", "general_exp", "ksigma_smax", "logistic", "t1", "t2"]
+_fktNames= ["buildup_function", "general_biexp", "general_exp", "ksigma_smax", "logistic", "t1", "t2"] #these need to be defined in the math.relaxation module
+_fitLabel = ["buildup_function", "general_biexp", "general_exp", "ksigma_smax", "logistic", "t1", "t2"] # these will be prefixed with fit_ and are available in the dnplab namespace
 
 for ind,labelAndName in enumerate(zip(_fitLabel,_fktNames)):
     _tmpRefFun = getattr(_relaxation,labelAndName[1])

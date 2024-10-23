@@ -22,7 +22,19 @@ class dnpFit_tester(unittest.TestCase):
         assert_allclose(self.data.values, fit.values)
         assert_array_equal(self.data.coords["x"], fit.coords["x"])
 
-    def test_fit_t2(self):
+    def test_fit_000(self):
+
+        #test for correct fitting names in dnp namespace
+        # the following names with fit_ prefixed must appear in dnplab namespace, for chanigng that change _fitLabel in fitting/general.py and names here
+        names = ["buildup_function", "general_biexp", "general_exp", "ksigma_smax", "logistic", "t1", "t2"]
+        names = ["fit_" + k for k in names]
+        for k in names:
+            if k not in dir(dnp):
+                self.fail("Failed to find function {} in dnpnamespace, check fitting/general for naming?".format(k))
+
+    def test_fit_001(self):
+
+        #make general test of t2 fit function
 
         t = np.linspace(0,10,100)
         y = 2*np.exp(-t/2)
@@ -46,3 +58,9 @@ class dnpFit_tester(unittest.TestCase):
 
         #additional kwarg for curve_fit
         out3 = dnp.fit_t2(data, "tTest", [10,10,5], bounds=(4, np.inf) )
+
+        # allow p0, *args usage
+        out3 = dnp.fit_t2(data, "tTest", 10,10,5, bounds=(4, np.inf) )
+
+        # allow [p0], *args usage
+        out3 = dnp.fit_t2(data, "tTest", [10,10], 5, bounds=(4, np.inf) )
