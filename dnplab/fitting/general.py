@@ -5,6 +5,7 @@ from ..core.data import DNPData
 from functools import partial as _partial
 from ..math import relaxation as _relaxation
 
+
 def fit(
     f,
     data,
@@ -35,11 +36,10 @@ def fit(
     """
 
     # not can fail for example if __getattr__ is implemented and __iter__ is manaully set
-    if not hasattr(p0,'__iter__'):
-        p0=(p0,)
-    if len(args)>0:
+    if not hasattr(p0, "__iter__"):
+        p0 = (p0,)
+    if len(args) > 0:
         p0 = tuple(p0) + tuple(args)
-
 
     fit = data.copy()
 
@@ -115,15 +115,32 @@ def fit(
 
     return out
 
+
 """
     Specific fit functions, given in relaxation
 
     use as dnp.fit_t2(dnpData,dim,p0,...) (same as fit)
 """
 
-_fktNames= ["buildup_function", "general_biexp", "general_exp", "ksigma_smax", "logistic", "t1", "t2"] #these need to be defined in the math.relaxation module
-_fitLabel = ["buildup_function", "general_biexp", "general_exp", "ksigma_smax", "logistic", "t1", "t2"] # these will be prefixed with fit_ and are available in the dnplab namespace
+_fktNames = [
+    "buildup_function",
+    "general_biexp",
+    "general_exp",
+    "ksigma_smax",
+    "logistic",
+    "t1",
+    "t2",
+]  # these need to be defined in the math.relaxation module
+_fitLabel = [
+    "buildup_function",
+    "general_biexp",
+    "general_exp",
+    "ksigma_smax",
+    "logistic",
+    "t1",
+    "t2",
+]  # these will be prefixed with fit_ and are available in the dnplab namespace
 
-for ind,labelAndName in enumerate(zip(_fitLabel,_fktNames)):
-    _tmpRefFun = getattr(_relaxation,labelAndName[1])
-    globals()["fit_"+ labelAndName[0] ] = _partial(fit, _tmpRefFun)
+for ind, labelAndName in enumerate(zip(_fitLabel, _fktNames)):
+    _tmpRefFun = getattr(_relaxation, labelAndName[1])
+    globals()["fit_" + labelAndName[0]] = _partial(fit, _tmpRefFun)
