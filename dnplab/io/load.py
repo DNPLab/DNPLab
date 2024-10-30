@@ -122,6 +122,9 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
     elif data_format == "cnsi_powers":
         data = cnsi.get_powers(path, *args, **kwargs)
 
+    elif data_format == "rs2d":
+        data = rs2d.import_rs2d(path,*args,**kwargs)
+
     else:
         raise ValueError("Invalid data format: %s" % data_format)
 
@@ -194,6 +197,8 @@ def autodetect(test_path, verbose=False):
         data_format = "prospa"
     elif path_exten == ".h5":
         data_format = "h5"
+    elif path_exten in [".xml", ".dat"]:
+        data_format = "rs2d"
     else:
         raise TypeError(
             "No data format given and autodetect failed to detect format, please specify a format"
