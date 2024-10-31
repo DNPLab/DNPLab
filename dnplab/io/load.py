@@ -128,7 +128,7 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
     else:
         raise ValueError("Invalid data format: %s" % data_format)
 
-    if data_format not in ["h5", "power", "vna", "cnsi_powers"]:
+    if data_format not in ["h5", "power", "vna", "cnsi_powers", "rs2d"]:
         data = _assign_dnplab_attrs(data, data_format)
 
     return data

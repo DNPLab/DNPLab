@@ -3,6 +3,7 @@ import pathlib as _pathlib
 import warnings as _warnings
 import struct as _struct
 import numpy as _np
+from .. import DNPData
 
 def import_rs2d(path,*args,datafile="data.dat", headerfile="header.xml", **kwargs):
 
@@ -21,7 +22,7 @@ def import_rs2d(path,*args,datafile="data.dat", headerfile="header.xml", **kwarg
     path = path.with_name(datafile)
     data, dims, coords = _load_rs2d_data( path, attrs, **kwargs )
 
-    data = dnp.DNPData(data, dims, coords,  attrs = attrs)
+    data = DNPData(data, dims, coords,  attrs = attrs)
     dims.reverse()
     data.reorder(dims)
     data.squeeze()
