@@ -84,8 +84,8 @@ def _load_rs2d_data(path, attrs, **kwargs):
 
     data_real = data[slice(0, None, 2)]
     data_imag = data[slice(1, None, 2)]
-    data = _np.array(data_real + 1j * data_imag, dtype=complex)
-
+    data = _np.array(data_real - 1j * data_imag, dtype=complex)
+    data *= 1j
     dimNames = list(
         reversed(
             ["ACQUISITION_MATRIX_DIMENSION_" + str(k) + "D" for k in range(1, 5)]
