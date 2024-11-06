@@ -111,7 +111,7 @@ def integrate(data, dim="f2", regions=None):
             regions = ( (regions[0],regions[1]),)
         data_list = []
         for region in regions:
-            data_list.append(integrate(out[dim, region], dim))
+            data_list.append( integrate(out[dim, region], dim) )
 
         x = _np.array(list(range(len(data_list))))
         dim_name = "integrals"
