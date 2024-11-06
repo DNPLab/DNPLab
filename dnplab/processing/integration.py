@@ -107,6 +107,8 @@ def integrate(data, dim="f2", regions=None):
         #     noise = np.trapz(out.)
 
     else:
+        if len(regions)==2 and (not hasattr(regions[0],"__iter__")): #allow special case of regions=(1,2)
+            regions = ( (regions[0],regions[1]),)
         data_list = []
         for region in regions:
             data_list.append(integrate(out[dim, region], dim))
