@@ -100,6 +100,8 @@ def _load_rs2d_data(path, attrs, **kwargs):
     coords = [_np.arange(k) for k in dimValues]
     try:
         coords[-1] = coords[-1] * float(attrs.get("DWELL_TIME", 1))
+        coords[-2] = coords[-2] * float(attrs.get("Polarisation_Growth_Delay", 1))
+
     except:
         pass
 
