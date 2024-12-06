@@ -125,8 +125,8 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
     elif data_format == "rs2d":
         data = rs2d.import_rs2d(path, *args, **kwargs)
 
-    elif data_format == "mat":
-        data = mat.import_mat(path, *args, **kwargs)
+    # elif data_format == "mat":
+    #     data = mat.import_mat(path, *args, **kwargs)
 
     else:
         raise ValueError("Invalid data format: %s" % data_format)
