@@ -125,10 +125,13 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
     elif data_format == "rs2d":
         data = rs2d.import_rs2d(path, *args, **kwargs)
 
+    elif data_format == "mat":
+        data = mat.import_mat(path, *args, **kwargs)
+
     else:
         raise ValueError("Invalid data format: %s" % data_format)
 
-    if data_format not in ["h5", "power", "vna", "cnsi_powers"]:
+    if data_format not in ["h5", "power", "vna", "cnsi_powers", "mat"]:
         data = _assign_dnplab_attrs(data, data_format)
 
     return data
@@ -199,6 +202,8 @@ def autodetect(test_path, verbose=False):
         data_format = "h5"
     elif path_exten in [".xml", ".dat"]:
         data_format = "rs2d"
+    elif path_exten in [".mat"]:
+        data_format = "mat"
     else:
         raise TypeError(
             "No data format given and autodetect failed to detect format, please specify a format"
