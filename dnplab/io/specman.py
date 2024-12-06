@@ -94,6 +94,9 @@ def load_specman_exp(path):
 
     for i in range(0, len(file_contents)):
         exp_content = str(file_contents[i])
+        if "%%" in exp_content or not exp_content:
+            continue
+
         splt_exp_content = exp_content.split(" = ")
         if "[" in exp_content and "]" in exp_content and "=" not in exp_content:
             c = splt_exp_content[0].replace("[", "").replace("]", "")
