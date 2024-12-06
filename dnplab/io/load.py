@@ -12,7 +12,7 @@ def load(path, data_format=None, dim=None, coord=[], verbose=False, *args, **kwa
 
     Args:
         path (str, list): Path to data directory or list of directories
-        data_format (str): format of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers"
+        data_format (str): format of spectrometer data to import (optional). Allowed values: "prospa", "topspin", "delta", "vnmrj", "tnmr", "specman", "xenon", "xepr", "winepr", "esp", "h5", "power", "vna", "cnsi_powers", "rs2d"
         dim (str): If giving directories as list, name of dimension to concatenate data along
         coord (numpy.ndarray): If giving directories as list, coordinates of new dimension
         verbose (bool): If true, print debugging output
@@ -122,10 +122,16 @@ def load_file(path, data_format=None, verbose=False, *args, **kwargs):
     elif data_format == "cnsi_powers":
         data = cnsi.get_powers(path, *args, **kwargs)
 
+    elif data_format == "rs2d":
+        data = rs2d.import_rs2d(path, *args, **kwargs)
+
+    # elif data_format == "mat":
+    #     data = mat.import_mat(path, *args, **kwargs)
+
     else:
         raise ValueError("Invalid data format: %s" % data_format)
 
-    if data_format not in ["h5", "power", "vna", "cnsi_powers"]:
+    if data_format not in ["h5", "power", "vna", "cnsi_powers", "mat"]:
         data = _assign_dnplab_attrs(data, data_format)
 
     return data
@@ -194,6 +200,10 @@ def autodetect(test_path, verbose=False):
         data_format = "prospa"
     elif path_exten == ".h5":
         data_format = "h5"
+    elif path_exten in [".xml", ".dat"]:
+        data_format = "rs2d"
+    elif path_exten in [".mat"]:
+        data_format = "mat"
     else:
         raise TypeError(
             "No data format given and autodetect failed to detect format, please specify a format"

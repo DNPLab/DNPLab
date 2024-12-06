@@ -1,5 +1,6 @@
 import os
 from .h5 import save_h5
+from .mat import save_mat
 from ..core.data import DNPData
 
 
@@ -30,6 +31,8 @@ def save(data_object, filename, save_type=None, *args, **kwargs):
             raise TypeError(
                 "object format not recognized, must be dnpdata or dnpdata_collection"
             )
+    elif save_type == "mat":
+        return save_mat(data_object, filename)
 
     else:
         raise TypeError("File type not recognized, you must specify a save format")
@@ -41,6 +44,8 @@ def autodetect(test_name):
 
     if os.path.splitext(test_name)[1] == ".h5":
         type = "h5"
+    elif os.path.splitext(test_name)[1] == ".mat":
+        type = "mat"
     else:
         raise TypeError("File type not recognized, you must specify a save format")
 
