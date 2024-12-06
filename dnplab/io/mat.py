@@ -57,11 +57,14 @@ def import_mat(path):
     shape = np.shape(values)
     dims = _get_dims(data, shape)
     coords = _get_coords(data, shape)
-    attrs = _get_attrs(data, "attrs")
-    dnplab_attrs = _get_attrs(data, "dnplab_attrs")
-    proc_attrs = eval(
-        str(_get_attrs(data, "proc_attrs")).replace("__PYTHON_NONE__", "None")
-    )
+    # attrs = _get_attrs(data, "attrs")
+    # dnplab_attrs = _get_attrs(data, "dnplab_attrs")
+    # proc_attrs = eval(
+    #     str(_get_attrs(data, "proc_attrs")).replace("__PYTHON_NONE__", "None")
+    # )
+    attrs = {}
+    dnplab_attrs = {}
+    proc_attrs = []
 
     data = _dnp.DNPData(
         values=values,
@@ -131,20 +134,20 @@ def _get_coords(data, shapes):
     return coords
 
 
-def _get_attrs(data, key="attrs"):
-    """
-    Get attrs in data
+# def _get_attrs(data, key="attrs"):
+#     """
+#     Get attrs in data
 
-    Args:
-        data (dict)                 Mat data
-        key (str)                   Key to attributes
+#     Args:
+#         data (dict)                 Mat data
+#         key (str)                   Key to attributes
 
-    Returns:
-        attrs (dict, list)          Saved attributes in .mat file
-    """
+#     Returns:
+#         attrs (dict, list)          Saved attributes in .mat file
+#     """
 
-    attrs = data.get(key, {})
-    if attrs:
-        attrs = eval(attrs[0])
+#     attrs = data.get(key, {})
+#     if attrs:
+#         attrs = eval(attrs[0])
 
-    return attrs
+#     return attrs
