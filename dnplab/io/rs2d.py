@@ -50,7 +50,10 @@ def _load_rs2d_header(path):
                 key = entry.find("key").text
                 value = entry.find("value").find("value").text
                 try:
-                    value = eval(value)  # make string of number to integer or float
+                    if value.isdigit():
+                        value = int(value)
+                    else:
+                        value = float(value)
                 except:
                     continue
                 temp_attrs.__setitem__(key, value)
