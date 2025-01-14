@@ -56,9 +56,9 @@ print(popt.values) # print optimal fitting values
 # %%
 # Now we plot the data, initial guess and fit
 
-figure('data')
+dnp.plt.figure('data')
 dnp.plot(data, label = 'data')
 dnp.plot(guess, label = 'guess')
 dnp.plot(fit, label = 'fit')
-legend()
-show()
+dnp.plt.legend()
+dnp.plt.show()
