@@ -251,6 +251,7 @@ def signal_to_noise(
 
     """
     import warnings
+
     # import scipy.optimize as _scipy_optimize
 
     # convenience for signal and noise region
@@ -320,12 +321,13 @@ def signal_to_noise(
         )
 
     # now calculate noise
-    print(noise_region)
     noise = []
     for indx in range(sdata.shape[1]):
         idata = sdata[dim, :, "fold_index", indx]
         if (None, None) in noise_region:
-            raise ValueError('Noise Region Must be specified. Give noise region as a list of tuples.\nFor example, noise_region = [(0.0, 1.0)] corresponds to noise region between 0 and 1.')
+            raise ValueError(
+                "Noise Region Must be specified. Give noise region as a list of tuples.\nFor example, noise_region = [(0.0, 1.0)] corresponds to noise region between 0 and 1."
+            )
 
         # concatenate noise_regions
         noise_0 = idata[dim, noise_region[0], "fi", 0]

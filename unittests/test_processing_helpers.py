@@ -70,7 +70,7 @@ class dnpTools_tester(unittest.TestCase):
         # pseudo_modulation
         dnp.processing.pseudo_modulation(self.data, 0.1, dim="t2")
 
-    def test_000_funcionality_signal_to_noise(self):
+    def test_000_functionality_signal_to_noise(self):
         """
         check only whether the function raises no error with DNPData input, not whether rsults are useful
         alot of simple tests lumped together
@@ -126,18 +126,18 @@ class dnpTools_tester(unittest.TestCase):
         self.assertEqual(snr.shape, (1,))
 
         # with defaults
-        snr = f(data)
+        snr = f(data, noise_region = [(0,1)])
         # with slices
-        snr = f(data, slice(0, None), remove_background=[(100, 200)])
+        snr = f(data, slice(0, None), noise_region = [(0,1)], remove_background=[(100, 200)])
 
         # with more than one signal region:
-        snr = f(data, [slice(0, None), (100, 300)])
+        snr = f(data, [slice(0, None), (100, 300)], noise_region = [(0,1)])
         self.assertEqual(snr.shape[0], 2)
 
         self.assertEqual(snr.shape, (2,))
 
         # multiple noise regions
-        snr2 = f(data, (0, 1000), remove_background=[(100, 200)])
+        snr2 = f(data, (0, 1000), noise_region = [(0,1)], remove_background=[(100, 200)])
         snr = f(
             data,
             slice(0, None),
