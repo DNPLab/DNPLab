@@ -152,6 +152,8 @@ def load_dsc(path):
                     attrs["x_type"] = "nonlinear"
                 elif xtyp == "IDX":
                     attrs["x_type"] = "linear"
+                elif xtyp == "NODATA":
+                    attrs["x_type"] = "NODATA"
 
             elif "XFMT" in par:
                 attrs["x_format"] = _return_data_type(par, "XFMT")
@@ -172,6 +174,8 @@ def load_dsc(path):
                     attrs["y_type"] = "nonlinear"
                 elif ytyp == "IDX":
                     attrs["y_type"] = "linear"
+                elif ytyp == "NODATA":
+                    attrs["y_type"] = "NODATA"
 
             elif "YFMT" in par:
                 attrs["y_format"] = _return_data_type(par, "YFMT")
@@ -192,6 +196,8 @@ def load_dsc(path):
                     attrs["z_type"] = "nonlinear"
                 elif ztyp == "IDX":
                     attrs["z_type"] = "linear"
+                elif ztyp == "NODATA":
+                    attrs["z_type"] = "NODATA"
 
             elif "ZFMT" in par:
                 attrs["z_format"] = _return_data_type(par, "ZFMT")
@@ -203,7 +209,8 @@ def load_dsc(path):
                 attrs["imag_format"] = _return_data_type(par, "IIFMT")
 
             elif "IKKF" in par:
-                attrs["data_type"] = par.replace("IKKF", "").strip()
+                attrs["data_type"] = par.replace("IKKF", "").strip().split(",")[0]
+                attrs["data_dim"] = len(par.replace("IKKF", "").strip().split(","))
             elif "BSEQ" in par:
                 attrs["endian"] = par.replace("BSEQ", "").strip()
 
@@ -228,12 +235,12 @@ def load_dsc(path):
         )
 
     for x in ["x", "y", "z"]:
-        if x + "_format" not in attrs.keys():
+        if x + "_format" not in attrs.keys() and attrs[x + "_type"] != "NODATA":
             if attrs["data_type"] == "REAL":
                 attrs[x + "_format"] = attrs["real_format"]
             elif attrs["data_type"] == "CPLX":
                 attrs[x + "_format"] = attrs["imag_format"]
-
+            attrs[x + "_dim"] = attrs["data_dim"]
     return attrs
 
 
@@ -296,6 +303,11 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, attrs={}):
         )
     elif attrs["data_type"] == "REAL":
         values = values.astype(dtype=attrs["real_format"]).view()
+
+    if attrs["x_dim"] >= 2:
+        values = _np.reshape(values, (attrs["x_points"], attrs["data_dim"]), order="C")
+        coords.append(_np.arange(attrs["data_dim"]))
+        dims.append('X')
 
     if (
         "z_points" not in attrs.keys()
@@ -428,7 +440,7 @@ def load_gf_files(
 
 
 def _return_data_type(par, key):
-    fmt = par.replace(key, "").strip()
+    fmt = par.replace(key, "").strip().split(",")[0]
     if fmt == "D":
         return "float64"
     elif fmt == "F":
