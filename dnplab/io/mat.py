@@ -1,5 +1,5 @@
 """
-Save or load mat file 
+Save or load mat file
 
 Author: Yen-Chun Huang, Timothy Keller
 

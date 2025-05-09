@@ -307,7 +307,7 @@ def load_dta(path_dta, path_xgf=None, path_ygf=None, path_zgf=None, attrs={}):
     if attrs["x_dim"] >= 2:
         values = _np.reshape(values, (attrs["x_points"], attrs["data_dim"]), order="C")
         coords.append(_np.arange(attrs["data_dim"]))
-        dims.append('X')
+        dims.append("X")
 
     if (
         "z_points" not in attrs.keys()

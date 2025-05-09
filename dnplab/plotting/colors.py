@@ -1,4 +1,4 @@
-""" Standard dnplab colors """
+"""Standard dnplab colors"""
 
 from ..config.config import DNPLAB_CONFIG
 
