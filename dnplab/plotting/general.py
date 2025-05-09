@@ -5,15 +5,6 @@ from warnings import warn as _warn
 from ..core.data import DNPData
 from ..config.config import DNPLAB_CONFIG
 
-"""
-Standard dnplab colors
-
-dark_green = DNPLAB_CONFIG.get('COLORS','dark_green')
-light_green = DNPLAB_CONFIG.get('COLORS','light_green')
-dark_grey = DNPLAB_CONFIG.get('COLORS','dark_grey')
-light_grey = DNPLAB_CONFIG.get('COLORS','light_grey')
-orange=DNPLAB_CONFIG.get('COLORS','orange')
-"""
 
 # hand curated list of plotting arguments that are forwarded, from config file
 _forwarded_pyplot_plots = DNPLAB_CONFIG.getlist("PLOTTING", "forwarded_pyplot_plots")
