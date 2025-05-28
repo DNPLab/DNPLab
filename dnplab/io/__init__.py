@@ -1,5 +1,6 @@
 """Modules for importing (experimental) data and exporting data and results"""
 
+from . import load
 from . import prospa
 from . import topspin
 from . import delta
@@ -16,3 +17,5 @@ from . import random
 from . import load_csv
 from . import rs2d
 from . import mat
+from . import logs
+
