@@ -138,7 +138,6 @@ def import_delta_pars(path, context_start):
 
                 params[if_params_key] = line
                 if_params_key = None
-
             if "=" in line:
                 if "when" in line:  # is a when condition
                     when_condition_dict = {}
@@ -195,7 +194,7 @@ def import_delta_pars(path, context_start):
                     elif val == "FALSE":  # Boolean True
                         val = False
                     elif val.isdigit():  # just number
-                        val = eval(val)
+                        val = int(val)
                     elif (
                         "[" in val
                         and "]" in val
@@ -206,7 +205,7 @@ def import_delta_pars(path, context_start):
                             val.replace("[", ",").replace("]", "").split(",")
                         )  # separate value and unit
                         params[key + "_unit"] = unit
-                        val = eval(val)
+                        val = float(val)
                     elif val[0] == "?" or "round" in val:  # math operation
                         val = val.replace("?", "")
                         try:
@@ -230,17 +229,26 @@ def import_delta_pars(path, context_start):
                                         temp_val = temp_val.replace(
                                             var, 'params["%s"]' % var
                                         )
+                                temp_val = temp_val.replace("/", "*1/").replace(
+                                    "-", "+ -1 * "
+                                )  # for safty, remove '-' and '/' from string
                                 val = eval("%s" % temp_val)
                         except:
                             pass
 
                     elif "{" in val and "}" in val:  # is a list
                         val = val.replace("{", "[").replace("}", "]")
-                        try:
-                            if "(" not in val and ")" not in val:
-                                val = eval("%s" % val)
-                        except:
-                            pass
+                        # list_index = val.find("[")
+
+                        # if (
+                        #     list_index == 0
+                        # ):  # when there are some information before this val
+                        #     try:
+                        #         if "(" not in val and ")" not in val:
+                        #             val = eval("%s" % val)
+
+                        #     except:
+                        #         pass
 
                     if in_when_condition:
                         for condition_key, acceptance in when_condition_dict.items():
@@ -356,10 +364,24 @@ def import_delta_data(path, params={}, verbose=False):
     params = {**params, **context}
     abscissa = []
 
+    # analyze the coords
+    pre_defined_axis = ["x", "y", "z", "t"]
     for k in range(Data_Dimension_Number):
-        abscissa.append(
-            _np.linspace(Data_Axis_Start[k], Data_Axis_Stop[k], Valid_pts[k])
-        )
+        axis = pre_defined_axis[k]
+        interval = params.get("interval")
+        if interval and axis in interval:
+            val = params["interval"].replace("%s_acq" % axis, "")
+            val = val.replace("[ks]", "e3")
+            val = val.replace("[s]", "")
+            val = val.replace("[ms]", "e-3")
+            val = val.replace("[us]", "e-6")
+            val = val.replace("[ns]", "e-9")
+            val = val.replace("[ps]", "e-12")
+            abscissa.append(np.array(eval(val)))
+        else:
+            abscissa.append(
+                _np.linspace(Data_Axis_Start[k], Data_Axis_Stop[k], Valid_pts[k])
+            )
 
     file_opened = open(path, "rb")
     file_opened.seek(Data_Start)

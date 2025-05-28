@@ -2,30 +2,30 @@ from warnings import warn
 
 import numpy as _np
 from ..constants import constants as _const
-import scipy.optimize
+import scipy.optimize as _scoptimize
 
 # nonsymetric stencils and nonuniform stencils would be possible but might only come at a later point
 # https://en.wikipedia.org/wiki/Finite_difference_coefficient
-cStencil = {
+_cStencil = {
     1: [1 / 12, -2 / 3, 0, 2 / 3, -1 / 12],
     2: [-1 / 12, 4 / 3, -5 / 2, 4 / 3, -1 / 12],
     3: [1 / 8, -1, 13 / 8, 0, -13 / 8, 1, -1 / 8],
     4: [-1 / 6, 2, -13 / 2, 28 / 3, -13 / 2, 2, -1 / 6],
 }
 # forward and backward parts for endings
-fStencil = {
+_fStencil = {
     1: [-25 / 12, 4, -3, 4 / 3, -1 / 4],
     2: [15 / 4, -77 / 6, 107 / 6, -13, 61 / 12, -5 / 6],
     3: [-49 / 8, 29, -461 / 8, 62, -307 / 8, 13, -15 / 8],
     4: [28 / 3, -111 / 2, 142, -1219 / 6, 176, -185 / 2, 82 / 3, -7 / 2],
 }
-bStencil = {}
-for key, value in fStencil.items():
+_bStencil = {}
+for key, value in _fStencil.items():
     value = _np.array(value)
     if key % 2 == 0:
-        bStencil[key] = _np.array(list(reversed(value)))
+        _bStencil[key] = _np.array(list(reversed(value)))
     else:
-        bStencil[key] = -1 * _np.array(list(reversed(value)))
+        _bStencil[key] = -1 * _np.array(list(reversed(value)))
 
 
 def autophase(
@@ -122,14 +122,14 @@ def autophase(
 def _deriveF(f, dx, deriv=4):
     df = _np.zeros(f.size)  # f is 1d!
 
-    global cStencil
-    global fStencil
-    global bStencil
+    global _cStencil
+    global _fStencil
+    global _bStencil
     # central part
     try:
-        cStencil_loc = cStencil[deriv]
-        fStencil_loc = fStencil[deriv]
-        bStencil_loc = bStencil[deriv]
+        cStencil_loc = _cStencil[deriv]
+        fStencil_loc = _fStencil[deriv]
+        bStencil_loc = _bStencil[deriv]
     except KeyError:
         raise NotImplementedError(
             "only the following derivatives orders are implemented: {0}, but {1} was selected".format(
@@ -197,7 +197,7 @@ def _autophase(data, coords, dim, deriv, gamma):
     dx = _np.diff(coords)[0]
 
     # fopt, iterations, funcalls, warnflag, allvecs
-    xopt, fopt, iter, funcalls, warnflags = scipy.optimize.fmin(
+    xopt, fopt, iter, funcalls, warnflags = _scoptimize.fmin(
         _optimfun,
         [0, 0],
         args=(raw_data, deriv, gamma, dx),
@@ -281,11 +281,17 @@ def phase(data, dim="f2", p0=0.0, p1=0.0, pivot=None):
 
     """
     # get rid of discontuity of mod @0
-    p0_neg = _np.where(p0 < 0)
-    p1_neg = _np.where(p1 < 0)
+    if not isinstance(p0, _np.ndarray):
+        p0 = _np.array([p0])
 
-    p0 = _np.atleast_1d(_np.array(_np.mod(_np.abs(p0), 360)))
-    p1 = _np.atleast_1d(_np.array(_np.mod(_np.abs(p1), 360)))
+    if not isinstance(p1, _np.ndarray):
+        p1 = _np.array([p1])
+
+    p0_neg = [x for x in range(len(p0)) if p0[x] < 0]
+    p1_neg = [x for x in range(len(p1)) if p1[x] < 0]
+
+    p0 = _np.asarray(_np.mod(_np.abs(p0), 360))
+    p1 = _np.asarray(_np.mod(_np.abs(p1), 360))
     p0[p0_neg] = p0[p0_neg] * -1
     p0[p1_neg] = p0[p1_neg] * -1
 

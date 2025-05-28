@@ -73,14 +73,15 @@ def fourier_transform(
         f -= 1.0 / (2 * dt)
 
     if convert_to_ppm:
-        if ("nmr_frequency" not in out.attrs.keys()) and (
+        if ("frequency" not in out.dnplab_attrs.keys()) and (
             "topspin" not in out.attrs.keys()
         ):
-            warn(
+            print(
                 "NMR frequency not found in the attrs dictionary. Conversion from ppm to Hz requires the NMR frequency."
             )
+
         # linked to topspin.py through special attr "_topspin_procs_offset"
-        if out.attrs.get("_topspin_procs_offset", False) is not False:
+        elif out.attrs.get("_topspin_procs_offset", False) is not False:
             # assume that OFFSET gives first ppm value shown by spectrometer
             offset = out.attrs["_topspin_procs_offset"]
             sw = out.attrs["SW"]
@@ -90,7 +91,7 @@ def fourier_transform(
                 - sw * (f.size - 1) / f.size
             )
         else:
-            nmr_frequency = out.attrs["nmr_frequency"]
+            nmr_frequency = out.dnplab_attrs["frequency"]
             f /= nmr_frequency / 1.0e6  # updated
 
     out.values = _np.fft.fft(out.values, n=n_pts, axis=index)

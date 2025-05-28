@@ -5,6 +5,8 @@ from ..core.data import DNPData
 from ..processing.offset import remove_background as _dnp_remove_background
 from ..constants import constants as _const
 
+import warnings as _warnings
+
 from scipy.special import jv as _jv
 from scipy.fft import fft as _fft
 from scipy.fft import ifft as _ifft
@@ -83,10 +85,8 @@ def _create_complexEXT(data, real, imag):
 def _create_complexINT(dnpdata, dim, real=0, imag=1):
     try:
         if len(dnpdata.coords[dim]) != 2:
-            raise ValueError(
-                "create_complex: Dimension {0} has length {1} != 2".format(
-                    dim, len(dnpdata.coords[dim])
-                )
+            _warnings.warn(
+                "Dim {} has length > 2 ({}), use real and imag keywords! Not used elements are discarded."
             )
     except KeyError:
         raise KeyError(
@@ -101,22 +101,15 @@ def _create_complexINT(dnpdata, dim, real=0, imag=1):
         if k == dim:
             break
         cut_position = cut_position + 1
-    if real == 0 and imag == 1:
-        out[dim, 0] = out[dim, 0]._values + 1j * out[dim, 1]._values
-    elif real == 1 and imag == 0:
-        out[dim, 0] = out[dim, 1]._values + 1j * out[dim, 0]._values
-    else:
-        raise ValueError(
-            "create_complex: only real=0 and imag=1 or other way around allowed! you chose {}/{}".format(
-                real, imag
-            )
-        )
+    out[dim, 0] = out[dim, real]._values + 1j * out[dim, imag]._values
     axis_int = 0
     for k in dnpdata.dims:
         if k == dim:
             break
         axis_int = axis_int + 1
-    out._values = _np.delete(out._values, 1, axis=axis_int)
+    out._values = _np.delete(
+        out._values, slice(1, None, None), axis=axis_int
+    )  # list(range(out.shape[axis_int]))
     out.coords[dim] = _np.array([0])
 
     shape = out.shape
@@ -258,7 +251,8 @@ def signal_to_noise(
 
     """
     import warnings
-    import scipy.optimize as _scipy_optimize
+
+    # import scipy.optimize as _scipy_optimize
 
     # convenience for signal and noise region
     def _convenience_tuple_to_list(possible_region: list):
@@ -331,12 +325,9 @@ def signal_to_noise(
     for indx in range(sdata.shape[1]):
         idata = sdata[dim, :, "fold_index", indx]
         if (None, None) in noise_region:
-            signal_arg = _np.argmax(idata[dim, signal_region[0], "fi", 0])
-            datasize = idata[dim, :, "fi", 0].size
-            noise_region = [
-                slice(0, int(_np.maximum(2, int(signal_arg * 0.9)))),
-                slice(int(_np.minimum(datasize - 2, int(signal_arg * 1.1))), None),
-            ]
+            raise ValueError(
+                "Noise Region Must be specified. Give noise region as a list of tuples.\nFor example, noise_region = [(0.0, 1.0)] corresponds to noise region between 0 and 1."
+            )
 
         # concatenate noise_regions
         noise_0 = idata[dim, noise_region[0], "fi", 0]

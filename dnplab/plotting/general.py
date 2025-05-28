@@ -5,26 +5,30 @@ from warnings import warn as _warn
 from ..core.data import DNPData
 from ..config.config import DNPLAB_CONFIG
 
-"""
-Standard dnplab colors
-
-dark_green = DNPLAB_CONFIG.get('COLORS','dark_green')
-light_green = DNPLAB_CONFIG.get('COLORS','light_green')
-dark_grey = DNPLAB_CONFIG.get('COLORS','dark_grey')
-light_grey = DNPLAB_CONFIG.get('COLORS','light_grey')
-orange=DNPLAB_CONFIG.get('COLORS','orange')
-"""
 
 # hand curated list of plotting arguments that are forwarded, from config file
 _forwarded_pyplot_plots = DNPLAB_CONFIG.getlist("PLOTTING", "forwarded_pyplot_plots")
 
 
-_cycler_list = [
+_plt.rcParams["lines.linewidth"] = 1.5
+
+_cycler_list_colors = [
     DNPLAB_CONFIG.get("COLORS", color_key)
     for color_key in DNPLAB_CONFIG["COLORS"].keys()
 ]
-_plt.rcParams["lines.linewidth"] = 1.5
-_plt.rcParams["axes.prop_cycle"] = _plt.cycler(color=_cycler_list)
+_cycler_list_styles = ["-", ":", "-."]
+_customColorLinesyleCycler = _plt.cycler(linestyle=_cycler_list_styles) * _plt.cycler(
+    color=_cycler_list_colors
+)
+_plt.rcParams["axes.prop_cycle"] = _customColorLinesyleCycler
+
+# As discussed: for now change the rcParams, we do not use a temporary context - the values are stored in the dnplab config
+_plt.rcParams["font.family"] = "Arial"
+_plt.rcParams["pdf.fonttype"] = 42
+_plt.rcParams["font.size"] = 14
+
+# default context
+# _dnpContext = {"font.family": "Arial", "pdf.fonttype": 42, "font.size":14}
 
 show = _plt.show
 
@@ -84,7 +88,6 @@ def plot(data, *args, **kwargs):
     data.unfold(dim)
 
     # default context
-    dnpContext = {"font.family": "Arial", "pdf.fonttype": 42}
 
     # will try to plot various pyplot utility plot functions into same axis, the use should know what he does!
     # no unittest added, but only hand tested with semilogy and normal plot works as intended ni fancy_plot)
@@ -96,15 +99,13 @@ def plot(data, *args, **kwargs):
             plot_function_list.append(getattr(_plt, k))
             use_default = False
             plot_return = []
-    with _plt.rc_context(dnpContext):
-        for f in plot_function_list:
-            plot_return.append(f(coord, data.values.real, *args, **kwargs))
+    for f in plot_function_list:
+        plot_return.append(f(coord, data.values.real, *args, **kwargs))
     if use_default:
-        with _plt.rc_context(dnpContext):
-            plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
-    fontsize_xlabel = DNPLAB_CONFIG.getint("PLOTTING", "fontsize_xlabel")
-    _plt.xlabel(dim, fontsize=fontsize_xlabel)
-    _plt.ylabel("", fontsize=fontsize_xlabel)
+        plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
+    # fontsize_xlabel = DNPLAB_CONFIG.getint("PLOTTING", "fontsize_xlabel")
+    _plt.xlabel(dim)  # , fontsize=fontsize_xlabel)
+    # _plt.ylabel("", fontsize=fontsize_xlabel)
     data.fold()
 
     return plot_return
@@ -135,9 +136,6 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         >>> dnp.fancy_plot(data, xlim=[344, 354], title="EPR Spectrum", showPar=True)
 
     """
-
-    # default context
-    dnpContext = {"font.family": "Arial", "pdf.fonttype": 42}
 
     if "experiment_type" not in data.attrs:
         _warn(
@@ -171,23 +169,22 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
         coord = data.coords[dim]
         data.unfold(dim)
 
-        with _plt.rc_context(dnpContext):
-            plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
-            _plt.xlabel("Chemical Shift $\delta$ (ppm)")
-            _plt.ylabel("NMR Signal Intensity (a.u.)")
+        plot_return = _plt.plot(coord, data.values.real, *args, **kwargs)
+        _plt.xlabel("Chemical Shift $\delta$ (ppm)")
+        _plt.ylabel("NMR Signal Intensity (a.u.)")
 
-            _plt.xlim(max(coord), min(coord))
+        _plt.xlim(max(coord), min(coord))
 
-            if xlim != []:
-                _plt.xlim(xlim[1], xlim[0])
+        if xlim != []:
+            _plt.xlim(xlim[1], xlim[0])
 
-            if showPar == True:
-                parameterString = "Freq: " + str(round(data.attrs["nmr_frequency"], 4))
+        if showPar == True:
+            parameterString = "Freq: " + str(round(data.attrs["nmr_frequency"], 4))
 
-                box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
-                xmin, xmax, ymin, ymax = _plt.axis()
+            box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
+            xmin, xmax, ymin, ymax = _plt.axis()
 
-                _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
+            _plt.text(xmin * 0.95, ymax / 10, parameterString, bbox=box_style)
 
         data.fold()
 
@@ -214,16 +211,15 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             kwargs
         )  # calling values take precedence over config values
 
-        with _plt.rc_context(dnpContext):
-            plot_return = _plt.plot(
-                coord,
-                data.values.real * get_float_key("value_scaling"),
-                *args,
-                **plt_config_kwargs
-            )
+        plot_return = _plt.plot(
+            coord,
+            data.values.real * get_float_key("value_scaling"),
+            *args,
+            **plt_config_kwargs
+        )
 
-            if xlim != []:
-                _plt.xlim(xlim[0], xlim[1])
+        if xlim != []:
+            _plt.xlim(xlim[0], xlim[1])
 
         ax = _plt.gca()
         fig = _plt.gcf()
@@ -244,8 +240,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
                     )
 
         if title != "":
-            with _plt.rc_context(dnpContext):
-                _plt.title(title)
+            _plt.title(title)
 
         if showPar:
             prmString = ""
@@ -278,8 +273,7 @@ def fancy_plot(data, xlim=[], title="", showPar=False, *args, **kwargs):
             box_style = dict(boxstyle="round", facecolor="white", alpha=0.25)
             xmin, xmax, ymin, ymax = _plt.axis()
 
-            with _plt.rc_context(dnpContext):
-                _plt.text(xmin * 1.001, ymin * 0.90, prmString, bbox=box_style)
+            _plt.text(xmin * 1.001, ymin * 0.90, prmString, bbox=box_style)
 
         data.fold()
 
