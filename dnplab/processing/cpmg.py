@@ -8,7 +8,6 @@ from numpy import random as _random
 
 from .integration import integrate
 
-
 def cpmg_detect_first_echo(
     data, region=[0, -1], graphical_output=True, use_real=True, verbose=False
 ):
@@ -76,6 +75,10 @@ def cpmg_detect_first_echo(
 
     if graphical_output == True:
 
+        # This is a bit hacky, but the standard font size is too large when using subplots
+        plot_font_size = 12
+        _plt.rcParams["font.size"] = plot_font_size
+
         _plt.subplot(2, 1, 1)
         _plt.plot(t, signal, color=_dnp.colors.secondary2, label="Transient")
         _plt.plot(
@@ -90,11 +93,11 @@ def cpmg_detect_first_echo(
             color=_dnp.colors.accent,
             linestyle="--",
         )
-        _plt.title(plot_title_pre_text + ". First Echo at: " + str(t_echo) + " ns")
+        _plt.title(plot_title_pre_text + ". 1st Echo at: " + str(t_echo) + " ns", fontsize = plot_font_size)
         _plt.xlabel("Time (ns)")
         _plt.ylabel("Signal (a.u.)")
         _plt.grid(True)
-        _plt.legend()
+        # _plt.legend(loc="lower right")
 
         _plt.subplot(2, 2, 3)
         _plt.plot(
@@ -112,6 +115,10 @@ def cpmg_detect_first_echo(
             linestyle="--",
         )
         _plt.grid(True)
+        _plt.xlabel("Time (ns)")
+        _plt.ylabel("Signal (a.u.)")
+        _plt.title("1st Echo", fontsize = plot_font_size)
+
 
         _plt.tight_layout()
         _plt.show()
@@ -259,9 +266,14 @@ def cpmg_show_integration_region(
 
     # Plot results
     if graphical_output == True:
+
+        # This is a bit hacky, but the standard font size is too large when using subplots
+        plot_font_size = 12
+        _plt.rcParams["font.size"] = plot_font_size
+
         _plt.subplot(2, 1, 1)
         _plt.plot(data.coords["t2"].real, data.values.real, color=_dnp.colors.primary1)
-        _plt.title(plot_title_pre_text)
+        _plt.title(plot_title_pre_text, fontsize = plot_font_size)
         _plt.xlabel("Time (ns)")
         _plt.ylabel("Signal (a.u.)")
         _plt.grid(True)
@@ -319,7 +331,7 @@ def cpmg_show_integration_region(
 
         _plt.subplot(2, 2, 3)
         _plt.plot(t_int_window, echo_slice.real)
-        _plt.title("Echo Slices")
+        _plt.title("Echo Slices", fontsize = plot_font_size)
         _plt.xlabel("Time (ns)")
         _plt.ylabel("Signal (a.u.)")
         _plt.grid(True)
@@ -328,7 +340,7 @@ def cpmg_show_integration_region(
         _plt.subplot(2, 2, 4)
         _plt.plot(_np.linspace(1, n_echo, n_echo), snr.real, ".-")
         # _plt.plot(echo_slice_smoothed[0])
-        _plt.title("Relative SNR Increase")
+        _plt.title("Relative SNR Increase", fontsize = plot_font_size)
         _plt.xlabel("Number of Echoes")
         _plt.ylabel("SNR")
         _plt.grid(True)
@@ -354,6 +366,7 @@ def cpmg_integrate(data, regions, dim="t2", alternate=True):
         regions (None, list):   List of tuples defining the region to integrate
         dim (str):              Dimension to perform integration. Default is "t2"
         alternate (boolean):    Alternate the sign of the echo traces. Default is true
+        normalize (boolean):    Normalize trace of integration. Default is true
 
     Returns:
         data (DNPData):         Integrals of data. If multiple regions are given the first value corresponds to the first region, the second value corresponds to the second region, etc.
