@@ -16,3 +16,4 @@ from . import random
 from . import load_csv
 from . import rs2d
 from . import mat
+from . import logs

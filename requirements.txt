@@ -3,3 +3,4 @@ scipy==1.14.0
 matplotlib==3.9.0
 h5py==3.11.0
 scikit-rf==1.1.0
+logs-py
